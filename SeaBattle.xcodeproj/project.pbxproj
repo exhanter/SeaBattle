@@ -13,6 +13,7 @@
 		2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */; };
 		2C4AE0EB2C875FC90013DF12 /* Aldrich-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */; };
 		2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */; };
+		2C529E7F2CDB979F00741AC0 /* LaunchScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C529E7E2CDB979F00741AC0 /* LaunchScreenView.swift */; };
 		2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84702B6E99620001A20C /* SeaBattleApp.swift */; };
 		2C6A84732B6E99620001A20C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84722B6E99620001A20C /* ContentView.swift */; };
 		2C6A84752B6E99640001A20C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C6A84742B6E99640001A20C /* Assets.xcassets */; };
@@ -47,6 +48,7 @@
 		2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementView.swift; sourceTree = "<group>"; };
 		2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aldrich-Regular.ttf"; sourceTree = "<group>"; };
 		2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinAlertView.swift; sourceTree = "<group>"; };
+		2C529E7E2CDB979F00741AC0 /* LaunchScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreenView.swift; sourceTree = "<group>"; };
 		2C6A846D2B6E99620001A20C /* SeaBattle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SeaBattle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C6A84702B6E99620001A20C /* SeaBattleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBattleApp.swift; sourceTree = "<group>"; };
 		2C6A84722B6E99620001A20C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 			children = (
 				2CED70AF2C78E00D0006546F /* Info.plist */,
 				2C6A84702B6E99620001A20C /* SeaBattleApp.swift */,
+				2C529E7E2CDB979F00741AC0 /* LaunchScreenView.swift */,
 				2C6A84722B6E99620001A20C /* ContentView.swift */,
 				2C12714D2C85E047001548F4 /* CustomTabView.swift */,
 				2C6A84882B73D3960001A20C /* PlayerFieldView.swift */,
@@ -249,6 +252,7 @@
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* EnemyFieldViewViewModel.swift in Sources */,
 				2C12714A2C81F2C7001548F4 /* gameScoreView.swift in Sources */,
+				2C529E7F2CDB979F00741AC0 /* LaunchScreenView.swift in Sources */,
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
@@ -387,6 +391,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -397,9 +402,9 @@
 				INFOPLIST_FILE = SeaBattle/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreenView;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -419,6 +424,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -429,9 +435,9 @@
 				INFOPLIST_FILE = SeaBattle/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreenView;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

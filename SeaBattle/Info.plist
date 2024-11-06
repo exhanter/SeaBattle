@@ -7,5 +7,15 @@
 		<string>Dorsa-Regular.ttf</string>
 		<string>Aldrich-Regular.ttf</string>
 	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIImageName</key>
+		<string>wood</string>
+	</dict>
+	<key>UILaunchScreens</key>
+	<dict>
+		<key>UILaunchScreen</key>
+		<dict/>
+	</dict>
 </dict>
 </plist>
