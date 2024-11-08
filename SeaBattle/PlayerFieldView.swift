@@ -2,7 +2,7 @@
 //  MyShipsView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 07/02/2024.
+//  Created by Ivan Tkachev on 07/02/2024.
 //
 
 import SwiftUI

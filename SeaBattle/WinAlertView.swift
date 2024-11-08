@@ -2,7 +2,7 @@
 //  WinAlertView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 05/09/2024.
+//  Created by Ivan Tkachev on 05/09/2024.
 //
 
 import SwiftUI

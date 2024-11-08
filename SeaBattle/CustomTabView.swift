@@ -2,7 +2,7 @@
 //  CustomTabView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 02/09/2024.
+//  Created by Ivan Tkachev on 02/09/2024.
 //
 import SwiftUI
 

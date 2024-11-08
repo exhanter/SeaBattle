@@ -2,7 +2,7 @@
 //  Cell.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 12/07/2024.
+//  Created by Ivan Tkachev on 12/07/2024.
 //
 
 import Foundation

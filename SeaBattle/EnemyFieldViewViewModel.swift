@@ -2,7 +2,7 @@
 //  BattleFieldView-ViewModel.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 19/07/2024.
+//  Created by Ivan Tkachev on 19/07/2024.
 //
 
 import Foundation
@@ -69,7 +69,7 @@ extension EnemyFieldView {
             if target.name == "Player" {
                 player.potentialCellsForFinishingDamagedShip = nil
                 sound = "Glass_Break-stephan_schutze-958181291.wav"
-                player.defineSafeAreaNearShip(ship: ship)
+                if player.difficultyLevel != .easy { player.defineSafeAreaNearShip(ship: ship) }
             }
             if target.numberShipsDestroyed == 10 {
                 PlayerData.musicPlayer?.stop()
@@ -83,191 +83,105 @@ extension EnemyFieldView {
         
         func definePriorityTargetCells(row: Int, column: Int) -> [(Int, Int)]? {
             var arrayOfCells = [(Int, Int)]()
-            switch player.difficultyLevel {
-                
-            case .easy:
-                
-                if row != 1 && player.cells[row - 2][column - 1].cellStatus == .showShipOnFire { // check upper cell if it was damaged
-                    for step in 1...2 {
-                        if row - 2 - step >= 0 && player.cells[row - 2 - step][column - 1].cellStatus != .showShipOnFire {
-                            if player.cells[row - 2 - step][column - 1].cellStatus == .missed {
-                                arrayOfCells.append((row + 1, column))
-                                return arrayOfCells
-                            } else if player.cells[row - 2 - step][column - 1].cellStatus != .showShipOnFire || player.cells[row - 2 - step][column - 1].cellStatus != .destroyed {
-                                arrayOfCells.append((row - 1 - step, column))
-                                if row != 10 {
-                                    if player.cells[row][column - 1].cellStatus != .showShipOnFire || player.cells[row][column - 1].cellStatus != .destroyed {
-                                        arrayOfCells.append((row + 1, column))
-                                    }
-                                }
+            let upperCell = row == 1 ? Cell(column: 0, row: 0) : player.cells[row - 2][column - 1]
+            let bottomCell = row == 10 ? Cell(column: 0, row: 0) : player.cells[row][column - 1]
+            let leftCell = column == 1 ? Cell(column: 0, row: 0) : player.cells[row - 1][column - 2]
+            let rightCell = column == 10 ? Cell(column: 0, row: 0) : player.cells[row - 1][column]
+            
+            if row != 1 && upperCell.cellStatus == .showShipOnFire { // check upper cell if it was damaged
+                for step in 1...2 {
+                    let upperUpperRow = row - 2 - step
+                    let upperUpperCell = player.cells[upperUpperRow][column - 1]
+                    if upperUpperRow >= 0 && upperUpperCell.cellStatus != .showShipOnFire {
+                        if upperUpperCell.cellStatus == .missed || !upperUpperCell.isAvailable {
+                            arrayOfCells.append((row + 1, column)) // add bottom cell to array
+                            return arrayOfCells
+                        } else if upperUpperCell.isAvailable {
+                            arrayOfCells.append((upperUpperRow + 1, column)) // add upper upper cell to array
+                            if row != 10 && bottomCell.isAvailable {
+                                arrayOfCells.append((row + 1, column)) // add bottom cell to array
                             }
-                            return arrayOfCells
-                        } else if row - 2 - step < 0 {
-                            arrayOfCells.append((row + 1, column))
-                            return arrayOfCells
                         }
+                        return arrayOfCells
+                    } else if upperUpperRow < 0 {
+                        arrayOfCells.append((row + 1, column)) // add bottom cell to array
+                        return arrayOfCells
                     }
-                }
-                
-                if row != 10 && player.cells[row][column - 1].cellStatus == .showShipOnFire { // check lower cell if it was damaged
-                    for step in 1...2 {
-                        if row + step < 10 && player.cells[row + step][column - 1].cellStatus != .showShipOnFire {
-                            if player.cells[row + step][column - 1].cellStatus != .showShipOnFire || player.cells[row + step][column - 1].cellStatus != .destroyed {
-                                arrayOfCells.append((row - 1, column))
-                                return arrayOfCells
-                            } else if player.cells[row + step][column - 1].cellStatus == .unknown {
-                                arrayOfCells.append((row + 1 + step, column))
-                                if row != 1 {
-                                    if player.cells[row - 2][column - 1].cellStatus != .showShipOnFire || player.cells[row - 2][column - 1].cellStatus != .destroyed {
-                                        arrayOfCells.append((row - 1, column))
-                                    }
-                                }
-                            }
-                            return arrayOfCells
-                        } else if row + step >= 10 {
-                            arrayOfCells.append((row - 1, column))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                
-                if column != 1 && player.cells[row - 1][column - 2].cellStatus == .showShipOnFire { // check left cell if it was damaged
-                    for step in 1...2 {
-                        if column - 2 - step >= 0 && player.cells[row - 1][column - 2 - step].cellStatus != .showShipOnFire {
-                            if player.cells[row - 1][column - 2 - step].cellStatus == .missed {
-                                arrayOfCells.append((row, column + 1))
-                                return arrayOfCells
-                            } else if player.cells[row - 1][column - 2 - step].cellStatus != .showShipOnFire || player.cells[row - 1][column - 2 - step].cellStatus != .destroyed  {
-                                arrayOfCells.append((row, column - 1 - step))
-                                if column != 10 {
-                                    if player.cells[row - 1][column].cellStatus != .showShipOnFire || player.cells[row - 1][column].cellStatus != .destroyed {
-                                        arrayOfCells.append((row, column + 1))
-                                    }
-                                }
-                            }
-                            return arrayOfCells
-                        } else if column - 2 - step < 0 {
-                            arrayOfCells.append((row, column + 1))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                if column != 10 && player.cells[row - 1][column].cellStatus == .showShipOnFire { // check right cell if it was damaged
-                    for step in 1...2 {
-                        if column + step < 10 && player.cells[row - 1][column + step].cellStatus != .showShipOnFire {
-                            if player.cells[row - 1][column + step].cellStatus == .missed {
-                                arrayOfCells.append((row, column - 1))
-                                return arrayOfCells
-                            } else if player.cells[row - 1][column + step].cellStatus != .showShipOnFire || player.cells[row - 1][column + step].cellStatus != .destroyed {
-                                arrayOfCells.append((row, column + 1 + step))
-                                if column != 1 {
-                                    if player.cells[row - 1][column - 2].cellStatus != .showShipOnFire || player.cells[row - 1][column - 2].cellStatus != .destroyed {
-                                        arrayOfCells.append((row, column - 1))
-                                    }
-                                }
-                            }
-                            return arrayOfCells
-                        } else if column + step >= 10 {
-                            arrayOfCells.append((row, column - 1))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                if row != 1 && player.cells[row - 2][column - 1].isAvailable {    arrayOfCells.append((row - 1, column)) }
-                if row != 10 && player.cells[row][column - 1].isAvailable {       arrayOfCells.append((row + 1, column)) }
-                if column != 1 && player.cells[row - 1][column - 2].isAvailable { arrayOfCells.append((row, column - 1)) }
-                if column != 10 && player.cells[row - 1][column].isAvailable {    arrayOfCells.append((row, column + 1)) }
-                print("Returing array of cells: \(arrayOfCells)")
-                return arrayOfCells
-                
-            case .medium, .hard:
-                
-                if row != 1 && player.cells[row - 2][column - 1].cellStatus == .showShipOnFire { // check upper cell if it was damaged
-                    for step in 1...2 {
-                        if row - 2 - step >= 0 && player.cells[row - 2 - step][column - 1].cellStatus != .showShipOnFire {
-                            if player.cells[row - 2 - step][column - 1].cellStatus == .missed || !player.cells[row - 2 - step][column - 1].isAvailable {
-                                arrayOfCells.append((row + 1, column))
-                                return arrayOfCells
-                            } else if player.cells[row - 2 - step][column - 1].isAvailable {
-                                arrayOfCells.append((row - 1 - step, column))
-                                if row != 10 && player.cells[row][column - 1].isAvailable {
-                                    arrayOfCells.append((row + 1, column))
-                                }
-                            }
-                            return arrayOfCells
-                        } else if row - 2 - step < 0 {
-                            arrayOfCells.append((row + 1, column))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                
-                if row != 10 && player.cells[row][column - 1].cellStatus == .showShipOnFire { // check lower cell if it was damaged
-                    for step in 1...2 {
-                        if row + step < 10 && player.cells[row + step][column - 1].cellStatus != .showShipOnFire {
-                            if player.cells[row + step][column - 1].cellStatus == .missed || !player.cells[row + step][column - 1].isAvailable {
-                                arrayOfCells.append((row - 1, column))
-                                return arrayOfCells
-                            } else if player.cells[row + step][column - 1].isAvailable {
-                                arrayOfCells.append((row + 1 + step, column))
-                                if row != 1 && player.cells[row - 2][column - 1].isAvailable {
-                                    arrayOfCells.append((row - 1, column))
-                                }
-                            }
-                            return arrayOfCells
-                        } else if row + step >= 10 {
-                            arrayOfCells.append((row - 1, column))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                
-                if column != 1 && player.cells[row - 1][column - 2].cellStatus == .showShipOnFire { // check left cell if it was damaged
-                    for step in 1...2 {
-                        if column - 2 - step >= 0 && player.cells[row - 1][column - 2 - step].cellStatus != .showShipOnFire {
-                            if player.cells[row - 1][column - 2 - step].cellStatus == .missed || !player.cells[row - 1][column - 2 - step].isAvailable {
-                                arrayOfCells.append((row, column + 1))
-                                return arrayOfCells
-                            } else if player.cells[row - 1][column - 2 - step].isAvailable {
-                                arrayOfCells.append((row, column - 1 - step))
-                                if column != 10 && player.cells[row - 1][column].isAvailable {
-                                    arrayOfCells.append((row, column + 1))
-                                }
-                            }
-                            return arrayOfCells
-                        } else if column - 2 - step < 0 {
-                            arrayOfCells.append((row, column + 1))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                if column != 10 && player.cells[row - 1][column].cellStatus == .showShipOnFire { // check right cell if it was damaged
-                    for step in 1...2 {
-                        if column + step < 10 && player.cells[row - 1][column + step].cellStatus != .showShipOnFire {
-                            if player.cells[row - 1][column + step].cellStatus == .missed || !player.cells[row - 1][column + step].isAvailable {
-                                arrayOfCells.append((row, column - 1))
-                                return arrayOfCells
-                            } else if player.cells[row - 1][column + step].isAvailable {
-                                arrayOfCells.append((row, column + 1 + step))
-                                if column != 1 && player.cells[row - 1][column - 2].isAvailable {
-                                    arrayOfCells.append((row, column - 1))
-                                }
-                            }
-                            return arrayOfCells
-                        } else if column + step >= 10 {
-                            arrayOfCells.append((row, column - 1))
-                            return arrayOfCells
-                        }
-                    }
-                }
-                
-                if row != 1 && player.cells[row - 2][column - 1].isAvailable {    arrayOfCells.append((row - 1, column)) }
-                if row != 10 && player.cells[row][column - 1].isAvailable {       arrayOfCells.append((row + 1, column)) }
-                if column != 1 && player.cells[row - 1][column - 2].isAvailable { arrayOfCells.append((row, column - 1)) }
-                if column != 10 && player.cells[row - 1][column].isAvailable {    arrayOfCells.append((row, column + 1)) }
-                return arrayOfCells
                 }
             }
+            
+            if row != 10 && bottomCell.cellStatus == .showShipOnFire { // check lower cell if it was damaged
+                for step in 1...2 {
+                    let bottomBottomRow = row + step
+                    let bottomBottomCell = player.cells[bottomBottomRow][column - 1]
+                    
+                    if row + step < 10 && bottomBottomCell.cellStatus != .showShipOnFire {
+                        if bottomBottomCell.cellStatus == .missed || !bottomBottomCell.isAvailable {
+                            arrayOfCells.append((row - 1, column)) // add upper cell to array
+                            return arrayOfCells
+                        } else if bottomBottomCell.isAvailable {
+                            arrayOfCells.append((bottomBottomRow + 1, column)) // add bottom bottom cell to array
+                            if row != 1 && upperCell.isAvailable {
+                                arrayOfCells.append((row - 1, column)) // add upper cell to array
+                            }
+                        }
+                        return arrayOfCells
+                    } else if bottomBottomRow >= 10 {
+                        arrayOfCells.append((row - 1, column)) // add upper cell to array
+                        return arrayOfCells
+                    }
+                }
+            }
+            
+            if column != 1 && leftCell.cellStatus == .showShipOnFire { // check left cell if it was damaged
+                for step in 1...2 {
+                    let leftLeftColumn = column - 2 - step
+                    let leftLeftCell = player.cells[row - 1][leftLeftColumn]
+                    if leftLeftColumn >= 0 && leftLeftCell.cellStatus != .showShipOnFire {
+                        if leftLeftCell.cellStatus == .missed || !leftLeftCell.isAvailable {
+                            arrayOfCells.append((row, column + 1)) // add right cell to array
+                            return arrayOfCells
+                        } else if leftLeftCell.isAvailable {
+                            arrayOfCells.append((row, leftLeftColumn + 1)) // add left left cell to array
+                            if column != 10 && rightCell.isAvailable {
+                                arrayOfCells.append((row, column + 1)) // add right cell to array
+                            }
+                        }
+                        return arrayOfCells
+                    } else if leftLeftColumn < 0 {
+                        arrayOfCells.append((row, column + 1)) // add right cell to array
+                        return arrayOfCells
+                    }
+                }
+            }
+            if column != 10 && rightCell.cellStatus == .showShipOnFire { // check right cell if it was damaged
+                for step in 1...2 {
+                    let rightRightColumn = column + step
+                    let rightRightCell = player.cells[row - 1][rightRightColumn]
+                    if column + step < 10 && rightRightCell.cellStatus != .showShipOnFire {
+                        if rightRightCell.cellStatus == .missed || !rightRightCell.isAvailable {
+                            arrayOfCells.append((row, column - 1)) // add left cell to array
+                            return arrayOfCells
+                        } else if rightRightCell.isAvailable {
+                            arrayOfCells.append((row, rightRightColumn + 1)) // add right right cell to array
+                            if column != 1 && leftCell.isAvailable {
+                                arrayOfCells.append((row, column - 1)) // add left cell to array
+                            }
+                        }
+                        return arrayOfCells
+                    } else if rightRightColumn >= 10 {
+                        arrayOfCells.append((row, column - 1)) // add left cell to array
+                        return arrayOfCells
+                    }
+                }
+            }
+            
+            if row != 1 && upperCell.isAvailable     { arrayOfCells.append((row - 1, column)) }
+            if row != 10 && bottomCell.isAvailable   { arrayOfCells.append((row + 1, column)) }
+            if column != 1 && leftCell.isAvailable   { arrayOfCells.append((row, column - 1)) }
+            if column != 10 && rightCell.isAvailable { arrayOfCells.append((row, column + 1)) }
+            return arrayOfCells
+        }
         
         func computerTurn() {
             var coordinatesForFire = (0, 0)

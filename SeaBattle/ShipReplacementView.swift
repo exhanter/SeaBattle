@@ -3,7 +3,7 @@
 //  ShipReplacementView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 06/09/2024.
+//  Created by Ivan Tkachev on 06/09/2024.
 //
 
 import SwiftUI

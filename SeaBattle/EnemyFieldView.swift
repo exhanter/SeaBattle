@@ -2,7 +2,7 @@
 //  BattleFieldView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 03/02/2024.
+//  Created by Ivan Tkachev on 03/02/2024.
 //
 
 import SwiftUI

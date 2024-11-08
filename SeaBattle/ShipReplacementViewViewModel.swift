@@ -2,7 +2,7 @@
 //  ShipReplacementViewViewModel.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 13/09/2024.
+//  Created by Ivan Tkachev on 13/09/2024.
 //
 
 import SwiftUI

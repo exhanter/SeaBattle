@@ -2,7 +2,7 @@
 //  AboutView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 06/02/2024.
+//  Created by Ivan Tkachev on 06/02/2024.
 //
 
 import SwiftUI

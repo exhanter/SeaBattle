@@ -2,7 +2,7 @@
 //  LaunchScreenView.swift
 //  SeaBattle
 //
-//  Created by Иван Ткачев on 06/11/2024.
+//  Created by Ivan Tkachev on 06/11/2024.
 //
 
 import SwiftUI
