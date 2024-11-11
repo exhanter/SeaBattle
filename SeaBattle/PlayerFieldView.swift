@@ -31,7 +31,7 @@ struct PlayerFieldView: View {
                     }
                             Button {
                                 if player.soundIsOn {
-                                    PlayerData.playSound(sound: "click2_sound.wav")
+                                    PlayerData.playSound(sound: "click_sound.wav")
                                 }
                                 manualShipArrangement.toggle()
                                 player.tabsBlocked.toggle()
@@ -41,6 +41,7 @@ struct PlayerFieldView: View {
                             .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
                             .disabled(player.gameIsActive)
                             .disabled(player.shipIsDragging.contains(true))
+                            .opacity(player.gameIsActive ? 0.5 : 1)
                             .padding(.bottom, geometry.size.height * 0.01)
                         ZStack {
                             VStack(spacing: 0) {

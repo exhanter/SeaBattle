@@ -91,7 +91,7 @@ extension EnemyFieldView {
             if row != 1 && upperCell.cellStatus == .showShipOnFire { // check upper cell if it was damaged
                 for step in 1...2 {
                     let upperUpperRow = row - 2 - step
-                    let upperUpperCell = player.cells[upperUpperRow][column - 1]
+                    let upperUpperCell = upperUpperRow < 0 ? player.cells[0][0] : player.cells[upperUpperRow][column - 1]
                     if upperUpperRow >= 0 && upperUpperCell.cellStatus != .showShipOnFire {
                         if upperUpperCell.cellStatus == .missed || !upperUpperCell.isAvailable {
                             arrayOfCells.append((row + 1, column)) // add bottom cell to array
@@ -113,9 +113,8 @@ extension EnemyFieldView {
             if row != 10 && bottomCell.cellStatus == .showShipOnFire { // check lower cell if it was damaged
                 for step in 1...2 {
                     let bottomBottomRow = row + step
-                    let bottomBottomCell = player.cells[bottomBottomRow][column - 1]
-                    
-                    if row + step < 10 && bottomBottomCell.cellStatus != .showShipOnFire {
+                    let bottomBottomCell = bottomBottomRow < 10 ? player.cells[bottomBottomRow][column - 1] : player.cells[0][0]
+                    if bottomBottomRow < 10 && bottomBottomCell.cellStatus != .showShipOnFire {
                         if bottomBottomCell.cellStatus == .missed || !bottomBottomCell.isAvailable {
                             arrayOfCells.append((row - 1, column)) // add upper cell to array
                             return arrayOfCells
@@ -136,7 +135,7 @@ extension EnemyFieldView {
             if column != 1 && leftCell.cellStatus == .showShipOnFire { // check left cell if it was damaged
                 for step in 1...2 {
                     let leftLeftColumn = column - 2 - step
-                    let leftLeftCell = player.cells[row - 1][leftLeftColumn]
+                    let leftLeftCell = leftLeftColumn < 0 ? player.cells[0][0] : player.cells[row - 1][leftLeftColumn]
                     if leftLeftColumn >= 0 && leftLeftCell.cellStatus != .showShipOnFire {
                         if leftLeftCell.cellStatus == .missed || !leftLeftCell.isAvailable {
                             arrayOfCells.append((row, column + 1)) // add right cell to array
@@ -157,8 +156,8 @@ extension EnemyFieldView {
             if column != 10 && rightCell.cellStatus == .showShipOnFire { // check right cell if it was damaged
                 for step in 1...2 {
                     let rightRightColumn = column + step
-                    let rightRightCell = player.cells[row - 1][rightRightColumn]
-                    if column + step < 10 && rightRightCell.cellStatus != .showShipOnFire {
+                    let rightRightCell = rightRightColumn < 10 ? player.cells[row - 1][rightRightColumn] : player.cells[0][0]
+                    if rightRightColumn < 10 && rightRightCell.cellStatus != .showShipOnFire {
                         if rightRightCell.cellStatus == .missed || !rightRightCell.isAvailable {
                             arrayOfCells.append((row, column - 1)) // add left cell to array
                             return arrayOfCells

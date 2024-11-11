@@ -90,36 +90,27 @@ import AVFoundation
     var fireStrokeArray = [[Bool]]()
     
     func shipsRandomArrangement() {
+        self.shipPositions = Array(repeating: .zero, count: 10)
         let ship4 = randomDataForShip(number: 0, numberOfDecks: 4)
         defineSafeAreaNearShip(ship: ship4)
-        self.shipPositions[0] = .zero
         let ship31 = randomDataForShip(number: 1, numberOfDecks: 3)
         defineSafeAreaNearShip(ship: ship31)
-        self.shipPositions[1] = .zero
         let ship32 = randomDataForShip(number: 2, numberOfDecks: 3)
         defineSafeAreaNearShip(ship: ship32)
-        self.shipPositions[2] = .zero
         let ship21 = randomDataForShip(number: 3, numberOfDecks: 2)
         defineSafeAreaNearShip(ship: ship21)
-        self.shipPositions[3] = .zero
         let ship22 = randomDataForShip(number: 4, numberOfDecks: 2)
         defineSafeAreaNearShip(ship: ship22)
-        self.shipPositions[4] = .zero
         let ship23 = randomDataForShip(number: 5, numberOfDecks: 2)
         defineSafeAreaNearShip(ship: ship23)
-        self.shipPositions[5] = .zero
         let ship11 = randomDataForShip(number: 6, numberOfDecks: 1)
         defineSafeAreaNearShip(ship: ship11)
-        self.shipPositions[6] = .zero
         let ship12 = randomDataForShip(number: 7, numberOfDecks: 1)
         defineSafeAreaNearShip(ship: ship12)
-        self.shipPositions[7] = .zero
         let ship13 = randomDataForShip(number: 8, numberOfDecks: 1)
         defineSafeAreaNearShip(ship: ship13)
-        self.shipPositions[8] = .zero
         let ship14 = randomDataForShip(number: 9, numberOfDecks: 1)
         defineSafeAreaNearShip(ship: ship14)
-        self.shipPositions[9] = .zero
         makeCellsAvailableAgain()
         self.ships = [ship4, ship31, ship32, ship21, ship22, ship23, ship11, ship12, ship13, ship14]
     }
