@@ -69,7 +69,6 @@ struct PlayerFieldView: View {
                         .ignoresSafeArea()
 
                     Button {
-                        print("Enemys turn: \(player.enemysTurn)")
                         if !player.gameIsActive {
                             if player.musicIsOn {
                                 PlayerData.playMusic(sound: "Battles_on_the_High_Seas.mp3")

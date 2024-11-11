@@ -218,12 +218,10 @@ extension EnemyFieldView {
                 // If some ship was damaged, we need to find it's undamaged cells first
                 if let arrayOfPriorityCells = player.potentialCellsForFinishingDamagedShip {
                     if arrayOfPriorityCells.count > 0 {
-                        print("Array from findAvailable...: \(arrayOfPriorityCells)")
                         repeat {
                             coordinates = arrayOfPriorityCells.randomElement()!
                             row = coordinates.0
                             column = coordinates.1
-                            print("Cell from findAvailable...: \(row) \(column) is available \(player.cells[row - 1][column - 1].isAvailable)")
                         } while !player.cells[row - 1][column - 1].isAvailable
                     } else {
                         row = Int.random(in: 1...10)
@@ -235,7 +233,6 @@ extension EnemyFieldView {
                     column = Int.random(in: 1...10)
                     coordinates = (row, column)
                 }
-                print("Circle is \(row) \(column) while meet conditions")
             } while !meetConditionsToDefineCellForFire(coordinates: coordinates)
             return coordinates
         }
@@ -245,7 +242,6 @@ extension EnemyFieldView {
             let column = coordinates.1
             switch player.difficultyLevel {
             case .easy:
-                print("Cell available at \(row) \(column) is \(player.cells[row - 1][column - 1].isAvailable)")
                 return player.cells[row - 1][column - 1].isAvailable ? true : false
             case .medium:
                 return player.cells[row - 1][column - 1].isAvailable ? true : false
