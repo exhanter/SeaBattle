@@ -78,7 +78,21 @@ import AVFoundation
     
     // common properties like static
     var tabsBlocked = false
-    var difficultyLevel: DifficultyLevel = .hard
+    
+    var difficultyLevel: DifficultyLevel {
+        switch self.difficulty {
+        case 0:
+            return .easy
+        case 1:
+            return .medium
+        case 2:
+            return .hard
+        default:
+            return .easy
+        }
+    }
+    var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
+    
     var enemysTurn = false
     var gameIsActive = false
     var soundIsOn = true

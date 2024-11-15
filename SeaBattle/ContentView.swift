@@ -44,12 +44,22 @@ struct ContentView: View {
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                             .padding()
                             Group {
-                                Picker("Select Difficulty", selection: $player.difficultyLevel) {
-                                    ForEach(PlayerData.DifficultyLevel.allCases, id: \.self) {
-                                        Text("\($0)")
+                                Picker("Select Difficulty", selection: $player.difficulty) {
+                                    ForEach(0...2, id: \.self) {
+                                        switch $0 {
+                                        case 0:
+                                            Text("Easy")
+                                        case 1:
+                                            Text("Medium")
+                                        case 2:
+                                            Text("Hard")
+                                        default:
+                                            Text("Unknown")
+                                        }
                                     }
                                 }
                                 .onChange(of: player.difficultyLevel) {
+                                    UserDefaults.standard.set(player.difficulty, forKey: "difficulty")
                                     if player.soundIsOn {
                                         PlayerData.playSound(sound: "click_sound.wav")
                                     }
