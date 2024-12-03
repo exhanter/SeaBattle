@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2C12714A2C81F2C7001548F4 /* gameScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1271492C81F2C7001548F4 /* gameScoreView.swift */; };
+		2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1271492C81F2C7001548F4 /* GameScoreView.swift */; };
 		2C12714C2C831194001548F4 /* Dorsa-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */; };
 		2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C12714D2C85E047001548F4 /* CustomTabView.swift */; };
 		2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */; };
@@ -35,13 +35,12 @@
 		2CE3E3F32CB41AA0003AF40E /* click_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EA2CB41AA0003AF40E /* click_sound.wav */; };
 		2CE3E3F42CB41AA0003AF40E /* start_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */; };
 		2CE3E3F52CB41AA0003AF40E /* victory_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */; };
-		2CE3E3F72CB6777D003AF40E /* click2_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3F62CB6777D003AF40E /* click2_sound.wav */; };
 		2CED70B52C7C90420006546F /* ArcButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70B42C7C90420006546F /* ArcButton.swift */; };
 		2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70BC2C7C9F520006546F /* WoodenButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2C1271492C81F2C7001548F4 /* gameScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = gameScoreView.swift; sourceTree = "<group>"; };
+		2C1271492C81F2C7001548F4 /* GameScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScoreView.swift; sourceTree = "<group>"; };
 		2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Dorsa-Regular.ttf"; sourceTree = "<group>"; };
 		2C12714D2C85E047001548F4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementView.swift; sourceTree = "<group>"; };
@@ -70,7 +69,6 @@
 		2CE3E3EB2CB41AA0003AF40E /* defeat_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = defeat_sound.wav; sourceTree = "<group>"; };
 		2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = start_sound.wav; sourceTree = "<group>"; };
 		2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = victory_sound.wav; sourceTree = "<group>"; };
-		2CE3E3F62CB6777D003AF40E /* click2_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click2_sound.wav; sourceTree = "<group>"; };
 		2CED70AF2C78E00D0006546F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2CED70B42C7C90420006546F /* ArcButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcButton.swift; sourceTree = "<group>"; };
 		2CED70BC2C7C9F520006546F /* WoodenButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoodenButton.swift; sourceTree = "<group>"; };
@@ -112,7 +110,7 @@
 				2C12714D2C85E047001548F4 /* CustomTabView.swift */,
 				2C6A84882B73D3960001A20C /* PlayerFieldView.swift */,
 				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
-				2C1271492C81F2C7001548F4 /* gameScoreView.swift */,
+				2C1271492C81F2C7001548F4 /* GameScoreView.swift */,
 				2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */,
 				2CC35ACA2C4AACE8009138FF /* EnemyFieldViewViewModel.swift */,
 				2C6A84822B723C0E0001A20C /* AboutView.swift */,
@@ -152,7 +150,6 @@
 				2CE3E3EB2CB41AA0003AF40E /* defeat_sound.wav */,
 				2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */,
 				2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */,
-				2CE3E3F62CB6777D003AF40E /* click2_sound.wav */,
 				2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */,
 			);
 			path = Sound;
@@ -216,7 +213,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2CE3E3F72CB6777D003AF40E /* click2_sound.wav in Resources */,
 				2CA38D042CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav in Resources */,
 				2C6A84782B6E99640001A20C /* Preview Assets.xcassets in Resources */,
 				2C4AE0EB2C875FC90013DF12 /* Aldrich-Regular.ttf in Resources */,
@@ -248,7 +244,7 @@
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* EnemyFieldViewViewModel.swift in Sources */,
-				2C12714A2C81F2C7001548F4 /* gameScoreView.swift in Sources */,
+				2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */,
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
@@ -392,7 +388,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SeaBattle/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4W6GGN5KK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SeaBattle/Info.plist;
@@ -434,7 +430,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SeaBattle/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4W6GGN5KK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SeaBattle/Info.plist;

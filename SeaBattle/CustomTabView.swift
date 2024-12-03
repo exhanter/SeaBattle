@@ -18,7 +18,7 @@ struct CustomTabView: View {
                 .frame(height: height)
             HStack {
                 Button {
-                    if player.soundIsOn {
+                    if player.soundOn {
                         PlayerData.playSound(sound: "click_sound.wav")
                     }
                     player.selectedTab = .menu
@@ -38,7 +38,7 @@ struct CustomTabView: View {
                 .opacity(player.tabsBlocked ? 0.5 : 1)
                 .padding(.horizontal)
                 Button {
-                    if player.soundIsOn {
+                    if player.soundOn {
                         PlayerData.playSound(sound: "click_sound.wav")
                     }
                         player.selectedTab = .playerView
@@ -58,7 +58,7 @@ struct CustomTabView: View {
                 .opacity(player.tabsBlocked ? 0.5 : 1)
                 .padding(.horizontal)
                 Button {
-                    if player.soundIsOn {
+                    if player.soundOn {
                         PlayerData.playSound(sound: "click_sound.wav")
                     }
                         player.selectedTab = .enemyView
@@ -78,7 +78,7 @@ struct CustomTabView: View {
                 .opacity(player.tabsBlocked ? 0.5 : 1)
                 .padding(.horizontal)
                 Button {
-                    if player.soundIsOn {
+                    if player.soundOn {
                         PlayerData.playSound(sound: "click_sound.wav")
                     }
                     player.selectedTab = .about

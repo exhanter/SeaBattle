@@ -16,6 +16,7 @@ import AVFoundation
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about
     }
+    static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?
     static var soundPlayer: AVAudioPlayer?
     static var shipIsPlaced: [Bool] = Array(repeating: true, count: 10)
@@ -34,7 +35,7 @@ import AVFoundation
     
     static func playSound(sound: String) {
         var level: Float = 1.0
-        if sound == "Glass_Break-stephan_schutze-958181291.wav" {
+        if sound == "Glass_Break-stephan_schutze-958181291.wav" || sound == "blast_missed.wav" {
             level = 2.0
         }
         guard let soundURL = Bundle.main.url(forResource: sound, withExtension: "") else { return }
@@ -81,22 +82,22 @@ import AVFoundation
     
     var difficultyLevel: DifficultyLevel {
         switch self.difficulty {
-        case 0:
+        case 2:
             return .easy
         case 1:
             return .medium
-        case 2:
+        case 0:
             return .hard
         default:
-            return .easy
+            return .hard
         }
     }
     var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
     
     var enemysTurn = false
     var gameIsActive = false
-    var soundIsOn = true
-    var musicIsOn = true
+    var soundOn: Bool
+    var musicOn: Bool
     var selectedTab: SelectedTabs = .menu
     var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
     var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
@@ -244,6 +245,14 @@ import AVFoundation
     }
     
     init(name: String) {
+        let defaults = UserDefaults.standard
+        if !defaults.bool(forKey: "notFirstLaunch") {
+            defaults.set(true, forKey: "musicOn")
+            defaults.set(true, forKey: "soundOn")
+            defaults.set(true, forKey: "notFirstLaunch")
+        }
+        self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
+        self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.name = name
         var boolArray = [Bool()]
         for row in 1...10 {

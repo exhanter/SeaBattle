@@ -40,7 +40,7 @@ struct EnemyFieldView: View {
                                             player.fireStrokeArray[row - 1][column - 1] = false
                                         }
                                         enemyViewModel.checkShipOnFire(row: row, column: column, target: enemy)
-                                        if player.soundIsOn {
+                                        if player.soundOn {
                                             enemyViewModel.chooseSound(row: row - 1, column: column - 1)
                                         }
                                         if player.enemysTurn {
@@ -87,7 +87,7 @@ struct EnemyFieldView: View {
                         }
                     WinAlertView(isPlayerWon: true, text: "Victory!")
                         .onAppear {
-                            if player.soundIsOn {
+                            if player.soundOn {
                                 PlayerData.playSound(sound: "victory_sound.wav")
                             }
                         }

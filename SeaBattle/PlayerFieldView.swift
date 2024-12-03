@@ -11,6 +11,7 @@ struct PlayerFieldView: View {
     
     @State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
+    @State private var isBouncing = false
     
     var enemy: PlayerData
     var player: PlayerData
@@ -30,7 +31,7 @@ struct PlayerFieldView: View {
                             .padding(.bottom, geometry.size.height * 0.02)
                     }
                             Button {
-                                if player.soundIsOn {
+                                if player.soundOn {
                                     PlayerData.playSound(sound: "click_sound.wav")
                                 }
                                 manualShipArrangement.toggle()
@@ -69,8 +70,9 @@ struct PlayerFieldView: View {
                         .ignoresSafeArea()
 
                     Button {
+                        isBouncing = false
                         if !player.gameIsActive {
-                            if player.musicIsOn {
+                            if player.musicOn {
                                 PlayerData.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                             }
                             player.gameIsActive = true
@@ -78,6 +80,9 @@ struct PlayerFieldView: View {
                             player.selectedTab = .enemyView
                         } else if player.gameIsActive {
                             player.selectedTab = .enemyView
+                        }
+                        if player.soundOn {
+                            PlayerData.playSound(sound: "click_sound.wav")
                         }
                     } label: {
                         Text(player.gameIsActive ? "Your turn!" : "Start")
@@ -88,6 +93,14 @@ struct PlayerFieldView: View {
                     .opacity(player.enemysTurn ? 0.5 : 1)
                     .opacity(player.tabsBlocked ? 0.5 : 1)
                     .padding(.bottom, geometry.size.height * 0.15)
+                    .onChange(of: player.enemysTurn) { _, newValue in
+                        if newValue == false {
+                            withAnimation(.spring(duration: 0.3, bounce: 0.9, blendDuration: 0).repeatCount(1, autoreverses: false).delay(2)) {
+                                isBouncing = true
+                            }
+                        }
+                    }
+                    .scaleEffect(isBouncing ? 1.05 : 1)
                 }
                 .ignoresSafeArea()
                 if player.showFinishGameAlert {
@@ -99,7 +112,7 @@ struct PlayerFieldView: View {
                         }
                     WinAlertView(isPlayerWon: false, text: "Defeat!")
                         .onAppear {
-                            if player.soundIsOn {
+                            if player.soundOn {
                                 PlayerData.playSound(sound: "defeat_sound.wav")
                             }
                         }

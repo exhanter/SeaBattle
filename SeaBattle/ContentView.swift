@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     
+    // Apple ID 6738694687
+    
     @State private var enemy = PlayerData(name: "Enemy")
     @State private var player = PlayerData(name: "Player")
     
@@ -26,8 +28,8 @@ struct ContentView: View {
                             Image("warship8NB")
                             Spacer()
                             Button {
-                                if player.soundIsOn {
-                                    PlayerData.playSound(sound: "click2_sound.wav")
+                                if player.soundOn {
+                                    PlayerData.playSound(sound: "click_sound.wav")
                                 }
                                 if !player.gameIsActive {
                                     PlayerData.resetData(player: player, enemy: enemy)
@@ -45,46 +47,49 @@ struct ContentView: View {
                             .padding()
                             Group {
                                 Picker("Select Difficulty", selection: $player.difficulty) {
-                                    ForEach(0...2, id: \.self) {
+                                    ForEach([2, 1, 0], id: \.self) {
                                         switch $0 {
-                                        case 0:
+                                        case 2:
                                             Text("Easy")
                                         case 1:
                                             Text("Medium")
-                                        case 2:
+                                        case 0:
                                             Text("Hard")
                                         default:
                                             Text("Unknown")
                                         }
                                     }
                                 }
-                                .onChange(of: player.difficultyLevel) {
+                                .onChange(of: player.difficulty) { // .onChange(of: player.difficultyLevel) {
                                     UserDefaults.standard.set(player.difficulty, forKey: "difficulty")
-                                    if player.soundIsOn {
+                                    if player.soundOn {
                                         PlayerData.playSound(sound: "click_sound.wav")
                                     }
                                 }
+                                .disabled(player.gameIsActive)
                                 .pickerStyle(SegmentedPickerStyle())
                                 .padding(.bottom, geometry.size.height * 0.01)
                                 HStack {
-                                    Toggle("Music", isOn: $player.musicIsOn)
+                                    Toggle("Music", isOn: $player.musicOn)
                                         .padding(.horizontal)
-                                        .onChange(of: player.musicIsOn) {
-                                            if player.soundIsOn {
+                                        .onChange(of: player.musicOn) {
+                                            if player.soundOn {
                                                 PlayerData.playSound(sound: "click_sound.wav")
                                             }
-                                            if player.musicIsOn && player.gameIsActive {
+                                            if player.musicOn && player.gameIsActive {
                                                 PlayerData.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                                             } else {
                                                 PlayerData.musicPlayer?.stop()
                                             }
-                                                        }
-                                    Toggle("Sound", isOn: $player.soundIsOn)
+                                            UserDefaults.standard.set(player.musicOn, forKey: "musicOn")
+                                        }
+                                    Toggle("Sound", isOn: $player.soundOn)
                                         .padding(.horizontal)
-                                        .onChange(of: player.soundIsOn) {
-                                            if player.soundIsOn {
+                                        .onChange(of: player.soundOn) {
+                                            if player.soundOn {
                                                 PlayerData.playSound(sound: "click_sound.wav")
                                             }
+                                            UserDefaults.standard.set(player.soundOn, forKey: "soundOn")
                                         }
                                 }
                             }
@@ -108,8 +113,8 @@ struct ContentView: View {
                             .renderingMode(.original)
                             .frame(height: geometry.size.height * 0.10)
                         if player.selectedTab == .playerView || player.selectedTab == .enemyView {
-                            gameScoreView(player: player, enemy: enemy)
-                                .padding(.horizontal, geometry.size.width * 0.077)
+                            GameScoreView(player: player, enemy: enemy)
+                                .padding(.horizontal, geometry.size.width * 0.04)// 0.077
                         }
                     }
                     Spacer()
@@ -121,6 +126,12 @@ struct ContentView: View {
             }
         }
     }
+    init() {
+            UserDefaults.standard.register(defaults: [
+                "musicOn": true,
+                "soundOn": true
+            ])
+        }
 }
 
 #Preview {

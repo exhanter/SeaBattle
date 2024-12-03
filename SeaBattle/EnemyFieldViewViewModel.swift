@@ -33,7 +33,7 @@ extension EnemyFieldView {
                             player.potentialCellsForFinishingDamagedShip = definePriorityTargetCells(row: row, column: column)
                         }
                         target.cells[row - 1][column - 1].isAvailable = false
-                        if player.soundIsOn {
+                        if player.soundOn {
                             PlayerData.playSound(sound: sound)
                         }
                         sound = ""
@@ -43,7 +43,7 @@ extension EnemyFieldView {
                 sound = "blast_missed.wav"
                 target.cells[row - 1][column - 1].cellStatus = .missed
                 target.cells[row - 1][column - 1].isAvailable = false
-                if player.soundIsOn {
+                if player.soundOn {
                     PlayerData.playSound(sound: sound)
                 }
                 sound = ""
@@ -214,6 +214,7 @@ extension EnemyFieldView {
             var column: Int = 0
             var coordinates: (Int, Int) = (0, 0)
             repeat {
+                //print("Find available... \(row)x\(column)")
                 // If some ship was damaged, we need to find it's undamaged cells first
                 if let arrayOfPriorityCells = player.potentialCellsForFinishingDamagedShip {
                     if arrayOfPriorityCells.count > 0 {
@@ -258,7 +259,7 @@ extension EnemyFieldView {
         func chooseSound(row: Int, column: Int) {
             switch enemy.cells[row][column].cellStatus {
             case .missed:
-                PlayerData.playSound(sound: "blast_missed.wav")
+                return
             case .onFire:
                 PlayerData.playSound(sound: "blast_onfire2.wav")
             case .destroyed:
