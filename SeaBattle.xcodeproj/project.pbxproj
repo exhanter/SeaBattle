@@ -11,6 +11,8 @@
 		2C12714C2C831194001548F4 /* Dorsa-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */; };
 		2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C12714D2C85E047001548F4 /* CustomTabView.swift */; };
 		2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */; };
+		2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C403C4E2D006B6700E2A386 /* InformationView.swift */; };
+		2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C403C502D00B0D800E2A386 /* SettingsView.swift */; };
 		2C4AE0EB2C875FC90013DF12 /* Aldrich-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */; };
 		2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */; };
 		2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84702B6E99620001A20C /* SeaBattleApp.swift */; };
@@ -44,6 +46,8 @@
 		2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Dorsa-Regular.ttf"; sourceTree = "<group>"; };
 		2C12714D2C85E047001548F4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementView.swift; sourceTree = "<group>"; };
+		2C403C4E2D006B6700E2A386 /* InformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationView.swift; sourceTree = "<group>"; };
+		2C403C502D00B0D800E2A386 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aldrich-Regular.ttf"; sourceTree = "<group>"; };
 		2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinAlertView.swift; sourceTree = "<group>"; };
 		2C6A846D2B6E99620001A20C /* SeaBattle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SeaBattle.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -107,6 +111,7 @@
 				2CED70AF2C78E00D0006546F /* Info.plist */,
 				2C6A84702B6E99620001A20C /* SeaBattleApp.swift */,
 				2C6A84722B6E99620001A20C /* ContentView.swift */,
+				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
 				2C12714D2C85E047001548F4 /* CustomTabView.swift */,
 				2C6A84882B73D3960001A20C /* PlayerFieldView.swift */,
 				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
@@ -114,6 +119,7 @@
 				2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */,
 				2CC35ACA2C4AACE8009138FF /* EnemyFieldViewViewModel.swift */,
 				2C6A84822B723C0E0001A20C /* AboutView.swift */,
+				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
 				2C6A84842B723C660001A20C /* PlayerData.swift */,
 				2C900E7F2C415CF7005BD968 /* CellView.swift */,
 				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
@@ -240,6 +246,7 @@
 				2CED70B52C7C90420006546F /* ArcButton.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
+				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
@@ -252,6 +259,7 @@
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
 				2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */,
 				2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */,
+				2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */,
 				2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

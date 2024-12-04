@@ -13,7 +13,7 @@ struct WinAlertView: View {
     var body: some View {
         VStack(alignment: .center) {
             Text(text)
-                .font(.custom("Dorsa", size: 200))
+                .font(.custom("Dorsa", size: 250))
         }
         .foregroundStyle(isPlayerWon ? Color(red: 248/255, green: 255/255, blue: 0/255) : .black)
         .shadow(color: .white, radius: 5)

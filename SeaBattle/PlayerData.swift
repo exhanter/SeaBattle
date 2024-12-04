@@ -16,7 +16,7 @@ import AVFoundation
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about
     }
-    static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 ? true : false }
+    static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?
     static var soundPlayer: AVAudioPlayer?
     static var shipIsPlaced: [Bool] = Array(repeating: true, count: 10)
