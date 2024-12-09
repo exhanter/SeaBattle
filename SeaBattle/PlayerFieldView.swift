@@ -70,7 +70,7 @@ struct PlayerFieldView: View {
                         .ignoresSafeArea()
 
                     Button {
-                        isBouncing = false
+                        self.isBouncing = false
                         if !player.gameIsActive {
                             if player.musicOn {
                                 PlayerData.playMusic(sound: "Battles_on_the_High_Seas.mp3")
@@ -95,12 +95,16 @@ struct PlayerFieldView: View {
                     .padding(.bottom, geometry.size.height * 0.15)
                     .onChange(of: player.enemysTurn) { _, newValue in
                         if newValue == false {
-                            withAnimation(.spring(duration: 0.3, bounce: 0.9, blendDuration: 0).repeatCount(1, autoreverses: false).delay(2)) {
-                                isBouncing = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                if player.selectedTab == .playerView {
+                                    withAnimation(.spring(duration: 0.3, bounce: 0.9, blendDuration: 0).repeatCount(1, autoreverses: false)) {
+                                        self.isBouncing = true
+                                    }
+                                }
                             }
                         }
                     }
-                    .scaleEffect(isBouncing ? 1.05 : 1)
+                    .scaleEffect(self.isBouncing ? 1.05 : 1)
                 }
                 .ignoresSafeArea()
                 if player.showFinishGameAlert {

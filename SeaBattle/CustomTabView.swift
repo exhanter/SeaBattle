@@ -10,6 +10,12 @@ struct CustomTabView: View {
     var player: PlayerData
     let relativeFornSize: CGFloat
     let height: CGFloat
+    var tabsLockBeforeGameStart: Bool {
+        if !player.gameIsActive {
+            return player.selectedTab == .menu || player.selectedTab == .about ? true : false
+        }
+        return false
+    }
     var body: some View {
         //GeometryReader { geometry in
             ZStack {
@@ -57,6 +63,7 @@ struct CustomTabView: View {
                         }
                     }
                     .disabled(player.tabsBlocked)
+                    .disabled(self.tabsLockBeforeGameStart)
                     .opacity(player.tabsBlocked ? 0.5 : 1)
                     .padding(.horizontal)
                     Button {
@@ -77,6 +84,7 @@ struct CustomTabView: View {
                         }
                     }
                     .disabled(player.tabsBlocked)
+                    .disabled(self.tabsLockBeforeGameStart)
                     .opacity(player.tabsBlocked ? 0.5 : 1)
                     .padding(.horizontal)
                     Button {

@@ -15,7 +15,7 @@ struct InformationView: View {
             ScrollView {
                 VStack(alignment: .leading) {
                     
-                    Text("This game was made by Ivan Tkachev in 2024.")
+                    Text("This game was created by Ivan Tkachev in 2024.")
                         .italic()
                         .padding(.top, 50)
                     Text("If you have any questions, you can contact me:")
