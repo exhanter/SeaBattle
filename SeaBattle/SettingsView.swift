@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     
-    @State var player: PlayerData
+    @ObservedObject var player: PlayerData
     
     var body: some View {
         ZStack {
@@ -34,7 +34,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    .onChange(of: player.difficulty) { // .onChange(of: player.difficultyLevel) {
+                    .onChange(of: player.difficulty) { _ in
                         UserDefaults.standard.set(player.difficulty, forKey: "difficulty")
                         if player.soundOn {
                             PlayerData.playSound(sound: "click_sound.wav")
@@ -44,7 +44,7 @@ struct SettingsView: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .padding()
                     Toggle("Music", isOn: $player.musicOn)
-                        .onChange(of: player.musicOn) {
+                        .onChange(of: player.musicOn) { _ in
                             if player.soundOn {
                                 PlayerData.playSound(sound: "click_sound.wav")
                             }
@@ -57,7 +57,7 @@ struct SettingsView: View {
                         }
                         .padding()
                     Toggle("Sound", isOn: $player.soundOn)
-                        .onChange(of: player.soundOn) {
+                        .onChange(of: player.soundOn) { _ in
                             if player.soundOn {
                                 PlayerData.playSound(sound: "click_sound.wav")
                             }

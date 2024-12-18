@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-@Observable class PlayerData {
+class PlayerData: ObservableObject {
     
     enum DifficultyLevel: CaseIterable {
         case easy, medium, hard
@@ -67,9 +67,9 @@ import AVFoundation
     }
     
     let name: String
-    var cells = [[Cell]]()
-    var ships = [Ship]()
-    var showFinishGameAlert = false
+    @Published var cells = [[Cell]]()
+    @Published var ships = [Ship]()
+    @Published var showFinishGameAlert = false
     var shipsDestroyed: [Ship] {
         return ships.filter{ $0.isDestroyed }
     }
@@ -78,7 +78,7 @@ import AVFoundation
     }
     
     // common properties like static
-    var tabsBlocked = false
+    @Published var tabsBlocked = false
     
     var difficultyLevel: DifficultyLevel {
         switch self.difficulty {
@@ -92,17 +92,17 @@ import AVFoundation
             return .hard
         }
     }
-    var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
+    @Published var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
     
-    var enemysTurn = false
-    var gameIsActive = false
-    var soundOn: Bool
-    var musicOn: Bool
-    var selectedTab: SelectedTabs = .menu
-    var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
-    var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
-    var shipPositions: [CGPoint] = Array(repeating: .zero, count: 10)
-    var fireStrokeArray = [[Bool]]()
+    @Published var enemysTurn = false
+    @Published var gameIsActive = false
+    @Published var soundOn: Bool
+    @Published var musicOn: Bool
+    @Published var selectedTab: SelectedTabs = .menu
+    @Published var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
+    @Published var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
+    @Published var shipPositions: [CGPoint] = Array(repeating: .zero, count: 10)
+    @Published var fireStrokeArray = [[Bool]]()
     
     func shipsRandomArrangement() {
         self.shipPositions = Array(repeating: .zero, count: 10)

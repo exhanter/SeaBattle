@@ -11,8 +11,8 @@ struct ContentView: View {
     
     // Apple ID 6738694687
     
-    @State private var enemy = PlayerData(name: "Enemy")
-    @State private var player = PlayerData(name: "Player")
+    @StateObject private var enemy = PlayerData(name: "Enemy")
+    @StateObject private var player = PlayerData(name: "Player")
     @State private var showSettingsView = false
     
     var body: some View {

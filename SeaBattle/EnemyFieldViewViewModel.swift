@@ -8,11 +8,8 @@
 import Foundation
 
 extension EnemyFieldView {
-    @Observable
-    class EnemyFieldViewViewModel {
-        
-        //  При повторном нажатии на подбитый корабль звук подбитого корабля
-        // во время хода игрока нельхя выйти в меню и выключить игру, можно зайти на поле игрока, но оттуда все будет заблокировано -  только после настройки кораблей
+    class EnemyFieldViewViewModel: ObservableObject {
+
         var player: PlayerData
         var enemy: PlayerData
         var sound = ""

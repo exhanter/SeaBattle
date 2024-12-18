@@ -9,11 +9,11 @@ import SwiftUI
 
 struct EnemyFieldView: View {
     
-    @State private var enemyViewModel: EnemyFieldViewViewModel
+    @ObservedObject private var enemyViewModel: EnemyFieldViewViewModel
     @State private var isVisible = true
     
-    var enemy: PlayerData
-    var player: PlayerData
+    @ObservedObject var enemy: PlayerData
+    @ObservedObject var player: PlayerData
     
     var body: some View {
         GeometryReader { geometry in

@@ -7,7 +7,7 @@
 
 import SwiftUI
 struct Ship {
-    var player: PlayerData
+    @ObservedObject var player: PlayerData
     enum Orientation {
         case horizontal, vertical, both
     }

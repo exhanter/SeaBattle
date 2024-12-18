@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct GameScoreView: View {
-    let player: PlayerData
-    let enemy: PlayerData
+    @ObservedObject var player: PlayerData
+    @ObservedObject var enemy: PlayerData
     var body: some View {
         HStack {
             VStack {

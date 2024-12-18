@@ -13,8 +13,8 @@ struct PlayerFieldView: View {
     @State private var leftTopPointOfGameField: CGPoint = .zero
     @State private var isBouncing = false
     
-    var enemy: PlayerData
-    var player: PlayerData
+    @ObservedObject var enemy: PlayerData
+    @ObservedObject var player: PlayerData
     
     var body: some View {
         GeometryReader { geometry in
@@ -93,7 +93,7 @@ struct PlayerFieldView: View {
                     .opacity(player.enemysTurn ? 0.5 : 1)
                     .opacity(player.tabsBlocked ? 0.5 : 1)
                     .padding(.bottom, geometry.size.height * 0.15)
-                    .onChange(of: player.enemysTurn) { _, newValue in
+                    .onChange(of: player.enemysTurn) { newValue in
                         if newValue == false {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                                 if player.selectedTab == .playerView {

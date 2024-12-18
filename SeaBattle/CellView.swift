@@ -14,7 +14,7 @@ struct NoPressEffect: ButtonStyle {
 }
 
 struct CellView: View {
-    var player: PlayerData
+    @ObservedObject var player: PlayerData
     let row: Int
     let column: Int
     let cellStatus: Cell.CurrentStatus

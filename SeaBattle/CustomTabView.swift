@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CustomTabView: View {
-    var player: PlayerData
+    @ObservedObject var player: PlayerData
     let relativeFornSize: CGFloat
     let height: CGFloat
     var tabsLockBeforeGameStart: Bool {
@@ -17,7 +17,6 @@ struct CustomTabView: View {
         return false
     }
     var body: some View {
-        //GeometryReader { geometry in
             ZStack {
                 Image("wood")
                     .resizable()
@@ -111,7 +110,6 @@ struct CustomTabView: View {
                 }
                 .frame(height: height)
             }
-        //}
     }
 }
 
