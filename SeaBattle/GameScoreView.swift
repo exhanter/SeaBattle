@@ -8,19 +8,19 @@
 import SwiftUI
 
 struct GameScoreView: View {
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
+    let numberOfPlayersShipsDestroyed: Int
+    let numberOfEnemyShipsDestroyed: Int
     var body: some View {
         HStack {
             VStack {
-                Text("\(player.numberShipsDestroyed) / 10")
-                    .font(PlayerData.deviceHasWideNotch ? .custom("Dorsa", size: 42) : .custom("Aldrich", size: 30))
+                Text("\(numberOfPlayersShipsDestroyed) / 10")
+                    .font(AppState.deviceHasWideNotch ? .custom("Dorsa", size: 42) : .custom("Aldrich", size: 30))
                     .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
             }
             Spacer()
             VStack {
-                Text("\(enemy.numberShipsDestroyed) / 10")
-                    .font(PlayerData.deviceHasWideNotch ? .custom("Dorsa", size: 42) : .custom("Aldrich", size: 30))
+                Text("\(numberOfEnemyShipsDestroyed) / 10")
+                    .font(AppState.deviceHasWideNotch ? .custom("Dorsa", size: 42) : .custom("Aldrich", size: 30))
                     .foregroundStyle(Color(red: 102/255, green: 240/255, blue: 255/255))
             }
         }
@@ -28,5 +28,5 @@ struct GameScoreView: View {
 }
 
 #Preview {
-    GameScoreView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    GameScoreView(numberOfPlayersShipsDestroyed: 3, numberOfEnemyShipsDestroyed: 3)
 }

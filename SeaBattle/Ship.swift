@@ -7,7 +7,6 @@
 
 import SwiftUI
 struct Ship {
-    @ObservedObject var player: PlayerData
     enum Orientation {
         case horizontal, vertical, both
     }
@@ -17,8 +16,7 @@ struct Ship {
     var numberOfDecks: Int
     var isDestroyed = false
     var coordinates: [(Int, Int)]
-    init(player: PlayerData, number: Int, orientation: Orientation, numberOfDecks: Int, isDestroyed: Bool = false, coordinates: [(Int, Int)]) {
-        self.player = player
+    init(number: Int, orientation: Orientation, numberOfDecks: Int, isDestroyed: Bool = false, coordinates: [(Int, Int)]) {
         self.number = number
         self.orientation = orientation
         self.numberOfDecks = numberOfDecks

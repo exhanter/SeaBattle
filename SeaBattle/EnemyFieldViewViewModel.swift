@@ -10,12 +10,14 @@ import Foundation
 extension EnemyFieldView {
     class EnemyFieldViewViewModel: ObservableObject {
 
+        var appState: AppState
         var player: PlayerData
         var enemy: PlayerData
         var sound = ""
         var fireStroke = false
         
-        init(enemy: PlayerData, player: PlayerData) {
+        init(appState: AppState, enemy: PlayerData, player: PlayerData) {
+            self.appState = appState
             self.enemy = enemy
             self.player = player
         }
@@ -27,11 +29,11 @@ extension EnemyFieldView {
                         target.cells[row - 1][column - 1].cellStatus = target.name == "Player" ? .showShipOnFire : .onFire
                         if !checkShipIsTotallyDestroyed(ship: ship, target: target) && target.name == "Player" {
                             sound = "blast_onfire2.wav"
-                            player.potentialCellsForFinishingDamagedShip = definePriorityTargetCells(row: row, column: column)
+                            appState.potentialCellsForFinishingDamagedShip = definePriorityTargetCells(row: row, column: column)
                         }
                         target.cells[row - 1][column - 1].isAvailable = false
-                        if player.soundOn {
-                            PlayerData.playSound(sound: sound)
+                        if appState.soundOn {
+                            AppState.playSound(sound: sound)
                         }
                         sound = ""
                         return
@@ -40,12 +42,12 @@ extension EnemyFieldView {
                 sound = "blast_missed.wav"
                 target.cells[row - 1][column - 1].cellStatus = .missed
                 target.cells[row - 1][column - 1].isAvailable = false
-                if player.soundOn {
-                    PlayerData.playSound(sound: sound)
+                if appState.soundOn {
+                    AppState.playSound(sound: sound)
                 }
                 sound = ""
             }
-            player.enemysTurn = target.name == "Enemy" ? true : false
+            appState.enemysTurn = target.name == "Enemy" ? true : false
             return
         }
         
@@ -63,13 +65,13 @@ extension EnemyFieldView {
                 target.ships[index].isDestroyed = true
             }
             if target.name == "Player" {
-                player.potentialCellsForFinishingDamagedShip = nil
+                appState.potentialCellsForFinishingDamagedShip = nil
                 sound = "Glass_Break-stephan_schutze-958181291.wav"
-                if player.difficultyLevel != .easy { player.defineSafeAreaNearShip(ship: ship) }
+                if appState.difficultyLevel != .easy { player.defineSafeAreaNearShip(ship: ship) }
             }
             if target.numberShipsDestroyed == 10 {
-                PlayerData.musicPlayer?.stop()
-                player.gameIsActive = false
+                AppState.musicPlayer?.stop()
+                appState.gameIsActive = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     target.showFinishGameAlert = true
                 }
@@ -195,7 +197,7 @@ extension EnemyFieldView {
 
                 checkShipOnFire(row: row, column: column, target: player)
 
-                if player.cells[row - 1][column - 1].cellStatus != .missed && player.gameIsActive {
+                if player.cells[row - 1][column - 1].cellStatus != .missed && appState.gameIsActive {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         performShot()
                         
@@ -211,9 +213,8 @@ extension EnemyFieldView {
             var column: Int = 0
             var coordinates: (Int, Int) = (0, 0)
             repeat {
-                //print("Find available... \(row)x\(column)")
                 // If some ship was damaged, we need to find it's undamaged cells first
-                if let arrayOfPriorityCells = player.potentialCellsForFinishingDamagedShip {
+                if let arrayOfPriorityCells = appState.potentialCellsForFinishingDamagedShip {
                     if arrayOfPriorityCells.count > 0 {
                         repeat {
                             coordinates = arrayOfPriorityCells.randomElement()!
@@ -237,7 +238,7 @@ extension EnemyFieldView {
         func meetConditionsToDefineCellForFire(coordinates: (Int, Int)) -> Bool {
             let row = coordinates.0
             let column = coordinates.1
-            switch player.difficultyLevel {
+            switch appState.difficultyLevel {
             case .easy:
                 return player.cells[row - 1][column - 1].isAvailable ? true : false
             case .medium:
@@ -258,11 +259,11 @@ extension EnemyFieldView {
             case .missed:
                 return
             case .onFire:
-                PlayerData.playSound(sound: "blast_onfire2.wav")
+                AppState.playSound(sound: "blast_onfire2.wav")
             case .destroyed:
-                PlayerData.playSound(sound: "Glass_Break-stephan_schutze-958181291.wav")
+                AppState.playSound(sound: "Glass_Break-stephan_schutze-958181291.wav")
             default:
-                PlayerData.playSound(sound: "click_sound.wav")
+                AppState.playSound(sound: "click_sound.wav")
             }
         }
     }

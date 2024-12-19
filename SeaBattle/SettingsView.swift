@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     
-    @ObservedObject var player: PlayerData
+    @ObservedObject var appState: AppState
     
     var body: some View {
         ZStack {
@@ -20,7 +20,7 @@ struct SettingsView: View {
                         .font(.title)
                         .foregroundColor(Color(red: 0.95, green: 0.95, blue: 0.95))
                         .padding(10)
-                    Picker("Select Difficulty", selection: $player.difficulty) {
+                    Picker("Select Difficulty", selection: $appState.difficulty) {
                         ForEach([2, 1, 0], id: \.self) {
                             switch $0 {
                             case 2:
@@ -34,34 +34,34 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    .onChange(of: player.difficulty) { _ in
-                        UserDefaults.standard.set(player.difficulty, forKey: "difficulty")
-                        if player.soundOn {
-                            PlayerData.playSound(sound: "click_sound.wav")
+                    .onChange(of: appState.difficulty) { _ in
+                        UserDefaults.standard.set(appState.difficulty, forKey: "difficulty")
+                        if appState.soundOn {
+                            AppState.playSound(sound: "click_sound.wav")
                         }
                     }
-                    .disabled(player.gameIsActive)
+                    .disabled(appState.gameIsActive)
                     .pickerStyle(SegmentedPickerStyle())
                     .padding()
-                    Toggle("Music", isOn: $player.musicOn)
-                        .onChange(of: player.musicOn) { _ in
-                            if player.soundOn {
-                                PlayerData.playSound(sound: "click_sound.wav")
+                    Toggle("Music", isOn: $appState.musicOn)
+                        .onChange(of: appState.musicOn) { _ in
+                            if appState.soundOn {
+                                AppState.playSound(sound: "click_sound.wav")
                             }
-                            if player.musicOn && player.gameIsActive {
-                                PlayerData.playMusic(sound: "Battles_on_the_High_Seas.mp3")
+                            if appState.musicOn && appState.gameIsActive {
+                                AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                             } else {
-                                PlayerData.musicPlayer?.stop()
+                                AppState.musicPlayer?.stop()
                             }
-                            UserDefaults.standard.set(player.musicOn, forKey: "musicOn")
+                            UserDefaults.standard.set(appState.musicOn, forKey: "musicOn")
                         }
                         .padding()
-                    Toggle("Sound", isOn: $player.soundOn)
-                        .onChange(of: player.soundOn) { _ in
-                            if player.soundOn {
-                                PlayerData.playSound(sound: "click_sound.wav")
+                    Toggle("Sound", isOn: $appState.soundOn)
+                        .onChange(of: appState.soundOn) { _ in
+                            if appState.soundOn {
+                                AppState.playSound(sound: "click_sound.wav")
                             }
-                            UserDefaults.standard.set(player.soundOn, forKey: "soundOn")
+                            UserDefaults.standard.set(appState.soundOn, forKey: "soundOn")
                         }
                         .padding()
                 }
@@ -73,5 +73,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(player: PlayerData(name: "Player"))
+    SettingsView(appState: AppState())
 }

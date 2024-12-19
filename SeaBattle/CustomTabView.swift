@@ -7,12 +7,12 @@
 import SwiftUI
 
 struct CustomTabView: View {
-    @ObservedObject var player: PlayerData
+    @ObservedObject var appState: AppState
     let relativeFornSize: CGFloat
     let height: CGFloat
     var tabsLockBeforeGameStart: Bool {
-        if !player.gameIsActive {
-            return player.selectedTab == .menu || player.selectedTab == .about ? true : false
+        if !appState.gameIsActive {
+            return appState.selectedTab == .menu || appState.selectedTab == .about ? true : false
         }
         return false
     }
@@ -24,12 +24,12 @@ struct CustomTabView: View {
                     .frame(height: height)
                 HStack {
                     Button {
-                        if player.soundOn {
-                            PlayerData.playSound(sound: "click_sound.wav")
+                        if appState.soundOn {
+                            AppState.playSound(sound: "click_sound.wav")
                         }
-                        player.selectedTab = .menu
+                        appState.selectedTab = .menu
                     } label: {
-                        if player.selectedTab == .menu {
+                        if appState.selectedTab == .menu {
                             Text("Menu")
                                 .font(.custom("Dorsa", size: relativeFornSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
@@ -40,18 +40,17 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                         }
                     }
-                    .disabled(player.tabsBlocked)
-                    .opacity(player.tabsBlocked ? 0.5 : 1)
+                    .disabled(appState.tabsBlocked)
+                    .opacity(appState.tabsBlocked ? 0.5 : 1)
                     .padding(.horizontal)
                     Button {
-                        if player.soundOn {
-                            PlayerData.playSound(sound: "click_sound.wav")
+                        if appState.soundOn {
+                            AppState.playSound(sound: "click_sound.wav")
                         }
-                        player.selectedTab = .playerView
+                        appState.selectedTab = .playerView
                     } label: {
-                        if player.selectedTab == .playerView {
+                        if appState.selectedTab == .playerView {
                             Text("Player")
-                                //.font(.custom("Dorsa", size: 50))
                                 .font(.custom("Dorsa", size: relativeFornSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
@@ -61,17 +60,17 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                         }
                     }
-                    .disabled(player.tabsBlocked)
+                    .disabled(appState.tabsBlocked)
                     .disabled(self.tabsLockBeforeGameStart)
-                    .opacity(player.tabsBlocked ? 0.5 : 1)
+                    .opacity(appState.tabsBlocked ? 0.5 : 1)
                     .padding(.horizontal)
                     Button {
-                        if player.soundOn {
-                            PlayerData.playSound(sound: "click_sound.wav")
+                        if appState.soundOn {
+                            AppState.playSound(sound: "click_sound.wav")
                         }
-                        player.selectedTab = .enemyView
+                        appState.selectedTab = .enemyView
                     } label: {
-                        if player.selectedTab == .enemyView {
+                        if appState.selectedTab == .enemyView {
                             Text("Enemy")
                                 .font(.custom("Dorsa", size: relativeFornSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
@@ -82,17 +81,17 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                         }
                     }
-                    .disabled(player.tabsBlocked)
+                    .disabled(appState.tabsBlocked)
                     .disabled(self.tabsLockBeforeGameStart)
-                    .opacity(player.tabsBlocked ? 0.5 : 1)
+                    .opacity(appState.tabsBlocked ? 0.5 : 1)
                     .padding(.horizontal)
                     Button {
-                        if player.soundOn {
-                            PlayerData.playSound(sound: "click_sound.wav")
+                        if appState.soundOn {
+                            AppState.playSound(sound: "click_sound.wav")
                         }
-                        player.selectedTab = .about
+                        appState.selectedTab = .about
                     } label: {
-                        if player.selectedTab == .about {
+                        if appState.selectedTab == .about {
                             Text("About")
                                 .font(.custom("Dorsa", size: relativeFornSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
@@ -104,8 +103,8 @@ struct CustomTabView: View {
                             
                         }
                     }
-                    .disabled(player.tabsBlocked)
-                    .opacity(player.tabsBlocked ? 0.5 : 1)
+                    .disabled(appState.tabsBlocked)
+                    .opacity(appState.tabsBlocked ? 0.5 : 1)
                     .padding(.horizontal)
                 }
                 .frame(height: height)
@@ -114,5 +113,5 @@ struct CustomTabView: View {
 }
 
 #Preview {
-    CustomTabView(player: PlayerData(name: "Player"), relativeFornSize: 375, height: 100)
+    CustomTabView(appState: AppState(), relativeFornSize: 375, height: 100)
 }

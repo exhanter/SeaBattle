@@ -14,9 +14,7 @@ struct NoPressEffect: ButtonStyle {
 }
 
 struct CellView: View {
-    @ObservedObject var player: PlayerData
-    let row: Int
-    let column: Int
+    var fireStrokeIsOn: Bool
     let cellStatus: Cell.CurrentStatus
     let cellWidth: CGFloat
     
@@ -279,31 +277,31 @@ struct CellView: View {
         case .unknown:
             unknownView
         case .missed:
-            if player.fireStrokeArray[row][column] {
+            if fireStrokeIsOn {
                 missedHaloView
             } else {
                 missedView
             }
         case .onFire:
-            if player.fireStrokeArray[row][column] {
+            if fireStrokeIsOn {
                 onFireHaloView
             } else {
                 onFireView
             }
         case .destroyed:
-            if player.fireStrokeArray[row][column] {
+            if fireStrokeIsOn {
                 destroyedHaloView
             } else {
                 destroyedView
             }
         case .showShip:
-            if player.fireStrokeArray[row][column] {
+            if fireStrokeIsOn {
                 showShipHaloView
             } else {
                 showShipView
             }
         case .showShipOnFire:
-            if player.fireStrokeArray[row][column] {
+            if fireStrokeIsOn {
                 showShipOnFireHaloView
             } else {
                 showShipOnFireView
@@ -316,5 +314,5 @@ struct CellView: View {
 }
 
 #Preview {
-    CellView(player: PlayerData(name: "Player"), row: 0, column: 0, cellStatus: .showShipHalo, cellWidth: 35)
+    CellView(fireStrokeIsOn: true, cellStatus: .showShipHalo, cellWidth: 35)
 }

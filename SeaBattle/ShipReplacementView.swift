@@ -24,7 +24,7 @@ struct ShipReplacementView: View {
                             .onEnded { _ in
                                 player.ships[ship.number].orientation = player.ships[ship.number].orientation == .vertical ? .horizontal : .vertical
                                 player.shipIsDragging[ship.number] = true
-                                PlayerData.shipIsPlaced[ship.number] = false
+                                AppState.shipIsPlaced[ship.number] = false
                             }
                     )
                         .gesture(
@@ -35,8 +35,8 @@ struct ShipReplacementView: View {
                                 }
                                 .onEnded { _ in
                                     replacementViewModel.handleOnEndedDrag(index: ship.number, cellSize: cellSize, leftTopPointOfGameField: leftTopPointOfGameField, startCoordinates: ship.coordinates)
-//                                    if PlayerData.shipIsPlaced[ship.number] == true {
-//                                        player.shipIsDragging[ship.number] = false
+//                                    if AppState.shipIsPlaced[ship.number] == true {
+//                                        appState.shipIsDragging[ship.number] = false
 //                                    }
                                 }
                         )

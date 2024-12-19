@@ -11,9 +11,11 @@ struct EnemyFieldView: View {
     
     @ObservedObject private var enemyViewModel: EnemyFieldViewViewModel
     @State private var isVisible = true
+    @State private var isTapEnabled = false
     
-    @ObservedObject var enemy: PlayerData
+    @ObservedObject var appState: AppState
     @ObservedObject var player: PlayerData
+    @ObservedObject var enemy: PlayerData
     
     var body: some View {
         GeometryReader { geometry in
@@ -35,28 +37,28 @@ struct EnemyFieldView: View {
                                 ForEach(1...10, id: \.self) { column in
                                     let status = enemy.cells[row - 1][column - 1].cellStatus
                                     Button {
-                                        player.fireStrokeArray[row - 1][column - 1] = true
+                                        enemy.fireStrokeArray[row - 1][column - 1] = true
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            player.fireStrokeArray[row - 1][column - 1] = false
+                                                enemy.fireStrokeArray[row - 1][column - 1] = false
                                         }
                                         enemyViewModel.checkShipOnFire(row: row, column: column, target: enemy)
-                                        if player.soundOn {
+                                        if appState.soundOn {
                                             enemyViewModel.chooseSound(row: row - 1, column: column - 1)
                                         }
-                                        if player.enemysTurn {
+                                        if appState.enemysTurn {
                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                               player.selectedTab = .playerView
+                                               appState.selectedTab = .playerView
                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                                    enemyViewModel.computerTurn()
                                                }
                                            }
                                         }
                                     } label: {
-                                        CellView(player: player, row: row - 1, column: column - 1, cellStatus: status, cellWidth: geometry.size.width * 0.09)
+                                        CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * 0.09)
                                     }
                                     .buttonStyle(NoPressEffect())
-                                    .disabled(!player.gameIsActive)
-                                    .disabled(player.enemysTurn)
+                                    .disabled(!appState.gameIsActive)
+                                    .disabled(appState.enemysTurn)
                                 }
                             }
                         }
@@ -75,7 +77,7 @@ struct EnemyFieldView: View {
                                 self.isVisible.toggle()
                             }
                         }
-                        .opacity(player.gameIsActive ? 1 : 0)
+                        .opacity(appState.gameIsActive ? 1 : 0)
                 }
                 .ignoresSafeArea()
                 if enemy.showFinishGameAlert {
@@ -83,16 +85,22 @@ struct EnemyFieldView: View {
                         .ignoresSafeArea()
                         .opacity(0.4)
                         .onTapGesture {
-                            PlayerData.resetData(player: player, enemy: enemy)
+                            appState.resetData(player: player, enemy: enemy)
                         }
                     WinAlertView(isPlayerWon: true, text: "Victory!")
                         .onAppear {
-                            if player.soundOn {
-                                PlayerData.playSound(sound: "victory_sound.wav")
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                isTapEnabled = true
+                            }
+                            if appState.soundOn {
+                                AppState.playSound(sound: "victory_sound.wav")
                             }
                         }
                         .onTapGesture {
-                            PlayerData.resetData(player: player, enemy: enemy)
+                            if isTapEnabled {
+                                appState.resetData(player: player, enemy: enemy)
+                                isTapEnabled = false
+                            }
                         }
                 }
             } //ZStack off
@@ -100,14 +108,15 @@ struct EnemyFieldView: View {
         }
     }
     
-    init(player: PlayerData, enemy: PlayerData) {
+    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
+        self.appState = appState
         self.enemy = enemy
         self.player = player
-        self.enemyViewModel = EnemyFieldViewViewModel(enemy: enemy, player: player)
+        self.enemyViewModel = EnemyFieldViewViewModel(appState: appState, enemy: enemy, player: player)
         
     }
 }
 
 #Preview {
-    EnemyFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    EnemyFieldView(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
 }

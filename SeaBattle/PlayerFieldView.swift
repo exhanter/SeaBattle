@@ -12,9 +12,11 @@ struct PlayerFieldView: View {
     @State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
     @State private var isBouncing = false
+    @State private var isTapEnabled = false
     
-    @ObservedObject var enemy: PlayerData
+    @ObservedObject var appState: AppState
     @ObservedObject var player: PlayerData
+    @ObservedObject var enemy: PlayerData
     
     var body: some View {
         GeometryReader { geometry in
@@ -31,18 +33,18 @@ struct PlayerFieldView: View {
                             .padding(.bottom, geometry.size.height * 0.02)
                     }
                             Button {
-                                if player.soundOn {
-                                    PlayerData.playSound(sound: "click_sound.wav")
+                                if appState.soundOn {
+                                    AppState.playSound(sound: "click_sound.wav")
                                 }
                                 manualShipArrangement.toggle()
-                                player.tabsBlocked.toggle()
+                                appState.tabsBlocked.toggle()
                             } label: {
                                 Text(manualShipArrangement ? "Save" : "Change")
                             }
                             .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
-                            .disabled(player.gameIsActive)
+                            .disabled(appState.gameIsActive)
                             .disabled(player.shipIsDragging.contains(true))
-                            .opacity(player.gameIsActive ? 0.5 : 1)
+                            .opacity(appState.gameIsActive ? 0.5 : 1)
                             .padding(.bottom, geometry.size.height * 0.01)
                         ZStack {
                             VStack(spacing: 0) {
@@ -50,7 +52,7 @@ struct PlayerFieldView: View {
                                     HStack(spacing: 0) {
                                         ForEach(1...10, id: \.self) { column in
                                             if manualShipArrangement {
-                                                CellView(player: player, row: row - 1, column: column - 1, cellStatus: .unknown, cellWidth: geometry.size.width * 0.09)
+                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: .unknown, cellWidth: geometry.size.width * 0.09)
                                                     .background(GeometryReader { geometryLocal in
                                                         Color.clear
                                                             .onAppear {
@@ -59,7 +61,7 @@ struct PlayerFieldView: View {
                                                             }
                                                     })
                                             } else {
-                                                CellView(player: player, row: row - 1, column: column - 1, cellStatus: player.cells[row - 1][column - 1].cellStatus, cellWidth: geometry.size.width * 0.09)
+                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: player.cells[row - 1][column - 1].cellStatus, cellWidth: geometry.size.width * 0.09)
                                             }
                                         }
                                     }
@@ -71,32 +73,32 @@ struct PlayerFieldView: View {
 
                     Button {
                         self.isBouncing = false
-                        if !player.gameIsActive {
-                            if player.musicOn {
-                                PlayerData.playMusic(sound: "Battles_on_the_High_Seas.mp3")
+                        if !appState.gameIsActive {
+                            if appState.musicOn {
+                                AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                             }
-                            player.gameIsActive = true
+                            appState.gameIsActive = true
                             manualShipArrangement = false
-                            player.selectedTab = .enemyView
-                        } else if player.gameIsActive {
-                            player.selectedTab = .enemyView
+                            appState.selectedTab = .enemyView
+                        } else if appState.gameIsActive {
+                            appState.selectedTab = .enemyView
                         }
-                        if player.soundOn {
-                            PlayerData.playSound(sound: "click_sound.wav")
+                        if appState.soundOn {
+                            AppState.playSound(sound: "click_sound.wav")
                         }
                     } label: {
-                        Text(player.gameIsActive ? "Your turn!" : "Start")
+                        Text(appState.gameIsActive ? "Your turn!" : "Start")
                     }
                     .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
-                    .disabled(player.enemysTurn)
-                    .disabled(player.tabsBlocked)
-                    .opacity(player.enemysTurn ? 0.5 : 1)
-                    .opacity(player.tabsBlocked ? 0.5 : 1)
+                    .disabled(appState.enemysTurn)
+                    .disabled(appState.tabsBlocked)
+                    .opacity(appState.enemysTurn ? 0.5 : 1)
+                    .opacity(appState.tabsBlocked ? 0.5 : 1)
                     .padding(.bottom, geometry.size.height * 0.15)
-                    .onChange(of: player.enemysTurn) { newValue in
+                    .onChange(of: appState.enemysTurn) { newValue in
                         if newValue == false {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                if player.selectedTab == .playerView {
+                                if appState.selectedTab == .playerView {
                                     withAnimation(.spring(duration: 0.3, bounce: 0.9, blendDuration: 0).repeatCount(1, autoreverses: false)) {
                                         self.isBouncing = true
                                     }
@@ -112,16 +114,22 @@ struct PlayerFieldView: View {
                         .ignoresSafeArea()
                         .opacity(0.4)
                         .onTapGesture {
-                            PlayerData.resetData(player: player, enemy: enemy)
+                            appState.resetData(player: player, enemy: enemy)
                         }
                     WinAlertView(isPlayerWon: false, text: "Defeat!")
                         .onAppear {
-                            if player.soundOn {
-                                PlayerData.playSound(sound: "defeat_sound.wav")
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                isTapEnabled = true
+                            }
+                            if appState.soundOn {
+                                AppState.playSound(sound: "defeat_sound.wav")
                             }
                         }
                         .onTapGesture {
-                            PlayerData.resetData(player: player, enemy: enemy)
+                            if isTapEnabled {
+                                appState.resetData(player: player, enemy: enemy)
+                                isTapEnabled = false
+                            }
                         }
                 }
                 if manualShipArrangement {
@@ -131,12 +139,13 @@ struct PlayerFieldView: View {
             .statusBar(hidden: true)
         }
     }
-    init(player: PlayerData, enemy: PlayerData) {
-    self.enemy = enemy
-    self.player = player
- }
+    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
+        self.appState = appState
+        self.enemy = enemy
+        self.player = player
+    }
 }
 
 #Preview {
-    PlayerFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    PlayerFieldView(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
 }
