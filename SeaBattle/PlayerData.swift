@@ -165,6 +165,18 @@ class PlayerData: ObservableObject {
         }
     }
     
+    func clearShips() {
+        self.cells = []
+        self.ships = []
+        for row in 1...10 {
+            var arrayOfrows = [Cell]()
+            for column in 1...10 {
+                arrayOfrows.append(Cell(column: column, row: row))
+            }
+            self.cells.append(arrayOfrows)
+        }
+    }
+    
     init(name: String) {
         self.name = name
         var boolArray = [Bool]()

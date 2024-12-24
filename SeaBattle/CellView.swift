@@ -14,6 +14,9 @@ struct NoPressEffect: ButtonStyle {
 }
 
 struct CellView: View {
+    func defineReltiveSizes(constant: CGFloat) -> CGFloat {
+        return cellWidth / 35 / constant
+    }
     var fireStrokeIsOn: Bool
     let cellStatus: Cell.CurrentStatus
     let cellWidth: CGFloat
@@ -22,14 +25,14 @@ struct CellView: View {
 
     @ViewBuilder
     var baseCell: some View {
-        RoundedRectangle(cornerRadius: 7)
+        RoundedRectangle(cornerRadius: cellWidth / 5)
             .fill(Color(red: 0.8, green: 0.9, blue: 1.0)) // Светло-голубой цвет
             .frame(width: cellWidth, height: cellWidth)
     }
     
     @ViewBuilder
     var yellowCell: some View {
-        RoundedRectangle(cornerRadius: 7)
+        RoundedRectangle(cornerRadius: cellWidth / 5)
             .fill(LinearGradient(
                 gradient: Gradient(colors: [Color(red: 0.8, green: 0.9, blue: 1.0), Color(red: 0.2, green: 0.2, blue: 0.2)]),
                 startPoint: .topLeading,
@@ -40,7 +43,7 @@ struct CellView: View {
     
     @ViewBuilder
     var darkCell: some View {
-        RoundedRectangle(cornerRadius: 7)
+        RoundedRectangle(cornerRadius: cellWidth / 5)
             .fill(LinearGradient(
                 gradient: Gradient(colors: [Color(red: 0.2, green: 0.2, blue: 0.2), Color(red: 0.1, green: 0.1, blue: 0.1)]),
                 startPoint: .topLeading,
@@ -52,19 +55,19 @@ struct CellView: View {
     @ViewBuilder
     // White frame with blur
     var whiteStroke: some View {
-        RoundedRectangle(cornerRadius: 7)
-            .stroke(Color.white, lineWidth: 4)
-            .blur(radius: 4)
-            .mask(RoundedRectangle(cornerRadius: 7).fill(LinearGradient(gradient: Gradient(colors: [.black, .clear]), startPoint: .topLeading, endPoint: .bottomTrailing)))
+        RoundedRectangle(cornerRadius: cellWidth / 5)
+            .stroke(Color.white, lineWidth: cellWidth / 8.75)
+            .blur(radius: cellWidth / 8.75)
+            .mask(RoundedRectangle(cornerRadius: cellWidth / 5).fill(LinearGradient(gradient: Gradient(colors: [.black, .clear]), startPoint: .topLeading, endPoint: .bottomTrailing)))
     }
     
     @ViewBuilder
     // Black frame with blur
     var blackStroke: some View {
-        RoundedRectangle(cornerRadius: 7)
-            .stroke(Color.black, lineWidth: 8)
-            .blur(radius: 4)
-            .mask(RoundedRectangle(cornerRadius: 7).fill(LinearGradient(gradient: Gradient(colors: [.clear, .black]), startPoint: .topLeading, endPoint: .bottomTrailing)))
+        RoundedRectangle(cornerRadius: cellWidth / 5)
+            .stroke(Color.black, lineWidth: cellWidth / 4.375)
+            .blur(radius: cellWidth / 8.75)
+            .mask(RoundedRectangle(cornerRadius: cellWidth / 5).fill(LinearGradient(gradient: Gradient(colors: [.clear, .black]), startPoint: .topLeading, endPoint: .bottomTrailing)))
     }
     
     @ViewBuilder
@@ -73,36 +76,36 @@ struct CellView: View {
         Circle()
             .fill(LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.5), Color.white.opacity(0.3)]), startPoint: .topLeading, endPoint: .bottomTrailing))
             .frame(width: cellWidth * 0.43, height: cellWidth * 0.43)
-            .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 0)
+            .shadow(color: Color.black.opacity(0.3), radius: cellWidth / 8.75)
             .overlay(
                 Circle()
-                    .stroke(Color.black.opacity(0.7), lineWidth: 2)
-                    .blur(radius: 2)
+                    .stroke(Color.black.opacity(0.7), lineWidth: cellWidth / 17.5)
+                    .blur(radius: cellWidth / 17.5)
             )
             .overlay(
                 Circle()
-                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                    .blur(radius: 2)
+                    .stroke(Color.white.opacity(0.3), lineWidth: cellWidth / 17.5)
+                    .blur(radius: cellWidth / 17.5)
             )
     }
     
     @ViewBuilder
     // Fire frame
     var fireStroke: some View {
-        RoundedRectangle(cornerRadius: 7)
+        RoundedRectangle(cornerRadius: cellWidth / 5)
             .stroke(LinearGradient(gradient: Gradient(
                 colors: [Color(red: 1.0, green: 0.5, blue: 0.0), Color(red: 1.0, green: 0.2, blue: 0.0)]),
-                startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2)
-            .blur(radius: 2)
+                startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: cellWidth / 17.5)
+            .blur(radius: cellWidth / 17.5)
     }
     
     @ViewBuilder
     var strongFireStroke: some View {
-        RoundedRectangle(cornerRadius: 7)
+        RoundedRectangle(cornerRadius: cellWidth / 5)
             .stroke(LinearGradient(gradient: Gradient(
                 colors: [Color(red: 1.0, green: 0.5, blue: 0.0), Color(red: 1.0, green: 0.2, blue: 0.0)]),
-                startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 3)
-            .blur(radius: 2)
+                startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: cellWidth / 11.67)
+            .blur(radius: cellWidth / 17.5)
     }
     
     @ViewBuilder
@@ -114,11 +117,11 @@ struct CellView: View {
                 path.move(to: CGPoint(x: cellWidth * 0.71, y: cellWidth * 0.29))
                 path.addLine(to: CGPoint(x: cellWidth * 0.29, y: cellWidth * 0.71))
             }
-            .stroke(Color(red: 1.0, green: 0.2, blue: 0.0), lineWidth: 3)
-            .blur(radius: 1)
-            .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.7), radius: 4, x: 0, y: 0)
-            .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
-            .shadow(color: Color.white.opacity(0.7), radius: 2, x: -2, y: -2)
+            .stroke(Color(red: 1.0, green: 0.2, blue: 0.0), lineWidth: cellWidth / 11.67)
+            .blur(radius: cellWidth / 35)
+            .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.7), radius: cellWidth / 8.75)
+            .shadow(color: Color.black.opacity(0.3), radius: cellWidth / 17.5, x: cellWidth / 17.5, y: cellWidth / 17.5)
+            .shadow(color: Color.white.opacity(0.7), radius: cellWidth / 17.5, x: -cellWidth / 17.5, y: -cellWidth / 17.5)
         }
     }
     
@@ -131,11 +134,11 @@ struct CellView: View {
                 path.move(to: CGPoint(x: cellWidth * 0.57, y: cellWidth * 0.14))
                 path.addLine(to: CGPoint(x: cellWidth * 0.14, y: cellWidth * 0.57))
             }
-            .stroke(Color(red: 1.0, green: 0.4, blue: 0.0), lineWidth: 3)
-            .blur(radius: 1)
-            .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.7), radius: 4, x: 0, y: 0)
-            .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
-            .shadow(color: Color.white.opacity(0.7), radius: 2, x: -2, y: -2)
+            .stroke(Color(red: 1.0, green: 0.4, blue: 0.0), lineWidth: cellWidth / 11.67)
+            .blur(radius: cellWidth / 35)
+            .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.7), radius: cellWidth / 8.75)
+            .shadow(color: Color.black.opacity(0.3), radius: cellWidth / 17.5, x: cellWidth / 17.5, y: cellWidth / 17.5)
+            .shadow(color: Color.white.opacity(0.7), radius: cellWidth / 17.5, x: -cellWidth / 17.5, y: -cellWidth / 17.5)
         }
     }
     
@@ -148,17 +151,17 @@ struct CellView: View {
                 path.move(to: CGPoint(x: cellWidth * 0.57, y: cellWidth * 0.14))
                 path.addLine(to: CGPoint(x: cellWidth * 0.14, y: cellWidth * 0.57))
             }
-            .stroke(Color(red: 1.0, green: 0.4, blue: 0.0), lineWidth: 2)
-            .blur(radius: 1)
-            .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.7), radius: 4, x: 0, y: 0)
-            .shadow(color: Color.black.opacity(0.3), radius: 2, x: 2, y: 2)
-            .shadow(color: Color.white.opacity(0.7), radius: 2, x: -2, y: -2)
+            .stroke(Color(red: 1.0, green: 0.4, blue: 0.0), lineWidth: cellWidth / 17.5)
+            .blur(radius: cellWidth / 35)
+            .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.7), radius: cellWidth / 8.75)
+            .shadow(color: Color.black.opacity(0.3), radius: cellWidth / 17.5, x: cellWidth / 17.5, y: cellWidth / 17.5)
+            .shadow(color: Color.white.opacity(0.7), radius: cellWidth / 17.5, x: -cellWidth / 17.5, y: -cellWidth / 17.5)
         }
     }
     
     @ViewBuilder
     var innerYellowSquare: some View {
-        RoundedRectangle(cornerRadius: 5)
+        RoundedRectangle(cornerRadius: cellWidth / 7)
             .fill(LinearGradient(gradient: Gradient(colors: [
                 Color(red: 248/255, green: 1, blue: 0),
                 Color(red: 90/255, green: 74/255, blue: 66/255).opacity(0.8)]),
@@ -169,7 +172,7 @@ struct CellView: View {
     
     var innerBlackSquare: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 5)
+            RoundedRectangle(cornerRadius: cellWidth / 7)
                 .fill(Color.black)
                 .frame(width: cellWidth * 0.71, height: cellWidth * 0.71)
                 .overlay(crossThin)
@@ -314,5 +317,5 @@ struct CellView: View {
 }
 
 #Preview {
-    CellView(fireStrokeIsOn: true, cellStatus: .showShipHalo, cellWidth: 35)
+    CellView(fireStrokeIsOn: true, cellStatus: .unknown, cellWidth: 35)
 }

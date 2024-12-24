@@ -9,11 +9,12 @@ import AVFoundation
 import SwiftUI
 
 class AppState: ObservableObject {
+    
     enum DifficultyLevel: CaseIterable {
         case easy, medium, hard
     }
     enum SelectedTabs: CaseIterable {
-        case menu, playerView, enemyView, about
+        case menu, playerView, enemyView, about, iPadBattleFieldView
     }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?

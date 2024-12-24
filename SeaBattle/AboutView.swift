@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct AboutView: View {
+    var appState: AppState
+    
     @State private var showInformationView = false
     var body: some View {
         ZStack {
@@ -49,11 +51,18 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
             .sheet(isPresented: $showInformationView) { InformationView()
                     .presentationDetents([.medium, .large])
             }
+//            HStack {
+//                iPadMenuView(appState: appState, relativeFontSize: 35, width: geometry.size.width * 0.07, height: geometry.size.height * 0.3)
+//                    Spacer()
+//            }
         }
         .statusBar(hidden: true)
+    }
+    init(appState: AppState) {
+        self.appState = appState
     }
 }
 
 #Preview {
-    AboutView()
+    AboutView(appState: AppState())
 }

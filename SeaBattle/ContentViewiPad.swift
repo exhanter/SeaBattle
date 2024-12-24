@@ -1,13 +1,13 @@
 //
-//  ContentView.swift
+//  ContentViewIPad.swift
 //  SeaBattle
 //
-//  Created by Ivan Tkachev on 03/02/2024.
+//  Created by Ivan Tkachev on 20/12/2024.
 //
 
 import SwiftUI
 
-struct ContentView: View {
+struct ContentViewIPad: View {
     
     // Apple ID 6738694687
     
@@ -21,11 +21,11 @@ struct ContentView: View {
             ZStack {
                 TabView(selection: $appState.selectedTab) {
                     ZStack {
-                            LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
-                                .ignoresSafeArea(.container, edges: [.top, .horizontal])
+                        LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
+                            .ignoresSafeArea(.container, edges: [.top, .horizontal])
                         VStack(spacing: 0) {
                             Spacer(minLength: geometry.size.height * 0.10)
-                            ArcButton(fontSize: geometry.size.width * 0.13)
+                            ArcButton(fontSize: geometry.size.width * 0.065)
                             Spacer(minLength: geometry.size.height * 0.02)
                             Image("warship8NB")
                             Spacer()
@@ -37,7 +37,7 @@ struct ContentView: View {
                                     appState.resetData(player: player, enemy: enemy)
                                     player.shipsRandomArrangement()
                                     enemy.shipsRandomArrangement()
-                                    appState.selectedTab = .playerView
+                                    appState.selectedTab = .iPadBattleFieldView
                                 } else if appState.gameIsActive {
                                     AppState.musicPlayer?.stop()
                                     appState.resetData(player: player, enemy: enemy)
@@ -45,7 +45,7 @@ struct ContentView: View {
                             } label: {
                                 Text(appState.gameIsActive ? "Stop game" : "New game")
                             }
-                            .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
+                            .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
                             .padding(.bottom, 5)
                             
                             
@@ -64,27 +64,30 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     } //ZStack off
                     .tag(AppState.SelectedTabs.menu)
-                    PlayerFieldView(appState: appState, player: player, enemy: enemy)
-                        .tag(AppState.SelectedTabs.playerView)
-                    EnemyFieldView(appState: appState, player: player, enemy: enemy)
-                        .tag(AppState.SelectedTabs.enemyView)
+                    iPadBattleFieldView(appState: appState, player: player, enemy: enemy)
+                        .tag(AppState.SelectedTabs.iPadBattleFieldView)
                     AboutView(appState: appState)
                         .tag(AppState.SelectedTabs.about)
                 } // TabView off
-                VStack(spacing: 0) {
-                    ZStack {
-                        Image("wood")
-                            .resizable()
-                            .renderingMode(.original)
-                            .frame(height: geometry.size.height * 0.10)
-                        if appState.selectedTab == .playerView || appState.selectedTab == .enemyView {
-                            GameScoreView(numberOfPlayersShipsDestroyed: player.numberShipsDestroyed, numberOfEnemyShipsDestroyed: enemy.numberShipsDestroyed)
-                                .padding(.horizontal, geometry.size.width * 0.04)// 0.077
-                        }
-                    }
+                //.toolbarVisibility(.hidden)
+                //                VStack(spacing: 0) {
+                //                    ZStack {
+                //                        Image("wood")
+                //                            .resizable()
+                //                            .renderingMode(.original)
+                //                            .frame(height: geometry.size.height * 0.08)
+                //                        if appState.selectedTab == .playerView || appState.selectedTab == .enemyView {
+                //                            GameScoreView(numberOfPlayersShipsDestroyed: player.numberShipsDestroyed, numberOfEnemyShipsDestroyed: enemy.numberShipsDestroyed)
+                //                                .padding(.horizontal, geometry.size.width * 0.04)// 0.077
+                //                        }
+                //                    }
+                //                    Spacer()
+                //                    CustomTabView(appState: appState, relativeFontSize: geometry.size.width * 0.1, height: geometry.size.height * 0.08)
+                //
+                //                }
+                HStack {
+                    iPadMenuView(appState: appState, relativeFontSize: 35, width: geometry.size.width * 0.07, height: geometry.size.height * 0.3)
                     Spacer()
-                    CustomTabView(appState: appState, relativeFontSize: geometry.size.width * 0.13, height: geometry.size.height * 0.13)
-
                 }
                 .ignoresSafeArea()
                 .statusBar(hidden: true)
@@ -99,6 +102,7 @@ struct ContentView: View {
         }
 }
 
+
 #Preview {
-    ContentView()
+    ContentViewIPad()
 }
