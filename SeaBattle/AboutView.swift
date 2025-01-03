@@ -6,21 +6,39 @@
 //
 
 import SwiftUI
+//import UIKit
+
+struct SheetViewControllerWrapper<Content: View>: UIViewControllerRepresentable {
+    let content: () -> Content
+    func makeUIViewController(context: Context) -> UIViewController {
+        let hostingController = UIHostingController(rootView: content())
+        hostingController.modalPresentationStyle = .formSheet
+        return hostingController
+    }
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
 
 struct AboutView: View {
     var appState: AppState
     
     @State private var showInformationView = false
+    @State private var showContactsView = false
     var body: some View {
-        ZStack {
-            LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
-                .ignoresSafeArea()
-            ScrollView {
-                Text("Game rules")
-                    .font(.title)
-                    .padding(.top, 50)
-                    .padding()
-                Text("""
+        GeometryReader { geometry in
+            ZStack {
+                LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
+                    .ignoresSafeArea()
+                HStack {
+                    iPadMenuView(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    Spacer()
+                }
+                ScrollView {
+                    Text("Game rules")
+                        .font(.custom("Aldrich", size: 42))
+                        .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                        .padding(.top, 50)
+                        .padding()
+                    Text("""
 Objective: Sink all of your opponent’s ships before they sink yours.
 Setup:
 Each player has a grid (10x10).
@@ -40,23 +58,37 @@ Sunk (ship is destroyed and removed from the board)
 Players continue guessing until all the ships of one player are sunk.
 Winning: The first player to sink all of the opponent’s ships wins the game.
 """)
-            Button("Common information") {
-                self.showInformationView = true
+                    .font(.custom("Aldrich", size: 22))
+                    .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                    Button("Rights and licenses") {
+                        self.showInformationView = true
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                    .padding(.top)
+                    Button("Contacts") {
+                        self.showContactsView = true
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                }
+                .scrollIndicators(.hidden)
+                .padding(.vertical, 20)
+                .padding(.horizontal, geometry.size.width * 0.14)
+                .background(.clear)
+                .sheet(isPresented: $showInformationView) {
+                    InformationView()
+                        .presentationDetents([.medium, .large])
+                }
+                .sheet(isPresented: $showContactsView) {
+                    SheetViewControllerWrapper {
+                        ContactsView()
+                    }
+                        //.presentationDetents([.medium, .large])
+                }
             }
-            .padding()
-            }
-            .scrollIndicators(.hidden)
-            .padding(20)
-            .background(.clear)
-            .sheet(isPresented: $showInformationView) { InformationView()
-                    .presentationDetents([.medium, .large])
-            }
-//            HStack {
-//                iPadMenuView(appState: appState, relativeFontSize: 35, width: geometry.size.width * 0.07, height: geometry.size.height * 0.3)
-//                    Spacer()
-//            }
+            .statusBar(hidden: true)
         }
-        .statusBar(hidden: true)
     }
     init(appState: AppState) {
         self.appState = appState

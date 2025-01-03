@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum ButtonSide {
-    case up, down, left, right
+    case up, down, left, right, none
 }
 
 struct iPadButtonView: View {
@@ -21,6 +21,7 @@ struct iPadButtonView: View {
         case .down:  [.topLeft, .topRight]
         case .left:  [.topRight, .bottomRight]
         case .right: [.topLeft, .bottomLeft]
+        case .none:  [.topLeft, .topRight, .bottomLeft, .bottomRight]
         }
     }
     var body: some View {
@@ -41,5 +42,5 @@ struct iPadButtonView: View {
 }
 
 #Preview {
-    iPadButtonView(text: "Change", cornerRadius: 25, screenSide: .right)
+    iPadButtonView(text: "Start", cornerRadius: 13, screenSide: .none)
 }

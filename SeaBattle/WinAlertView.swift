@@ -9,10 +9,9 @@ import SwiftUI
 
 struct WinAlertView: View {
     let isPlayerWon: Bool
-    var text: String
     var body: some View {
         VStack(alignment: .center) {
-            Text(text)
+            Text(isPlayerWon ? "Victory!" : "Defeat!")
                 .font(.custom("Dorsa", size: 250))
         }
         .foregroundStyle(isPlayerWon ? Color(red: 248/255, green: 255/255, blue: 0/255) : .black)
@@ -21,5 +20,5 @@ struct WinAlertView: View {
 }
 
 #Preview {
-    WinAlertView(isPlayerWon: false, text: "Victory")
+    WinAlertView(isPlayerWon: false)
 }

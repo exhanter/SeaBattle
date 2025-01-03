@@ -9,9 +9,9 @@ import SwiftUI
 
 struct iPadMenuView: View {
     @ObservedObject var appState: AppState
-    let relativeFontSize: CGFloat
     let width: CGFloat
     let height: CGFloat
+    let relativeFontSize: CGFloat
     var tabsLockBeforeGameStart: Bool {
         if !appState.gameIsActive {
             return appState.selectedTab == .menu || appState.selectedTab == .about ? true : false
@@ -19,18 +19,14 @@ struct iPadMenuView: View {
         return false
     }
     var body: some View {
-            ZStack {
-                Image("wood")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width, height: height)
-                    .clipShape(CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight, .bottomRight]))
-//                    .overlay(
-//                        CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight, .bottomRight])
-//                            .stroke(Color.white, lineWidth: 4)
-//                    )
-                    .shadow(radius: 10)
-                VStack {
+        ZStack {
+            Image("wood")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: width, height: height)
+                .clipShape(CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight, .bottomRight]))
+                .shadow(color: .white, radius: width * 0.06)
+            VStack(alignment: .leading) {
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -43,37 +39,43 @@ struct iPadMenuView: View {
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("Menu")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
+                                .fixedSize(horizontal: true, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                     .disabled(appState.tabsBlocked)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                     Button {
                         if appState.soundOn {
                             AppState.playSound(sound: "click_sound.wav")
                         }
-                        appState.selectedTab = .playerView
+                        appState.selectedTab = .iPadBattleFieldView
                     } label: {
-                        if appState.selectedTab == .playerView {
-                            Text("Player")
+                        if appState.selectedTab == .iPadBattleFieldView {
+                            Text("Battle")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("Battle")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
+                                .fixedSize(horizontal: true, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                     .disabled(appState.tabsBlocked)
                     .disabled(self.tabsLockBeforeGameStart)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -86,24 +88,33 @@ struct iPadMenuView: View {
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("About")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
-                            
+                                .fixedSize(horizontal: true, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                     .disabled(appState.tabsBlocked)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                 }
+            .padding(.leading, width * 0.11)
                 .frame(width: width, height: height)
             }
+    }
+    init(appState: AppState, width: CGFloat, height: CGFloat) {
+        self.width = width * 0.12
+        self.height = height * 0.3
+        self.relativeFontSize = width * 0.08
+        self.appState = appState
     }
 }
 
 #Preview {
-    iPadMenuView(appState: AppState(), relativeFontSize: 35, width: 50, height: 300)
+    iPadMenuView(appState: AppState(), width: 500, height: 300)
 }
 

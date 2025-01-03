@@ -87,7 +87,7 @@ struct EnemyFieldView: View {
                         .onTapGesture {
                             appState.resetData(player: player, enemy: enemy)
                         }
-                    WinAlertView(isPlayerWon: true, text: "Victory!")
+                    WinAlertView(isPlayerWon: true)
                         .onAppear {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                                 isTapEnabled = true

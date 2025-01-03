@@ -17,7 +17,8 @@ struct SeaBattleApp: App {
 //                ContentView()
 //            }
             //ContentView()
-            ContentViewIPad()
+            //ContentViewIPad()
+            StartMenuView()
         }
     }
 }

@@ -71,9 +71,9 @@ extension EnemyFieldView {
             }
             if target.numberShipsDestroyed == 10 {
                 AppState.musicPlayer?.stop()
-                appState.gameIsActive = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     target.showFinishGameAlert = true
+                    print("Target: \(target.name), SFGA: \(target.showFinishGameAlert)")
                 }
             }
             return true

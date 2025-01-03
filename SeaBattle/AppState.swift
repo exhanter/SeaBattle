@@ -16,6 +16,15 @@ class AppState: ObservableObject {
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about, iPadBattleFieldView
     }
+    
+    @Published var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
+    @Published var enemysTurn = false
+    @Published var gameIsActive = false
+    @Published var soundOn: Bool
+    @Published var musicOn: Bool
+    @Published var selectedTab: SelectedTabs = .menu
+    @Published var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
+    
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?
     static var soundPlayer: AVAudioPlayer?
@@ -86,13 +95,6 @@ class AppState: ObservableObject {
             return .hard
         }
     }
-    @Published var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
-    @Published var enemysTurn = false
-    @Published var gameIsActive = false
-    @Published var soundOn: Bool
-    @Published var musicOn: Bool
-    @Published var selectedTab: SelectedTabs = .menu
-    @Published var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
     
     init() {
         let defaults = UserDefaults.standard

@@ -35,10 +35,12 @@ struct CustomTabView: View {
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
                         } else {
                             Text("Menu")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
+                                .fixedSize(horizontal: true, vertical: true)
                         }
                     }
                     .disabled(appState.tabsBlocked)
@@ -56,10 +58,12 @@ struct CustomTabView: View {
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
                         } else {
                             Text("Player")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
+                                .fixedSize(horizontal: true, vertical: true)
                         }
                     }
                     .disabled(appState.tabsBlocked)
@@ -78,10 +82,12 @@ struct CustomTabView: View {
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
                         } else {
                             Text("Enemy")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
+                                .fixedSize(horizontal: true, vertical: true)
                         }
                     }
                     .disabled(appState.tabsBlocked)
@@ -100,11 +106,12 @@ struct CustomTabView: View {
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
+                                .fixedSize(horizontal: true, vertical: true)
                         } else {
                             Text("About")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
-                            
+                                .fixedSize(horizontal: true, vertical: true)
                         }
                     }
                     .disabled(appState.tabsBlocked)
