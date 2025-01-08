@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct StartMenuView: View {
+struct iPadStartMenuView: View {
     @StateObject private var appState = AppState()
     @StateObject private var player = PlayerData(name: "Player")
     @StateObject private var enemy = PlayerData(name: "Enemy")
@@ -15,16 +15,16 @@ struct StartMenuView: View {
     var body: some View {
         switch appState.selectedTab {
         case .menu:
-            ContentViewIPad(appState: appState, player: player, enemy: enemy)
+            iPadMainView(appState: appState, player: player, enemy: enemy)
         case .iPadBattleFieldView:
-            iPadBattleFieldView(appState: appState, player: player, enemy: enemy)
+            iPadBattleView(appState: appState, player: player, enemy: enemy)
         case .about:
-            AboutView(appState: appState)
+            iPadAboutView(appState: appState)
         default:
-            ContentViewIPad(appState: appState, player: player, enemy: enemy)
+            iPadMainView(appState: appState, player: player, enemy: enemy)
         }
     }
 }
 #Preview {
-    StartMenuView()
+    iPadStartMenuView()
 }

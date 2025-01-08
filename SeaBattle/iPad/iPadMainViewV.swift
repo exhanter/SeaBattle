@@ -1,19 +1,16 @@
 //
-//  ContentViewIPad.swift
+//  iPadMainViewV.swift
 //  SeaBattle
 //
-//  Created by Ivan Tkachev on 20/12/2024.
+//  Created by Ivan Tkachev on 07/01/2025.
 //
 
 import SwiftUI
 
-struct ContentViewIPad: View {
+struct iPadMainViewV: View {
     
     // Apple ID 6738694687
     
-//    @StateObject private var appState = AppState()
-//    @StateObject private var player = PlayerData(name: "Player")
-//    @StateObject private var enemy = PlayerData(name: "Enemy")
     @ObservedObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
@@ -27,7 +24,10 @@ struct ContentViewIPad: View {
                             .ignoresSafeArea(.container, edges: [.top, .horizontal])
                         VStack(spacing: 0) {
                             Spacer(minLength: geometry.size.height * 0.10)
-                            ArcButton(fontSize: geometry.size.width * 0.065)
+                            Text("Sea Battle")
+                                .font(.custom("Dorsa", size: geometry.size.width * 0.25))
+                                .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                                .shadow(color: .white, radius: 2)
                             Spacer(minLength: geometry.size.height * 0.02)
                             Image("war_ship8")
                                 .resizable()
@@ -57,9 +57,8 @@ struct ContentViewIPad: View {
                             }
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
                             .shadow(color: .white, radius: 15)
-                            .padding(.bottom, 5)
-                            
-                            
+                            .padding(.bottom, 10)
+                        
                             Button("Settings") {
                                 self.showSettingsView = true
                             }
@@ -67,7 +66,7 @@ struct ContentViewIPad: View {
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
                             .padding()
                             .padding(.horizontal, geometry.size.width * 0.1)
-                            Spacer(minLength: geometry.size.height * 0.15)
+                            Spacer(minLength: geometry.size.height * 0.10)
                         } // VStack off
                         .sheet(isPresented: $showSettingsView) { SettingsView(appState: appState)
                                 .presentationDetents([.fraction(0.42)])
@@ -76,7 +75,7 @@ struct ContentViewIPad: View {
                     } //ZStack off
                     .ignoresSafeArea()
                 HStack {
-                    iPadMenuView(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewV(appState: appState, width: geometry.size.width, height: geometry.size.height)
                     Spacer()
                 }
                 .ignoresSafeArea()
@@ -88,14 +87,11 @@ struct ContentViewIPad: View {
         self.appState = appState
         self.player = player
         self.enemy = enemy
-            UserDefaults.standard.register(defaults: [
-                "musicOn": true,
-                "soundOn": true
-            ])
         }
 }
 
 
 #Preview {
-    ContentViewIPad(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    iPadMainViewV(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
 }
+

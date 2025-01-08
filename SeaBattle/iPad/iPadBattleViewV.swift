@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct iPadBattleFieldView: View {
+struct iPadBattleViewV: View {
     
     @State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
@@ -25,9 +25,9 @@ struct iPadBattleFieldView: View {
                 LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                     .ignoresSafeArea()
                 HStack {
-                    iPadMenuView(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewV(appState: appState, width: geometry.size.width, height: geometry.size.height)
                         Spacer()
-                    VStack(alignment: .trailing) {
+                    VStack {
                         Spacer()
                         Text("Player") // 8 char max
                             .font(.custom("Aldrich", size: geometry.size.width * 0.04))
@@ -51,12 +51,12 @@ struct iPadBattleFieldView: View {
                             .shadow(color: Color(red: 0.04, green: 0.10, blue: 0.25), radius: 5)
                         Spacer()
                     }
-                    .padding(.trailing, geometry.size.width * 0.0132)
+                    .padding(.trailing, geometry.size.width * 0.03)//0.0132
                 } //HStack off
                 HStack {
                     VStack(alignment: .leading) {
                         ZStack(alignment: .leading) {
-                            iPadMenuButtonsView(width: geometry.size.width, height: geometry.size.height)
+                            iPadMenuButtonsViewV(width: geometry.size.width, height: geometry.size.height)
                                 VStack(alignment: .leading) {
                                     Text("Ships:")
                                         .font(.custom("Dorsa", size: geometry.size.width * 0.07))
@@ -78,6 +78,9 @@ struct iPadBattleFieldView: View {
                                             .shadow(color: manualShipArrangement ? .white : .clear, radius: 5)
                                     }
                                     .padding(.bottom, 2)
+                                    .disabled(appState.gameIsActive)
+                                    .disabled(player.shipIsDragging.contains(true))
+                                    .opacity(appState.gameIsActive ? 0.5 : 1)
                                     Button {
                                         if appState.soundOn {
                                             AppState.playSound(sound: "click_sound.wav")
@@ -92,51 +95,15 @@ struct iPadBattleFieldView: View {
                                             .fixedSize(horizontal: true, vertical: true)
                                     }
                                     .disabled(appState.tabsBlocked)
+                                    .disabled(appState.gameIsActive)
+                                    .disabled(player.shipIsDragging.contains(true))
+                                    .opacity(appState.gameIsActive ? 0.5 : 1)
                                     .opacity(appState.tabsBlocked ? 0.5 : 1)
                                 }
                                 .padding(.leading, geometry.size.width * 0.0132)
                         }
-                        .padding(.top, geometry.size.height * 0.06)
                         Spacer()
                     }
-//                    VStack {
-//                        Spacer()
-//                        Text("Ships:")
-//                            .font(.custom("Aldrich", size: geometry.size.width * 0.03))
-////                            .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-//                            .foregroundStyle(.white)
-//                            .padding(.bottom, 10)
-//                        Button {
-//                            if appState.soundOn {
-//                                AppState.playSound(sound: "click_sound.wav")
-//                            }
-//                            manualShipArrangement.toggle()
-//                            appState.tabsBlocked.toggle()
-//                        } label: {
-//                            iPadButtonView(text: manualShipArrangement ? "Save" : "Change", cornerRadius: 13, screenSide: .left)
-//                        }
-//                            .disabled(appState.gameIsActive)
-//                            .disabled(player.shipIsDragging.contains(true))
-//                            .opacity(appState.gameIsActive ? 0.5 : 1)
-//                        .padding(.bottom)
-//                        Button {
-//                            if appState.soundOn {
-//                                AppState.playSound(sound: "click_sound.wav")
-//                            }
-//                            player.clearShips()
-//                            player.shipsRandomArrangement()
-//                        } label: {
-//                            iPadButtonView(text: "Shuffle", cornerRadius: 13, screenSide: .left)
-//                        }
-//                            .disabled(appState.gameIsActive)
-//                            .disabled(player.shipIsDragging.contains(true))
-//                            .opacity(appState.gameIsActive ? 0.5 : 1)
-//                        Spacer()
-//                        Spacer()
-//                        Spacer()
-//                        Spacer()
-//                        Spacer()
-//                    }
                     Spacer()
                 }
                 VStack(alignment: .center, spacing: 0) {
@@ -261,5 +228,5 @@ struct iPadBattleFieldView: View {
 }
 
 #Preview {
-    iPadBattleFieldView(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    iPadBattleViewV(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
 }

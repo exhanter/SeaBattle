@@ -11,14 +11,11 @@ import SwiftUI
 struct SeaBattleApp: App {
     var body: some Scene {
         WindowGroup {
-//            if UIDevice.current.userInterfaceIdiom == .pad {
-//                ContentViewIPad()
-//            } else {
-//                ContentView()
-//            }
-            //ContentView()
-            //ContentViewIPad()
-            StartMenuView()
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                iPadStartMenuView()
+            } else {
+                ContentView()
+            }
         }
     }
 }

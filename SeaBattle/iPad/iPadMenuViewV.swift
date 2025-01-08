@@ -7,17 +7,11 @@
 
 import SwiftUI
 
-struct iPadMenuView: View {
+struct iPadMenuViewV: View {
     @ObservedObject var appState: AppState
     let width: CGFloat
     let height: CGFloat
     let relativeFontSize: CGFloat
-    var tabsLockBeforeGameStart: Bool {
-        if !appState.gameIsActive {
-            return appState.selectedTab == .menu || appState.selectedTab == .about ? true : false
-        }
-        return false
-    }
     var body: some View {
         ZStack {
             Image("wood")
@@ -74,7 +68,6 @@ struct iPadMenuView: View {
                         }
                     }
                     .disabled(appState.tabsBlocked)
-                    .disabled(self.tabsLockBeforeGameStart)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
                     Spacer()
                     Button {
@@ -115,6 +108,6 @@ struct iPadMenuView: View {
 }
 
 #Preview {
-    iPadMenuView(appState: AppState(), width: 500, height: 300)
+    iPadMenuViewV(appState: AppState(), width: 500, height: 300)
 }
 

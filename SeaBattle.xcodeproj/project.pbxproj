@@ -13,12 +13,11 @@
 		2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1914B12D1EDF0F004A095B /* ContactsView.swift */; };
 		2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */; };
 		2C2336652D19A46A008055C7 /* iPadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336642D19A46A008055C7 /* iPadButtonView.swift */; };
-		2C2336672D19DC02008055C7 /* StartMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336662D19DC02008055C7 /* StartMenuView.swift */; };
-		2C2336692D1DB870008055C7 /* PictureShipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336682D1DB870008055C7 /* PictureShipView.swift */; };
+		2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */; };
 		2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAF62D12F14200A9BC19 /* AppState.swift */; };
-		2C28DAFB2D159FC600A9BC19 /* ContentViewIPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFA2D159FC600A9BC19 /* ContentViewIPad.swift */; };
-		2C28DAFF2D15AEB000A9BC19 /* iPadBattleFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFE2D15AEB000A9BC19 /* iPadBattleFieldView.swift */; };
-		2C28DB012D15B9F900A9BC19 /* iPadMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DB002D15B9F900A9BC19 /* iPadMenuView.swift */; };
+		2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */; };
+		2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */; };
+		2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DB002D15B9F900A9BC19 /* iPadMenuViewV.swift */; };
 		2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */; };
 		2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C403C4E2D006B6700E2A386 /* InformationView.swift */; };
 		2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C403C502D00B0D800E2A386 /* SettingsView.swift */; };
@@ -38,7 +37,16 @@
 		2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA0169C2C8B1847000C2E3A /* ShipView.swift */; };
 		2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */; };
 		2CA38D042CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */; };
-		2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsView.swift */; };
+		2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */; };
+		2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */; };
+		2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5A92D2D670500EDE9CF /* iPadMainViewH.swift */; };
+		2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5AB2D2D76F500EDE9CF /* iPadMenuViewH.swift */; };
+		2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */; };
+		2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */; };
+		2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */; };
+		2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B32D2DA8BC00EDE9CF /* iPadMainViewV.swift */; };
+		2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */; };
+		2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */; };
 		2CC35ACB2C4AACE8009138FF /* EnemyFieldViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC35ACA2C4AACE8009138FF /* EnemyFieldViewViewModel.swift */; };
 		2CE3E3EF2CB41AA0003AF40E /* blast_onfire2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3E92CB41AA0003AF40E /* blast_onfire2.wav */; };
 		2CE3E3F02CB41AA0003AF40E /* defeat_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EB2CB41AA0003AF40E /* defeat_sound.wav */; };
@@ -58,12 +66,11 @@
 		2C1914B12D1EDF0F004A095B /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomRoundedRectangle.swift; sourceTree = "<group>"; };
 		2C2336642D19A46A008055C7 /* iPadButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadButtonView.swift; sourceTree = "<group>"; };
-		2C2336662D19DC02008055C7 /* StartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartMenuView.swift; sourceTree = "<group>"; };
-		2C2336682D1DB870008055C7 /* PictureShipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureShipView.swift; sourceTree = "<group>"; };
+		2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartMenuView.swift; sourceTree = "<group>"; };
 		2C28DAF62D12F14200A9BC19 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		2C28DAFA2D159FC600A9BC19 /* ContentViewIPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewIPad.swift; sourceTree = "<group>"; };
-		2C28DAFE2D15AEB000A9BC19 /* iPadBattleFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleFieldView.swift; sourceTree = "<group>"; };
-		2C28DB002D15B9F900A9BC19 /* iPadMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuView.swift; sourceTree = "<group>"; };
+		2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainView.swift; sourceTree = "<group>"; };
+		2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleViewV.swift; sourceTree = "<group>"; };
+		2C28DB002D15B9F900A9BC19 /* iPadMenuViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuViewV.swift; sourceTree = "<group>"; };
 		2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementView.swift; sourceTree = "<group>"; };
 		2C403C4E2D006B6700E2A386 /* InformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationView.swift; sourceTree = "<group>"; };
 		2C403C502D00B0D800E2A386 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -84,7 +91,16 @@
 		2CA0169C2C8B1847000C2E3A /* ShipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipView.swift; sourceTree = "<group>"; };
 		2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementViewViewModel.swift; sourceTree = "<group>"; };
 		2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Glass_Break-stephan_schutze-958181291.wav"; sourceTree = "<group>"; };
-		2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuButtonsView.swift; sourceTree = "<group>"; };
+		2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuButtonsViewV.swift; sourceTree = "<group>"; };
+		2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadAboutViewV.swift; sourceTree = "<group>"; };
+		2CA3D5A92D2D670500EDE9CF /* iPadMainViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainViewH.swift; sourceTree = "<group>"; };
+		2CA3D5AB2D2D76F500EDE9CF /* iPadMenuViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuViewH.swift; sourceTree = "<group>"; };
+		2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleViewH.swift; sourceTree = "<group>"; };
+		2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuBattonsViewH.swift; sourceTree = "<group>"; };
+		2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadAboutViewH.swift; sourceTree = "<group>"; };
+		2CA3D5B32D2DA8BC00EDE9CF /* iPadMainViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainViewV.swift; sourceTree = "<group>"; };
+		2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleView.swift; sourceTree = "<group>"; };
+		2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadAboutView.swift; sourceTree = "<group>"; };
 		2CC35ACA2C4AACE8009138FF /* EnemyFieldViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyFieldViewViewModel.swift; sourceTree = "<group>"; };
 		2CE3E3E72CB41AA0003AF40E /* Battles_on_the_High_Seas.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Battles_on_the_High_Seas.mp3; sourceTree = "<group>"; };
 		2CE3E3E82CB41AA0003AF40E /* blast_missed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = blast_missed.wav; sourceTree = "<group>"; };
@@ -130,23 +146,12 @@
 			children = (
 				2CED70AF2C78E00D0006546F /* Info.plist */,
 				2C6A84702B6E99620001A20C /* SeaBattleApp.swift */,
-				2C6A84722B6E99620001A20C /* ContentView.swift */,
-				2C2336662D19DC02008055C7 /* StartMenuView.swift */,
-				2C28DAFA2D159FC600A9BC19 /* ContentViewIPad.swift */,
-				2C2336682D1DB870008055C7 /* PictureShipView.swift */,
+				2CA3D5A22D2D4B1500EDE9CF /* iPhone */,
+				2CA3D5A12D2D4A9000EDE9CF /* iPad */,
 				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
-				2C12714D2C85E047001548F4 /* CustomTabView.swift */,
-				2C28DB002D15B9F900A9BC19 /* iPadMenuView.swift */,
 				2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */,
-				2C6A84882B73D3960001A20C /* PlayerFieldView.swift */,
-				2C28DAFE2D15AEB000A9BC19 /* iPadBattleFieldView.swift */,
-				2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsView.swift */,
-				2C2336642D19A46A008055C7 /* iPadButtonView.swift */,
 				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
-				2C1271492C81F2C7001548F4 /* GameScoreView.swift */,
-				2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */,
 				2CC35ACA2C4AACE8009138FF /* EnemyFieldViewViewModel.swift */,
-				2C6A84822B723C0E0001A20C /* AboutView.swift */,
 				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
 				2C1914B12D1EDF0F004A095B /* ContactsView.swift */,
 				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
@@ -174,6 +179,41 @@
 				2C6A84772B6E99640001A20C /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		2CA3D5A12D2D4A9000EDE9CF /* iPad */ = {
+			isa = PBXGroup;
+			children = (
+				2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */,
+				2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */,
+				2CA3D5B32D2DA8BC00EDE9CF /* iPadMainViewV.swift */,
+				2CA3D5A92D2D670500EDE9CF /* iPadMainViewH.swift */,
+				2C28DB002D15B9F900A9BC19 /* iPadMenuViewV.swift */,
+				2CA3D5AB2D2D76F500EDE9CF /* iPadMenuViewH.swift */,
+				2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */,
+				2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */,
+				2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */,
+				2C2336642D19A46A008055C7 /* iPadButtonView.swift */,
+				2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */,
+				2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */,
+				2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */,
+				2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */,
+				2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */,
+			);
+			path = iPad;
+			sourceTree = "<group>";
+		};
+		2CA3D5A22D2D4B1500EDE9CF /* iPhone */ = {
+			isa = PBXGroup;
+			children = (
+				2C6A84722B6E99620001A20C /* ContentView.swift */,
+				2C12714D2C85E047001548F4 /* CustomTabView.swift */,
+				2C6A84882B73D3960001A20C /* PlayerFieldView.swift */,
+				2C1271492C81F2C7001548F4 /* GameScoreView.swift */,
+				2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */,
+				2C6A84822B723C0E0001A20C /* AboutView.swift */,
+			);
+			path = iPhone;
 			sourceTree = "<group>";
 		};
 		2CE3E3EE2CB41AA0003AF40E /* Sound */ = {
@@ -273,30 +313,38 @@
 			files = (
 				2C6A84732B6E99620001A20C /* ContentView.swift in Sources */,
 				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,
+				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
 				2CED70B52C7C90420006546F /* ArcButton.swift in Sources */,
-				2C2336672D19DC02008055C7 /* StartMenuView.swift in Sources */,
+				2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */,
+				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
+				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
+				2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */,
 				2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */,
-				2C28DAFF2D15AEB000A9BC19 /* iPadBattleFieldView.swift in Sources */,
+				2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */,
+				2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
 				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
-				2C28DAFB2D159FC600A9BC19 /* ContentViewIPad.swift in Sources */,
+				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
-				2C28DB012D15B9F900A9BC19 /* iPadMenuView.swift in Sources */,
+				2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */,
+				2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */,
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* EnemyFieldViewViewModel.swift in Sources */,
-				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsView.swift in Sources */,
+				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */,
 				2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */,
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
-				2C2336692D1DB870008055C7 /* PictureShipView.swift in Sources */,
+				2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */,
+				2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
 				2C6A847F2B6E99BA0001A20C /* EnemyFieldView.swift in Sources */,
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
 				2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */,
+				2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */,
 				2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */,
 				2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */,
 				2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */,
