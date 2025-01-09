@@ -36,6 +36,7 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                         } else {
                             Text("Menu")
                                 .font(.custom("Dorsa", size: relativeFontSize))
@@ -59,6 +60,7 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                         } else {
                             Text("Player")
                                 .font(.custom("Dorsa", size: relativeFontSize))
@@ -83,6 +85,7 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                         } else {
                             Text("Enemy")
                                 .font(.custom("Dorsa", size: relativeFontSize))
@@ -107,6 +110,7 @@ struct CustomTabView: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                         } else {
                             Text("About")
                                 .font(.custom("Dorsa", size: relativeFontSize))

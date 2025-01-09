@@ -12,7 +12,6 @@
 		2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C12714D2C85E047001548F4 /* CustomTabView.swift */; };
 		2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1914B12D1EDF0F004A095B /* ContactsView.swift */; };
 		2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */; };
-		2C2336652D19A46A008055C7 /* iPadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336642D19A46A008055C7 /* iPadButtonView.swift */; };
 		2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */; };
 		2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAF62D12F14200A9BC19 /* AppState.swift */; };
 		2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */; };
@@ -55,7 +54,6 @@
 		2CE3E3F32CB41AA0003AF40E /* click_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EA2CB41AA0003AF40E /* click_sound.wav */; };
 		2CE3E3F42CB41AA0003AF40E /* start_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */; };
 		2CE3E3F52CB41AA0003AF40E /* victory_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */; };
-		2CED70B52C7C90420006546F /* ArcButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70B42C7C90420006546F /* ArcButton.swift */; };
 		2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70BC2C7C9F520006546F /* WoodenButton.swift */; };
 /* End PBXBuildFile section */
 
@@ -65,7 +63,6 @@
 		2C12714D2C85E047001548F4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		2C1914B12D1EDF0F004A095B /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomRoundedRectangle.swift; sourceTree = "<group>"; };
-		2C2336642D19A46A008055C7 /* iPadButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadButtonView.swift; sourceTree = "<group>"; };
 		2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartMenuView.swift; sourceTree = "<group>"; };
 		2C28DAF62D12F14200A9BC19 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainView.swift; sourceTree = "<group>"; };
@@ -110,7 +107,6 @@
 		2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = start_sound.wav; sourceTree = "<group>"; };
 		2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = victory_sound.wav; sourceTree = "<group>"; };
 		2CED70AF2C78E00D0006546F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		2CED70B42C7C90420006546F /* ArcButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcButton.swift; sourceTree = "<group>"; };
 		2CED70BC2C7C9F520006546F /* WoodenButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoodenButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -161,7 +157,6 @@
 				2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */,
 				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
 				2CED70BC2C7C9F520006546F /* WoodenButton.swift */,
-				2CED70B42C7C90420006546F /* ArcButton.swift */,
 				2C6A84862B723C990001A20C /* Ship.swift */,
 				2C900E872C416963005BD968 /* Cell.swift */,
 				2C6A84742B6E99640001A20C /* Assets.xcassets */,
@@ -193,7 +188,6 @@
 				2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */,
 				2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */,
 				2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */,
-				2C2336642D19A46A008055C7 /* iPadButtonView.swift */,
 				2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */,
 				2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */,
 				2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */,
@@ -314,7 +308,6 @@
 				2C6A84732B6E99620001A20C /* ContentView.swift in Sources */,
 				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,
 				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
-				2CED70B52C7C90420006546F /* ArcButton.swift in Sources */,
 				2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */,
 				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
 				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
@@ -348,7 +341,6 @@
 				2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */,
 				2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */,
 				2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */,
-				2C2336652D19A46A008055C7 /* iPadButtonView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

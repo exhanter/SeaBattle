@@ -44,6 +44,7 @@ struct PlayerFieldView: View {
                             .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
                             .disabled(appState.gameIsActive)
                             .disabled(player.shipIsDragging.contains(true))
+                            .shadow(color: .white, radius: 1)
                             .opacity(appState.gameIsActive ? 0.5 : 1)
                             .padding(.bottom, geometry.size.height * 0.01)
                         ZStack {
@@ -92,6 +93,7 @@ struct PlayerFieldView: View {
                     .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                     .disabled(appState.enemysTurn)
                     .disabled(appState.tabsBlocked)
+                    .shadow(color: .white, radius: 3)
                     .opacity(appState.enemysTurn ? 0.5 : 1)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
                     .padding(.bottom, geometry.size.height * 0.15)

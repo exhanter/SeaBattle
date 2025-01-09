@@ -34,6 +34,7 @@ struct iPadMenuViewV: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("Menu")
@@ -58,6 +59,7 @@ struct iPadMenuViewV: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("Battle")
@@ -82,6 +84,7 @@ struct iPadMenuViewV: View {
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
+                                .shadow(color: .white, radius: 1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("About")

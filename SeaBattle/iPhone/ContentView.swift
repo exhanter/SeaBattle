@@ -25,9 +25,21 @@ struct ContentView: View {
                                 .ignoresSafeArea(.container, edges: [.top, .horizontal])
                         VStack(spacing: 0) {
                             Spacer(minLength: geometry.size.height * 0.10)
-                            ArcButton(fontSize: geometry.size.width * 0.13)
-                            Spacer(minLength: geometry.size.height * 0.02)
-                            Image("warship8NB")
+                            Text("Sea Battle")
+                                .font(.custom("Dorsa", size: geometry.size.width * 0.22))
+                                .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                                .shadow(color: .white, radius: 2)
+//                            Spacer(minLength: geometry.size.height * 0.02)
+                            Image("war_ship8")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: geometry.size.width * 0.7)
+                                .cornerRadius(geometry.size.width * 0.03)
+                                .overlay(
+                                        RoundedRectangle(cornerRadius: geometry.size.width * 0.03)
+                                            .stroke(Color(red: 75/255, green: 56/255, blue: 42/255), lineWidth: 3)
+                                    )
+                                .shadow(color: .white, radius: 10)
                             Spacer()
                             Button {
                                 if appState.soundOn {
@@ -46,6 +58,7 @@ struct ContentView: View {
                                 Text(appState.gameIsActive ? "Stop game" : "New game")
                             }
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
+                            .shadow(color: .white, radius: 3)
                             .padding(.bottom, 5)
                             
                             
