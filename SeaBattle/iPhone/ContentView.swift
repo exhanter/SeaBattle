@@ -11,7 +11,7 @@ struct ContentView: View {
     
     // Apple ID 6738694687
     
-    @StateObject private var appState = AppState()
+    @StateObject private var appState = AppState(tempInstance: false)
     @StateObject private var player = PlayerData(name: "Player")
     @StateObject private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
@@ -71,17 +71,17 @@ struct ContentView: View {
                             .padding(.horizontal, geometry.size.width * 0.1)
                             Spacer(minLength: geometry.size.height * 0.15)
                         } // VStack off
-                        .sheet(isPresented: $showSettingsView) { SettingsView(appState: appState)
+                        .sheet(isPresented: $showSettingsView) { SettingsView()
                                 .presentationDetents([.fraction(0.42)])
                         }
                         .ignoresSafeArea()
                     } //ZStack off
                     .tag(AppState.SelectedTabs.menu)
-                    PlayerFieldView(appState: appState, player: player, enemy: enemy)
+                    PlayerFieldView(player: player, enemy: enemy)
                         .tag(AppState.SelectedTabs.playerView)
-                    EnemyFieldView(appState: appState, player: player, enemy: enemy)
+                    EnemyFieldView(player: player, enemy: enemy)
                         .tag(AppState.SelectedTabs.enemyView)
-                    AboutView(appState: appState)
+                    AboutView()
                         .tag(AppState.SelectedTabs.about)
                 } // TabView off
                 VStack(spacing: 0) {
@@ -96,12 +96,13 @@ struct ContentView: View {
                         }
                     }
                     Spacer()
-                    CustomTabView(appState: appState, relativeFontSize: geometry.size.width * 0.13, height: geometry.size.height * 0.13)
+                    CustomTabView(relativeFontSize: geometry.size.width * 0.13, height: geometry.size.height * 0.13)
 
                 }
                 .ignoresSafeArea()
                 .statusBar(hidden: true)
             }
+            .environmentObject(appState)
         }
     }
     init() {

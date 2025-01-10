@@ -10,11 +10,13 @@ import SwiftUI
 
 class AppState: ObservableObject {
     
+    var tempInstance: Bool
+    
     enum DifficultyLevel: CaseIterable {
         case easy, medium, hard
     }
     enum SelectedTabs: CaseIterable {
-        case menu, playerView, enemyView, about, iPadBattleFieldView
+        case menu, playerView, enemyView, about, iPadBattleView
     }
     
     @Published var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
@@ -96,13 +98,14 @@ class AppState: ObservableObject {
         }
     }
     
-    init() {
+    init(tempInstance: Bool) {
         let defaults = UserDefaults.standard
         if !defaults.bool(forKey: "notFirstLaunch") {
             defaults.set(true, forKey: "musicOn")
             defaults.set(true, forKey: "soundOn")
             defaults.set(true, forKey: "notFirstLaunch")
         }
+        self.tempInstance = tempInstance
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
     }

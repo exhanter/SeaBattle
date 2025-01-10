@@ -14,7 +14,7 @@ struct iPadBattleViewH: View {
     @State private var isBouncing = false
     @State private var isTapEnabled = false
     
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
     @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
@@ -42,7 +42,7 @@ struct iPadBattleViewH: View {
                     .padding(.top, geometry.size.height * 0.11)//0.0132
                     .padding(.horizontal, geometry.size.width * 0.04)
                     Spacer()
-                    iPadMenuViewH(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewH(width: geometry.size.width, height: geometry.size.height)
                 } //HStack off
                 .ignoresSafeArea()
                 VStack {
@@ -124,7 +124,7 @@ struct iPadBattleViewH: View {
                         }
                         Spacer()
                     }
-                    //end of firat field
+                    //end of first field
                     Spacer()
                     //second field
                     ZStack {
@@ -212,14 +212,14 @@ struct iPadBattleViewH: View {
             .statusBar(hidden: true)
         }
     }
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.appState = appState
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
         self.enemy = enemy
         self.player = player
-        self.enemyViewModel = EnemyFieldView.EnemyFieldViewViewModel(appState: appState, enemy: enemy, player: player)
+        self.enemyViewModel = enemyViewModel
     }
 }
 
 #Preview {
-    iPadBattleViewH(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    iPadBattleViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+        .environmentObject(AppState(tempInstance: true))
 }

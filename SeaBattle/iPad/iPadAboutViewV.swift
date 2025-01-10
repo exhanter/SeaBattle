@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct iPadAboutViewV: View {
-    var appState: AppState
+    @EnvironmentObject var appState: AppState
     
     @State private var showInformationView = false
     @State private var showContactsView = false
@@ -18,7 +18,7 @@ struct iPadAboutViewV: View {
                 LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                     .ignoresSafeArea()
                 HStack {
-                    iPadMenuViewV(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewV(width: geometry.size.width, height: geometry.size.height)
                     Spacer()
                 }
                 ScrollView {
@@ -89,12 +89,10 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
             .statusBar(hidden: true)
         }
     }
-    init(appState: AppState) {
-        self.appState = appState
-    }
 }
 
 #Preview {
-    iPadAboutViewV(appState: AppState())
+    iPadAboutViewV()
+        .environmentObject(AppState(tempInstance: true))
 }
 

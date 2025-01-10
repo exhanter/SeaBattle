@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct iPadAboutViewH: View {
-    var appState: AppState
+    @EnvironmentObject var appState: AppState
     
     @State private var showInformationView = false
     @State private var showContactsView = false
@@ -19,7 +19,7 @@ struct iPadAboutViewH: View {
                     .ignoresSafeArea()
                 VStack {
                     Spacer()
-                    iPadMenuViewH(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewH(width: geometry.size.width, height: geometry.size.height)
                 }
                 ScrollView {
                     Text("Game rules")
@@ -90,11 +90,9 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
             .statusBar(hidden: true)
         }
     }
-    init(appState: AppState) {
-        self.appState = appState
-    }
 }
 
 #Preview {
-    iPadAboutViewH(appState: AppState())
+    iPadAboutViewH()
+        .environmentObject(AppState(tempInstance: true))
 }

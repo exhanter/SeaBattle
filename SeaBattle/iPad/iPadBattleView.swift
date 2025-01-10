@@ -9,26 +9,28 @@ import SwiftUI
 
 struct iPadBattleView: View {
     
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
+    @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
     
     var body: some View {
         GeometryReader { geometry in
             if geometry.size.width < geometry.size.height {
-                iPadBattleViewV(appState: appState, player: player, enemy: enemy)
+                iPadBattleViewV(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
             } else {
-                iPadBattleViewH(appState: appState, player: player, enemy: enemy)
+                iPadBattleViewH(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
             }
         }
     }
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.appState = appState
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
         self.enemy = enemy
         self.player = player
+        self.enemyViewModel = enemyViewModel
     }
 }
 
 #Preview {
-    iPadBattleView(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    iPadBattleView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+        .environmentObject(AppState(tempInstance: true))
 }

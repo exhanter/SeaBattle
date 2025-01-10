@@ -10,9 +10,10 @@ struct iPadMainViewH: View {
     
     // Apple ID 6738694687
     
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
+    @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
     @State private var showSettingsView = false
     
     var body: some View {
@@ -48,7 +49,7 @@ struct iPadMainViewH: View {
                                         appState.resetData(player: player, enemy: enemy)
                                         player.shipsRandomArrangement()
                                         enemy.shipsRandomArrangement()
-                                        appState.selectedTab = .iPadBattleFieldView
+                                        appState.selectedTab = .iPadBattleView
                                     } else if appState.gameIsActive {
                                         AppState.musicPlayer?.stop()
                                         appState.resetData(player: player, enemy: enemy)
@@ -72,7 +73,7 @@ struct iPadMainViewH: View {
                             }
                             Spacer()
                         } // HStack off
-                        .sheet(isPresented: $showSettingsView) { SettingsView(appState: appState)
+                        .sheet(isPresented: $showSettingsView) { SettingsView()
                                 .presentationDetents([.fraction(0.42)])
                         }
                         .ignoresSafeArea()
@@ -80,21 +81,22 @@ struct iPadMainViewH: View {
                     .ignoresSafeArea()
                 VStack {
                     Spacer()
-                    iPadMenuViewH(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewH(width: geometry.size.width, height: geometry.size.height)
                 }
                 .ignoresSafeArea()
                 .statusBar(hidden: true)
             }
         }
     }
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.appState = appState
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
         self.player = player
         self.enemy = enemy
+        self.enemyViewModel = enemyViewModel
         }
 }
 
 
 #Preview {
-    iPadMainViewH(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    iPadMainViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+        .environmentObject(AppState(tempInstance: true))
 }

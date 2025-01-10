@@ -9,23 +9,20 @@ import SwiftUI
 
 struct iPadAboutView: View {
     
-    var appState: AppState
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
         GeometryReader { geometry in
             if geometry.size.width < geometry.size.height {
-                iPadAboutViewV(appState: appState)
+                iPadAboutViewV()
             } else {
-                iPadAboutViewH(appState: appState)
+                iPadAboutViewH()
             }
         }
-    }
-    
-    init(appState: AppState) {
-        self.appState = appState
     }
 }
 
 #Preview {
-    iPadAboutView(appState: AppState())
+    iPadAboutView()
+        .environmentObject(AppState(tempInstance: true))
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct iPadMenuViewV: View {
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     let width: CGFloat
     let height: CGFloat
     let relativeFontSize: CGFloat
@@ -51,9 +51,9 @@ struct iPadMenuViewV: View {
                         if appState.soundOn {
                             AppState.playSound(sound: "click_sound.wav")
                         }
-                        appState.selectedTab = .iPadBattleFieldView
+                        appState.selectedTab = .iPadBattleView
                     } label: {
-                        if appState.selectedTab == .iPadBattleFieldView {
+                        if appState.selectedTab == .iPadBattleView {
                             Text("Battle")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
@@ -102,15 +102,15 @@ struct iPadMenuViewV: View {
                 .frame(width: width, height: height)
             }
     }
-    init(appState: AppState, width: CGFloat, height: CGFloat) {
+    init(width: CGFloat, height: CGFloat) {
         self.width = width * 0.12
         self.height = height * 0.3
         self.relativeFontSize = width * 0.08
-        self.appState = appState
     }
 }
 
 #Preview {
-    iPadMenuViewV(appState: AppState(), width: 500, height: 300)
+    iPadMenuViewV(width: 500, height: 300)
+        .environmentObject(AppState(tempInstance: true))
 }
 

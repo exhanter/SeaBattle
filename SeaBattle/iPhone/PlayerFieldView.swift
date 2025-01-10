@@ -14,7 +14,7 @@ struct PlayerFieldView: View {
     @State private var isBouncing = false
     @State private var isTapEnabled = false
     
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
     
@@ -141,13 +141,13 @@ struct PlayerFieldView: View {
             .statusBar(hidden: true)
         }
     }
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.appState = appState
+    init(player: PlayerData, enemy: PlayerData) {
         self.enemy = enemy
         self.player = player
     }
 }
 
 #Preview {
-    PlayerFieldView(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    PlayerFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+        .environmentObject(AppState(tempInstance: true))
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AboutView: View {
-    var appState: AppState
+    @EnvironmentObject var appState: AppState
     
     @State private var showInformationView = false
     @State private var showContactsView = false
@@ -82,11 +82,9 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
             .statusBar(hidden: true)
         }
     }
-    init(appState: AppState) {
-        self.appState = appState
-    }
 }
 
 #Preview {
-    AboutView(appState: AppState())
+    AboutView()
+        .environmentObject(AppState(tempInstance: true))
 }

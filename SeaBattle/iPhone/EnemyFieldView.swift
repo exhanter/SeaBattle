@@ -13,7 +13,7 @@ struct EnemyFieldView: View {
     @State private var isVisible = true
     @State private var isTapEnabled = false
     
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
     
@@ -105,18 +105,23 @@ struct EnemyFieldView: View {
                 }
             } //ZStack off
             .statusBar(hidden: true)
+            .onAppear {
+                if self.enemyViewModel.appState.tempInstance {
+                    self.enemyViewModel.appState = self.appState
+                }
+            }
         }
     }
     
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.appState = appState
+    init(player: PlayerData, enemy: PlayerData) {
         self.enemy = enemy
         self.player = player
-        self.enemyViewModel = EnemyFieldViewViewModel(appState: appState, enemy: enemy, player: player)
+        self.enemyViewModel = EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: enemy, player: player)
         
     }
 }
 
 #Preview {
-    EnemyFieldView(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    EnemyFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+        .environmentObject(AppState(tempInstance: true))
 }

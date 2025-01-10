@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CustomTabView: View {
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     let relativeFontSize: CGFloat
     let height: CGFloat
     var tabsLockBeforeGameStart: Bool {
@@ -46,7 +46,6 @@ struct CustomTabView: View {
                     }
                     .disabled(appState.tabsBlocked)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -71,7 +70,6 @@ struct CustomTabView: View {
                     .disabled(appState.tabsBlocked)
                     .disabled(self.tabsLockBeforeGameStart)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -96,7 +94,6 @@ struct CustomTabView: View {
                     .disabled(appState.tabsBlocked)
                     .disabled(self.tabsLockBeforeGameStart)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -120,7 +117,6 @@ struct CustomTabView: View {
                     }
                     .disabled(appState.tabsBlocked)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
-                    //.padding(.horizontal)
                     Spacer()
                 }
                 .frame(height: height)
@@ -129,5 +125,6 @@ struct CustomTabView: View {
 }
 
 #Preview {
-    CustomTabView(appState: AppState(), relativeFontSize: 375, height: 100)
+    CustomTabView(relativeFontSize: 375, height: 100)
+        .environmentObject(AppState(tempInstance: true))
 }

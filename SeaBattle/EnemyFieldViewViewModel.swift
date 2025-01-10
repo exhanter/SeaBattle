@@ -231,6 +231,7 @@ extension EnemyFieldView {
                     column = Int.random(in: 1...10)
                     coordinates = (row, column)
                 }
+                print("while meet conditions...")
             } while !meetConditionsToDefineCellForFire(coordinates: coordinates)
             return coordinates
         }

@@ -14,7 +14,7 @@ struct iPadBattleViewV: View {
     @State private var isBouncing = false
     @State private var isTapEnabled = false
     
-    @ObservedObject var appState: AppState
+    @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
     @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
@@ -25,7 +25,7 @@ struct iPadBattleViewV: View {
                 LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                     .ignoresSafeArea()
                 HStack {
-                    iPadMenuViewV(appState: appState, width: geometry.size.width, height: geometry.size.height)
+                    iPadMenuViewV(width: geometry.size.width, height: geometry.size.height)
                         Spacer()
                     VStack {
                         Spacer()
@@ -146,12 +146,9 @@ struct iPadBattleViewV: View {
                                                                 enemyViewModel.chooseSound(row: row - 1, column: column - 1)
                                                             }
                                                             if appState.enemysTurn {
-//                                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-//                                                                    appState.selectedTab = .playerView
                                                                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                                                         enemyViewModel.computerTurn()
                                                                     }
-//                                                                }
                                                             }
                                                         } label: {
                                                             CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * 0.06)
@@ -219,14 +216,14 @@ struct iPadBattleViewV: View {
             .statusBar(hidden: true)
         }
     }
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.appState = appState
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
         self.enemy = enemy
         self.player = player
-        self.enemyViewModel = EnemyFieldView.EnemyFieldViewViewModel(appState: appState, enemy: enemy, player: player)
+        self.enemyViewModel = enemyViewModel
     }
 }
 
 #Preview {
-    iPadBattleViewV(appState: AppState(), player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
+    iPadBattleViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+        .environmentObject(AppState(tempInstance: true))
 }
