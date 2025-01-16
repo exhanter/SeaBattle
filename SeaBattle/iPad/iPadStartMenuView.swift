@@ -11,7 +11,7 @@ struct iPadStartMenuView: View {
     @StateObject private var appState = AppState(tempInstance: false)
     @StateObject private var player = PlayerData(name: "Player")
     @StateObject private var enemy = PlayerData(name: "Enemy")
-    @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
+    @StateObject private var enemyViewModel = EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
 
     var body: some View {
         Group {
@@ -28,9 +28,9 @@ struct iPadStartMenuView: View {
         }
         .environmentObject(appState)
     }
-    init() {
-        self.enemyViewModel = EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
-    }
+//    init() {
+//        self.enemyViewModel = EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
+//    }
 }
 #Preview {
     iPadStartMenuView()

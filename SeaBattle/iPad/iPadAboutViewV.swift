@@ -84,6 +84,7 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
                 }
                 .sheet(isPresented: $showContactsView) {
                     ContactsView()
+                        .presentationDetents([.medium, .large])
                 }
             }
             .statusBar(hidden: true)

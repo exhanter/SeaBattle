@@ -32,13 +32,15 @@ struct iPadMainViewV: View {
                             Spacer(minLength: geometry.size.height * 0.02)
                             Image("war_ship8")
                                 .resizable()
-                                .scaledToFit()
+                                .scaledToFill()
                                 .frame(width: geometry.size.width * 0.6)
+                                .clipped()
                                 .cornerRadius(geometry.size.width * 0.03)
                                 .overlay(
                                         RoundedRectangle(cornerRadius: geometry.size.width * 0.03)
                                             .stroke(Color(red: 75/255, green: 56/255, blue: 42/255), lineWidth: 3)
                                     )
+                                .padding(.bottom, geometry.size.height * 0.02)
                             Spacer()
                             Button {
                                 if appState.soundOn {

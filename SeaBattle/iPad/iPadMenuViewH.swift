@@ -12,6 +12,12 @@ struct iPadMenuViewH: View {
     let width: CGFloat
     let height: CGFloat
     let relativeFontSize: CGFloat
+    var tabsLockBeforeGameStart: Bool {
+        if !appState.gameIsActive {
+            return appState.selectedTab == .menu || appState.selectedTab == .about ? true : false
+        }
+        return false
+    }
     var body: some View {
         ZStack {
             Image("wood")
@@ -68,6 +74,7 @@ struct iPadMenuViewH: View {
                         }
                     }
                     .disabled(appState.tabsBlocked)
+                    .disabled(self.tabsLockBeforeGameStart)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
                     Spacer()
                     Button {

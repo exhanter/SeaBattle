@@ -9,13 +9,13 @@ import SwiftUI
 
 struct EnemyFieldView: View {
     
-    @ObservedObject private var enemyViewModel: EnemyFieldViewViewModel
     @State private var isVisible = true
     @State private var isTapEnabled = false
     
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
+    @StateObject private var enemyViewModel = EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
     
     var body: some View {
         GeometryReader { geometry in
@@ -37,6 +37,7 @@ struct EnemyFieldView: View {
                                 ForEach(1...10, id: \.self) { column in
                                     let status = enemy.cells[row - 1][column - 1].cellStatus
                                     Button {
+                                        print("EmenysTurn: \(appState.enemysTurn)")
                                         enemy.fireStrokeArray[row - 1][column - 1] = true
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                                 enemy.fireStrokeArray[row - 1][column - 1] = false
@@ -53,6 +54,7 @@ struct EnemyFieldView: View {
                                                }
                                            }
                                         }
+                                        print("EmenysTurn: \(appState.enemysTurn)")
                                     } label: {
                                         CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * 0.09)
                                     }
@@ -108,6 +110,8 @@ struct EnemyFieldView: View {
             .onAppear {
                 if self.enemyViewModel.appState.tempInstance {
                     self.enemyViewModel.appState = self.appState
+                    self.enemyViewModel.player = self.player
+                    self.enemyViewModel.enemy = self.enemy
                 }
             }
         }
@@ -116,7 +120,7 @@ struct EnemyFieldView: View {
     init(player: PlayerData, enemy: PlayerData) {
         self.enemy = enemy
         self.player = player
-        self.enemyViewModel = EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: enemy, player: player)
+//        self.enemyViewModel = EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: enemy, player: player)
         
     }
 }

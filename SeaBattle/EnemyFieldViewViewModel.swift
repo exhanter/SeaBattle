@@ -48,6 +48,7 @@ extension EnemyFieldView {
                 sound = ""
             }
             appState.enemysTurn = target.name == "Enemy" ? true : false
+            print("EmenysTurn from EVVM: \(appState.enemysTurn)")
             return
         }
         

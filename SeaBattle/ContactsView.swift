@@ -25,7 +25,7 @@ struct ContactsView: View {
                 }
                 HStack {
                     Text("LinkedIn: ")
-                    Text("[https://www.linkedin.com/in/ivan-tkachev](https://www.linkedin.com/in/ivan-tkachev)")
+                    Text("[ivan-tkachev](https://www.linkedin.com/in/ivan-tkachev)")
                         .background(Color(red: 248/255, green: 255/255, blue: 0/255))
                 }
                 HStack {
