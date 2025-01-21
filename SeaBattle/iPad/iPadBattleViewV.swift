@@ -9,7 +9,7 @@ import SwiftUI
 
 struct iPadBattleViewV: View {
     
-    @State private var manualShipArrangement = false
+    //@State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
     @State private var isBouncing = false
     @State private var isTapEnabled = false
@@ -17,7 +17,7 @@ struct iPadBattleViewV: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
+    @ObservedObject private var enemyViewModel: GameLogicViewModel
     
     var body: some View {
         GeometryReader { geometry in
@@ -67,7 +67,7 @@ struct iPadBattleViewV: View {
                                         if appState.soundOn {
                                             AppState.playSound(sound: "click_sound.wav")
                                         }
-                                        manualShipArrangement.toggle()
+                                        appState.manualShipArrangement.toggle()
                                         appState.tabsBlocked.toggle()
                                     }
                                     label: {
@@ -75,7 +75,7 @@ struct iPadBattleViewV: View {
                                             .font(.custom("Dorsa", size: geometry.size.width * 0.06))
                                             .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                             .fixedSize(horizontal: true, vertical: true)
-                                            .shadow(color: manualShipArrangement ? .white : .clear, radius: 5)
+                                            .shadow(color: appState.manualShipArrangement ? .white : .clear, radius: 5)
                                     }
                                     .padding(.bottom, 2)
                                     .disabled(appState.gameIsActive)
@@ -114,7 +114,7 @@ struct iPadBattleViewV: View {
                                 ForEach(1...10, id:\.self) { row in
                                     HStack(spacing: 0) {
                                         ForEach(1...10, id: \.self) { column in
-                                            if manualShipArrangement {
+                                            if appState.manualShipArrangement {
                                                 CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: .unknown, cellWidth: geometry.size.width * 0.06)
                                                     .background(GeometryReader { geometryLocal in
                                                         Color.clear
@@ -167,7 +167,7 @@ struct iPadBattleViewV: View {
                                                     AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                                                 }
                                                 appState.gameIsActive = true
-                                                manualShipArrangement = false
+                                                appState.manualShipArrangement = false
                                             }
                                             if appState.soundOn {
                                                 AppState.playSound(sound: "click_sound.wav")
@@ -208,7 +208,7 @@ struct iPadBattleViewV: View {
                             }
                         }
                 }
-                if manualShipArrangement {
+                if appState.manualShipArrangement {
                     ShipReplacementView(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * 0.06, player: player) // 0.09
                 }
 
@@ -216,7 +216,7 @@ struct iPadBattleViewV: View {
             .statusBar(hidden: true)
         }
     }
-    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: GameLogicViewModel) {
         self.enemy = enemy
         self.player = player
         self.enemyViewModel = enemyViewModel
@@ -224,6 +224,6 @@ struct iPadBattleViewV: View {
 }
 
 #Preview {
-    iPadBattleViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+    iPadBattleViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
         .environmentObject(AppState(tempInstance: true))
 }

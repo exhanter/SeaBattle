@@ -27,7 +27,6 @@ struct WoodenButton: ButtonStyle {
                 .offset(y: -50)
         )
         .cornerRadius(radius)
-        //.shadow(color: Color(red: 0, green: 0, blue: 0, opacity: 0.35), radius: 3, x: 2, y: 2)
         .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
         .opacity(configuration.isPressed ? 0.8 : 1.0)
         .animation(.easeInOut, value: configuration.isPressed)

@@ -17,7 +17,7 @@ struct iPadMenuButtonsViewH: View {
             .resizable()
             .frame(width: width, height: height)
             .clipShape(CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight]))
-            .shadow(color: .white, radius: height * 0.06)
+            .shadow(color: .white, radius: 5)
     }
     init(width: CGFloat, height: CGFloat) {
         self.width = width * 0.175

@@ -29,7 +29,7 @@ struct PlayerFieldView: View {
                         Text("Player")
                             .font(Font.custom("Aldrich", size: 48))
                             .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                            .shadow(color: .black, radius: 3, x: 2, y: 2)
+                            .shadow(color: .black, radius: 1, y: 2)
                             .padding(.bottom, geometry.size.height * 0.02)
                     }
                             Button {
@@ -44,8 +44,8 @@ struct PlayerFieldView: View {
                             .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
                             .disabled(appState.gameIsActive)
                             .disabled(player.shipIsDragging.contains(true))
-                            .shadow(color: .white, radius: 1)
-                            .opacity(appState.gameIsActive ? 0.5 : 1)
+                            .shadow(color: appState.gameIsActive || player.shipIsDragging.contains(true) ? .clear : .white, radius: 1, y: 0.5)
+                            .opacity(appState.gameIsActive || player.shipIsDragging.contains(true) ? 0.5 : 1)
                             .padding(.bottom, geometry.size.height * 0.01)
                         ZStack {
                             VStack(spacing: 0) {
@@ -93,9 +93,8 @@ struct PlayerFieldView: View {
                     .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                     .disabled(appState.enemysTurn)
                     .disabled(appState.tabsBlocked)
-                    .shadow(color: .white, radius: 3)
-                    .opacity(appState.enemysTurn ? 0.5 : 1)
-                    .opacity(appState.tabsBlocked ? 0.5 : 1)
+                    .shadow(color: appState.enemysTurn || appState.tabsBlocked ? .clear : .white, radius: 3, y: 1)
+                    .opacity(appState.enemysTurn || appState.tabsBlocked ? 0.5 : 1)
                     .padding(.bottom, geometry.size.height * 0.15)
                     .onChange(of: appState.enemysTurn) { newValue in
                         if newValue == false {

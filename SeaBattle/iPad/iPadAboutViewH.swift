@@ -21,6 +21,7 @@ struct iPadAboutViewH: View {
                     Spacer()
                     iPadMenuViewH(width: geometry.size.width, height: geometry.size.height)
                 }
+                .ignoresSafeArea()
                 ScrollView {
                     Text("Game rules")
                         .font(.custom("Aldrich", size: 42))

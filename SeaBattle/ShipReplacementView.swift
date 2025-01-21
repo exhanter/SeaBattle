@@ -35,9 +35,6 @@ struct ShipReplacementView: View {
                                 }
                                 .onEnded { _ in
                                     replacementViewModel.handleOnEndedDrag(index: ship.number, cellSize: cellSize, leftTopPointOfGameField: leftTopPointOfGameField, startCoordinates: ship.coordinates)
-//                                    if AppState.shipIsPlaced[ship.number] == true {
-//                                        appState.shipIsDragging[ship.number] = false
-//                                    }
                                 }
                         )
 

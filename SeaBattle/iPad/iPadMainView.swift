@@ -13,7 +13,7 @@ struct iPadMainView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @ObservedObject var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
+    @ObservedObject var enemyViewModel: GameLogicViewModel
     @State private var showSettingsView = false
     
     var body: some View {
@@ -38,7 +38,7 @@ struct iPadMainView: View {
         }
     }
     
-    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: GameLogicViewModel) {
         self.player = player
         self.enemy = enemy
         self.enemyViewModel = enemyViewModel
@@ -51,6 +51,6 @@ struct iPadMainView: View {
 
 
 #Preview {
-    iPadMainView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel:  EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+    iPadMainView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel:  GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
         .environmentObject(AppState(tempInstance: true))
 }

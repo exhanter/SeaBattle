@@ -25,7 +25,7 @@ struct iPadMenuViewV: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(width: width, height: height)
                 .clipShape(CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight, .bottomRight]))
-                .shadow(color: .white, radius: width * 0.06)
+                .shadow(color: .white, radius: 5)
             VStack(alignment: .leading) {
                     Spacer()
                     Button {

@@ -15,7 +15,7 @@ struct EnemyFieldView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @StateObject private var enemyViewModel = EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
+    @StateObject private var enemyViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
     
     var body: some View {
         GeometryReader { geometry in
@@ -37,7 +37,6 @@ struct EnemyFieldView: View {
                                 ForEach(1...10, id: \.self) { column in
                                     let status = enemy.cells[row - 1][column - 1].cellStatus
                                     Button {
-                                        print("EmenysTurn: \(appState.enemysTurn)")
                                         enemy.fireStrokeArray[row - 1][column - 1] = true
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                                 enemy.fireStrokeArray[row - 1][column - 1] = false
@@ -54,7 +53,6 @@ struct EnemyFieldView: View {
                                                }
                                            }
                                         }
-                                        print("EmenysTurn: \(appState.enemysTurn)")
                                     } label: {
                                         CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * 0.09)
                                     }
@@ -67,18 +65,12 @@ struct EnemyFieldView: View {
                     }
                     .ignoresSafeArea()
                     .padding(.bottom, geometry.size.height * 0.05)
-                    Text("Attack!")
+                    Text("FIRE!")
                         .font(Font.custom("Aldrich", size: 40))
                         .foregroundStyle(Color(red: 255/255, green: 95/255, blue: 0/255))
-                        .shadow(color: Color(red: 255/255, green: 95/255, blue: 0/255), radius: isVisible ? 5 : 3, x: 0, y: 0)
+                        .shadow(color: Color(red: 248/255, green: 255/255, blue: 0/255), radius: 2)
                         .frame(height: geometry.size.height * 0.1)
                         .padding(.bottom, geometry.size.height * 0.15)
-                        .opacity(isVisible ? 1 : 0)
-                        .onAppear {
-                            withAnimation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
-                                self.isVisible.toggle()
-                            }
-                        }
                         .opacity(appState.gameIsActive ? 1 : 0)
                 }
                 .ignoresSafeArea()
@@ -120,7 +112,7 @@ struct EnemyFieldView: View {
     init(player: PlayerData, enemy: PlayerData) {
         self.enemy = enemy
         self.player = player
-//        self.enemyViewModel = EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: enemy, player: player)
+//        self.enemyViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: enemy, player: player)
         
     }
 }

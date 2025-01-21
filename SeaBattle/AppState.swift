@@ -26,6 +26,7 @@ class AppState: ObservableObject {
     @Published var musicOn: Bool
     @Published var selectedTab: SelectedTabs = .menu
     @Published var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
+    @Published var manualShipArrangement: Bool = false
     
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?

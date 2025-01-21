@@ -14,7 +14,7 @@ struct iPadMainViewV: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @ObservedObject private var enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel
+    @ObservedObject private var enemyViewModel: GameLogicViewModel
     @State private var showSettingsView = false
     
     var body: some View {
@@ -36,6 +36,7 @@ struct iPadMainViewV: View {
                                 .frame(width: geometry.size.width * 0.6)
                                 .clipped()
                                 .cornerRadius(geometry.size.width * 0.03)
+                                .shadow(color: .white, radius: 3)
                                 .overlay(
                                         RoundedRectangle(cornerRadius: geometry.size.width * 0.03)
                                             .stroke(Color(red: 75/255, green: 56/255, blue: 42/255), lineWidth: 3)
@@ -59,7 +60,7 @@ struct iPadMainViewV: View {
                                 Text(appState.gameIsActive ? "Stop game" : "New game")
                             }
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
-                            .shadow(color: .white, radius: 15)
+                            .shadow(color: .white, radius: 5)
                             .padding(.bottom, 10)
                         
                             Button("Settings") {
@@ -86,7 +87,7 @@ struct iPadMainViewV: View {
             }
         }
     }
-    init(player: PlayerData, enemy: PlayerData, enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel) {
+    init(player: PlayerData, enemy: PlayerData, enemyViewModel: GameLogicViewModel) {
         self.player = player
         self.enemy = enemy
         self.enemyViewModel = enemyViewModel
@@ -95,7 +96,7 @@ struct iPadMainViewV: View {
 
 
 #Preview {
-    iPadMainViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: EnemyFieldView.EnemyFieldViewViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+    iPadMainViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
         .environmentObject(AppState(tempInstance: true))
 }
 
