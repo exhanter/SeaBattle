@@ -13,6 +13,7 @@ struct iPadBattleViewV: View {
     @State private var leftTopPointOfGameField: CGPoint = .zero
     @State private var isBouncing = false
     @State private var isTapEnabled = false
+    let scaleForCells = 0.06
     
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
@@ -115,16 +116,16 @@ struct iPadBattleViewV: View {
                                     HStack(spacing: 0) {
                                         ForEach(1...10, id: \.self) { column in
                                             if appState.manualShipArrangement {
-                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: .unknown, cellWidth: geometry.size.width * 0.06)
+                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: .unknown, cellWidth: geometry.size.width * scaleForCells)
                                                     .background(GeometryReader { geometryLocal in
                                                         Color.clear
                                                             .onAppear {
                                                                 self.leftTopPointOfGameField = geometryLocal.frame(in: .global).origin
-                                                                player.defineShipPositionsAsCGPoint(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * 0.06)
+                                                                player.defineShipPositionsAsCGPoint(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * scaleForCells)
                                                             }
                                                     })
                                             } else {
-                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: player.cells[row - 1][column - 1].cellStatus, cellWidth: geometry.size.width * 0.06)
+                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: player.cells[row - 1][column - 1].cellStatus, cellWidth: geometry.size.width * scaleForCells)
                                             }
                                         }
                                     }
@@ -151,7 +152,7 @@ struct iPadBattleViewV: View {
                                                                     }
                                                             }
                                                         } label: {
-                                                            CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * 0.06)
+                                                            CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * scaleForCells)
                                                         }
                                                         .buttonStyle(NoPressEffect())
                                                         .disabled(!appState.gameIsActive)
@@ -209,7 +210,7 @@ struct iPadBattleViewV: View {
                         }
                 }
                 if appState.manualShipArrangement {
-                    ShipReplacementView(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * 0.06, player: player) // 0.09
+                    ShipReplacementView(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * scaleForCells, player: player) // 0.09
                 }
 
             } //ZStack off

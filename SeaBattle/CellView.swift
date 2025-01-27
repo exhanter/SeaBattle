@@ -14,9 +14,6 @@ struct NoPressEffect: ButtonStyle {
 }
 
 struct CellView: View {
-    func defineReltiveSizes(constant: CGFloat) -> CGFloat {
-        return cellWidth / 35 / constant
-    }
     var fireStrokeIsOn: Bool
     let cellStatus: Cell.CurrentStatus
     let cellWidth: CGFloat
