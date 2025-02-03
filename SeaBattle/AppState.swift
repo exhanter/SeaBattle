@@ -27,6 +27,8 @@ class AppState: ObservableObject {
     @Published var selectedTab: SelectedTabs = .menu
     @Published var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
     @Published var manualShipArrangement: Bool = false
+    @Published var showFinishGameAlert = false
+    @Published var tabsBlocked = false
     
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?
@@ -83,8 +85,6 @@ class AppState: ObservableObject {
         self.gameIsActive = false
         self.selectedTab = .menu
     }
-    @Published var showFinishGameAlert = false
-    @Published var tabsBlocked = false
     
     var difficultyLevel: DifficultyLevel {
         switch self.difficulty {

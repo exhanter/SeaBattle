@@ -21,6 +21,8 @@ class GameLogicViewModel: ObservableObject {
         self.player = player
     }
     
+    /// Method checks the cell status and marks it as "missed" or "onFire". If it is "onFire" the method calls additional methods.
+    /// Returns: nothing
     func checkShipOnFire(row: Int, column: Int, target: PlayerData) {
         if target.cells[row - 1][column - 1].isAvailable {
             for ship in target.ships {
@@ -50,6 +52,8 @@ class GameLogicViewModel: ObservableObject {
         return
     }
     
+    /// Method checks if the ship is destroyed after last shot and mark all the cells as "destroyed"
+    /// Returns true or false
     func checkShipIsTotallyDestroyed(ship: Ship, target: PlayerData) -> Bool {
         for coordinate in ship.coordinates {
             if target.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus != .onFire && target.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus != .showShipOnFire {

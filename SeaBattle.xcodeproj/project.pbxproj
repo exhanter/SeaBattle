@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -57,6 +57,16 @@
 		2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70BC2C7C9F520006546F /* WoodenButton.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		2C275E6A2D4CDC7C008E29A9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2C6A84652B6E99620001A20C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2C6A846C2B6E99620001A20C;
+			remoteInfo = SeaBattle;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		2C1271492C81F2C7001548F4 /* GameScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScoreView.swift; sourceTree = "<group>"; };
 		2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Dorsa-Regular.ttf"; sourceTree = "<group>"; };
@@ -64,6 +74,7 @@
 		2C1914B12D1EDF0F004A095B /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomRoundedRectangle.swift; sourceTree = "<group>"; };
 		2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartMenuView.swift; sourceTree = "<group>"; };
+		2C275E662D4CDC7C008E29A9 /* SeaBattleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SeaBattleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C28DAF62D12F14200A9BC19 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainView.swift; sourceTree = "<group>"; };
 		2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleViewV.swift; sourceTree = "<group>"; };
@@ -110,7 +121,18 @@
 		2CED70BC2C7C9F520006546F /* WoodenButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoodenButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		2C275E672D4CDC7C008E29A9 /* SeaBattleTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SeaBattleTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		2C275E632D4CDC7C008E29A9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C6A846A2B6E99620001A20C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -125,6 +147,7 @@
 			isa = PBXGroup;
 			children = (
 				2C6A846F2B6E99620001A20C /* SeaBattle */,
+				2C275E672D4CDC7C008E29A9 /* SeaBattleTests */,
 				2C6A846E2B6E99620001A20C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -133,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				2C6A846D2B6E99620001A20C /* SeaBattle.app */,
+				2C275E662D4CDC7C008E29A9 /* SeaBattleTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -228,6 +252,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2C275E652D4CDC7C008E29A9 /* SeaBattleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2C275E6E2D4CDC7C008E29A9 /* Build configuration list for PBXNativeTarget "SeaBattleTests" */;
+			buildPhases = (
+				2C275E622D4CDC7C008E29A9 /* Sources */,
+				2C275E632D4CDC7C008E29A9 /* Frameworks */,
+				2C275E642D4CDC7C008E29A9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2C275E6B2D4CDC7C008E29A9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2C275E672D4CDC7C008E29A9 /* SeaBattleTests */,
+			);
+			name = SeaBattleTests;
+			packageProductDependencies = (
+			);
+			productName = SeaBattleTests;
+			productReference = 2C275E662D4CDC7C008E29A9 /* SeaBattleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		2C6A846C2B6E99620001A20C /* SeaBattle */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2C6A847B2B6E99640001A20C /* Build configuration list for PBXNativeTarget "SeaBattle" */;
@@ -252,9 +299,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1520;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1520;
 				TargetAttributes = {
+					2C275E652D4CDC7C008E29A9 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 2C6A846C2B6E99620001A20C;
+					};
 					2C6A846C2B6E99620001A20C = {
 						CreatedOnToolsVersion = 15.2;
 					};
@@ -274,11 +325,19 @@
 			projectRoot = "";
 			targets = (
 				2C6A846C2B6E99620001A20C /* SeaBattle */,
+				2C275E652D4CDC7C008E29A9 /* SeaBattleTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2C275E642D4CDC7C008E29A9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C6A846B2B6E99620001A20C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -301,6 +360,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2C275E622D4CDC7C008E29A9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C6A84692B6E99620001A20C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -346,7 +412,61 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		2C275E6B2D4CDC7C008E29A9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2C6A846C2B6E99620001A20C /* SeaBattle */;
+			targetProxy = 2C275E6A2D4CDC7C008E29A9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		2C275E6C2D4CDC7C008E29A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P4W6GGN5KK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SeaBattle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SeaBattle";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		2C275E6D2D4CDC7C008E29A9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P4W6GGN5KK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SeaBattle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SeaBattle";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
 		2C6A84792B6E99640001A20C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -553,6 +673,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2C275E6E2D4CDC7C008E29A9 /* Build configuration list for PBXNativeTarget "SeaBattleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2C275E6C2D4CDC7C008E29A9 /* Debug */,
+				2C275E6D2D4CDC7C008E29A9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2C6A84682B6E99620001A20C /* Build configuration list for PBXProject "SeaBattle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
