@@ -12,10 +12,8 @@ class PlayerDataMock: PlayerData {
     var shipsRandomArrangementCalled = false
     override func shipsRandomArrangement() {
         self.shipsRandomArrangementCalled = true
-        let ship1 = Ship(number: 0, orientation: .horizontal, numberOfDecks: 4, coordinates: [(3, 1), (3, 2), (3, 3), (3, 4)])
-        let ship2 = Ship(number: 1, orientation: .both, numberOfDecks: 4, coordinates: [(5, 5)])
-        let ship3 = Ship(number: 2, orientation: .vertical, numberOfDecks: 3, coordinates: [(8, 10), (9, 10), (10, 10)])
-        self.ships = [ship1, ship2, ship3]
+        let ship = Ship(number: 2, orientation: .vertical, numberOfDecks: 3, coordinates: [(8, 10), (9, 10), (10, 10)])
+        self.ships = [ship]
     }
 }
 
@@ -44,8 +42,8 @@ final class SeaBattleTests: XCTestCase {
     
     func testCheckShipOnFire() throws {
         // prepare
-        let row = 3
-        let column = 3
+        let row = 9
+        let column = 10
         let target = testPlayer
         
         // use
@@ -60,17 +58,20 @@ final class SeaBattleTests: XCTestCase {
     }
     
     func testCheckShipIsTotallyDestroyed() throws {
+        //prepare
         let target = testPlayer
         target?.shipsRandomArrangement()
-        let ship = target?.ships[2]
+        let ship = target?.ships[0]
         for coordinate in ship!.coordinates {
             let row = coordinate.0
             let column = coordinate.1
             target?.cells[row - 1][column - 1].cellStatus = .onFire
         }
         
+        //use
         let result = sut.checkShipIsTotallyDestroyed(ship: ship!, target: target!)
         
+        //check
         XCTAssertTrue(result, "The ship should be destroyed")
         XCTAssertTrue(target?.shipsRandomArrangementCalled ?? false, "The method shipsRandomArrangement should be called")
     }
