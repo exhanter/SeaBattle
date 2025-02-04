@@ -67,7 +67,7 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
                     .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                 }
                 .scrollIndicators(.hidden)
-                .padding(.vertical, 20)
+                .padding(.vertical, 25)
                 .padding(.horizontal, geometry.size.width * 0.05)
                 .background(.clear)
                 .sheet(isPresented: $showInformationView) {

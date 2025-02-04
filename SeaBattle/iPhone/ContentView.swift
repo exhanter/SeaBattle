@@ -22,13 +22,14 @@ struct ContentView: View {
                 TabView(selection: $appState.selectedTab) {
                     ZStack {
                             LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
-                                .ignoresSafeArea(.container, edges: [.top, .horizontal])
+                            .ignoresSafeArea()
                         VStack(spacing: 0) {
                             Spacer(minLength: geometry.size.height * 0.10)
                             Text("Sea Battle")
                                 .font(.custom("Dorsa", size: geometry.size.width * 0.22))
                                 .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                                 .shadow(color: .white, radius: 1)
+                                .padding(.bottom, 5)
 
                             Image("war_ship8")
                                 .resizable()
@@ -69,8 +70,7 @@ struct ContentView: View {
                             .buttonStyle(.bordered)
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
                             .padding()
-                            .padding(.horizontal, geometry.size.width * 0.1)
-                            Spacer(minLength: geometry.size.height * 0.15)
+                            Spacer(minLength: geometry.size.height * 0.12)
                         } // VStack off
                         .sheet(isPresented: $showSettingsView) { SettingsView()
                                 .presentationDetents([.fraction(0.42)])
@@ -97,7 +97,7 @@ struct ContentView: View {
                         }
                     }
                     Spacer()
-                    CustomTabView(relativeFontSize: geometry.size.width * 0.13, height: geometry.size.height * 0.13)
+                    CustomTabView(relativeFontSize: geometry.size.width * 0.13, height: geometry.size.height * 0.11)
 
                 }
                 .ignoresSafeArea()

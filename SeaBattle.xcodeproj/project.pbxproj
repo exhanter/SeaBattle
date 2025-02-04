@@ -13,6 +13,7 @@
 		2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1914B12D1EDF0F004A095B /* ContactsView.swift */; };
 		2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */; };
 		2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */; };
+		2C275E722D522396008E29A9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2C275E712D522396008E29A9 /* Localizable.xcstrings */; };
 		2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAF62D12F14200A9BC19 /* AppState.swift */; };
 		2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */; };
 		2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */; };
@@ -75,6 +76,7 @@
 		2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomRoundedRectangle.swift; sourceTree = "<group>"; };
 		2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartMenuView.swift; sourceTree = "<group>"; };
 		2C275E662D4CDC7C008E29A9 /* SeaBattleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SeaBattleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C275E712D522396008E29A9 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		2C28DAF62D12F14200A9BC19 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainView.swift; sourceTree = "<group>"; };
 		2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleViewV.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */,
 				2C6A84762B6E99640001A20C /* Preview Content */,
 				2CE3E3EE2CB41AA0003AF40E /* Sound */,
+				2C275E712D522396008E29A9 /* Localizable.xcstrings */,
 			);
 			path = SeaBattle;
 			sourceTree = "<group>";
@@ -300,7 +303,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					2C275E652D4CDC7C008E29A9 = {
 						CreatedOnToolsVersion = 16.2;
@@ -318,6 +321,7 @@
 			knownRegions = (
 				en,
 				Base,
+				nl,
 			);
 			mainGroup = 2C6A84642B6E99620001A20C;
 			productRefGroup = 2C6A846E2B6E99620001A20C /* Products */;
@@ -348,6 +352,7 @@
 				2C12714C2C831194001548F4 /* Dorsa-Regular.ttf in Resources */,
 				2C6A84752B6E99640001A20C /* Assets.xcassets in Resources */,
 				2CE3E3EF2CB41AA0003AF40E /* blast_onfire2.wav in Resources */,
+				2C275E722D522396008E29A9 /* Localizable.xcstrings in Resources */,
 				2CE3E3F02CB41AA0003AF40E /* defeat_sound.wav in Resources */,
 				2CE3E3F12CB41AA0003AF40E /* Battles_on_the_High_Seas.mp3 in Resources */,
 				2CE3E3F22CB41AA0003AF40E /* blast_missed.wav in Resources */,
@@ -526,6 +531,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -582,6 +588,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

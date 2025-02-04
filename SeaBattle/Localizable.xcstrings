@@ -1,0 +1,426 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "[engin akyurt](https://unsplash.com/@enginakyurt?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) on [Unsplash](https://unsplash.com/photos/a-wood-surface-with-a-hole-in-it-_5aw4QuKAwA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)" : {
+
+    },
+    "[https://brapps.nl](https://www.brapps.nl)" : {
+
+    },
+    "[ivan-tkachev](https://www.linkedin.com/in/ivan-tkachev)" : {
+
+    },
+    "%lld / 10" : {
+
+    },
+    "About" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over"
+          }
+        }
+      }
+    },
+    "AI generated pictures and" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI gegenereerde afbeeldingen"
+          }
+        }
+      }
+    },
+    "Battle" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strijd"
+          }
+        }
+      }
+    },
+    "Change" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wijzigen"
+          }
+        }
+      }
+    },
+    "Contacts" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacten"
+          }
+        }
+      }
+    },
+    "Defeat!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nederlaag!"
+          }
+        }
+      }
+    },
+    "Easy" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemakkelijk"
+          }
+        }
+      }
+    },
+    "Email:      " : {
+
+    },
+    "Enemy" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vijand"
+          }
+        }
+      }
+    },
+    "Enemy %lld / 10" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vijand %lld / 10"
+          }
+        }
+      }
+    },
+    "FIRE!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VUUR!"
+          }
+        }
+      }
+    },
+    "Game rules" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spelregels"
+          }
+        }
+      }
+    },
+    "Hard" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moelijk"
+          }
+        }
+      }
+    },
+    "https://freesound.org/s/117095/ -- License: Attribution 4.0" : {
+
+    },
+    "https://freesound.org/s/120956/ -- License: Attribution 4.0" : {
+
+    },
+    "https://freesound.org/s/388758/ -- License: Creative Commons 0" : {
+
+    },
+    "https://freesound.org/s/394466/ -- License: Creative Commons 0" : {
+
+    },
+    "https://freesound.org/s/531132/ -- License: Attribution 4.0" : {
+
+    },
+    "https://freesound.org/s/751086/ -- License: Attribution 4.0" : {
+
+    },
+    "If you have any questions, you can contact me:" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als u vragen heeft, kunt u contact met mij opnemen:"
+          }
+        }
+      }
+    },
+    "LinkedIn: " : {
+
+    },
+    "Medium" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemiddeld"
+          }
+        }
+      }
+    },
+    "Menu" : {
+
+    },
+    "Music" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muziek"
+          }
+        }
+      }
+    },
+    "Music - AI generated music." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muziek - door AI gegenereerde muziek."
+          }
+        }
+      }
+    },
+    "New game" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieuw Spel"
+          }
+        }
+      }
+    },
+    "Objective: \n\nSink all of your opponent’s ships before they sink yours.\n\nSetup:\n\nEach player has a grid (10x10).\nPlayers place their fleet of ships on the grid:\n\n1 ship of 4 cells\n2 ships of 3 cells\n3 ships of 2 cells\n4 ships of 1 cell\n\nShips can be placed horizontally or vertically, but not diagonally. Ships cannot overlap. There must always be at least a 1-cell gap between the ships.\n\nGameplay:\n\nPlayers take turns selecting cells on the opponent's field. The game will indicate the result of each guess:\n\n- Miss\n- Hit (ship is damaged)\n- Sunk (ship is destroyed)\n\nPlayers continue guessing until all the ships of one player are sunk.\n\nWinning: The first player to sink all of the opponent’s ships wins the game." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doel van het spel:\n\nZink alle schepen van je tegenstander voordat ze die van jou laten zinken.\n\nOpzet:\n\nElke speler heeft een raster (10x10).\nSpelers plaatsen hun vloot van schepen op het raster:\n\n1 schip van 4 cellen\n2 schepen van 3 cellen\n3 schepen van 2 cellen\n4 schepen van 1 cel\n\nSchepen kunnen horizontaal of verticaal worden geplaatst, maar niet diagonaal. Schepen kunnen elkaar niet overlappen. Er moet altijd ten minste één cel tussen de schepen zijn.\n\nSpelverloop:\n\nSpelers kiezen om beurten cellen op het veld van de tegenstander. Het spel geeft het resultaat van elke gok aan:\n\n- Missen\n- Hit (schip is beschadigd)\n- Gezonken (schip is vernietigd)\n\nSpelers blijven raden totdat alle schepen van één speler zijn gezonken.\n\nWinnen: de eerste speler die alle schepen van de tegenstander tot zinken brengt, wint het spel."
+          }
+        }
+      }
+    },
+    "Opponent" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tegenstander"
+          }
+        }
+      }
+    },
+    "Player" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speler"
+          }
+        }
+      }
+    },
+    "Player %lld / 10" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speler %lld / 10"
+          }
+        }
+      }
+    },
+    "request@brapps.nl" : {
+
+    },
+    "Rights and licenses" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechten en licenties"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opslaan"
+          }
+        }
+      }
+    },
+    "Sea Battle" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeeslag"
+          }
+        }
+      }
+    },
+    "Select Difficulty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select difficulty"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Selecteer moeilijkheidsgraad"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instellingen"
+          }
+        }
+      }
+    },
+    "Ships:" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schepen"
+          }
+        }
+      }
+    },
+    "Shuffle" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schudden"
+          }
+        }
+      }
+    },
+    "Sound" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geluid"
+          }
+        }
+      }
+    },
+    "Sounds effects:" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geluidseffecten"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starten"
+          }
+        }
+      }
+    },
+    "Stop game" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spel stoppen"
+          }
+        }
+      }
+    },
+    "This game was created by Ivan Tkachev in 2024. The game is available for iPhone and iPad." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This game was created by Ivan Tkachev in 2024-25. The game is available for iPhone and iPad."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dit spel is gemaakt door Ivan Tkachev in 2024-2025. Het spel is beschikbaar voor iPhone en iPad."
+          }
+        }
+      }
+    },
+    "Unknown" : {
+
+    },
+    "Used pictures:" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikte afbeeldingen"
+          }
+        }
+      }
+    },
+    "Victory!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overwinning!"
+          }
+        }
+      }
+    },
+    "Website: " : {
+
+    },
+    "Your turn!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw beurt!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
