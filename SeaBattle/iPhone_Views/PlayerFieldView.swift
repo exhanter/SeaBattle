@@ -93,7 +93,7 @@ struct PlayerFieldView: View {
                     .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                     .disabled(appState.enemysTurn)
                     .disabled(appState.tabsBlocked)
-                    .shadow(color: appState.enemysTurn || appState.tabsBlocked ? .clear : .white, radius: 3, y: 1)
+                    .shadow(color: appState.enemysTurn || appState.tabsBlocked ? .clear : .white, radius: 1, y: 1)
                     .opacity(appState.enemysTurn || appState.tabsBlocked ? 0.5 : 1)
                     .padding(.bottom, geometry.size.height * 0.15)
                     .onChange(of: appState.enemysTurn) { newValue in

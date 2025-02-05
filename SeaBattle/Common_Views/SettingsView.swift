@@ -41,7 +41,7 @@ struct SettingsView: View {
                         }
                     }
                     .disabled(appState.gameIsActive)
-                    .pickerStyle(SegmentedPickerStyle())
+                    .pickerStyle(.segmented)
                     .padding()
                     Toggle("Music", isOn: $appState.musicOn)
                         .onChange(of: appState.musicOn) { _ in

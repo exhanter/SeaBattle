@@ -160,13 +160,13 @@
 		2C13873E2D538FFE0000A18B /* Common_Views */ = {
 			isa = PBXGroup;
 			children = (
+				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
 				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
 				2C900E7F2C415CF7005BD968 /* CellView.swift */,
 				2C1914B12D1EDF0F004A095B /* ContactsView.swift */,
 				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
 				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
 				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
-				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";

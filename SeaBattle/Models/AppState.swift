@@ -18,7 +18,7 @@ class AppState: ObservableObject {
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about, iPadBattleView
     }
-    
+
     @Published var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
     @Published var enemysTurn = false
     @Published var gameIsActive = false

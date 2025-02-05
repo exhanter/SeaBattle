@@ -63,13 +63,13 @@ struct ContentView: View {
                             .shadow(color: .white, radius: 1, y: 1)
                             .padding(.bottom, 5)
                             
-                            
                             Button("Settings") {
                                 self.showSettingsView = true
                             }
                             .buttonStyle(.bordered)
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
-                            .padding()
+                            .padding(.vertical)
+                            .padding(.horizontal, geometry.size.width * 0.1)
                             Spacer(minLength: geometry.size.height * 0.12)
                         } // VStack off
                         .sheet(isPresented: $showSettingsView) { SettingsView()
