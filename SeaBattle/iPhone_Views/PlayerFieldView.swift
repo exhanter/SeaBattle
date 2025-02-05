@@ -119,7 +119,7 @@ struct PlayerFieldView: View {
                         }
                     WinAlertView(isPlayerWon: false)
                         .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 isTapEnabled = true
                             }
                             if appState.soundOn {

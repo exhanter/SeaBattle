@@ -145,6 +145,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2C13873D2D538F7F0000A18B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */,
+				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
+				2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */,
+				2C6A84842B723C660001A20C /* PlayerData.swift */,
+				2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		2C13873E2D538FFE0000A18B /* Common_Views */ = {
+			isa = PBXGroup;
+			children = (
+				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
+				2C900E7F2C415CF7005BD968 /* CellView.swift */,
+				2C1914B12D1EDF0F004A095B /* ContactsView.swift */,
+				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
+				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
+				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
+				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
+			);
+			path = Common_Views;
+			sourceTree = "<group>";
+		};
 		2C6A84642B6E99620001A20C = {
 			isa = PBXGroup;
 			children = (
@@ -168,20 +194,10 @@
 			children = (
 				2CED70AF2C78E00D0006546F /* Info.plist */,
 				2C6A84702B6E99620001A20C /* SeaBattleApp.swift */,
-				2CA3D5A22D2D4B1500EDE9CF /* iPhone */,
-				2CA3D5A12D2D4A9000EDE9CF /* iPad */,
-				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
-				2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */,
-				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
-				2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */,
-				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
-				2C1914B12D1EDF0F004A095B /* ContactsView.swift */,
-				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
-				2C6A84842B723C660001A20C /* PlayerData.swift */,
-				2C900E7F2C415CF7005BD968 /* CellView.swift */,
-				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
-				2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */,
-				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
+				2C13873D2D538F7F0000A18B /* Models */,
+				2CA3D5A22D2D4B1500EDE9CF /* iPhone_Views */,
+				2CA3D5A12D2D4A9000EDE9CF /* iPad_Views */,
+				2C13873E2D538FFE0000A18B /* Common_Views */,
 				2CED70BC2C7C9F520006546F /* WoodenButton.swift */,
 				2C6A84862B723C990001A20C /* Ship.swift */,
 				2C900E872C416963005BD968 /* Cell.swift */,
@@ -203,7 +219,7 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		2CA3D5A12D2D4A9000EDE9CF /* iPad */ = {
+		2CA3D5A12D2D4A9000EDE9CF /* iPad_Views */ = {
 			isa = PBXGroup;
 			children = (
 				2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */,
@@ -221,10 +237,10 @@
 				2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */,
 				2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */,
 			);
-			path = iPad;
+			path = iPad_Views;
 			sourceTree = "<group>";
 		};
-		2CA3D5A22D2D4B1500EDE9CF /* iPhone */ = {
+		2CA3D5A22D2D4B1500EDE9CF /* iPhone_Views */ = {
 			isa = PBXGroup;
 			children = (
 				2C6A84722B6E99620001A20C /* ContentView.swift */,
@@ -234,7 +250,7 @@
 				2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */,
 				2C6A84822B723C0E0001A20C /* AboutView.swift */,
 			);
-			path = iPhone;
+			path = iPhone_Views;
 			sourceTree = "<group>";
 		};
 		2CE3E3EE2CB41AA0003AF40E /* Sound */ = {

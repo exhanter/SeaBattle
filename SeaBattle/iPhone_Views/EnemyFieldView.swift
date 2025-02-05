@@ -112,8 +112,6 @@ struct EnemyFieldView: View {
     init(player: PlayerData, enemy: PlayerData) {
         self.enemy = enemy
         self.player = player
-//        self.enemyViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: enemy, player: player)
-        
     }
 }
 
