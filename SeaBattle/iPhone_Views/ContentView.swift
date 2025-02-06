@@ -30,6 +30,7 @@ struct ContentView: View {
                                 .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                                 .shadow(color: .white, radius: 1)
                                 .padding(.bottom, 5)
+                                .accessibility(identifier: "titleMainText")
 
                             Image("war_ship8")
                                 .resizable()
@@ -59,6 +60,7 @@ struct ContentView: View {
                             } label: {
                                 Text(appState.gameIsActive ? "Stop game" : "New game")
                             }
+                            .accessibility(identifier: "newOrStopGameButton")
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                             .shadow(color: .white, radius: 1, y: 1)
                             .padding(.bottom, 5)

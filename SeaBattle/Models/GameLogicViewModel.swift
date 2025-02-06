@@ -233,6 +233,7 @@ class GameLogicViewModel: ObservableObject {
                 column = Int.random(in: 1...10)
                 coordinates = (row, column)
             }
+            //print("Find... \(row)x\(column) - is available: \(player.cells[row - 1][column - 1].isAvailable)")
         } while !meetConditionsToDefineCellForFire(coordinates: coordinates)
         return coordinates
     }

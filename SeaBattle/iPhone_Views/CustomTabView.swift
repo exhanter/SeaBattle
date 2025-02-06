@@ -37,12 +37,13 @@ struct CustomTabView: View {
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
                                 .shadow(color: .white, radius: 1)
+                                .accessibility(identifier: "sideMenuButton")
                         } else {
                             Text("Menu")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .fixedSize(horizontal: true, vertical: true)
-                        }
+                                .accessibility(identifier: "sideMenuButton")                        }
                     }
                     .disabled(appState.tabsBlocked)
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
@@ -60,11 +61,13 @@ struct CustomTabView: View {
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
                                 .shadow(color: .white, radius: 1)
+                                .accessibility(identifier: "sidePlayerButton")
                         } else {
                             Text("Player")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .fixedSize(horizontal: true, vertical: true)
+                                .accessibility(identifier: "sidePlayerButton")
                         }
                     }
                     .disabled(appState.tabsBlocked)
@@ -84,11 +87,13 @@ struct CustomTabView: View {
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
                                 .shadow(color: .white, radius: 1)
+                                .accessibility(identifier: "sideEnemyButton")
                         } else {
                             Text("Enemy")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .fixedSize(horizontal: true, vertical: true)
+                                .accessibility(identifier: "sideEnemyButton")
                         }
                     }
                     .disabled(appState.tabsBlocked)
@@ -108,11 +113,13 @@ struct CustomTabView: View {
                                 .underline()
                                 .fixedSize(horizontal: true, vertical: true)
                                 .shadow(color: .white, radius: 1)
+                                .accessibility(identifier: "sideAboutButton")
                         } else {
                             Text("About")
                                 .font(.custom("Dorsa", size: relativeFontSize))
                                 .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
                                 .fixedSize(horizontal: true, vertical: true)
+                                .accessibility(identifier: "sideAboutButton")
                         }
                     }
                     .disabled(appState.tabsBlocked)

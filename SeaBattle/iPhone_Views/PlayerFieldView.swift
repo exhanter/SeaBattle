@@ -41,6 +41,7 @@ struct PlayerFieldView: View {
                             } label: {
                                 Text(manualShipArrangement ? "Save" : "Change")
                             }
+                            .accessibility(identifier: "changeOrSaveButton")
                             .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
                             .disabled(appState.gameIsActive)
                             .disabled(player.shipIsDragging.contains(true))
@@ -90,6 +91,7 @@ struct PlayerFieldView: View {
                     } label: {
                         Text(appState.gameIsActive ? "Your turn!" : "Start")
                     }
+                    .accessibility(identifier: "startOrYourTurnButton")
                     .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                     .disabled(appState.enemysTurn)
                     .disabled(appState.tabsBlocked)

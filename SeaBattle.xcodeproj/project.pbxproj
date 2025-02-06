@@ -59,6 +59,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2C13874F2D53D3DA0000A18B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2C6A84652B6E99620001A20C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2C6A846C2B6E99620001A20C;
+			remoteInfo = SeaBattle;
+		};
 		2C275E6A2D4CDC7C008E29A9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2C6A84652B6E99620001A20C /* Project object */;
@@ -72,6 +79,7 @@
 		2C1271492C81F2C7001548F4 /* GameScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScoreView.swift; sourceTree = "<group>"; };
 		2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Dorsa-Regular.ttf"; sourceTree = "<group>"; };
 		2C12714D2C85E047001548F4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
+		2C1387492D53D3DA0000A18B /* SeaBattleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SeaBattleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C1914B12D1EDF0F004A095B /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomRoundedRectangle.swift; sourceTree = "<group>"; };
 		2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartMenuView.swift; sourceTree = "<group>"; };
@@ -124,10 +132,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		2C13874A2D53D3DA0000A18B /* SeaBattleUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SeaBattleUITests; sourceTree = "<group>"; };
 		2C275E672D4CDC7C008E29A9 /* SeaBattleTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SeaBattleTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2C1387462D53D3DA0000A18B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C275E632D4CDC7C008E29A9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -176,6 +192,7 @@
 			children = (
 				2C6A846F2B6E99620001A20C /* SeaBattle */,
 				2C275E672D4CDC7C008E29A9 /* SeaBattleTests */,
+				2C13874A2D53D3DA0000A18B /* SeaBattleUITests */,
 				2C6A846E2B6E99620001A20C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -185,6 +202,7 @@
 			children = (
 				2C6A846D2B6E99620001A20C /* SeaBattle.app */,
 				2C275E662D4CDC7C008E29A9 /* SeaBattleTests.xctest */,
+				2C1387492D53D3DA0000A18B /* SeaBattleUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -271,6 +289,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2C1387482D53D3DA0000A18B /* SeaBattleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2C1387532D53D3DA0000A18B /* Build configuration list for PBXNativeTarget "SeaBattleUITests" */;
+			buildPhases = (
+				2C1387452D53D3DA0000A18B /* Sources */,
+				2C1387462D53D3DA0000A18B /* Frameworks */,
+				2C1387472D53D3DA0000A18B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2C1387502D53D3DA0000A18B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2C13874A2D53D3DA0000A18B /* SeaBattleUITests */,
+			);
+			name = SeaBattleUITests;
+			packageProductDependencies = (
+			);
+			productName = SeaBattleUITests;
+			productReference = 2C1387492D53D3DA0000A18B /* SeaBattleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		2C275E652D4CDC7C008E29A9 /* SeaBattleTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2C275E6E2D4CDC7C008E29A9 /* Build configuration list for PBXNativeTarget "SeaBattleTests" */;
@@ -321,6 +362,10 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					2C1387482D53D3DA0000A18B = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 2C6A846C2B6E99620001A20C;
+					};
 					2C275E652D4CDC7C008E29A9 = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 2C6A846C2B6E99620001A20C;
@@ -346,11 +391,19 @@
 			targets = (
 				2C6A846C2B6E99620001A20C /* SeaBattle */,
 				2C275E652D4CDC7C008E29A9 /* SeaBattleTests */,
+				2C1387482D53D3DA0000A18B /* SeaBattleUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2C1387472D53D3DA0000A18B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C275E642D4CDC7C008E29A9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -381,6 +434,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2C1387452D53D3DA0000A18B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C275E622D4CDC7C008E29A9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -434,6 +494,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2C1387502D53D3DA0000A18B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2C6A846C2B6E99620001A20C /* SeaBattle */;
+			targetProxy = 2C13874F2D53D3DA0000A18B /* PBXContainerItemProxy */;
+		};
 		2C275E6B2D4CDC7C008E29A9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2C6A846C2B6E99620001A20C /* SeaBattle */;
@@ -442,12 +507,49 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2C1387512D53D3DA0000A18B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P4W6GGN5KK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SeaBattle;
+			};
+			name = Debug;
+		};
+		2C1387522D53D3DA0000A18B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P4W6GGN5KK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SeaBattle;
+			};
+			name = Release;
+		};
 		2C275E6C2D4CDC7C008E29A9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = P4W6GGN5KK;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -471,6 +573,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = P4W6GGN5KK;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -493,6 +596,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -557,6 +661,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -696,6 +801,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2C1387532D53D3DA0000A18B /* Build configuration list for PBXNativeTarget "SeaBattleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2C1387512D53D3DA0000A18B /* Debug */,
+				2C1387522D53D3DA0000A18B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2C275E6E2D4CDC7C008E29A9 /* Build configuration list for PBXNativeTarget "SeaBattleTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

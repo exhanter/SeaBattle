@@ -15,7 +15,7 @@ struct EnemyFieldView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @StateObject private var enemyViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
+    @StateObject private var gameLogicViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
     
     var body: some View {
         GeometryReader { geometry in
@@ -41,15 +41,15 @@ struct EnemyFieldView: View {
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                                 enemy.fireStrokeArray[row - 1][column - 1] = false
                                         }
-                                        enemyViewModel.checkShipOnFire(row: row, column: column, target: enemy)
+                                        gameLogicViewModel.checkShipOnFire(row: row, column: column, target: enemy)
                                         if appState.soundOn {
-                                            enemyViewModel.chooseSound(row: row - 1, column: column - 1)
+                                            gameLogicViewModel.chooseSound(row: row - 1, column: column - 1)
                                         }
                                         if appState.enemysTurn {
                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                                appState.selectedTab = .playerView
                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                                   enemyViewModel.computerTurn()
+                                                   gameLogicViewModel.computerTurn()
                                                }
                                            }
                                         }
@@ -100,10 +100,10 @@ struct EnemyFieldView: View {
             } //ZStack off
             .statusBar(hidden: true)
             .onAppear {
-                if self.enemyViewModel.appState.tempInstance {
-                    self.enemyViewModel.appState = self.appState
-                    self.enemyViewModel.player = self.player
-                    self.enemyViewModel.enemy = self.enemy
+                if self.gameLogicViewModel.appState.tempInstance {
+                    self.gameLogicViewModel.appState = self.appState
+                    self.gameLogicViewModel.player = self.player
+                    self.gameLogicViewModel.enemy = self.enemy
                 }
             }
         }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1610"
+   LastUpgradeVersion = "1620"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -38,6 +38,17 @@
                BlueprintIdentifier = "2C275E652D4CDC7C008E29A9"
                BuildableName = "SeaBattleTests.xctest"
                BlueprintName = "SeaBattleTests"
+               ReferencedContainer = "container:SeaBattle.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2C1387482D53D3DA0000A18B"
+               BuildableName = "SeaBattleUITests.xctest"
+               BlueprintName = "SeaBattleUITests"
                ReferencedContainer = "container:SeaBattle.xcodeproj">
             </BuildableReference>
          </TestableReference>

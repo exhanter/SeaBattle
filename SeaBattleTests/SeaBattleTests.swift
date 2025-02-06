@@ -20,21 +20,29 @@ class PlayerDataMock: PlayerData {
 final class SeaBattleTests: XCTestCase {
     
     var sut: GameLogicViewModel!
+    var sutReal: GameLogicViewModel!
     var appState: AppState!
+    var player: PlayerData!
+    var enemy: PlayerData!
     var testPlayer: PlayerDataMock!
     var testEnemy: PlayerDataMock!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        appState = AppState(tempInstance: true)
+        appState = AppState(tempInstance: false)
         testPlayer = PlayerDataMock(name: "TestPlayer")
         testEnemy = PlayerDataMock(name: "TestEnemy")
+        player = PlayerData(name: "Player")
+        enemy = PlayerData(name: "Enemy")
         sut = GameLogicViewModel(appState: appState, enemy: testEnemy, player: testPlayer)
+        sutReal = GameLogicViewModel(appState: appState, enemy: enemy, player: player)
     }
 
     override func tearDownWithError() throws {
         testEnemy = nil
         testPlayer = nil
+        player = nil
+        enemy = nil
         appState = nil
         sut = nil
         try super.tearDownWithError()
@@ -103,5 +111,18 @@ final class SeaBattleTests: XCTestCase {
         //check
         XCTAssertTrue(array.contains(where: { $0 == cell }), "The method works incorrectly")
     }
-
+    
+    func testWholeTheSequenceOfComputerTurns() {
+        // the test was made in attepmt to catch endless loop
+        //prepare
+        player.shipsRandomArrangement()
+        
+        //use
+        repeat {
+            sutReal.computerTurn()
+        } while player.numberShipsDestroyed < 10
+        
+        //check
+        XCTAssertEqual(player.numberShipsDestroyed, 10)
+    }
 }
