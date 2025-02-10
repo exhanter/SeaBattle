@@ -9,7 +9,7 @@ import SwiftUI
 
 struct PlayerFieldView: View {
     
-    @State private var manualShipArrangement = false
+//    @State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
     @State private var isBouncing = false
     @State private var isTapEnabled = false
@@ -36,10 +36,10 @@ struct PlayerFieldView: View {
                                 if appState.soundOn {
                                     AppState.playSound(sound: "click_sound.wav")
                                 }
-                                manualShipArrangement.toggle()
+                                appState.manualShipArrangement.toggle()
                                 appState.tabsBlocked.toggle()
                             } label: {
-                                Text(manualShipArrangement ? "Save" : "Change")
+                                Text(appState.manualShipArrangement ? "Save" : "Change")
                             }
                             .accessibility(identifier: "changeOrSaveButton")
                             .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
@@ -48,30 +48,11 @@ struct PlayerFieldView: View {
                             .shadow(color: appState.gameIsActive || player.shipIsDragging.contains(true) ? .clear : .white, radius: 1, y: 0.5)
                             .opacity(appState.gameIsActive || player.shipIsDragging.contains(true) ? 0.5 : 1)
                             .padding(.bottom, geometry.size.height * 0.01)
-                        ZStack {
-                            VStack(spacing: 0) {
-                                ForEach(1...10, id:\.self) { row in
-                                    HStack(spacing: 0) {
-                                        ForEach(1...10, id: \.self) { column in
-                                            if manualShipArrangement {
-                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: .unknown, cellWidth: geometry.size.width * 0.09)
-                                                    .background(GeometryReader { geometryLocal in
-                                                        Color.clear
-                                                            .onAppear {
-                                                                self.leftTopPointOfGameField = geometryLocal.frame(in: .global).origin
-                                                                player.defineShipPositionsAsCGPoint(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * 0.09)
-                                                            }
-                                                    })
-                                            } else {
-                                                CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: player.cells[row - 1][column - 1].cellStatus, cellWidth: geometry.size.width * 0.09)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.bottom, geometry.size.height * 0.05)
-                        .ignoresSafeArea()
+                    VStack(spacing: 0) {
+                        PlayerSquareView(player: player, leftTopPointOfGameField: $leftTopPointOfGameField, width: geometry.size.width * 0.09)
+                    }
+                    .padding(.bottom, geometry.size.height * 0.05)
+//                        .ignoresSafeArea()
 
                     Button {
                         self.isBouncing = false
@@ -80,7 +61,7 @@ struct PlayerFieldView: View {
                                 AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                             }
                             appState.gameIsActive = true
-                            manualShipArrangement = false
+                            appState.manualShipArrangement = false
                             appState.selectedTab = .enemyView
                         } else if appState.gameIsActive {
                             appState.selectedTab = .enemyView
@@ -135,7 +116,7 @@ struct PlayerFieldView: View {
                             }
                         }
                 }
-                if manualShipArrangement {
+                if appState.manualShipArrangement {
                     ShipReplacementView(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * 0.09, player: player)
                 }
             } //ZStack off

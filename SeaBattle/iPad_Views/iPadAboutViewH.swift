@@ -9,7 +9,8 @@ import SwiftUI
 
 struct iPadAboutViewH: View {
     @EnvironmentObject var appState: AppState
-    
+    @ObservedObject var player: PlayerData
+    @ObservedObject var enemy: PlayerData
     @State private var showInformationView = false
     @State private var showContactsView = false
     var body: some View {
@@ -74,20 +75,20 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
                     }
                     .padding(.top)
                 }
-                .scrollIndicators(.hidden)
-                .padding(.top, 20)
-                .padding(.bottom, geometry.size.height * 0.15)
-                .padding(.horizontal, geometry.size.width * 0.03)
-                .background(.clear)
-                .sheet(isPresented: $showInformationView) {
-                    InformationView()
-                        .presentationDetents([.medium, .large])
-                }
-                .sheet(isPresented: $showContactsView) {
-                    ContactsView()
-                        .presentationDetents([.medium, .large])
-                }
-                .ignoresSafeArea()
+                    .scrollIndicators(.hidden)
+                    .padding(.top, 20)
+                    .padding(.bottom, geometry.size.height * 0.15)
+                    .padding(.horizontal, geometry.size.width * 0.03)
+                    .background(.clear)
+                    .sheet(isPresented: $showInformationView) {
+                        InformationView()
+                            .presentationDetents([.medium, .large])
+                    }
+                    .sheet(isPresented: $showContactsView) {
+                        ContactsView()
+                            .presentationDetents([.medium, .large])
+                    }
+                    .ignoresSafeArea()
             }
             .statusBar(hidden: true)
         }
@@ -95,6 +96,6 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
 }
 
 #Preview {
-    iPadAboutViewH()
+    iPadAboutViewH(player: PlayerData(name: "testPlayer"), enemy: PlayerData(name: "testEnemy"))
         .environmentObject(AppState(tempInstance: true))
 }

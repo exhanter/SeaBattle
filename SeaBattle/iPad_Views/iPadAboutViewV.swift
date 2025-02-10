@@ -9,7 +9,8 @@ import SwiftUI
 
 struct iPadAboutViewV: View {
     @EnvironmentObject var appState: AppState
-    
+    @ObservedObject var player: PlayerData
+    @ObservedObject var enemy: PlayerData
     @State private var showInformationView = false
     @State private var showContactsView = false
     var body: some View {
@@ -73,19 +74,20 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
                     }
                     .padding(.top)
                 }
-                .scrollIndicators(.hidden)
-                .padding(.vertical, 20)
-                .padding(.leading, geometry.size.width * 0.15)
-                .padding(.trailing, geometry.size.width * 0.03)
-                .background(.clear)
-                .sheet(isPresented: $showInformationView) {
-                    InformationView()
-                        .presentationDetents([.medium, .large])
-                }
-                .sheet(isPresented: $showContactsView) {
-                    ContactsView()
-                        .presentationDetents([.medium, .large])
-                }
+                    .scrollIndicators(.hidden)
+                    .padding(.vertical, 20)
+                    .padding(.leading, geometry.size.width * 0.15)
+                    .padding(.trailing, geometry.size.width * 0.03)
+                    .background(.clear)
+                    
+                    .sheet(isPresented: $showInformationView) {
+                        InformationView()
+                            .presentationDetents([.medium, .large])
+                    }
+                    .sheet(isPresented: $showContactsView) {
+                        ContactsView()
+                            .presentationDetents([.medium, .large])
+                    }
             }
             .statusBar(hidden: true)
         }
@@ -93,7 +95,7 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
 }
 
 #Preview {
-    iPadAboutViewV()
+    iPadAboutViewV(player: PlayerData(name: "testPlayer"), enemy: PlayerData(name: "testEnemy"))
         .environmentObject(AppState(tempInstance: true))
 }
 

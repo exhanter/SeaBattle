@@ -19,14 +19,15 @@ struct iPadMenuViewV: View {
         return false
     }
     var body: some View {
-        ZStack {
-            Image("wood")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: width, height: height)
-                .clipShape(CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight, .bottomRight]))
-                .shadow(color: .white, radius: 5)
-            VStack(alignment: .leading) {
+        HStack {
+            ZStack {
+                Image("wood")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width * 0.12, height: height * 0.3)
+                    .clipShape(CustomRoundedRectangle(cornerRadius: 25, roundedCorners: [.topRight, .bottomRight]))
+                    .shadow(color: .white, radius: 5)
+                VStack(alignment: .leading) {
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -105,13 +106,14 @@ struct iPadMenuViewV: View {
                     .opacity(appState.tabsBlocked ? 0.5 : 1)
                     Spacer()
                 }
-            .padding(.leading, width * 0.11)
-                .frame(width: width, height: height)
+                .padding(.leading, width * 0.013)
+                .frame(width: width * 0.12, height: height * 0.3)
             }
+        }
     }
     init(width: CGFloat, height: CGFloat) {
-        self.width = width * 0.12
-        self.height = height * 0.3
+        self.width = width
+        self.height = height
         self.relativeFontSize = width * 0.08
     }
 }

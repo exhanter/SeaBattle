@@ -31,39 +31,7 @@ struct EnemyFieldView: View {
                             .shadow(color: .black, radius: 3, x: 2, y: 2)
                             .padding(.bottom, geometry.size.height * 0.08)
                     }
-                    VStack(spacing: 0) {
-                        ForEach(1...10, id:\.self) { row in
-                            HStack(spacing: 0) {
-                                ForEach(1...10, id: \.self) { column in
-                                    let status = enemy.cells[row - 1][column - 1].cellStatus
-                                    Button {
-                                        enemy.fireStrokeArray[row - 1][column - 1] = true
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                                enemy.fireStrokeArray[row - 1][column - 1] = false
-                                        }
-                                        gameLogicViewModel.checkShipOnFire(row: row, column: column, target: enemy)
-                                        if appState.soundOn {
-                                            gameLogicViewModel.chooseSound(row: row - 1, column: column - 1)
-                                        }
-                                        if appState.enemysTurn {
-                                           DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                               appState.selectedTab = .playerView
-                                               DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                                   gameLogicViewModel.computerTurn()
-                                               }
-                                           }
-                                        }
-                                    } label: {
-                                        CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.width * 0.09)
-                                    }
-                                    .buttonStyle(NoPressEffect())
-                                    .disabled(!appState.gameIsActive)
-                                    .disabled(appState.enemysTurn)
-                                }
-                            }
-                        }
-                    }
-                    .ignoresSafeArea()
+                    EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.width * 0.09)
                     .padding(.bottom, geometry.size.height * 0.05)
                     Text("FIRE!")
                         .font(Font.custom("Aldrich", size: 40))

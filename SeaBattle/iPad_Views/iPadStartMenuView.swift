@@ -11,19 +11,19 @@ struct iPadStartMenuView: View {
     @StateObject private var appState = AppState(tempInstance: false)
     @StateObject private var player = PlayerData(name: "Player")
     @StateObject private var enemy = PlayerData(name: "Enemy")
-    @StateObject private var enemyViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
+    @StateObject private var gameLogicViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
 
     var body: some View {
         Group {
             switch appState.selectedTab {
             case .menu:
-                iPadMainView(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
+                iPadMainView(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
             case .iPadBattleView:
-                iPadBattleView(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
+                iPadBattleView(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
             case .about:
-                iPadAboutView()
+                iPadAboutView(player: player, enemy: enemy)
             default:
-                iPadMainView(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
+                iPadMainView(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
             }
         }
         .environmentObject(appState)

@@ -18,7 +18,7 @@ struct iPadBattleViewH: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @ObservedObject private var enemyViewModel: GameLogicViewModel
+    @ObservedObject private var gameLogicViewModel: GameLogicViewModel
     
     var body: some View {
         GeometryReader { geometry in
@@ -26,25 +26,10 @@ struct iPadBattleViewH: View {
                 LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                     .ignoresSafeArea()
                 VStack {
-                    HStack(alignment: .top, spacing: 0) {
-                        Spacer()
-                        Text("Player \(player.numberShipsDestroyed) / 10") // 8 char max
-                            .font(.custom("Aldrich", size: geometry.size.width * 0.04))
-                            .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                            .shadow(color: Color(red: 0.11, green: 0.77, blue: 0.56), radius: 1)
-                        Spacer()
-                        Spacer()
-                        Text("Enemy \(enemy.numberShipsDestroyed) / 10")
-                            .font(.custom("Aldrich", size: geometry.size.width * 0.04))
-                            .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                            .shadow(color: Color(red: 0.11, green: 0.77, blue: 0.56), radius: 1)
-                        Spacer()
-                    }
-                    .padding(.top, geometry.size.height * 0.11)//0.0132
-                    .padding(.horizontal, geometry.size.width * 0.04)
+                    iPadGameScoreViewH(player: player, enemy: enemy, width: geometry.size.width, height: geometry.size.height)
                     Spacer()
                     iPadMenuViewH(width: geometry.size.width, height: geometry.size.height)
-                } //HStack off
+                }
                 .ignoresSafeArea()
                 VStack {
                     Spacer()
@@ -104,75 +89,14 @@ struct iPadBattleViewH: View {
                     Spacer()
                     VStack(spacing: 0) {
                         Spacer()
-                        ForEach(1...10, id:\.self) { row in
-                            HStack(spacing: 0) {
-                                ForEach(1...10, id: \.self) { column in
-                                    if appState.manualShipArrangement {
-                                        CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: .unknown, cellWidth: geometry.size.height * scaleForCells)
-                                            .background(GeometryReader { geometryLocal in
-                                                Color.clear
-                                                    .onAppear {
-                                                        self.leftTopPointOfGameField = geometryLocal.frame(in: .global).origin
-                                                        player.defineShipPositionsAsCGPoint(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.height * scaleForCells)
-                                                    }
-                                            })
-                                    } else {
-                                        CellView(fireStrokeIsOn: player.fireStrokeArray[row - 1][column - 1], cellStatus: player.cells[row - 1][column - 1].cellStatus, cellWidth: geometry.size.height * scaleForCells)
-                                    }
-                                }
-                            }
-                        }
+                        PlayerSquareView(player: player, leftTopPointOfGameField: $leftTopPointOfGameField, width: geometry.size.height * scaleForCells)
                         Spacer()
                     }
                     Spacer()
                     ZStack {
-                        VStack(spacing: 0) {
-                            ForEach(1...10, id:\.self) { row in
-                                HStack(spacing: 0) {
-                                    ForEach(1...10, id: \.self) { column in
-                                        let status = enemy.cells[row - 1][column - 1].cellStatus
-                                        Button {
-                                            enemy.fireStrokeArray[row - 1][column - 1] = true
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                                enemy.fireStrokeArray[row - 1][column - 1] = false
-                                            }
-                                            enemyViewModel.checkShipOnFire(row: row, column: column, target: enemy)
-                                            if appState.soundOn {
-                                                enemyViewModel.chooseSound(row: row - 1, column: column - 1)
-                                            }
-                                            if appState.enemysTurn {
-                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                                        enemyViewModel.computerTurn()
-                                                    }
-//                                                                }
-                                            }
-                                        } label: {
-                                            CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: geometry.size.height * scaleForCells)
-                                        }
-                                        .buttonStyle(NoPressEffect())
-                                        .disabled(!appState.gameIsActive)
-                                        .disabled(appState.enemysTurn)
-                                    }
-                                }
-                            }
-                        }
+                        EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.height * scaleForCells)
                         if !appState.gameIsActive {
-                            Button("Start") {
-                                if !appState.gameIsActive {
-                                    if appState.musicOn {
-                                        AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
-                                    }
-                                    appState.gameIsActive = true
-                                    appState.manualShipArrangement = false
-                                }
-                                if appState.soundOn {
-                                    AppState.playSound(sound: "click_sound.wav")
-                                }
-                            }
-                            .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.2, height: geometry.size.height * 0.1))
-                            .shadow(color: .black, radius: geometry.size.width * 0.015, x: 5, y: 5)
-                            .disabled(appState.tabsBlocked)
-                            .opacity(appState.tabsBlocked ? 0.5 : 1)
+                            iPadStartButton(width: geometry.size.width, height: geometry.size.height)
                         }
                     }
                     Spacer()
@@ -209,14 +133,14 @@ struct iPadBattleViewH: View {
             .statusBar(hidden: true)
         }
     }
-    init(player: PlayerData, enemy: PlayerData, enemyViewModel: GameLogicViewModel) {
+    init(player: PlayerData, enemy: PlayerData, gameLogicViewModel: GameLogicViewModel) {
         self.enemy = enemy
         self.player = player
-        self.enemyViewModel = enemyViewModel
+        self.gameLogicViewModel = gameLogicViewModel
     }
 }
 
 #Preview {
-    iPadBattleViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+    iPadBattleViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
         .environmentObject(AppState(tempInstance: true))
 }

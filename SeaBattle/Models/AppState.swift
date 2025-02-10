@@ -30,6 +30,7 @@ class AppState: ObservableObject {
     @Published var showFinishGameAlert = false
     @Published var tabsBlocked = false
     
+    static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
     static var musicPlayer: AVAudioPlayer?
     static var soundPlayer: AVAudioPlayer?

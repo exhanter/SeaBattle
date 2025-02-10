@@ -13,35 +13,35 @@ struct iPadMainView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    @ObservedObject var enemyViewModel: GameLogicViewModel
+    @ObservedObject var gameLogicViewModel: GameLogicViewModel
     @State private var showSettingsView = false
     
     var body: some View {
         GeometryReader { geometry in
             if geometry.size.width < geometry.size.height {
-                iPadMainViewV(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
+                iPadMainViewV(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
                     .onAppear {
-                        if self.enemyViewModel.appState.tempInstance {
-                            enemyViewModel.appState = appState
-                            enemyViewModel.player = player
-                            enemyViewModel.enemy = enemy
+                        if self.gameLogicViewModel.appState.tempInstance {
+                            gameLogicViewModel.appState = appState
+                            gameLogicViewModel.player = player
+                            gameLogicViewModel.enemy = enemy
                         }
                     }
             } else {
-                iPadMainViewH(player: player, enemy: enemy, enemyViewModel: enemyViewModel)
+                iPadMainViewH(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
                     .onAppear {
-                        enemyViewModel.appState = appState
-                        enemyViewModel.player = player
-                        enemyViewModel.enemy = enemy
+                        gameLogicViewModel.appState = appState
+                        gameLogicViewModel.player = player
+                        gameLogicViewModel.enemy = enemy
                     }
             }
         }
     }
     
-    init(player: PlayerData, enemy: PlayerData, enemyViewModel: GameLogicViewModel) {
+    init(player: PlayerData, enemy: PlayerData, gameLogicViewModel: GameLogicViewModel) {
         self.player = player
         self.enemy = enemy
-        self.enemyViewModel = enemyViewModel
+        self.gameLogicViewModel = gameLogicViewModel
         UserDefaults.standard.register(defaults: [
             "musicOn": true,
             "soundOn": true
@@ -51,6 +51,6 @@ struct iPadMainView: View {
 
 
 #Preview {
-    iPadMainView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), enemyViewModel:  GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
+    iPadMainView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel:  GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
         .environmentObject(AppState(tempInstance: true))
 }
