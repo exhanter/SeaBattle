@@ -10,7 +10,6 @@ import SwiftUI
 struct EnemyFieldView: View {
     
     @State private var isVisible = true
-    @State private var isTapEnabled = false
     
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
@@ -31,8 +30,10 @@ struct EnemyFieldView: View {
                             .shadow(color: .black, radius: 3, x: 2, y: 2)
                             .padding(.bottom, geometry.size.height * 0.08)
                     }
+                    
                     EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.width * 0.09)
                     .padding(.bottom, geometry.size.height * 0.05)
+                    
                     Text("FIRE!")
                         .font(Font.custom("Aldrich", size: 40))
                         .foregroundStyle(Color(red: 255/255, green: 95/255, blue: 0/255))
@@ -42,26 +43,13 @@ struct EnemyFieldView: View {
                         .opacity(appState.gameIsActive ? 1 : 0)
                 }
                 .ignoresSafeArea()
+                
                 if enemy.showFinishGameAlert {
-                    Color.black
-                        .ignoresSafeArea()
-                        .opacity(0.4)
+                    WinAlertView(didPlayerWin: true)
                         .onTapGesture {
-                            appState.resetData(player: player, enemy: enemy)
-                        }
-                    WinAlertView(isPlayerWon: true)
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                isTapEnabled = true
-                            }
-                            if appState.soundOn {
-                                AppState.playSound(sound: "victory_sound.wav")
-                            }
-                        }
-                        .onTapGesture {
-                            if isTapEnabled {
+                            if appState.isTapEnabled {
                                 appState.resetData(player: player, enemy: enemy)
-                                isTapEnabled = false
+                                appState.isTapEnabled = false
                             }
                         }
                 }

@@ -51,8 +51,8 @@ struct iPadMenuViewV: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    .disabled(appState.tabsBlocked)
-                    .opacity(appState.tabsBlocked ? 0.5 : 1)
+                        .disabled(appState.tabsBlocked)
+                        .opacity(appState.tabsBlocked ? 0.5 : 1)
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -76,9 +76,9 @@ struct iPadMenuViewV: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    .disabled(appState.tabsBlocked)
-                    .disabled(self.tabsLockBeforeGameStart)
-                    .opacity(appState.tabsBlocked ? 0.5 : 1)
+                        .disabled(appState.tabsBlocked)
+                        .disabled(self.tabsLockBeforeGameStart)
+                        .opacity(appState.tabsBlocked ? 0.5 : 1)
                     Spacer()
                     Button {
                         if appState.soundOn {
@@ -102,8 +102,8 @@ struct iPadMenuViewV: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
-                    .disabled(appState.tabsBlocked)
-                    .opacity(appState.tabsBlocked ? 0.5 : 1)
+                        .disabled(appState.tabsBlocked)
+                        .opacity(appState.tabsBlocked ? 0.5 : 1)
                     Spacer()
                 }
                 .padding(.leading, width * 0.013)

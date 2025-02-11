@@ -21,7 +21,7 @@ struct iPadStartMenuView: View {
             case .iPadBattleView:
                 iPadBattleView(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
             case .about:
-                iPadAboutView(player: player, enemy: enemy)
+                iPadAboutView()
             default:
                 iPadMainView(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
             }

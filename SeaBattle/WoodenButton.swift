@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct WoodenButton: ButtonStyle {
-    var radius: CGFloat
-    var fontSize: CGFloat
-    var width: CGFloat
-    var height: CGFloat
+    let radius: CGFloat
+    let fontSize: CGFloat
+    let width: CGFloat
+    let height: CGFloat
     
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 0) {

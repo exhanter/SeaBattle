@@ -10,7 +10,7 @@ import SwiftUI
 struct iPadGameScoreViewV: View {
     @ObservedObject var player: PlayerData
     @ObservedObject var enemy: PlayerData
-    var width: CGFloat
+    let width: CGFloat
     
     var body: some View {
         VStack {

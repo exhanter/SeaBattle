@@ -13,7 +13,7 @@ struct Ship {
     let id = UUID()
     let number: Int
     var orientation: Orientation
-    var numberOfDecks: Int
+    let numberOfDecks: Int
     var isDestroyed = false
     var coordinates: [(Int, Int)]
     init(number: Int, orientation: Orientation, numberOfDecks: Int, isDestroyed: Bool = false, coordinates: [(Int, Int)]) {

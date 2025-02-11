@@ -8,11 +8,9 @@
 import SwiftUI
 
 struct iPadAboutViewV: View {
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
     @State private var showInformationView = false
     @State private var showContactsView = false
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -95,7 +93,6 @@ Winning: The first player to sink all of the opponent’s ships wins the game.
 }
 
 #Preview {
-    iPadAboutViewV(player: PlayerData(name: "testPlayer"), enemy: PlayerData(name: "testEnemy"))
-        .environmentObject(AppState(tempInstance: true))
+    iPadAboutViewV()
 }
 

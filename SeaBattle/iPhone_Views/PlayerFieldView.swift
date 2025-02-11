@@ -9,10 +9,7 @@ import SwiftUI
 
 struct PlayerFieldView: View {
     
-//    @State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
-    @State private var isBouncing = false
-    @State private var isTapEnabled = false
     
     @EnvironmentObject var appState: AppState
     @ObservedObject var player: PlayerData
@@ -25,94 +22,25 @@ struct PlayerFieldView: View {
                     .ignoresSafeArea()
                 VStack(alignment: .center, spacing: 0) {
                     Spacer()
-                    if geometry.size.width / geometry.size.height < 0.56 {
-                        Text("Player")
-                            .font(Font.custom("Aldrich", size: 48))
-                            .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                            .shadow(color: .black, radius: 1, y: 2)
-                            .padding(.bottom, geometry.size.height * 0.02)
-                    }
-                            Button {
-                                if appState.soundOn {
-                                    AppState.playSound(sound: "click_sound.wav")
-                                }
-                                appState.manualShipArrangement.toggle()
-                                appState.tabsBlocked.toggle()
-                            } label: {
-                                Text(appState.manualShipArrangement ? "Save" : "Change")
-                            }
-                            .accessibility(identifier: "changeOrSaveButton")
-                            .buttonStyle(WoodenButton(radius: 11, fontSize: 20, width: geometry.size.width * 0.5, height: geometry.size.height * 0.05))// 35
-                            .disabled(appState.gameIsActive)
-                            .disabled(player.shipIsDragging.contains(true))
-                            .shadow(color: appState.gameIsActive || player.shipIsDragging.contains(true) ? .clear : .white, radius: 1, y: 0.5)
-                            .opacity(appState.gameIsActive || player.shipIsDragging.contains(true) ? 0.5 : 1)
-                            .padding(.bottom, geometry.size.height * 0.01)
+                    
+                    UpperLabelAndButtonView(player: player, width: geometry.size.width, height: geometry.size.height)
+                        .padding(.bottom, geometry.size.height * 0.01)
+                    
                     VStack(spacing: 0) {
                         PlayerSquareView(player: player, leftTopPointOfGameField: $leftTopPointOfGameField, width: geometry.size.width * 0.09)
                     }
                     .padding(.bottom, geometry.size.height * 0.05)
-//                        .ignoresSafeArea()
-
-                    Button {
-                        self.isBouncing = false
-                        if !appState.gameIsActive {
-                            if appState.musicOn {
-                                AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
-                            }
-                            appState.gameIsActive = true
-                            appState.manualShipArrangement = false
-                            appState.selectedTab = .enemyView
-                        } else if appState.gameIsActive {
-                            appState.selectedTab = .enemyView
-                        }
-                        if appState.soundOn {
-                            AppState.playSound(sound: "click_sound.wav")
-                        }
-                    } label: {
-                        Text(appState.gameIsActive ? "Your turn!" : "Start")
-                    }
-                    .accessibility(identifier: "startOrYourTurnButton")
-                    .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
-                    .disabled(appState.enemysTurn)
-                    .disabled(appState.tabsBlocked)
-                    .shadow(color: appState.enemysTurn || appState.tabsBlocked ? .clear : .white, radius: 1, y: 1)
-                    .opacity(appState.enemysTurn || appState.tabsBlocked ? 0.5 : 1)
-                    .padding(.bottom, geometry.size.height * 0.15)
-                    .onChange(of: appState.enemysTurn) { newValue in
-                        if newValue == false {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                if appState.selectedTab == .playerView {
-                                    withAnimation(.spring(duration: 0.3, bounce: 0.9, blendDuration: 0).repeatCount(1, autoreverses: false)) {
-                                        self.isBouncing = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .scaleEffect(self.isBouncing ? 1.05 : 1)
+                    
+                    YourTurnButtonView(width: geometry.size.width, height: geometry.size.height)
                 }
                 .ignoresSafeArea()
+                
                 if player.showFinishGameAlert {
-                    Color.black
-                        .ignoresSafeArea()
-                        .opacity(0.4)
+                    WinAlertView(didPlayerWin: false)
                         .onTapGesture {
-                            appState.resetData(player: player, enemy: enemy)
-                        }
-                    WinAlertView(isPlayerWon: false)
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                isTapEnabled = true
-                            }
-                            if appState.soundOn {
-                                AppState.playSound(sound: "defeat_sound.wav")
-                            }
-                        }
-                        .onTapGesture {
-                            if isTapEnabled {
+                            if appState.isTapEnabled {
                                 appState.resetData(player: player, enemy: enemy)
-                                isTapEnabled = false
+                                appState.isTapEnabled = false
                             }
                         }
                 }

@@ -23,9 +23,6 @@ struct iPadMainViewV: View {
                 ZStack {
                     LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                         .ignoresSafeArea()
-                    
-                    
-                    
                     VStack(spacing: 0) {
                         Spacer(minLength: geometry.size.height * 0.10)
                         Text("Sea Battle")
@@ -33,8 +30,6 @@ struct iPadMainViewV: View {
                             .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                             .shadow(color: .white, radius: 2)
                         Spacer(minLength: geometry.size.height * 0.02)
-                        
-                        
                         Image("war_ship8")
                             .resizable()
                             .scaledToFill()
@@ -63,16 +58,16 @@ struct iPadMainViewV: View {
                         } label: {
                             Text(appState.gameIsActive ? "Stop game" : "New game")
                         }
-                        .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
-                        .shadow(color: .white, radius: 5)
-                        .padding(.bottom, 10)
+                            .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
+                            .shadow(color: .white, radius: 5)
+                            .padding(.bottom, 10)
                         Button("Settings") {
                             self.showSettingsView = true
                         }
-                        .buttonStyle(.bordered)
-                        .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
-                        .padding()
-                        .padding(.horizontal, geometry.size.width * 0.1)
+                            .buttonStyle(.bordered)
+                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .padding()
+                            .padding(.horizontal, geometry.size.width * 0.1)
                         Spacer(minLength: geometry.size.height * 0.10)
                     } // VStack off
                     .sheet(isPresented: $showSettingsView) { SettingsView()

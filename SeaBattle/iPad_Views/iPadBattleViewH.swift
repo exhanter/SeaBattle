@@ -9,10 +9,7 @@ import SwiftUI
 
 struct iPadBattleViewH: View {
     
-    //@State private var manualShipArrangement = false
     @State private var leftTopPointOfGameField: CGPoint = .zero
-    @State private var isBouncing = false
-    @State private var isTapEnabled = false
     let scaleForCells = 0.06
     
     @EnvironmentObject var appState: AppState
@@ -30,98 +27,30 @@ struct iPadBattleViewH: View {
                     Spacer()
                     iPadMenuViewH(width: geometry.size.width, height: geometry.size.height)
                 }
-                .ignoresSafeArea()
-                VStack {
-                    Spacer()
-                    HStack(alignment: .bottom) {
-                        ZStack(alignment: .leading) {
-                            iPadMenuButtonsViewH(width: geometry.size.width, height: geometry.size.height)
-                            HStack(alignment: .bottom) {
-                                    Text("Ships:")
-                                        .font(.custom("Dorsa", size: geometry.size.height * 0.06))
-                                        .foregroundStyle(.white)
-                                        .fixedSize(horizontal: true, vertical: true)
-                    
-                                    Button {
-                                        if appState.soundOn {
-                                            AppState.playSound(sound: "click_sound.wav")
-                                        }
-                                        appState.manualShipArrangement.toggle()
-                                        appState.tabsBlocked.toggle()
-                                    }
-                                    label: {
-                                        Text("Change")
-                                            .font(.custom("Dorsa", size: geometry.size.width * 0.04))
-                                            .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
-                                            .fixedSize(horizontal: true, vertical: true)
-                                            .shadow(color: appState.manualShipArrangement ? .white : .clear, radius: 5)
-                                    }
-                                    .padding(.horizontal, geometry.size.width * 0.003)
-                                    .disabled(appState.gameIsActive)
-                                    .disabled(player.shipIsDragging.contains(true))
-                                    .opacity(appState.gameIsActive ? 0.5 : 1)
-                                    Button {
-                                        if appState.soundOn {
-                                            AppState.playSound(sound: "click_sound.wav")
-                                        }
-                                        player.clearShips()
-                                        player.shipsRandomArrangement()
-                                    }
-                                    label: {
-                                        Text("Shuffle")
-                                            .font(.custom("Dorsa", size: geometry.size.width * 0.04))
-                                            .foregroundColor(Color(red: 248/255, green: 1, blue: 0))
-                                            .fixedSize(horizontal: true, vertical: true)
-                                    }
-                                    .disabled(appState.tabsBlocked)
-                                    .disabled(appState.gameIsActive)
-                                    .disabled(player.shipIsDragging.contains(true))
-                                    .opacity(appState.gameIsActive ? 0.5 : 1)
-                                    .opacity(appState.tabsBlocked ? 0.5 : 1)
-                                }
-                                .padding(.leading, geometry.size.width * 0.0132)
-                        }
-                        Spacer()
-                    }
-                }
-                .ignoresSafeArea()
+                    .ignoresSafeArea()
+                iPadShipArrangementMenuViewH(player: player, width: geometry.size.width, height: geometry.size.height)
+                    .ignoresSafeArea()
                 HStack(alignment: .center, spacing: 0) {
                     Spacer()
                     VStack(spacing: 0) {
-                        Spacer()
                         PlayerSquareView(player: player, leftTopPointOfGameField: $leftTopPointOfGameField, width: geometry.size.height * scaleForCells)
-                        Spacer()
                     }
                     Spacer()
                     ZStack {
                         EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.height * scaleForCells)
                         if !appState.gameIsActive {
-                            iPadStartButton(width: geometry.size.width, height: geometry.size.height)
+                            iPadStartButton(width: geometry.size.height, height: geometry.size.width)
                         }
                     }
                     Spacer()
                 }
                 .ignoresSafeArea()
                 if player.showFinishGameAlert || enemy.showFinishGameAlert {
-                    Color.black
-                        .ignoresSafeArea()
-                        .opacity(0.4)
+                    WinAlertView(didPlayerWin: enemy.showFinishGameAlert ? true : false)
                         .onTapGesture {
-                            appState.resetData(player: player, enemy: enemy)
-                        }
-                    WinAlertView(isPlayerWon: enemy.showFinishGameAlert ? true : false)
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                isTapEnabled = true
-                            }
-                            if appState.soundOn {
-                                AppState.playSound(sound: player.showFinishGameAlert ? "defeat_sound.wav" : "victory_sound.wav")
-                            }
-                        }
-                        .onTapGesture {
-                            if isTapEnabled {
+                            if appState.isTapEnabled {
                                 appState.resetData(player: player, enemy: enemy)
-                                isTapEnabled = false
+                                appState.isTapEnabled = false
                             }
                         }
                 }

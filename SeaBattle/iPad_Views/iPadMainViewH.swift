@@ -38,9 +38,9 @@ struct iPadMainViewH: View {
                             VStack {
                                 Spacer()
                                 Text("Sea Battle")
-                                .font(.custom("Dorsa", size: geometry.size.height * 0.25))
-                                .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                                .shadow(color: .white, radius: 2)
+                                    .font(.custom("Dorsa", size: geometry.size.height * 0.25))
+                                    .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                                    .shadow(color: .white, radius: 2)
                                 Spacer()
                                 Button {
                                     if appState.soundOn {
@@ -58,17 +58,17 @@ struct iPadMainViewH: View {
                                 } label: {
                                     Text(appState.gameIsActive ? "Stop game" : "New game")
                                 }
-                                .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.25, height: geometry.size.height * 0.12))
-                                .shadow(color: .white, radius: 5)
-                                .padding(.bottom, 5)
+                                    .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.25, height: geometry.size.height * 0.12))
+                                    .shadow(color: .white, radius: 5)
+                                    .padding(.bottom, 5)
                                 
                                 Button("Settings") {
                                     self.showSettingsView = true
                                 }
-                                .buttonStyle(.bordered)
-                                .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
-                                .padding()
-                                .padding(.horizontal, geometry.size.width * 0.1)
+                                    .buttonStyle(.bordered)
+                                    .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                                    .padding()
+                                    .padding(.horizontal, geometry.size.width * 0.1)
                                 Spacer()
                             }
                             Spacer()
