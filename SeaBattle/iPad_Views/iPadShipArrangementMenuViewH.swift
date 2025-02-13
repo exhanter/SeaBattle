@@ -18,7 +18,7 @@ struct iPadShipArrangementMenuViewH: View {
             Spacer()
             HStack(alignment: .bottom) {
                 ZStack(alignment: .leading) {
-                    iPadMenuButtonsViewH(width: width, height: height)
+                    iPadMenuButtonsViewH(width: width, height: height, biggerWidth: appState.language == "NL")
                     HStack(alignment: .bottom) {
                             Text("Ships:")
                                 .font(.custom("Dorsa", size: height * 0.06))

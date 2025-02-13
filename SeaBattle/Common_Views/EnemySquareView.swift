@@ -51,7 +51,6 @@ struct EnemySquareView: View {
                 }
             }
         }
-        //.ignoresSafeArea()
     }
     init(enemy: PlayerData, gameLogicViewModel: GameLogicViewModel, width: CGFloat) {
         self.enemy = enemy

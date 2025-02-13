@@ -25,6 +25,7 @@ class PlayerData: ObservableObject {
     @Published var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
     @Published var fireStrokeArray = [[Bool]]()
     
+    ///Method creates and arranges ships on the field
     func shipsRandomArrangement() {
         self.shipPositions = Array(repeating: .zero, count: 10)
         let ship4 = randomDataForShip(number: 0, numberOfDecks: 4)
@@ -51,6 +52,7 @@ class PlayerData: ObservableObject {
         self.ships = [ship4, ship31, ship32, ship21, ship22, ship23, ship11, ship12, ship13, ship14]
     }
     
+    ///Method marks cells around the ship as unavailable
     func defineSafeAreaNearShip(ship: Ship) {
         let lastIndex = ship.numberOfDecks - 1
         var rowStartOffset = 0
@@ -85,6 +87,7 @@ class PlayerData: ObservableObject {
         }
     }
     
+    ///Method makes all the cells around ships available again
     func makeCellsAvailableAgain() { // only for player cells
         for x in 0 ..< 10 {
             for y in 0 ..< 10 {
@@ -93,6 +96,7 @@ class PlayerData: ObservableObject {
         }
     }
     
+    ///Method finds random coordinates for ship. RETURNS: Ship
     func randomDataForShip(number: Int, numberOfDecks: Int) -> Ship {
         var coordinates: [(Int, Int)] = []
         var orientation: Ship.Orientation = .vertical
@@ -129,6 +133,7 @@ class PlayerData: ObservableObject {
         return Ship(number: number, orientation: orientation, numberOfDecks: numberOfDecks, coordinates: coordinates)
     }
     
+    ///Method checks if all the cells are available for placing ship. ACCEPTS: Array of cells. RETURNS: true or false
     func cellIsAvailableForPlacingShip(coordinates: [(Int, Int)]) -> Bool {
         for coordinate in coordinates {
             let row = coordinate.0 - 1
@@ -145,6 +150,7 @@ class PlayerData: ObservableObject {
         return true
     }
     
+    ///Method defines a center points of the ships and writes them to array.
     func defineShipPositionsAsCGPoint(leftTopPointOfGameField: CGPoint, cellSize: CGFloat) {
         self.shipPositions = []
         for ship in self.ships {
@@ -165,6 +171,7 @@ class PlayerData: ObservableObject {
         }
     }
     
+    ///Method clears all the ships from the field
     func clearShips() {
         self.cells = []
         self.ships = []

@@ -52,8 +52,8 @@ class GameLogicViewModel: ObservableObject {
         return
     }
     
-    /// Method checks if the ship is destroyed after last shot and mark all the cells as "destroyed"
-    /// Returns true or false
+    /// Method checks if the ship is destroyed after last shot and mark all the cells as "destroyed".
+    /// RETURNS true or false
     func checkShipIsTotallyDestroyed(ship: Ship, target: PlayerData) -> Bool {
         for coordinate in ship.coordinates {
             if target.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus != .onFire && target.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus != .showShipOnFire {
@@ -81,6 +81,7 @@ class GameLogicViewModel: ObservableObject {
         return true
     }
     
+    /// Method accepts one coordinate and defines all possible cells for fire. RETURNS: array of possible cells
     func definePriorityTargetCells(row: Int, column: Int) -> [(Int, Int)]? {
         var arrayOfCells = [(Int, Int)]()
         let upperCell = row == 1 ? Cell(column: 0, row: 0) : player.cells[row - 2][column - 1]
@@ -210,6 +211,7 @@ class GameLogicViewModel: ObservableObject {
         performShot()
     }
     
+    /// Method chooses one cell from array of possible cells. RETURNS: coordinates (x, y)
     func findAvailableCellsForFire() -> (Int, Int) {
         var row: Int = 0
         var column: Int = 0
@@ -238,6 +240,7 @@ class GameLogicViewModel: ObservableObject {
         return coordinates
     }
     
+    /// Method checks meeting additionsl conditions for cell in terms of difficulty level. RETURNS: true or false
     func meetConditionsToDefineCellForFire(coordinates: (Int, Int)) -> Bool {
         let row = coordinates.0
         let column = coordinates.1
@@ -257,6 +260,7 @@ class GameLogicViewModel: ObservableObject {
         }
     }
     
+    // Method chooses what sound to play depending on the cell status.
     func chooseSound(row: Int, column: Int) {
         switch enemy.cells[row][column].cellStatus {
         case .missed:

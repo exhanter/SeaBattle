@@ -33,7 +33,6 @@ struct PlayerSquareView: View {
                 }
             }
         }
-        //.ignoresSafeArea()
     }
     init(player: PlayerData, leftTopPointOfGameField: Binding<CGPoint>, width: CGFloat) {
         self.player = player

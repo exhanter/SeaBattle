@@ -20,6 +20,16 @@ struct SettingsView: View {
                         .font(.title)
                         .foregroundColor(Color(red: 0.95, green: 0.95, blue: 0.95))
                         .padding(10)
+                    Picker("Select language", selection: $appState.language) {
+                        Text("English").tag("EN")
+                        Text("Nederlands").tag("NL")
+                        Text("System").tag(Locale.current.identifier)
+                    }
+                    .onChange(of: appState.language) { _ in
+                        UserDefaults.standard.set(appState.language, forKey: "Language")
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
                     Picker("Select Difficulty", selection: $appState.difficulty) {
                         ForEach([2, 1, 0], id: \.self) {
                             switch $0 {

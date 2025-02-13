@@ -182,7 +182,6 @@
 		2C13873D2D538F7F0000A18B /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */,
 				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
 				2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */,
 				2C6A84842B723C660001A20C /* PlayerData.swift */,
@@ -239,6 +238,7 @@
 				2CED70BC2C7C9F520006546F /* WoodenButton.swift */,
 				2C6A84862B723C990001A20C /* Ship.swift */,
 				2C900E872C416963005BD968 /* Cell.swift */,
+				2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */,
 				2C6A84742B6E99640001A20C /* Assets.xcassets */,
 				2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */,
 				2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */,

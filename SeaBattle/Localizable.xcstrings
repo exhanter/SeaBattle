@@ -2,16 +2,44 @@
   "sourceLanguage" : "en",
   "strings" : {
     "[engin akyurt](https://unsplash.com/@enginakyurt?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) on [Unsplash](https://unsplash.com/photos/a-wood-surface-with-a-hole-in-it-_5aw4QuKAwA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[engin akyurt](https://unsplash.com/@enginakyurt?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) on [Unsplash](https://unsplash.com/photos/a-wood-surface-with-a-hole-in-it-_5aw4QuKAwA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)"
+          }
+        }
+      }
     },
     "[https://brapps.nl](https://www.brapps.nl)" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[https://brapps.nl](https://www.brapps.nl)"
+          }
+        }
+      }
     },
     "[ivan-tkachev](https://www.linkedin.com/in/ivan-tkachev)" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[ivan-tkachev](https://www.linkedin.com/in/ivan-tkachev)"
+          }
+        }
+      }
     },
     "%lld / 10" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld / 10"
+          }
+        }
+      }
     },
     "About" : {
       "localizations" : {
@@ -84,7 +112,14 @@
       }
     },
     "Email:      " : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email:      "
+          }
+        }
+      }
     },
     "Enemy" : {
       "localizations" : {
@@ -102,6 +137,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vijand %lld / 10"
+          }
+        }
+      }
+    },
+    "English" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
           }
         }
       }
@@ -137,22 +182,64 @@
       }
     },
     "https://freesound.org/s/117095/ -- License: Attribution 4.0" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://freesound.org/s/117095/ -- License: Attribution 4.0"
+          }
+        }
+      }
     },
     "https://freesound.org/s/120956/ -- License: Attribution 4.0" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://freesound.org/s/120956/ -- License: Attribution 4.0"
+          }
+        }
+      }
     },
     "https://freesound.org/s/388758/ -- License: Creative Commons 0" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://freesound.org/s/388758/ -- License: Creative Commons 0"
+          }
+        }
+      }
     },
     "https://freesound.org/s/394466/ -- License: Creative Commons 0" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://freesound.org/s/394466/ -- License: Creative Commons 0"
+          }
+        }
+      }
     },
     "https://freesound.org/s/531132/ -- License: Attribution 4.0" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://freesound.org/s/531132/ -- License: Attribution 4.0"
+          }
+        }
+      }
     },
     "https://freesound.org/s/751086/ -- License: Attribution 4.0" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://freesound.org/s/751086/ -- License: Attribution 4.0"
+          }
+        }
+      }
     },
     "If you have any questions, you can contact me:" : {
       "localizations" : {
@@ -165,7 +252,14 @@
       }
     },
     "LinkedIn: " : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LinkedIn: "
+          }
+        }
+      }
     },
     "Medium" : {
       "localizations" : {
@@ -178,7 +272,14 @@
       }
     },
     "Menu" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu"
+          }
+        }
+      }
     },
     "Music" : {
       "localizations" : {
@@ -196,6 +297,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muziek - door AI gegenereerde muziek."
+          }
+        }
+      }
+    },
+    "Nederlands" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nederlands"
           }
         }
       }
@@ -251,7 +362,14 @@
       }
     },
     "request@brapps.nl" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "request@brapps.nl"
+          }
+        }
+      }
     },
     "Rights and licenses" : {
       "localizations" : {
@@ -293,8 +411,18 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Selecteer moeilijkheidsgraad"
+          }
+        }
+      }
+    },
+    "Select language" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taal selecteren"
           }
         }
       }
@@ -369,6 +497,16 @@
         }
       }
     },
+    "System" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systeem"
+          }
+        }
+      }
+    },
     "This game was created by Ivan Tkachev in 2024. The game is available for iPhone and iPad." : {
       "localizations" : {
         "en" : {
@@ -379,14 +517,21 @@
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Dit spel is gemaakt door Ivan Tkachev in 2024-2025. Het spel is beschikbaar voor iPhone en iPad."
           }
         }
       }
     },
     "Unknown" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        }
+      }
     },
     "Used pictures:" : {
       "localizations" : {
@@ -409,7 +554,14 @@
       }
     },
     "Website: " : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Website: "
+          }
+        }
+      }
     },
     "Your turn!" : {
       "localizations" : {

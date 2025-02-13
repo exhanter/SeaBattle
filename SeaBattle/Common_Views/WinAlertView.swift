@@ -33,25 +33,6 @@ struct WinAlertView: View {
                     AppState.playSound(sound: didPlayerWin ? "victory_sound.wav" : "defeat_sound.wav")
                 }
             }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-//        VStack(alignment: .center) {
-//            Text(didPlayerWin ? "Victory!" : "Defeat!")
-//                .font(.custom("Dorsa", size: 250))
-//        }
-//        .foregroundStyle(didPlayerWin ? Color(red: 248/255, green: 255/255, blue: 0/255) : .black)
-//        .shadow(color: .white, radius: 5)
-//        .minimumScaleFactor(0.6)
-//        .lineLimit(1)
-//        .padding(.horizontal, 20)
     }
 }
 

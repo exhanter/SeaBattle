@@ -30,6 +30,7 @@ class AppState: ObservableObject {
     @Published var showFinishGameAlert = false
     @Published var tabsBlocked = false
     @Published var isTapEnabled = false
+    @Published var language: String
     
     static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
@@ -111,5 +112,6 @@ class AppState: ObservableObject {
         self.tempInstance = tempInstance
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
+        self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier
     }
 }

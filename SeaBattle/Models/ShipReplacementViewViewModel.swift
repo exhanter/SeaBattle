@@ -15,6 +15,7 @@ extension ShipReplacementView {
             self.player = player
         }
         
+        /// Method ensures ship leaping cell-by-cell within the field limits
         func dragGestureToShipCenterPoint(index: Int, cellSize: CGFloat, leftTopPointOfGameField: CGPoint, dragGestureLocation: CGPoint) -> CGPoint {
             let cellSize = cellSize
             var newX = ceil((dragGestureLocation.x - leftTopPointOfGameField.x) / cellSize) * cellSize + leftTopPointOfGameField.x - cellSize / 2
@@ -49,6 +50,7 @@ extension ShipReplacementView {
             return CGPoint(x: newX, y: newY)
         }
         
+        /// Method handels completion of the drag gesture
         func handleOnEndedDrag(index: Int, cellSize: CGFloat, leftTopPointOfGameField: CGPoint, startCoordinates: [(Int, Int)]) {
             for ship in player.ships {
                 if ship.id != player.ships[index].id {
@@ -81,6 +83,7 @@ extension ShipReplacementView {
             player.makeCellsAvailableAgain()
         }
         
+        ///Method checks if the  ship crosses other ships while dragging. RETURNS: true or false
         func newShipCrossesOthers(index: Int, newCoordinates: [(Int, Int)]) -> Bool {
             for newCoordinate in newCoordinates {
                 for ship in player.ships {
@@ -95,24 +98,7 @@ extension ShipReplacementView {
             return false
         }
         
-        func convertLastCellToCenterCGPoint(index: Int, cellSize: CGFloat, leftTopPointOfGameField: CGPoint) -> CGPoint {
-            if let lastCoordinate = player.ships[index].coordinates.last {
-                var correctionX: CGFloat = .zero
-                var correctionY: CGFloat = .zero
-                if player.ships[index].orientation == .vertical {
-                    correctionX = -cellSize / 2
-                    correctionY = -(CGFloat(player.ships[index].numberOfDecks) * cellSize) / 2
-                } else if player.ships[index].orientation == .horizontal {
-                    correctionX = -(CGFloat(player.ships[index].numberOfDecks) * cellSize) / 2
-                    correctionY = -cellSize / 2
-                }
-                let x = CGFloat(lastCoordinate.1) * cellSize + leftTopPointOfGameField.x + correctionX
-                let y = CGFloat(lastCoordinate.0) * cellSize + leftTopPointOfGameField.y + correctionY
-                return CGPoint(x: x, y: y)
-            }
-            return .zero
-        }
-        
+        /// Method converts coordinates of center point of ship to ship coordinates depending of the ship data
         func convertCenterCGPointToShipCoordinates(index: Int, cellSize: CGFloat, leftTopPointOfGameField: CGPoint) -> [(Int, Int)] {
             
             var correctionX: CGFloat = .zero
@@ -142,33 +128,5 @@ extension ShipReplacementView {
             }
             return coordinates
         }
-        func convertCGPointToUnitPoint(ship: Ship, point: CGPoint, screenWidth: CGFloat, screenHeight: CGFloat) -> UnitPoint {
-            let cellSize = screenWidth * 0.09
-            var correctionX: CGFloat = 0
-            var correctionY: CGFloat = 0
-            if ship.orientation == .vertical {
-                correctionX = -cellSize / 2
-                correctionY = -(CGFloat(ship.numberOfDecks) * cellSize) / 2
-            } else if ship.orientation == .horizontal {
-                correctionX = -(CGFloat(ship.numberOfDecks) * cellSize) / 2
-                correctionY = -cellSize / 2
-            }
-            let x = (point.x + correctionX) / screenWidth
-            let y = (point.y + correctionY) / screenHeight
-            return UnitPoint(x: x, y: y)
-        }
-        func handleLongPressOnChanged(ship: Ship) {
-            if ship.orientation == .vertical {
-                
-            } else if ship.orientation == .horizontal {
-                
-            }
-            
-        }
-        func handleLongPressOnEnded(ship: Ship) {
-            
-        }
-        
-        
     }
 }

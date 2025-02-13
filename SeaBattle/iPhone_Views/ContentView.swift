@@ -11,7 +11,7 @@ struct ContentView: View {
     
     // Apple ID 6738694687
     
-    @StateObject private var appState = AppState(tempInstance: false)
+    @EnvironmentObject var appState: AppState
     @StateObject private var player = PlayerData(name: "Player")
     @StateObject private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
@@ -105,10 +105,8 @@ struct ContentView: View {
                 .ignoresSafeArea()
                 .statusBar(hidden: true)
             }
-            .environmentObject(appState)
         }
     }
-	
 }
 
 #Preview {
