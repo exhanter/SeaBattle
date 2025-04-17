@@ -69,6 +69,44 @@ final class SeaBattleUITests: XCTestCase {
         XCTAssertFalse(sideEnemyButton.isEnabled, "The side Enemy button should be disabled")
         XCTAssertFalse(sideAboutButton.isEnabled, "The side About button should be disabled")
     }
+    
+    @MainActor
+    func testAlghoritmWithPressingButtonsConsistently() throws {
+        var endGame = false
+        let testCell: XCUIElement = app.buttons["testCell"]
+
+        app.buttons["newOrStopGameButton"].tap()
+        app.buttons["startOrYourTurnButton"].tap()
+        repeat {
+            let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: app.buttons["testCell"])
+            let result = XCTWaiter().wait(for: [expectation], timeout: 30.0) // max 30 seconds
+            if result == .completed {
+                testCell.tap()
+            } else {
+                XCTFail("The cell button didn't become enabled in 30 seconds")
+            }
+            
+            let winAlert = app.otherElements["winAlert"]
+//            let endGameExpectation = XCTNSPredicateExpectation(
+//                    predicate: NSPredicate(format: "exists == true"),
+//                    object: app.otherElements["winAlert"]
+//                )
+//            let endResult = XCTWaiter().wait(for: [endGameExpectation], timeout: 10)
+            
+            let yourTurnExpectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: app.buttons["startOrYourTurnButton"])
+            let yourTurnButtonResult = XCTWaiter().wait(for: [yourTurnExpectation], timeout: 10.0)
+            if yourTurnButtonResult == .completed {
+                app.buttons["startOrYourTurnButton"].tap()
+            } else if winAlert.exists {
+                print("FINISHED GAME")
+                endGame = true
+            } else {
+                XCTFail("The Your Turn button didn't become enabled in 30 seconds")
+            }
+            
+        } while !endGame
+        XCTAssertTrue(endGame, "The game should be finished")
+    }
 
     @MainActor
     func testLaunchPerformance() throws {

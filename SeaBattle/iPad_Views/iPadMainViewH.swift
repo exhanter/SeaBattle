@@ -74,7 +74,7 @@ struct iPadMainViewH: View {
                             Spacer()
                         } // HStack off
                         .sheet(isPresented: $showSettingsView) { SettingsView()
-                                .presentationDetents([.fraction(0.42)])
+                                .presentationDetents([.fraction(0.47)])
                         }
                         .ignoresSafeArea()
                     } //ZStack off

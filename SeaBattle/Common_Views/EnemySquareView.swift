@@ -20,6 +20,8 @@ struct EnemySquareView: View {
                 HStack(spacing: 0) {
                     ForEach(1...10, id: \.self) { column in
                         let status = enemy.cells[row - 1][column - 1].cellStatus
+                        //let buttonName = "cell-\(row - 1)x\(column - 1)"
+                        let buttonName = row == 1 && column == 1 ? "testCell" : ""
                         Button {
                             enemy.fireStrokeArray[row - 1][column - 1] = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -47,6 +49,7 @@ struct EnemySquareView: View {
                         .buttonStyle(NoPressEffect())
                         .disabled(!appState.gameIsActive)
                         .disabled(appState.enemysTurn)
+                        .accessibility(identifier: buttonName)
                     }
                 }
             }

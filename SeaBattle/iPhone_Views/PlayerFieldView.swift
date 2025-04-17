@@ -37,6 +37,7 @@ struct PlayerFieldView: View {
                 
                 if player.showFinishGameAlert {
                     WinAlertView(didPlayerWin: false)
+                        .accessibility(identifier: "winAlert")
                         .onTapGesture {
                             if appState.isTapEnabled {
                                 appState.resetData(player: player, enemy: enemy)

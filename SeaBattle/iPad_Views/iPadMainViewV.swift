@@ -71,7 +71,7 @@ struct iPadMainViewV: View {
                         Spacer(minLength: geometry.size.height * 0.10)
                     } // VStack off
                     .sheet(isPresented: $showSettingsView) { SettingsView()
-                            .presentationDetents([.fraction(0.42)])
+                            .presentationDetents([.fraction(0.47)])
                     }
                 } //ZStack off
                 .ignoresSafeArea()
