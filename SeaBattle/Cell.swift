@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct Cell {
-    enum CurrentStatus {
+struct Cell: Codable, Sendable {
+    enum CurrentStatus: String, Codable, Sendable {
         case unknown
         case missed
         case onFire

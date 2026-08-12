@@ -12,8 +12,8 @@ import SwiftUI
 @Observable
 class AppState {
 
-    enum DifficultyLevel: CaseIterable {
-        case easy, medium, hard
+    enum DifficultyLevel: String, Codable, CaseIterable {
+        case easy, medium, hard, expert
     }
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about, iPadBattleView
@@ -96,6 +96,8 @@ class AppState {
             return .medium
         case 0:
             return .hard
+        case 3:
+            return .expert
         default:
             return .hard
         }

@@ -65,6 +65,12 @@
 		2CE9D5C92D5BA11400324F58 /* UpperLabelAndButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE9D5C82D5BA11400324F58 /* UpperLabelAndButtonView.swift */; };
 		2CE9D5CB2D5BAD4C00324F58 /* YourTurnButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE9D5CA2D5BAD4C00324F58 /* YourTurnButtonView.swift */; };
 		2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70BC2C7C9F520006546F /* WoodenButton.swift */; };
+		CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7B9302C90C6007A33B0 /* Coordinate.swift */; };
+		CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7BB302C90CD007A33B0 /* PlayerProfile.swift */; };
+		CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7BD302C90D8007A33B0 /* GameSnapshot.swift */; };
+		CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7BF302C90DE007A33B0 /* Opponent.swift */; };
+		CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C1302CACEF007A33B0 /* GameEngine.swift */; };
+		CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -147,6 +153,12 @@
 		2CE9D5CA2D5BAD4C00324F58 /* YourTurnButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourTurnButtonView.swift; sourceTree = "<group>"; };
 		2CED70AF2C78E00D0006546F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2CED70BC2C7C9F520006546F /* WoodenButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoodenButton.swift; sourceTree = "<group>"; };
+		CA17D7B9302C90C6007A33B0 /* Coordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinate.swift; sourceTree = "<group>"; };
+		CA17D7BB302C90CD007A33B0 /* PlayerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProfile.swift; sourceTree = "<group>"; };
+		CA17D7BD302C90D8007A33B0 /* GameSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSnapshot.swift; sourceTree = "<group>"; };
+		CA17D7BF302C90DE007A33B0 /* Opponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Opponent.swift; sourceTree = "<group>"; };
+		CA17D7C1302CACEF007A33B0 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
+		CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerOpponent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -186,6 +198,12 @@
 				2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */,
 				2C6A84842B723C660001A20C /* PlayerData.swift */,
 				2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */,
+				CA17D7B9302C90C6007A33B0 /* Coordinate.swift */,
+				CA17D7BB302C90CD007A33B0 /* PlayerProfile.swift */,
+				CA17D7BD302C90D8007A33B0 /* GameSnapshot.swift */,
+				CA17D7BF302C90DE007A33B0 /* Opponent.swift */,
+				CA17D7C1302CACEF007A33B0 /* GameEngine.swift */,
+				CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -489,6 +507,7 @@
 				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,
 				2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */,
 				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
+				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
 				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
 				2CE7319A2D57A5EA00954841 /* iPadGameScoreViewV.swift in Sources */,
 				2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */,
@@ -497,15 +516,19 @@
 				2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
+				CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */,
 				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
 				2CE731A22D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift in Sources */,
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
+				CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */,
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
+				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */,
 				2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */,
+				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* GameLogicViewModel.swift in Sources */,
 				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */,
@@ -513,6 +536,7 @@
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				2CE731A02D5B627F00954841 /* iPadShipArrangementMenuViewV.swift in Sources */,
 				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
+				CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */,
 				2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */,
 				2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
