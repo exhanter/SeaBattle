@@ -40,6 +40,15 @@ class GameLogicViewModel {
     /// Applies the human player's shot at the target board (delegates to the engine).
     func checkShipOnFire(row: Int, column: Int, target: PlayerData) {
         engine.checkShipOnFire(row: row, column: column, target: target)
+        autosave()
+    }
+
+    /// Persists the game, but only at stable points — when it's the human's turn
+    /// and the match is on. Resuming therefore always lands on "player to shoot",
+    /// so there is never an in-flight computer sequence to restart.
+    private func autosave() {
+        guard appState.gameIsActive, !appState.enemysTurn else { return }
+        GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
     }
 
     /// Runs the opponent's (computer's) turn: keep firing while it keeps hitting
@@ -67,6 +76,10 @@ class GameLogicViewModel {
         if player.cells[row - 1][column - 1].cellStatus != .missed && appState.gameIsActive {
             try? await Task.sleep(for: .seconds(1))
             await performShot()
+        } else {
+            // Computer's turn is over: control returns to the player — a stable
+            // point to persist the game.
+            autosave()
         }
     }
 

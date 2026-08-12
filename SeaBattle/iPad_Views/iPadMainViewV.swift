@@ -61,6 +61,25 @@ struct iPadMainViewV: View {
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
                             .shadow(color: .white, radius: 5)
                             .padding(.bottom, 10)
+                        if !appState.gameIsActive && GameStore.hasSavedGame {
+                            Button {
+                                if appState.soundOn {
+                                    AppState.playSound(sound: "click_sound.wav")
+                                }
+                                if let snapshot = GameStore.load() {
+                                    snapshot.apply(to: appState, player: player, enemy: enemy)
+                                    if appState.musicOn {
+                                        AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
+                                    }
+                                    appState.selectedTab = .iPadBattleView
+                                }
+                            } label: {
+                                Text("Continue game")
+                            }
+                                .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.5, height: geometry.size.height * 0.08))
+                                .shadow(color: .white, radius: 5)
+                                .padding(.bottom, 10)
+                        }
                         Button("Settings") {
                             self.showSettingsView = true
                         }

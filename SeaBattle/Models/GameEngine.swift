@@ -81,6 +81,8 @@ final class GameEngine {
         if target.numberShipsDestroyed == 10 {
             appState.gameIsActive = false
             AppState.musicPlayer?.stop()
+            // The match is over — drop the saved game.
+            GameStore.clear()
             Task {
                 try? await Task.sleep(for: .seconds(1))
                 target.showFinishGameAlert = true

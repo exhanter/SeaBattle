@@ -86,6 +86,8 @@ class AppState {
         }
         self.gameIsActive = false
         self.selectedTab = .menu
+        // Starting a new game or stopping the current one discards the save.
+        GameStore.clear()
     }
     
     var difficultyLevel: DifficultyLevel {

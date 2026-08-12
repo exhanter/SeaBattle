@@ -12,6 +12,7 @@ struct ContentView: View {
     // Apple ID 6738694687
     
     @Environment(AppState.self) private var appState
+    @Environment(\.scenePhase) private var scenePhase
     @State private var player = PlayerData(name: "Player")
     @State private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
@@ -65,7 +66,28 @@ struct ContentView: View {
                             .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
                             .shadow(color: .white, radius: 1, y: 1)
                             .padding(.bottom, 5)
-                            
+
+                            if !appState.gameIsActive && GameStore.hasSavedGame {
+                                Button {
+                                    if appState.soundOn {
+                                        AppState.playSound(sound: "click_sound.wav")
+                                    }
+                                    if let snapshot = GameStore.load() {
+                                        snapshot.apply(to: appState, player: player, enemy: enemy)
+                                        if appState.musicOn {
+                                            AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
+                                        }
+                                        appState.selectedTab = .enemyView
+                                    }
+                                } label: {
+                                    Text("Continue game")
+                                }
+                                .accessibility(identifier: "continueGameButton")
+                                .buttonStyle(WoodenButton(radius: 20, fontSize: 40, width: geometry.size.width * 0.8, height: geometry.size.height * 0.1))
+                                .shadow(color: .white, radius: 1, y: 1)
+                                .padding(.bottom, 5)
+                            }
+
                             Button("Settings") {
                                 self.showSettingsView = true
                             }
@@ -105,6 +127,12 @@ struct ContentView: View {
                 }
                 .ignoresSafeArea()
                 .statusBar(hidden: true)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Persist when leaving the app mid-game, at a stable point.
+                if phase != .active && appState.gameIsActive && !appState.enemysTurn {
+                    GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
+                }
             }
         }
     }

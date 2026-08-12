@@ -71,6 +71,7 @@
 		CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7BF302C90DE007A33B0 /* Opponent.swift */; };
 		CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C1302CACEF007A33B0 /* GameEngine.swift */; };
 		CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */; };
+		CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C5302CAF2F007A33B0 /* GameStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -159,6 +160,7 @@
 		CA17D7BF302C90DE007A33B0 /* Opponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Opponent.swift; sourceTree = "<group>"; };
 		CA17D7C1302CACEF007A33B0 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
 		CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerOpponent.swift; sourceTree = "<group>"; };
+		CA17D7C5302CAF2F007A33B0 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -204,6 +206,7 @@
 				CA17D7BF302C90DE007A33B0 /* Opponent.swift */,
 				CA17D7C1302CACEF007A33B0 /* GameEngine.swift */,
 				CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */,
+				CA17D7C5302CAF2F007A33B0 /* GameStore.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -502,6 +505,7 @@
 				2CE9D5CB2D5BAD4C00324F58 /* YourTurnButtonView.swift in Sources */,
 				2CE731982D56A0A500954841 /* iPadStartButton.swift in Sources */,
 				2CE731962D564D7300954841 /* PlayerSquareView.swift in Sources */,
+				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
 				2CE9D5C92D5BA11400324F58 /* UpperLabelAndButtonView.swift in Sources */,
 				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
 				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,
