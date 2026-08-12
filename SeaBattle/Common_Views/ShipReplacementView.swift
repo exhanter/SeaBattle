@@ -9,10 +9,10 @@
 import SwiftUI
 
 struct ShipReplacementView: View {
-    @ObservedObject private var replacementViewModel: ShipReplacementViewViewModel
+    private var replacementViewModel: ShipReplacementViewViewModel
     let leftTopPointOfGameField: CGPoint
     let cellSize: CGFloat
-    @ObservedObject var player: PlayerData
+    var player: PlayerData
     var body: some View {
         ZStack {
             ForEach(player.ships, id: \.id) { ship in

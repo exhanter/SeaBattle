@@ -6,12 +6,12 @@
 //
 
 import AVFoundation
+import Observation
 import SwiftUI
 
-class AppState: ObservableObject {
-    
-    var tempInstance: Bool
-    
+@Observable
+class AppState {
+
     enum DifficultyLevel: CaseIterable {
         case easy, medium, hard
     }
@@ -19,18 +19,17 @@ class AppState: ObservableObject {
         case menu, playerView, enemyView, about, iPadBattleView
     }
 
-    @Published var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
-    @Published var enemysTurn = false
-    @Published var gameIsActive = false
-    @Published var soundOn: Bool
-    @Published var musicOn: Bool
-    @Published var selectedTab: SelectedTabs = .menu
-    @Published var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
-    @Published var manualShipArrangement: Bool = false
-    @Published var showFinishGameAlert = false
-    @Published var tabsBlocked = false
-    @Published var isTapEnabled = false
-    @Published var language: String
+    var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
+    var enemysTurn = false
+    var gameIsActive = false
+    var soundOn: Bool
+    var musicOn: Bool
+    var selectedTab: SelectedTabs = .menu
+    var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
+    var manualShipArrangement: Bool = false
+    var tabsBlocked = false
+    var isTapEnabled = false
+    var language: String
     
     static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
@@ -102,14 +101,13 @@ class AppState: ObservableObject {
         }
     }
     
-    init(tempInstance: Bool) {
+    init() {
         let defaults = UserDefaults.standard
         if !defaults.bool(forKey: "notFirstLaunch") {
             defaults.set(true, forKey: "musicOn")
             defaults.set(true, forKey: "soundOn")
             defaults.set(true, forKey: "notFirstLaunch")
         }
-        self.tempInstance = tempInstance
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier

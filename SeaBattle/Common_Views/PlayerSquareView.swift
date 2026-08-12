@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct PlayerSquareView: View {
-    @ObservedObject var player: PlayerData
+    var player: PlayerData
     @Binding var leftTopPointOfGameField: CGPoint
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     
     let width: CGFloat
     

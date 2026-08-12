@@ -12,10 +12,10 @@ struct iPadBattleViewH: View {
     @State private var leftTopPointOfGameField: CGPoint = .zero
     let scaleForCells = 0.06
     
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
-    @ObservedObject private var gameLogicViewModel: GameLogicViewModel
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
+    var enemy: PlayerData
+    private var gameLogicViewModel: GameLogicViewModel
     
     var body: some View {
         GeometryReader { geometry in
@@ -70,6 +70,6 @@ struct iPadBattleViewH: View {
 }
 
 #Preview {
-    iPadBattleViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
-        .environmentObject(AppState(tempInstance: true))
+    iPadBattleViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel())
+        .environment(AppState())
 }

@@ -10,10 +10,10 @@ import SwiftUI
 struct iPadMainView: View {
     // Apple ID 6738694687
     
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
-    @ObservedObject var gameLogicViewModel: GameLogicViewModel
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
+    var enemy: PlayerData
+    var gameLogicViewModel: GameLogicViewModel
     @State private var showSettingsView = false
     
     var body: some View {
@@ -21,18 +21,16 @@ struct iPadMainView: View {
             if geometry.size.width < geometry.size.height {
                 iPadMainViewV(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
                     .onAppear {
-                        if self.gameLogicViewModel.appState.tempInstance {
-                            gameLogicViewModel.appState = appState
-                            gameLogicViewModel.player = player
-                            gameLogicViewModel.enemy = enemy
+                        if !gameLogicViewModel.isConfigured {
+                            gameLogicViewModel.configure(appState: appState, enemy: enemy, player: player)
                         }
                     }
             } else {
                 iPadMainViewH(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
                     .onAppear {
-                        gameLogicViewModel.appState = appState
-                        gameLogicViewModel.player = player
-                        gameLogicViewModel.enemy = enemy
+                        if !gameLogicViewModel.isConfigured {
+                            gameLogicViewModel.configure(appState: appState, enemy: enemy, player: player)
+                        }
                     }
             }
         }
@@ -51,6 +49,6 @@ struct iPadMainView: View {
 
 
 #Preview {
-    iPadMainView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel:  GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
-        .environmentObject(AppState(tempInstance: true))
+    iPadMainView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel:  GameLogicViewModel())
+        .environment(AppState())
 }

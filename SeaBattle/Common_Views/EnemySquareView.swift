@@ -9,8 +9,8 @@ import SwiftUI
 
 struct EnemySquareView: View {
     
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var enemy: PlayerData
+    @Environment(AppState.self) private var appState
+    var enemy: PlayerData
     var gameLogicViewModel: GameLogicViewModel
     let width: CGFloat
     
@@ -24,22 +24,24 @@ struct EnemySquareView: View {
                         let buttonName = row == 1 && column == 1 ? "testCell" : ""
                         Button {
                             enemy.fireStrokeArray[row - 1][column - 1] = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    enemy.fireStrokeArray[row - 1][column - 1] = false
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(0.3))
+                                enemy.fireStrokeArray[row - 1][column - 1] = false
                             }
                             gameLogicViewModel.checkShipOnFire(row: row, column: column, target: enemy)
                             if appState.soundOn {
                                 gameLogicViewModel.chooseSound(row: row - 1, column: column - 1)
                             }
                             if appState.enemysTurn && !AppState.isPad {
-                               DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                   appState.selectedTab = .playerView
-                                   DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                       gameLogicViewModel.computerTurn()
-                                   }
-                               }
+                                Task { @MainActor in
+                                    try? await Task.sleep(for: .seconds(1.0))
+                                    appState.selectedTab = .playerView
+                                    try? await Task.sleep(for: .seconds(1.5))
+                                    gameLogicViewModel.computerTurn()
+                                }
                             } else if appState.enemysTurn && AppState.isPad {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                Task { @MainActor in
+                                    try? await Task.sleep(for: .seconds(1.5))
                                     gameLogicViewModel.computerTurn()
                                 }
                             }
@@ -63,5 +65,5 @@ struct EnemySquareView: View {
 }
 
 #Preview {
-    EnemySquareView(enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "testEnemy"), player: PlayerData(name: "testPlayer")), width: 600)
+    EnemySquareView(enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel(), width: 600)
 }

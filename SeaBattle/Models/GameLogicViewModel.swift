@@ -6,19 +6,26 @@
 //
 
 import Foundation
+import Observation
 
-class GameLogicViewModel: ObservableObject {
+@MainActor
+@Observable
+class GameLogicViewModel {
 
-    var appState: AppState
-    var player: PlayerData
-    var enemy: PlayerData
-    var sound = ""
-    var fireStroke = false
-    
-    init(appState: AppState, enemy: PlayerData, player: PlayerData) {
+    @ObservationIgnored var appState: AppState!
+    @ObservationIgnored var player: PlayerData!
+    @ObservationIgnored var enemy: PlayerData!
+    @ObservationIgnored var sound = ""
+    @ObservationIgnored private(set) var isConfigured = false
+
+    init() {}
+
+    /// Injects the shared game objects once the owning view is on screen.
+    func configure(appState: AppState, enemy: PlayerData, player: PlayerData) {
         self.appState = appState
         self.enemy = enemy
         self.player = player
+        self.isConfigured = true
     }
     
     /// Method checks the cell status and marks it as "missed" or "onFire". If it is "onFire" the method calls additional methods.
@@ -74,7 +81,8 @@ class GameLogicViewModel: ObservableObject {
         if target.numberShipsDestroyed == 10 {
             appState.gameIsActive = false
             AppState.musicPlayer?.stop()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            Task {
+                try? await Task.sleep(for: .seconds(1))
                 target.showFinishGameAlert = true
             }
         }
@@ -184,31 +192,30 @@ class GameLogicViewModel: ObservableObject {
     }
     
     func computerTurn() {
-        var coordinatesForFire = (0, 0)
-        var row = 0
-        var column = 0
+        performShot()
+    }
 
-        func performShot() {
-            coordinatesForFire = findAvailableCellsForFire()
-            row = coordinatesForFire.0
-            column = coordinatesForFire.1
-            
-            player.fireStrokeArray[row - 1][column - 1] = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.player.fireStrokeArray[row - 1][column - 1] = false
-            }
+    /// Fires a single shot synchronously; if the computer hits, schedules the next shot after a pause.
+    private func performShot() {
+        let coordinatesForFire = findAvailableCellsForFire()
+        let row = coordinatesForFire.0
+        let column = coordinatesForFire.1
 
-            checkShipOnFire(row: row, column: column, target: player)
-
-            if player.cells[row - 1][column - 1].cellStatus != .missed && appState.gameIsActive {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    performShot()
-                    
-                }
-            }
+        player.fireStrokeArray[row - 1][column - 1] = true
+        Task {
+            try? await Task.sleep(for: .seconds(0.3))
+            player.fireStrokeArray[row - 1][column - 1] = false
         }
 
-        performShot()
+        checkShipOnFire(row: row, column: column, target: player)
+
+        // Keep firing while the computer keeps hitting and the game is still on.
+        if player.cells[row - 1][column - 1].cellStatus != .missed && appState.gameIsActive {
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                performShot()
+            }
+        }
     }
     
     /// Method chooses one cell from array of possible cells. RETURNS: coordinates (x, y)
@@ -235,7 +242,6 @@ class GameLogicViewModel: ObservableObject {
                 column = Int.random(in: 1...10)
                 coordinates = (row, column)
             }
-            print("Find... \(row)x\(column) - is available: \(player.cells[row - 1][column - 1].isAvailable)")
         } while !meetConditionsToDefineCellForFire(coordinates: coordinates)
         return coordinates
     }

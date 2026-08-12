@@ -9,10 +9,11 @@ import SwiftUI
 
 struct SettingsView: View {
     
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     
     var body: some View {
-        ZStack {
+        @Bindable var appState = appState
+        return ZStack {
             LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                 .ignoresSafeArea()
                 VStack() {
@@ -84,5 +85,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
-        .environmentObject(AppState(tempInstance: true))
+        .environment(AppState())
 }

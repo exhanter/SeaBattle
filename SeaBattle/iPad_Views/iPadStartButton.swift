@@ -9,7 +9,7 @@ import SwiftUI
 
 struct iPadStartButton: View {
     
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     let width: CGFloat
     let height: CGFloat
     

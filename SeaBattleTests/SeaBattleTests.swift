@@ -17,6 +17,7 @@ class PlayerDataMock: PlayerData {
     }
 }
 
+@MainActor
 final class SeaBattleTests: XCTestCase {
     
     var sut: GameLogicViewModel!
@@ -29,13 +30,15 @@ final class SeaBattleTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        appState = AppState(tempInstance: false)
+        appState = AppState()
         testPlayer = PlayerDataMock(name: "TestPlayer")
         testEnemy = PlayerDataMock(name: "TestEnemy")
         player = PlayerData(name: "Player")
         enemy = PlayerData(name: "Enemy")
-        sut = GameLogicViewModel(appState: appState, enemy: testEnemy, player: testPlayer)
-        sutReal = GameLogicViewModel(appState: appState, enemy: enemy, player: player)
+        sut = GameLogicViewModel()
+        sut.configure(appState: appState, enemy: testEnemy, player: testPlayer)
+        sutReal = GameLogicViewModel()
+        sutReal.configure(appState: appState, enemy: enemy, player: player)
     }
 
     override func tearDownWithError() throws {

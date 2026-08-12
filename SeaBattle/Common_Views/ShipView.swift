@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ShipView: View {
-    @ObservedObject var player: PlayerData
+    var player: PlayerData
     var ship: Ship
     let cellSize: CGFloat
     let leftTopPointOfGameField: CGPoint

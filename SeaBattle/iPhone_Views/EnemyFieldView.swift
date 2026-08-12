@@ -8,13 +8,11 @@
 import SwiftUI
 
 struct EnemyFieldView: View {
-    
-    @State private var isVisible = true
-    
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
-    @StateObject private var gameLogicViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
+
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
+    var enemy: PlayerData
+    @State private var gameLogicViewModel = GameLogicViewModel()
     
     var body: some View {
         GeometryReader { geometry in
@@ -56,10 +54,8 @@ struct EnemyFieldView: View {
             } //ZStack off
             .statusBar(hidden: true)
             .onAppear {
-                if self.gameLogicViewModel.appState.tempInstance {
-                    self.gameLogicViewModel.appState = self.appState
-                    self.gameLogicViewModel.player = self.player
-                    self.gameLogicViewModel.enemy = self.enemy
+                if !gameLogicViewModel.isConfigured {
+                    gameLogicViewModel.configure(appState: appState, enemy: enemy, player: player)
                 }
             }
         }
@@ -73,5 +69,5 @@ struct EnemyFieldView: View {
 
 #Preview {
     EnemyFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
-        .environmentObject(AppState(tempInstance: true))
+        .environment(AppState())
 }

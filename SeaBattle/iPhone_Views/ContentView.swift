@@ -11,13 +11,14 @@ struct ContentView: View {
     
     // Apple ID 6738694687
     
-    @EnvironmentObject var appState: AppState
-    @StateObject private var player = PlayerData(name: "Player")
-    @StateObject private var enemy = PlayerData(name: "Enemy")
+    @Environment(AppState.self) private var appState
+    @State private var player = PlayerData(name: "Player")
+    @State private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
     
     var body: some View {
-        GeometryReader { geometry in
+        @Bindable var appState = appState
+        return GeometryReader { geometry in
             ZStack {
                 TabView(selection: $appState.selectedTab) {
                     ZStack {
@@ -111,5 +112,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(AppState(tempInstance: true))
+        .environment(AppState())
 }

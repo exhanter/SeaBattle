@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct iPadMenuViewH: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     let width: CGFloat
     let height: CGFloat
     let relativeFontSize: CGFloat
@@ -115,6 +115,6 @@ struct iPadMenuViewH: View {
 
 #Preview {
     iPadMenuViewH(width: 300, height: 500)
-        .environmentObject(AppState(tempInstance: true))
+        .environment(AppState())
 }
 

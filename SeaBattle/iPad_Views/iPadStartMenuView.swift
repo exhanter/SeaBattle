@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct iPadStartMenuView: View {
-    @EnvironmentObject var appState: AppState
-    @StateObject private var player = PlayerData(name: "Player")
-    @StateObject private var enemy = PlayerData(name: "Enemy")
-    @StateObject private var gameLogicViewModel = GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP"))
+    @Environment(AppState.self) private var appState
+    @State private var player = PlayerData(name: "Player")
+    @State private var enemy = PlayerData(name: "Enemy")
+    @State private var gameLogicViewModel = GameLogicViewModel()
 
     var body: some View {
         Group {

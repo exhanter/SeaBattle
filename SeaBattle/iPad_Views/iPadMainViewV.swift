@@ -11,10 +11,10 @@ struct iPadMainViewV: View {
     
     // Apple ID 6738694687
     
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
-    @ObservedObject private var gameLogicViewModel: GameLogicViewModel
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
+    var enemy: PlayerData
+    private var gameLogicViewModel: GameLogicViewModel
     @State private var showSettingsView = false
     
     var body: some View {
@@ -92,7 +92,7 @@ struct iPadMainViewV: View {
 
 
 #Preview {
-    iPadMainViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
-        .environmentObject(AppState(tempInstance: true))
+    iPadMainViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel())
+        .environment(AppState())
 }
 

@@ -11,9 +11,9 @@ struct PlayerFieldView: View {
     
     @State private var leftTopPointOfGameField: CGPoint = .zero
     
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
+    var enemy: PlayerData
     
     var body: some View {
         GeometryReader { geometry in
@@ -60,5 +60,5 @@ struct PlayerFieldView: View {
 
 #Preview {
     PlayerFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
-        .environmentObject(AppState(tempInstance: true))
+        .environment(AppState())
 }

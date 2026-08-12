@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct UpperLabelAndButtonView: View {
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
     
     let width: CGFloat
     let height: CGFloat

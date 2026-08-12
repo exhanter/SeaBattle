@@ -7,13 +7,15 @@
 
 import SwiftUI
 import AVFoundation
+import Observation
 
-class PlayerData: ObservableObject {
-    
+@Observable
+class PlayerData {
+
     let name: String
-    @Published var cells = [[Cell]]()
-    @Published var ships = [Ship]()
-    @Published var showFinishGameAlert = false
+    var cells = [[Cell]]()
+    var ships = [Ship]()
+    var showFinishGameAlert = false
     var shipsDestroyed: [Ship] {
         return ships.filter{ $0.isDestroyed }
     }
@@ -21,9 +23,9 @@ class PlayerData: ObservableObject {
         return shipsDestroyed.count
     }
 
-    @Published var shipPositions: [CGPoint] = Array(repeating: .zero, count: 10)
-    @Published var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
-    @Published var fireStrokeArray = [[Bool]]()
+    var shipPositions: [CGPoint] = Array(repeating: .zero, count: 10)
+    var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
+    var fireStrokeArray = [[Bool]]()
     
     ///Method creates and arranges ships on the field
     func shipsRandomArrangement() {

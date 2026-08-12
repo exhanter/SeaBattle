@@ -9,16 +9,16 @@ import SwiftUI
 
 @main
 struct SeaBattleApp: App {
-    @StateObject private var appState = AppState(tempInstance: false)
+    @State private var appState = AppState()
     var body: some Scene {
         WindowGroup {
             if UIDevice.current.userInterfaceIdiom == .pad {
                 iPadStartMenuView()
-                    .environmentObject(appState)
+                    .environment(appState)
                     .environment(\.locale, Locale(identifier: appState.language))
             } else {
                 ContentView()
-                    .environmentObject(appState)
+                    .environment(appState)
                     .environment(\.locale, Locale(identifier: appState.language))
             }
         }

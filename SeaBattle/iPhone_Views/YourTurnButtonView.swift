@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct YourTurnButtonView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     @State private var isBouncing = false
     let width: CGFloat
     let height: CGFloat
@@ -41,7 +41,8 @@ struct YourTurnButtonView: View {
         .padding(.bottom, height * 0.15)
         .onChange(of: appState.enemysTurn) { newValue in
             if newValue == false {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1))
                     if appState.selectedTab == .playerView {
                         withAnimation(.spring(duration: 0.3, bounce: 0.9, blendDuration: 0).repeatCount(1, autoreverses: false)) {
                             self.isBouncing = true

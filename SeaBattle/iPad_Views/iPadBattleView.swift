@@ -9,10 +9,10 @@ import SwiftUI
 
 struct iPadBattleView: View {
     
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var player: PlayerData
-    @ObservedObject var enemy: PlayerData
-    @ObservedObject private var gameLogicViewModel: GameLogicViewModel
+    @Environment(AppState.self) private var appState
+    var player: PlayerData
+    var enemy: PlayerData
+    private var gameLogicViewModel: GameLogicViewModel
     
     var body: some View {
         GeometryReader { geometry in
@@ -31,6 +31,6 @@ struct iPadBattleView: View {
 }
 
 #Preview {
-    iPadBattleView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel(appState: AppState(tempInstance: true), enemy: PlayerData(name: "TestE"), player: PlayerData(name: "TestP")))
-        .environmentObject(AppState(tempInstance: true))
+    iPadBattleView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel())
+        .environment(AppState())
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 struct Ship {
     enum Orientation {
-        case horizontal, vertical, both
+        case horizontal, vertical
     }
     let id = UUID()
     let number: Int

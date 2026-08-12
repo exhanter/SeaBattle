@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CustomTabView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     let relativeFontSize: CGFloat
     let height: CGFloat
     var tabsLockBeforeGameStart: Bool {
@@ -133,5 +133,5 @@ struct CustomTabView: View {
 
 #Preview {
     CustomTabView(relativeFontSize: 375, height: 100)
-        .environmentObject(AppState(tempInstance: true))
+        .environment(AppState())
 }

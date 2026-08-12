@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import Observation
 
 extension ShipReplacementView {
-    class ShipReplacementViewViewModel: ObservableObject {
+    @Observable
+    class ShipReplacementViewViewModel {
         var player: PlayerData
         
         init(player: PlayerData) {

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WinAlertView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState
     let didPlayerWin: Bool
     
     var body: some View {
@@ -26,7 +26,8 @@ struct WinAlertView: View {
         .lineLimit(1)
         .padding(.horizontal, 20)
             .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1))
                     appState.isTapEnabled = true
                 }
                 if appState.soundOn {
