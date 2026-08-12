@@ -74,6 +74,11 @@
 		CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C5302CAF2F007A33B0 /* GameStore.swift */; };
 		CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C7302CB294007A33B0 /* PremiumManager.swift */; };
 		CA17D7CA302CB2A2007A33B0 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */; };
+		CA17D7CC302CB93A007A33B0 /* SeaBattle.storekit in Resources */ = {isa = PBXBuildFile; fileRef = CA17D7CB302CB93A007A33B0 /* SeaBattle.storekit */; };
+		CA17D7CF302CC22F007A33B0 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA17D7CE302CC22F007A33B0 /* StoreKit.framework */; };
+		CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */; };
+		CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D2302D2805007A33B0 /* HintButton.swift */; };
+		CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D4302D2843007A33B0 /* StatsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -165,6 +170,11 @@
 		CA17D7C5302CAF2F007A33B0 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		CA17D7C7302CB294007A33B0 /* PremiumManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumManager.swift; sourceTree = "<group>"; };
 		CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		CA17D7CB302CB93A007A33B0 /* SeaBattle.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = SeaBattle.storekit; sourceTree = "<group>"; };
+		CA17D7CE302CC22F007A33B0 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
+		CA17D7D2302D2805007A33B0 /* HintButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintButton.swift; sourceTree = "<group>"; };
+		CA17D7D4302D2843007A33B0 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -191,6 +201,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA17D7CF302CC22F007A33B0 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,6 +223,7 @@
 				CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */,
 				CA17D7C5302CAF2F007A33B0 /* GameStore.swift */,
 				CA17D7C7302CB294007A33B0 /* PremiumManager.swift */,
+				CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -229,6 +241,8 @@
 				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
 				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
 				CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */,
+				CA17D7D2302D2805007A33B0 /* HintButton.swift */,
+				CA17D7D4302D2843007A33B0 /* StatsView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";
@@ -236,9 +250,11 @@
 		2C6A84642B6E99620001A20C = {
 			isa = PBXGroup;
 			children = (
+				CA17D7CB302CB93A007A33B0 /* SeaBattle.storekit */,
 				2C6A846F2B6E99620001A20C /* SeaBattle */,
 				2C275E672D4CDC7C008E29A9 /* SeaBattleTests */,
 				2C13874A2D53D3DA0000A18B /* SeaBattleUITests */,
+				CA17D7CD302CC22F007A33B0 /* Frameworks */,
 				2C6A846E2B6E99620001A20C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -338,6 +354,14 @@
 				2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */,
 			);
 			path = Sound;
+			sourceTree = "<group>";
+		};
+		CA17D7CD302CC22F007A33B0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CA17D7CE302CC22F007A33B0 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -462,6 +486,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA17D7CC302CB93A007A33B0 /* SeaBattle.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -520,6 +545,7 @@
 				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
 				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
 				2CE7319A2D57A5EA00954841 /* iPadGameScoreViewV.swift in Sources */,
+				CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */,
 				2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */,
 				2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */,
 				2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */,
@@ -532,11 +558,13 @@
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */,
+				CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */,
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
+				CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */,
 				2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */,
 				2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */,
 				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
@@ -792,7 +820,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"SeaBattle/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -811,7 +839,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattle;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -833,7 +861,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"SeaBattle/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -852,7 +880,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattle;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

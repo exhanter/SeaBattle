@@ -30,8 +30,11 @@ struct EnemyFieldView: View {
                     }
                     
                     EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.width * 0.09)
-                    .padding(.bottom, geometry.size.height * 0.05)
-                    
+                    .padding(.bottom, geometry.size.height * 0.03)
+
+                    HintButton(gameLogicViewModel: gameLogicViewModel)
+                        .padding(.bottom, geometry.size.height * 0.02)
+
                     Text("FIRE!")
                         .font(Font.custom("Aldrich", size: 40))
                         .foregroundStyle(Color(red: 255/255, green: 95/255, blue: 0/255))
@@ -70,4 +73,5 @@ struct EnemyFieldView: View {
 #Preview {
     EnemyFieldView(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"))
         .environment(AppState())
+        .environment(PremiumManager())
 }

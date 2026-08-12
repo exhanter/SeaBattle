@@ -83,6 +83,12 @@ final class GameEngine {
             AppState.musicPlayer?.stop()
             // The match is over — drop the saved game.
             GameStore.clear()
+            // Record the result: the side whose whole fleet is sunk is the loser.
+            if target.name == "Enemy" {
+                ProgressStore.shared.recordWin(at: appState.difficultyLevel)
+            } else {
+                ProgressStore.shared.recordLoss()
+            }
             Task {
                 try? await Task.sleep(for: .seconds(1))
                 target.showFinishGameAlert = true

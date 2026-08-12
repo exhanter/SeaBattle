@@ -98,7 +98,7 @@ struct ContentView: View {
                             Spacer(minLength: geometry.size.height * 0.12)
                         } // VStack off
                         .sheet(isPresented: $showSettingsView) { SettingsView()
-                                .presentationDetents([.fraction(0.42)])
+                                .presentationDetents([.fraction(0.55)])
                         }
                         .ignoresSafeArea()
                     } //ZStack off

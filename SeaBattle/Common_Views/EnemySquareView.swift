@@ -47,6 +47,14 @@ struct EnemySquareView: View {
                             }
                         } label: {
                             CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: width)
+                                .overlay {
+                                    if status == .unknown && appState.revealedHintCells.contains(where: { $0 == (row, column) }) {
+                                        Image(systemName: "target")
+                                            .font(.system(size: width * 0.6))
+                                            .foregroundStyle(Color(red: 248/255, green: 1, blue: 0))
+                                            .shadow(color: .black, radius: 1)
+                                    }
+                                }
                         }
                         .buttonStyle(NoPressEffect())
                         .disabled(!appState.gameIsActive)

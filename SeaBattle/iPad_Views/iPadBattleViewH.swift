@@ -36,11 +36,15 @@ struct iPadBattleViewH: View {
                         PlayerSquareView(player: player, leftTopPointOfGameField: $leftTopPointOfGameField, width: geometry.size.height * scaleForCells)
                     }
                     Spacer()
-                    ZStack {
-                        EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.height * scaleForCells)
-                        if !appState.gameIsActive {
-                            iPadStartButton(width: geometry.size.height, height: geometry.size.width)
+                    VStack(spacing: 0) {
+                        ZStack {
+                            EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.height * scaleForCells)
+                            if !appState.gameIsActive {
+                                iPadStartButton(width: geometry.size.height, height: geometry.size.width)
+                            }
                         }
+                        HintButton(gameLogicViewModel: gameLogicViewModel)
+                            .padding(.top, geometry.size.height * 0.03)
                     }
                     Spacer()
                 }
@@ -72,4 +76,5 @@ struct iPadBattleViewH: View {
 #Preview {
     iPadBattleViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel())
         .environment(AppState())
+        .environment(PremiumManager())
 }

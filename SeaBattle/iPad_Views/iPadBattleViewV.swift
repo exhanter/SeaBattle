@@ -39,6 +39,8 @@ struct iPadBattleViewV: View {
                             iPadStartButton(width: geometry.size.width, height: geometry.size.height)
                         }
                     }
+                    HintButton(gameLogicViewModel: gameLogicViewModel)
+                        .padding(.top, geometry.size.height * 0.02)
                     Spacer()
                 }
                     .ignoresSafeArea()
@@ -69,4 +71,5 @@ struct iPadBattleViewV: View {
 #Preview {
     iPadBattleViewV(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel())
         .environment(AppState())
+        .environment(PremiumManager())
 }

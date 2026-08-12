@@ -83,6 +83,35 @@ class GameLogicViewModel {
         }
     }
 
+    // MARK: - Hints (Phase 6)
+
+    /// The cost of a hint at the current difficulty (== the win reward).
+    var hintCost: Int { appState.difficultyLevel.pointsValue }
+
+    /// True when a hint can be requested right now.
+    var canUseHint: Bool {
+        appState.gameIsActive && !appState.enemysTurn && ProgressStore.shared.points >= hintCost
+    }
+
+    /// Spends points to reveal a random enemy cell that definitely holds an
+    /// undestroyed ship (and hasn't been fired at or revealed yet).
+    /// RETURNS: whether a hint was revealed.
+    @discardableResult
+    func requestHint() -> Bool {
+        guard canUseHint else { return false }
+        let candidates = enemy.ships
+            .filter { !$0.isDestroyed }
+            .flatMap { $0.coordinates }
+            .filter { coordinate in
+                enemy.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus == .unknown
+                    && !appState.revealedHintCells.contains(where: { $0 == coordinate })
+            }
+        guard let pick = candidates.randomElement(), ProgressStore.shared.spend(hintCost) else { return false }
+        appState.revealedHintCells.append(pick)
+        if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        return true
+    }
+
     /// Chooses what sound to play depending on the cell status.
     func chooseSound(row: Int, column: Int) {
         switch enemy.cells[row][column].cellStatus {

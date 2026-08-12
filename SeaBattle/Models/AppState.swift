@@ -14,6 +14,17 @@ class AppState {
 
     enum DifficultyLevel: String, Codable, CaseIterable {
         case easy, medium, hard, expert
+
+        /// Points awarded for a win at this level — and the cost of one hint at
+        /// this level (hint cost == win reward). Higher levels are worth more.
+        var pointsValue: Int {
+            switch self {
+            case .easy: return 1
+            case .medium: return 3
+            case .hard: return 6
+            case .expert: return 10
+            }
+        }
     }
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about, iPadBattleView
@@ -26,6 +37,9 @@ class AppState {
     var musicOn: Bool
     var selectedTab: SelectedTabs = .menu
     var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
+    /// Enemy cells revealed to the player by a paid hint (Phase 6). Transient —
+    /// cleared on reset.
+    var revealedHintCells: [(Int, Int)] = []
     var manualShipArrangement: Bool = false
     var tabsBlocked = false
     var isTapEnabled = false
@@ -68,6 +82,7 @@ class AppState {
         player.cells = []
         enemy.cells = []
         self.enemysTurn = false
+        self.revealedHintCells = []
         enemy.showFinishGameAlert = false
         player.showFinishGameAlert = false
         player.fireStrokeArray = []
