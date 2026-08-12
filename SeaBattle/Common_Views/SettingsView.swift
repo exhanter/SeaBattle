@@ -34,7 +34,7 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
                     Picker("Select Difficulty", selection: $appState.difficulty) {
-                        ForEach([2, 1, 0], id: \.self) {
+                        ForEach([2, 1, 0, 3], id: \.self) {
                             switch $0 {
                             case 2:
                                 Text("Easy")
@@ -42,12 +42,21 @@ struct SettingsView: View {
                                 Text("Medium")
                             case 0:
                                 Text("Hard")
+                            case 3:
+                                Text("Expert")
                             default:
                                 Text("Unknown")
                             }
                         }
                     }
-                    .onChange(of: appState.difficulty) { _ in
+                    .onChange(of: appState.difficulty) { oldValue, newValue in
+                        // Expert is a premium feature: bounce non-subscribers to
+                        // the paywall and revert the selection.
+                        if newValue == 3 && !premiumManager.isPremium {
+                            appState.difficulty = oldValue == 3 ? 0 : oldValue
+                            showPaywall = true
+                            return
+                        }
                         UserDefaults.standard.set(appState.difficulty, forKey: "difficulty")
                         if appState.soundOn {
                             AppState.playSound(sound: "click_sound.wav")

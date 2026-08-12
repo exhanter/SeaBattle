@@ -27,31 +27,48 @@ class PlayerData {
     var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
     var fireStrokeArray = [[Bool]]()
     
-    ///Method creates and arranges ships on the field
+    ///Method creates and arranges ships on the field.
+    /// Ships are placed in a RANDOM order each layout (not always largest-first)
+    /// with a whole-board restart if a ship can't fit. Fixed largest-first order
+    /// made the leftover free cells cluster at the edges, so single-deck ships
+    /// ended up on the perimeter and became predictable. Randomizing the order
+    /// spreads them out. The final `ships` array is still returned in canonical
+    /// order (by `number`) so the manual-arrangement UI mapping stays stable.
     func shipsRandomArrangement() {
-        self.shipPositions = Array(repeating: .zero, count: 10)
-        let ship4 = randomDataForShip(number: 0, numberOfDecks: 4)
-        defineSafeAreaNearShip(ship: ship4)
-        let ship31 = randomDataForShip(number: 1, numberOfDecks: 3)
-        defineSafeAreaNearShip(ship: ship31)
-        let ship32 = randomDataForShip(number: 2, numberOfDecks: 3)
-        defineSafeAreaNearShip(ship: ship32)
-        let ship21 = randomDataForShip(number: 3, numberOfDecks: 2)
-        defineSafeAreaNearShip(ship: ship21)
-        let ship22 = randomDataForShip(number: 4, numberOfDecks: 2)
-        defineSafeAreaNearShip(ship: ship22)
-        let ship23 = randomDataForShip(number: 5, numberOfDecks: 2)
-        defineSafeAreaNearShip(ship: ship23)
-        let ship11 = randomDataForShip(number: 6, numberOfDecks: 1)
-        defineSafeAreaNearShip(ship: ship11)
-        let ship12 = randomDataForShip(number: 7, numberOfDecks: 1)
-        defineSafeAreaNearShip(ship: ship12)
-        let ship13 = randomDataForShip(number: 8, numberOfDecks: 1)
-        defineSafeAreaNearShip(ship: ship13)
-        let ship14 = randomDataForShip(number: 9, numberOfDecks: 1)
-        defineSafeAreaNearShip(ship: ship14)
+        let fleet: [(number: Int, decks: Int)] = [
+            (0, 4),
+            (1, 3), (2, 3),
+            (3, 2), (4, 2), (5, 2),
+            (6, 1), (7, 1), (8, 1), (9, 1)
+        ]
+
+        var placedShips = [Ship]()
+        for _ in 0..<100 { // whole-board attempts
+            clearShips() // fresh cells (unknown & available), ships = []
+            placedShips = []
+            var success = true
+            for entry in fleet.shuffled() {
+                guard let ship = placeRandomShip(number: entry.number, numberOfDecks: entry.decks, maxTries: 200) else {
+                    success = false
+                    break
+                }
+                placedShips.append(ship)
+                defineSafeAreaNearShip(ship: ship) // keep a 1-cell gap so ships don't touch
+            }
+            if success { break }
+        }
+
         makeCellsAvailableAgain()
-        self.ships = [ship4, ship31, ship32, ship21, ship22, ship23, ship11, ship12, ship13, ship14]
+        placedShips.sort { $0.number < $1.number }
+        if self.name == "Player" {
+            for ship in placedShips {
+                for coordinate in ship.coordinates {
+                    self.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus = .showShip
+                }
+            }
+        }
+        self.ships = placedShips
+        self.shipPositions = Array(repeating: .zero, count: 10)
     }
     
     ///Method marks cells around the ship as unavailable
@@ -98,41 +115,29 @@ class PlayerData {
         }
     }
     
-    ///Method finds random coordinates for ship. RETURNS: Ship
-    func randomDataForShip(number: Int, numberOfDecks: Int) -> Ship {
-        var coordinates: [(Int, Int)] = []
-        var orientation: Ship.Orientation = .vertical
-        var row = 0
-        var column = 0
-        repeat {
-            coordinates = []
-            orientation = [.vertical, .horizontal].randomElement()!
+    ///Tries up to `maxTries` random positions for a ship. RETURNS: a valid Ship, or nil if none was found.
+    private func placeRandomShip(number: Int, numberOfDecks: Int, maxTries: Int) -> Ship? {
+        for _ in 0..<maxTries {
+            let orientation: Ship.Orientation = Bool.random() ? .horizontal : .vertical
+            var coordinates: [(Int, Int)] = []
             if orientation == .horizontal {
-                row = Int.random(in: 0...9)
-                column = Int.random(in: 0...10 - numberOfDecks)
-            } else if orientation == .vertical {
-                row = Int.random(in: 0...10 - numberOfDecks)
-                column = Int.random(in: 0...9)
-            }
-            if orientation == .horizontal {
+                let row = Int.random(in: 0...9)
+                let column = Int.random(in: 0...10 - numberOfDecks)
                 for i in column + 1...column + numberOfDecks {
                     coordinates.append((row + 1, i))
                 }
-            }
-            if orientation == .vertical {
+            } else {
+                let row = Int.random(in: 0...10 - numberOfDecks)
+                let column = Int.random(in: 0...9)
                 for i in row + 1...row + numberOfDecks {
                     coordinates.append((i, column + 1))
                 }
             }
-        } while !cellIsAvailableForPlacingShip(coordinates: coordinates)
-        
-        if self.name == "Player" {
-            for coordinate in coordinates {
-                self.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus = .showShip
+            if cellIsAvailableForPlacingShip(coordinates: coordinates) {
+                return Ship(number: number, orientation: orientation, numberOfDecks: numberOfDecks, coordinates: coordinates)
             }
         }
-
-        return Ship(number: number, orientation: orientation, numberOfDecks: numberOfDecks, coordinates: coordinates)
+        return nil
     }
     
     ///Method checks if all the cells are available for placing ship. ACCEPTS: Array of cells. RETURNS: true or false

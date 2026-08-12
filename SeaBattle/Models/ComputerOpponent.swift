@@ -34,6 +34,11 @@ final class ComputerOpponent: Opponent {
     }
 
     func nextShot() async -> Coordinate {
+        // Expert uses the probability-density heat map; other levels use the
+        // simple random hunt + priority-cell finishing.
+        if appState.difficultyLevel == .expert, let shot = expertShot() {
+            return shot
+        }
         let (row, column) = findAvailableCellsForFire()
         return Coordinate(row: row, column: column)
     }
@@ -42,7 +47,137 @@ final class ComputerOpponent: Opponent {
     /// and is maintained by `GameEngine` as shots land, so nothing to do here yet.
     func reportOutcome(_ outcome: ShotOutcome, at coordinate: Coordinate) async {}
 
-    // MARK: - Targeting
+    // MARK: - Expert targeting (probability-density heat map)
+
+    /// The AI's knowledge of a cell, using only publicly-available information
+    /// (never the hidden ship positions).
+    private enum CellKnowledge {
+        case unknown  // not yet fired at; a ship could be here
+        case hit      // hit, part of a ship that isn't fully sunk yet
+        case blocked  // a miss, a sunk-ship cell, or a known-empty safe-area cell
+    }
+
+    /// Picks the cell most likely to contain a ship, by counting, for every
+    /// remaining ship, all legal placements that pass through each cell. Cells
+    /// covered by placements that also explain an existing hit are weighted far
+    /// higher, which naturally finishes a damaged ship. This is the same idea as
+    /// a human "where can the biggest remaining ship still fit?". Returns nil if
+    /// it can't decide, so the caller falls back to the simple hunt.
+    private func expertShot() -> Coordinate? {
+        var knowledge = [[CellKnowledge]](repeating: [CellKnowledge](repeating: .unknown, count: 10), count: 10)
+        var hasHits = false
+        for r in 0..<10 {
+            for c in 0..<10 {
+                let cell = targetBoard.cells[r][c]
+                switch cell.cellStatus {
+                case .showShipOnFire:
+                    knowledge[r][c] = .hit
+                    hasHits = true
+                case .destroyed, .missed:
+                    knowledge[r][c] = .blocked
+                default:
+                    // .unknown / .showShip / .showShipHalo — shootable unless the
+                    // cell was marked unavailable (safe area around a sunk ship).
+                    knowledge[r][c] = cell.isAvailable ? .unknown : .blocked
+                }
+            }
+        }
+
+        let remainingSizes = remainingShipSizes()
+        guard !remainingSizes.isEmpty else { return nil }
+
+        var heat = [[Int]](repeating: [Int](repeating: 0, count: 10), count: 10)
+        let hitWeight = 50
+
+        // Hunt mode (no open hits): concentrate on where the LARGEST remaining
+        // ship can still fit — the fastest way to corner big ships, and exactly
+        // the human expert strategy. Finishing mode considers every size so it
+        // can complete whatever was hit.
+        let sizesToConsider: [Int] = hasHits ? Array(Set(remainingSizes)) : [remainingSizes.max()!]
+
+        for size in sizesToConsider {
+            let multiplicity = hasHits ? remainingSizes.filter { $0 == size }.count : 1
+            for isHorizontal in [true, false] {
+                let maxRow = isHorizontal ? 10 : 10 - size
+                let maxCol = isHorizontal ? 10 - size : 10
+                for r in 0..<maxRow {
+                    for c in 0..<maxCol {
+                        let cells: [(Int, Int)] = (0..<size).map { i in
+                            isHorizontal ? (r, c + i) : (r + i, c)
+                        }
+                        guard isPlacementLegal(cells, knowledge: knowledge) else { continue }
+                        let coversHit = cells.contains { knowledge[$0.0][$0.1] == .hit }
+                        // When a ship is already damaged, only placements that
+                        // could finish it are worth considering.
+                        if hasHits && !coversHit { continue }
+                        let weight = (coversHit ? hitWeight : 1) * multiplicity
+                        for (cr, cc) in cells where knowledge[cr][cc] == .unknown {
+                            heat[cr][cc] += weight
+                        }
+                    }
+                }
+            }
+        }
+
+        var best: (row: Int, column: Int)?
+        var bestScore = 0
+        for r in 0..<10 {
+            for c in 0..<10 where knowledge[r][c] == .unknown && heat[r][c] > bestScore {
+                bestScore = heat[r][c]
+                best = (r, c)
+            }
+        }
+        guard let target = best else { return nil }
+        return Coordinate(row: target.row + 1, column: target.column + 1)
+    }
+
+    /// A placement is legal if all its cells are `.unknown` or `.hit`, and none
+    /// of its cells is orthogonally or diagonally adjacent to a sunk-ship cell
+    /// (ships never touch).
+    private func isPlacementLegal(_ cells: [(Int, Int)], knowledge: [[CellKnowledge]]) -> Bool {
+        for (r, c) in cells {
+            if knowledge[r][c] == .blocked { return false }
+            for dr in -1...1 {
+                for dc in -1...1 where dr != 0 || dc != 0 {
+                    let nr = r + dr, nc = c + dc
+                    if nr >= 0, nr < 10, nc >= 0, nc < 10,
+                       targetBoard.cells[nr][nc].cellStatus == .destroyed {
+                        return false
+                    }
+                }
+            }
+        }
+        return true
+    }
+
+    /// The sizes of ships not yet sunk, inferred from the sunk (destroyed) cell
+    /// clusters — public information, not the hidden fleet layout.
+    private func remainingShipSizes() -> [Int] {
+        var fleet = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
+        var visited = [[Bool]](repeating: [Bool](repeating: false, count: 10), count: 10)
+        for r in 0..<10 {
+            for c in 0..<10 where targetBoard.cells[r][c].cellStatus == .destroyed && !visited[r][c] {
+                var size = 0
+                var stack = [(r, c)]
+                visited[r][c] = true
+                while let (cr, cc) = stack.popLast() {
+                    size += 1
+                    for (dr, dc) in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
+                        let nr = cr + dr, nc = cc + dc
+                        if nr >= 0, nr < 10, nc >= 0, nc < 10, !visited[nr][nc],
+                           targetBoard.cells[nr][nc].cellStatus == .destroyed {
+                            visited[nr][nc] = true
+                            stack.append((nr, nc))
+                        }
+                    }
+                }
+                if let index = fleet.firstIndex(of: size) { fleet.remove(at: index) }
+            }
+        }
+        return fleet
+    }
+
+    // MARK: - Simple targeting (easy / medium / hard)
 
     /// Chooses one cell from the array of possible cells. RETURNS: coordinates (row, column).
     private func findAvailableCellsForFire() -> (Int, Int) {
