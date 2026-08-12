@@ -220,27 +220,19 @@ class GameLogicViewModel {
     
     /// Method chooses one cell from array of possible cells. RETURNS: coordinates (x, y)
     func findAvailableCellsForFire() -> (Int, Int) {
-        var row: Int = 0
-        var column: Int = 0
         var coordinates: (Int, Int) = (0, 0)
         repeat {
-            // If some ship was damaged, we need to find it's undamaged cells first
-            if let arrayOfPriorityCells = appState.potentialCellsForFinishingDamagedShip {
-                if arrayOfPriorityCells.count > 0 {
-                    repeat {
-                        coordinates = arrayOfPriorityCells.randomElement()!
-                        row = coordinates.0
-                        column = coordinates.1
-                    } while !player.cells[row - 1][column - 1].isAvailable
-                } else {
-                    row = Int.random(in: 1...10)
-                    column = Int.random(in: 1...10)
-                    coordinates = (row, column)
-                }
-            }   else {
-                row = Int.random(in: 1...10)
-                column = Int.random(in: 1...10)
-                coordinates = (row, column)
+            // If some ship was damaged, we need to find it's undamaged cells first.
+            // Only consider priority cells that are in bounds and still available; a
+            // priority list made up entirely of unavailable cells used to spin forever.
+            let availablePriorityCells = (appState.potentialCellsForFinishingDamagedShip ?? []).filter { candidate in
+                (1...10).contains(candidate.0) && (1...10).contains(candidate.1)
+                    && player.cells[candidate.0 - 1][candidate.1 - 1].isAvailable
+            }
+            if let priorityCell = availablePriorityCells.randomElement() {
+                coordinates = priorityCell
+            } else {
+                coordinates = (Int.random(in: 1...10), Int.random(in: 1...10))
             }
         } while !meetConditionsToDefineCellForFire(coordinates: coordinates)
         return coordinates

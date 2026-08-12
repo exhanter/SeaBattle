@@ -115,6 +115,21 @@ final class SeaBattleTests: XCTestCase {
         XCTAssertTrue(array.contains(where: { $0 == cell }), "The method works incorrectly")
     }
     
+    func testFindAvailableCellsDoesNotHangWhenPriorityCellsUnavailable() {
+        // Regression: previously a priority list made up entirely of unavailable
+        // (or out-of-bounds) cells made findAvailableCellsForFire spin forever.
+        player.cells[4][4].isAvailable = false // cell (5, 5)
+        player.cells[4][5].isAvailable = false // cell (5, 6)
+        appState.potentialCellsForFinishingDamagedShip = [(5, 5), (5, 6), (11, 5)]
+
+        //use
+        let cell = sutReal.findAvailableCellsForFire()
+
+        //check
+        XCTAssertTrue((1...10).contains(cell.0) && (1...10).contains(cell.1), "Returned cell must be within the field")
+        XCTAssertTrue(player.cells[cell.0 - 1][cell.1 - 1].isAvailable, "Returned cell must be available")
+    }
+
     func testWholeTheSequenceOfComputerTurns() {
         // the test was made in attepmt to catch endless loop
         //prepare
