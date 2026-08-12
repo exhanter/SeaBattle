@@ -10,7 +10,9 @@ import SwiftUI
 struct SettingsView: View {
     
     @Environment(AppState.self) private var appState
-    
+    @Environment(PremiumManager.self) private var premiumManager
+    @State private var showPaywall = false
+
     var body: some View {
         @Bindable var appState = appState
         return ZStack {
@@ -75,15 +77,36 @@ struct SettingsView: View {
                             UserDefaults.standard.set(appState.soundOn, forKey: "soundOn")
                         }
                         .padding()
+
+                    if premiumManager.isPremium {
+                        Label("Premium active", systemImage: "checkmark.seal.fill")
+                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .padding()
+                    } else {
+                        Button {
+                            if appState.soundOn {
+                                AppState.playSound(sound: "click_sound.wav")
+                            }
+                            showPaywall = true
+                        } label: {
+                            Label("Go Premium", systemImage: "star.fill")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    }
                 }
             .italic()
             .padding(20)
         }
         .statusBar(hidden: true)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
     }
 }
 
 #Preview {
     SettingsView()
         .environment(AppState())
+        .environment(PremiumManager())
 }

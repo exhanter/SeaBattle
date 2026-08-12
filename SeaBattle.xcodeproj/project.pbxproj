@@ -72,6 +72,8 @@
 		CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C1302CACEF007A33B0 /* GameEngine.swift */; };
 		CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */; };
 		CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C5302CAF2F007A33B0 /* GameStore.swift */; };
+		CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C7302CB294007A33B0 /* PremiumManager.swift */; };
+		CA17D7CA302CB2A2007A33B0 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -161,6 +163,8 @@
 		CA17D7C1302CACEF007A33B0 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
 		CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerOpponent.swift; sourceTree = "<group>"; };
 		CA17D7C5302CAF2F007A33B0 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
+		CA17D7C7302CB294007A33B0 /* PremiumManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumManager.swift; sourceTree = "<group>"; };
+		CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -207,6 +211,7 @@
 				CA17D7C1302CACEF007A33B0 /* GameEngine.swift */,
 				CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */,
 				CA17D7C5302CAF2F007A33B0 /* GameStore.swift */,
+				CA17D7C7302CB294007A33B0 /* PremiumManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -223,6 +228,7 @@
 				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
 				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
 				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
+				CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";
@@ -530,12 +536,14 @@
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
+				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
 				2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */,
 				2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */,
 				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* GameLogicViewModel.swift in Sources */,
 				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */,
+				CA17D7CA302CB2A2007A33B0 /* PaywallView.swift in Sources */,
 				2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */,
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				2CE731A02D5B627F00954841 /* iPadShipArrangementMenuViewV.swift in Sources */,
