@@ -105,6 +105,15 @@ struct iPadMainViewV: View {
                             .buttonStyle(.bordered)
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
 
+                        Button {
+                            if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                            if premiumManager.isPremium { appState.showOnline = true } else { appState.showPaywall = true }
+                        } label: {
+                            Label("Play online", systemImage: "globe")
+                        }
+                            .buttonStyle(.bordered)
+                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+
                         Button("Settings") {
                             self.showSettingsView = true
                         }

@@ -87,6 +87,9 @@
 		CA17D8BD302E777B007A33B0 /* AccountID.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BC302E777B007A33B0 /* AccountID.swift */; };
 		CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */; };
 		CA17D8C1302E7822007A33B0 /* NetworkGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C0302E7822007A33B0 /* NetworkGameView.swift */; };
+		CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */; };
+		CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */; };
+		CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -191,6 +194,9 @@
 		CA17D8BC302E777B007A33B0 /* AccountID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountID.swift; sourceTree = "<group>"; };
 		CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerTransport.swift; sourceTree = "<group>"; };
 		CA17D8C0302E7822007A33B0 /* NetworkGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkGameView.swift; sourceTree = "<group>"; };
+		CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterManager.swift; sourceTree = "<group>"; };
+		CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameKitTransport.swift; sourceTree = "<group>"; };
+		CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineGameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -246,6 +252,8 @@
 				CA17D8BA302E762A007A33B0 /* NetworkGame.swift */,
 				CA17D8BC302E777B007A33B0 /* AccountID.swift */,
 				CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */,
+				CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */,
+				CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -267,6 +275,7 @@
 				CA17D7D4302D2843007A33B0 /* StatsView.swift */,
 				CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */,
 				CA17D8C0302E7822007A33B0 /* NetworkGameView.swift */,
+				CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";
@@ -565,6 +574,7 @@
 				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
 				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,
 				2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */,
+				CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */,
 				CA17D7D9302D9BBA007A33B0 /* HotSeatGame.swift in Sources */,
 				CA17D7DB302D9C2C007A33B0 /* HotSeatView.swift in Sources */,
 				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
@@ -583,6 +593,7 @@
 				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
 				2CE731A22D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift in Sources */,
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
+				CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */,
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */,
 				CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */,
@@ -599,6 +610,7 @@
 				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* GameLogicViewModel.swift in Sources */,
+				CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */,
 				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */,
 				CA17D7CA302CB2A2007A33B0 /* PaywallView.swift in Sources */,
 				2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */,
