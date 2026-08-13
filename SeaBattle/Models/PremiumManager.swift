@@ -22,6 +22,9 @@ final class PremiumManager {
     /// still reports as entitled).
     private(set) var isPremium = false
 
+    /// The loaded subscription products (for the paywall).
+    private(set) var products: [Product] = []
+
     /// Product identifiers of the premium subscription group. These must match
     /// the products in the StoreKit configuration file and App Store Connect.
     static let productIDs = [
@@ -31,8 +34,8 @@ final class PremiumManager {
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
 
-    /// Begins listening for transaction updates and refreshes entitlement once.
-    /// Call from the app's root `.task`.
+    /// Begins listening for transaction updates, loads products and refreshes
+    /// entitlement once. Call from the app's root `.task`.
     func start() {
         guard updatesTask == nil else { return }
         updatesTask = Task { [weak self] in
@@ -40,7 +43,37 @@ final class PremiumManager {
                 await self?.handle(update)
             }
         }
-        Task { await refreshEntitlements() }
+        Task {
+            await loadProducts()
+            await refreshEntitlements()
+        }
+    }
+
+    /// Loads the subscription products from the store.
+    func loadProducts() async {
+        products = (try? await Product.products(for: Self.productIDs)) ?? []
+    }
+
+    /// Purchases a product. RETURNS: whether the customer is now premium.
+    @discardableResult
+    func purchase(_ product: Product) async -> Bool {
+        do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                if case .verified(let transaction) = verification {
+                    await transaction.finish()
+                }
+                await refreshEntitlements()
+                return isPremium
+            case .userCancelled, .pending:
+                return false
+            @unknown default:
+                return false
+            }
+        } catch {
+            return false
+        }
     }
 
     deinit {

@@ -17,8 +17,6 @@ struct iPadMainViewV: View {
     var enemy: PlayerData
     private var gameLogicViewModel: GameLogicViewModel
     @State private var showSettingsView = false
-    @State private var showHotSeat = false
-    @State private var showPaywall = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -85,7 +83,7 @@ struct iPadMainViewV: View {
                         }
                         Button {
                             if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                            if premiumManager.isPremium { showHotSeat = true } else { showPaywall = true }
+                            if premiumManager.isPremium { appState.showHotSeat = true } else { appState.showPaywall = true }
                         } label: {
                             Label("Two players", systemImage: "person.2.fill")
                         }
@@ -105,8 +103,6 @@ struct iPadMainViewV: View {
                     .sheet(isPresented: $showSettingsView) { SettingsView()
                             .presentationDetents([.fraction(0.58)])
                     }
-                    .fullScreenCover(isPresented: $showHotSeat) { HotSeatContainerView() }
-                    .sheet(isPresented: $showPaywall) { PaywallView() }
                 } //ZStack off
                 .ignoresSafeArea()
                 HStack {

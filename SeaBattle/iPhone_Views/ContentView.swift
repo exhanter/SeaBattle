@@ -17,8 +17,6 @@ struct ContentView: View {
     @State private var player = PlayerData(name: "Player")
     @State private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
-    @State private var showHotSeat = false
-    @State private var showPaywall = false
     
     var body: some View {
         @Bindable var appState = appState
@@ -93,7 +91,7 @@ struct ContentView: View {
 
                             Button {
                                 if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium { showHotSeat = true } else { showPaywall = true }
+                                if premiumManager.isPremium { appState.showHotSeat = true } else { appState.showPaywall = true }
                             } label: {
                                 Label("Two players", systemImage: "person.2.fill")
                             }
@@ -147,10 +145,10 @@ struct ContentView: View {
                     GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
                 }
             }
-            .fullScreenCover(isPresented: $showHotSeat) {
+            .fullScreenCover(isPresented: $appState.showHotSeat) {
                 HotSeatContainerView()
             }
-            .sheet(isPresented: $showPaywall) {
+            .sheet(isPresented: $appState.showPaywall) {
                 PaywallView()
             }
         }

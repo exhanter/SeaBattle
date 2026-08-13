@@ -77,6 +77,9 @@ final class GameEngine {
             appState.potentialCellsForFinishingDamagedShip = nil
             sound = "Glass_Break-stephan_schutze-958181291.wav"
             if appState.difficultyLevel != .easy { player.defineSafeAreaNearShip(ship: ship) }
+        } else if appState.autoRevealAroundSunk {
+            // Beginner protection on the enemy board: reveal the empty ring.
+            target.markSafeAreaAsMissed(ship: ship)
         }
         if target.numberShipsDestroyed == 10 {
             appState.gameIsActive = false

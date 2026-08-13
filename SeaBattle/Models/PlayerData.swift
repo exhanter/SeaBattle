@@ -106,6 +106,23 @@ class PlayerData {
         }
     }
     
+    ///Reveals the ring around a sunk ship as "missed" (optional beginner
+    ///protection). Only touches still-unknown cells.
+    func markSafeAreaAsMissed(ship: Ship) {
+        let rows = ship.coordinates.map { $0.0 }
+        let cols = ship.coordinates.map { $0.1 }
+        let minRow = max(1, (rows.min() ?? 1) - 1)
+        let maxRow = min(10, (rows.max() ?? 1) + 1)
+        let minCol = max(1, (cols.min() ?? 1) - 1)
+        let maxCol = min(10, (cols.max() ?? 1) + 1)
+        for row in minRow...maxRow {
+            for column in minCol...maxCol where cells[row - 1][column - 1].cellStatus == .unknown {
+                cells[row - 1][column - 1].cellStatus = .missed
+                cells[row - 1][column - 1].isAvailable = false
+            }
+        }
+    }
+
     ///Method makes all the cells around ships available again
     func makeCellsAvailableAgain() { // only for player cells
         for x in 0 ..< 10 {

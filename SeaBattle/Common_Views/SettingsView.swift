@@ -19,6 +19,7 @@ struct SettingsView: View {
         return ZStack {
             LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                 .ignoresSafeArea()
+                ScrollView {
                 VStack() {
                     Text("Settings")
                         .font(.title)
@@ -88,6 +89,16 @@ struct SettingsView: View {
                         }
                         .padding()
 
+                    Toggle("Reveal empty cells around sunk ships", isOn: $appState.autoRevealAroundSunk)
+                        .onChange(of: appState.autoRevealAroundSunk) { _ in
+                            UserDefaults.standard.set(appState.autoRevealAroundSunk, forKey: "autoRevealAroundSunk")
+                            if appState.soundOn {
+                                AppState.playSound(sound: "click_sound.wav")
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom)
+
                     Button {
                         if appState.soundOn {
                             AppState.playSound(sound: "click_sound.wav")
@@ -117,8 +128,9 @@ struct SettingsView: View {
                         .padding()
                     }
                 }
-            .italic()
-            .padding(20)
+                .italic()
+                .padding(20)
+                }
         }
         .statusBar(hidden: true)
         .sheet(isPresented: $showPaywall) {

@@ -2,32 +2,56 @@
 //  PlayerProfile.swift
 //  SeaBattle
 //
-//  Phase 0: local player identity model. Reused by hot-seat play (Phase 5a),
-//  networked play (Phase 5) and the points/hints system (Phase 6). Up to 10
-//  profiles per account will be enforced at the storage layer.
+//  A saved local player: name + avatar (up to 10 per account). The hot-seat PIN
+//  is intentionally NOT stored here — it is session-only (see HotSeatGame).
+//  Photos / Genmoji avatars can be added later; for now the avatar is one of a
+//  fixed set of SF Symbols.
 //
 
 import Foundation
 
-/// A named local player. Synced to CloudKit / backend in later phases.
+/// The fixed set of built-in avatars (SF Symbol names).
+enum HotSeatAvatars {
+    static let symbols = [
+        "star.fill", "crown.fill", "bolt.fill", "flame.fill", "leaf.fill",
+        "tortoise.fill", "hare.fill", "fish.fill", "pawprint.fill", "heart.fill"
+    ]
+}
+
 struct PlayerProfile: Codable, Identifiable, Hashable, Sendable {
     let id: UUID
     var name: String
-    /// Salted SHA-256 hash of the player's PIN, or `nil` when no PIN is set.
-    /// The plaintext PIN is never stored; see the hot-seat privacy handoff
-    /// (Phase 5a). Persisted in the Keychain in the storage layer.
+    var avatar: String
+    /// Legacy field; no longer persisted for hot-seat (PIN is session-only).
     var pinHash: String?
     var stats: PlayerStats
 
-    init(id: UUID = UUID(), name: String, pinHash: String? = nil, stats: PlayerStats = PlayerStats()) {
+    init(id: UUID = UUID(),
+         name: String,
+         avatar: String = HotSeatAvatars.symbols[0],
+         pinHash: String? = nil,
+         stats: PlayerStats = PlayerStats()) {
         self.id = id
         self.name = name
+        self.avatar = avatar
         self.pinHash = pinHash
         self.stats = stats
     }
+
+    // Lenient decoding so profiles saved before `avatar` existed still load.
+    private enum CodingKeys: String, CodingKey { case id, name, avatar, pinHash, stats }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try c.decode(String.self, forKey: .name)
+        avatar = try c.decodeIfPresent(String.self, forKey: .avatar) ?? HotSeatAvatars.symbols[0]
+        pinHash = try c.decodeIfPresent(String.self, forKey: .pinHash)
+        stats = try c.decodeIfPresent(PlayerStats.self, forKey: .stats) ?? PlayerStats()
+    }
 }
 
-/// Per-player aggregate statistics and the difficulty-bucketed points wallet.
+/// Per-player aggregate statistics and the shared points wallet.
 struct PlayerStats: Codable, Hashable, Sendable {
     /// Wins per difficulty, keyed by `DifficultyLevel.rawValue`. Tracked for ALL
     /// users (free included) so players can show off; resettable in the UI.

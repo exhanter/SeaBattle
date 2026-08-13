@@ -3,9 +3,10 @@
 //  SeaBattle
 //
 //  Phase 5a: two humans on one device. Self-contained controller (kept separate
-//  from the vs-computer GameLogicViewModel so that mode is untouched). Drives a
-//  phase machine: secret ship placement behind a "pass the device" PIN handoff,
-//  then alternating fire with a handoff whenever the turn passes (on a miss).
+//  from the vs-computer GameLogicViewModel). A "session" is the run of games two
+//  players play via "Play again": names, avatars, PINs and the win tally all
+//  live in memory for the session and vanish when the player leaves to the menu.
+//  No global points/stats are awarded (multiplayer is anti-cheat exempt).
 //
 
 import Foundation
@@ -15,69 +16,59 @@ import Observation
 @Observable
 final class HotSeatGame {
 
+    struct Player {
+        var name: String
+        var avatar: String
+        var pinHash: String?   // session-only
+        var sessionWins: Int = 0
+    }
+
     enum Phase: Equatable {
         case setup
-        case arrangeHandoff(player: Int)   // pass device to `player` to place ships
-        case arrange(player: Int)          // `player` arranges secretly
-        case turnHandoff(player: Int)      // pass device to `player` to shoot
+        case arrangeHandoff(player: Int)
+        case arrange(player: Int)
+        case turnHandoff(player: Int)
         case shooting
         case finished
     }
 
     private(set) var phase: Phase = .setup
     let boards: [PlayerData] = [PlayerData(name: "Player"), PlayerData(name: "Player")]
-    private(set) var names: [String] = ["", ""]
-    private(set) var pinHashes: [String?] = [nil, nil]
+    private(set) var players: [Player] = [
+        Player(name: "", avatar: HotSeatAvatars.symbols[0]),
+        Player(name: "", avatar: HotSeatAvatars.symbols[1])
+    ]
     private(set) var attacker = 0
     private(set) var winner: Int?
 
     var soundOn = true
+    /// When true, the ring around a sunk ship is auto-revealed as empty
+    /// (optional beginner protection). Default off = you may fire there.
+    var revealAroundSunk = false
 
     var defender: Int { 1 - attacker }
 
     // MARK: - Setup / flow
 
-    func begin(name0: String, pin0: String, name1: String, pin1: String) {
-        names = [
-            name0.trimmingCharacters(in: .whitespaces),
-            name1.trimmingCharacters(in: .whitespaces)
+    func begin(name0: String, avatar0: String, pin0: String,
+               name1: String, avatar1: String, pin1: String) {
+        players = [
+            Player(name: name0.trimmingCharacters(in: .whitespaces), avatar: avatar0,
+                   pinHash: pin0.isEmpty ? nil : ProfileStore.hash(pin: pin0)),
+            Player(name: name1.trimmingCharacters(in: .whitespaces), avatar: avatar1,
+                   pinHash: pin1.isEmpty ? nil : ProfileStore.hash(pin: pin1))
         ]
-        pinHashes = [resolvePin(name: name0, pin: pin0), resolvePin(name: name1, pin: pin1)]
+        // Remember the players (name + avatar only) for next time.
+        ProfileStore.shared.upsert(name: name0, avatar: avatar0)
+        ProfileStore.shared.upsert(name: name1, avatar: avatar1)
         phase = .arrangeHandoff(player: 0)
     }
 
-    /// Resolves and persists a player's PIN: an entered PIN sets/updates it; a
-    /// blank field keeps the previously-saved PIN for a returning player. Also
-    /// remembers the name (respecting the 10-profile cap).
-    private func resolvePin(name: String, pin: String) -> String? {
-        let trimmed = name.trimmingCharacters(in: .whitespaces)
-        let existing = ProfileStore.shared.profiles.first {
-            $0.name.caseInsensitiveCompare(trimmed) == .orderedSame
-        }
-        if pin.isEmpty {
-            if existing == nil { ProfileStore.shared.upsert(name: name, pin: "") }
-            return existing?.pinHash
-        }
-        ProfileStore.shared.upsert(name: name, pin: pin)
-        return ProfileStore.hash(pin: pin)
-    }
-
-    /// Starts a fresh match with the same players.
-    func restart() {
-        for board in boards { board.clearShips() }
-        winner = nil
-        attacker = 0
-        phase = .arrangeHandoff(player: 0)
-    }
-
-    /// Validates a PIN for the given player during a handoff.
     func verify(player: Int, pin: String) -> Bool {
-        guard let stored = pinHashes[player] else { return true }
+        guard let stored = players[player].pinHash else { return true }
         return stored == ProfileStore.hash(pin: pin)
     }
 
-    /// Called after a successful handoff — advances to the phase the handoff was
-    /// gating (arranging or shooting).
     func unlockArrange(player: Int) {
         if boards[player].ships.isEmpty {
             boards[player].shipsRandomArrangement()
@@ -102,13 +93,22 @@ final class HotSeatGame {
         phase = .shooting
     }
 
+    /// New game with the same players — keeps names, avatars, PINs and the
+    /// session win tally.
+    func restart() {
+        for board in boards { board.clearShips() }
+        winner = nil
+        attacker = 0
+        phase = .arrangeHandoff(player: 0)
+    }
+
     // MARK: - Firing
 
     func fire(row: Int, column: Int) {
         guard phase == .shooting, winner == nil else { return }
         let target = boards[defender]
         let r = row - 1, c = column - 1
-        guard target.cells[r][c].isAvailable else { return } // already shot or known-empty
+        guard target.cells[r][c].isAvailable else { return } // already fired here
 
         if let shipIndex = target.ships.firstIndex(where: { $0.coordinates.contains(where: { $0 == (row, column) }) }) {
             target.cells[r][c].cellStatus = .onFire
@@ -125,11 +125,14 @@ final class HotSeatGame {
                     target.cells[coord.0 - 1][coord.1 - 1].cellStatus = .destroyed
                 }
                 target.ships[shipIndex].isDestroyed = true
-                target.defineSafeAreaNearShip(ship: ship) // the no-touch ring is now known-empty
+                // Firing around a sunk ship stays allowed unless the player opted
+                // into the beginner protection.
+                if revealAroundSunk { target.markSafeAreaAsMissed(ship: ship) }
                 play("Glass_Break-stephan_schutze-958181291.wav")
             }
             if target.numberShipsDestroyed == 10 {
                 winner = attacker
+                players[attacker].sessionWins += 1
                 phase = .finished
                 AppState.musicPlayer?.stop()
             }

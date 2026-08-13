@@ -44,6 +44,13 @@ class AppState {
     var tabsBlocked = false
     var isTapEnabled = false
     var language: String
+    /// Optional beginner protection: reveal the empty ring around a sunk ship so
+    /// you can't waste shots there. Default off (firing there stays allowed).
+    var autoRevealAroundSunk: Bool
+    /// Transient presentation flags (set from the menu, presented at the root so
+    /// the covers survive layout changes — notably on iPad).
+    var showHotSeat = false
+    var showPaywall = false
     
     static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
@@ -130,5 +137,6 @@ class AppState {
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier
+        self.autoRevealAroundSunk = UserDefaults.standard.bool(forKey: "autoRevealAroundSunk")
     }
 }

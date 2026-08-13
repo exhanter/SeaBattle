@@ -15,7 +15,8 @@ struct iPadStartMenuView: View {
     @State private var gameLogicViewModel = GameLogicViewModel()
 
     var body: some View {
-        Group {
+        @Bindable var appState = appState
+        return Group {
             switch appState.selectedTab {
             case .menu:
                 iPadMainView(player: player, enemy: enemy, gameLogicViewModel: gameLogicViewModel)
@@ -33,6 +34,10 @@ struct iPadStartMenuView: View {
                 GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
             }
         }
+        // Presented at the stable root so the covers survive the menu/battle
+        // view switching (fixes the iPad hot-seat dismissal).
+        .fullScreenCover(isPresented: $appState.showHotSeat) { HotSeatContainerView() }
+        .sheet(isPresented: $appState.showPaywall) { PaywallView() }
     }
 }
 #Preview {

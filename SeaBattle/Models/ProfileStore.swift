@@ -2,11 +2,9 @@
 //  ProfileStore.swift
 //  SeaBattle
 //
-//  Phase 5a: saved local players (up to 10 per account) with an optional PIN
-//  used for the hot-seat privacy handoff. The plaintext PIN is never stored —
-//  only a salted SHA-256 hash. Persisted to UserDefaults for now; moving the
-//  hash to the Keychain and syncing profiles via the account is a later step
-//  (Phase 3).
+//  Saved local players (name + avatar, up to 10 per account) for quick reuse in
+//  hot-seat setup. PINs are NOT stored here — they are chosen per session in
+//  HotSeatGame. Persisted to UserDefaults; account sync arrives with Phase 3.
 //
 
 import Foundation
@@ -36,34 +34,27 @@ final class ProfileStore {
 
     var canAddMore: Bool { profiles.count < Self.maxProfiles }
 
-    /// Salted SHA-256 hash of a PIN, as a hex string.
+    /// Salted SHA-256 hash of a PIN, as a hex string. Used by HotSeatGame to
+    /// compare session PINs without keeping the plaintext.
     static func hash(pin: String) -> String {
         let digest = SHA256.hash(data: Data((salt + pin).utf8))
         return digest.map { String(format: "%02x", $0) }.joined()
     }
 
-    /// Whether the supplied PIN matches a profile (a profile with no PIN always matches).
-    func verify(_ profile: PlayerProfile, pin: String) -> Bool {
-        guard let stored = profile.pinHash else { return true }
-        return stored == Self.hash(pin: pin)
-    }
-
-    /// Creates or updates a profile by name. A non-empty `pin` sets/updates the
-    /// PIN; an empty `pin` clears it. RETURNS: the stored profile (or nil if the
-    /// name is blank or the roster is full for a new name).
+    /// Creates or updates a saved player by name (case-insensitive). RETURNS the
+    /// stored profile, or nil if the name is blank or the roster is full.
     @discardableResult
-    func upsert(name: String, pin: String) -> PlayerProfile? {
+    func upsert(name: String, avatar: String) -> PlayerProfile? {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return nil }
-        let pinHash = pin.isEmpty ? nil : Self.hash(pin: pin)
         if let index = profiles.firstIndex(where: { $0.name.caseInsensitiveCompare(trimmed) == .orderedSame }) {
             profiles[index].name = trimmed
-            profiles[index].pinHash = pinHash
+            profiles[index].avatar = avatar
             persist()
             return profiles[index]
         }
         guard canAddMore else { return nil }
-        let profile = PlayerProfile(name: trimmed, pinHash: pinHash)
+        let profile = PlayerProfile(name: trimmed, avatar: avatar)
         profiles.append(profile)
         persist()
         return profile
