@@ -62,6 +62,8 @@ struct HotSeatContainerView: View {
             game.soundOn = appState.soundOn
             game.revealAroundSunk = appState.autoRevealAroundSunk
         }
+        .statusBar(hidden: true)
+        .persistentSystemOverlays(.hidden)
     }
 }
 
@@ -100,8 +102,11 @@ struct AvatarPicker: View {
 }
 
 /// A 4-digit PIN entry shown as large boxed, visible digits with a number pad.
+/// Dismisses the keyboard automatically on the 4th digit and reports completion.
 struct PinBoxField: View {
     @Binding var pin: String
+    var autoFocus: Bool = false
+    var onComplete: ((String) -> Void)? = nil
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -113,7 +118,12 @@ struct PinBoxField: View {
                 .tint(.clear)
                 .opacity(0.02)
                 .onChange(of: pin) { _, value in
-                    pin = String(value.filter(\.isNumber).prefix(4))
+                    let cleaned = String(value.filter(\.isNumber).prefix(4))
+                    if cleaned != value { pin = cleaned }
+                    if cleaned.count == 4 {
+                        focused = false           // auto-hide the keyboard
+                        onComplete?(cleaned)
+                    }
                 }
             HStack(spacing: 10) {
                 ForEach(0..<4, id: \.self) { index in
@@ -134,6 +144,7 @@ struct PinBoxField: View {
         .frame(height: 58)
         .contentShape(Rectangle())
         .onTapGesture { focused = true }
+        .onAppear { if autoFocus { focused = true } }
     }
 }
 
@@ -150,7 +161,8 @@ struct HotSeatBoardGrid: View {
                     ForEach(1...10, id: \.self) { column in
                         let raw = board.cells[row - 1][column - 1].cellStatus
                         let shown: Cell.CurrentStatus = (hideShips && (raw == .showShip || raw == .showShipHalo)) ? .unknown : raw
-                        CellView(fireStrokeIsOn: false, cellStatus: shown, cellWidth: cellWidth)
+                        CellView(fireStrokeIsOn: board.fireStrokeArray[row - 1][column - 1],
+                                 cellStatus: shown, cellWidth: cellWidth)
                             .onTapGesture { onTap?(row, column) }
                     }
                 }
@@ -267,26 +279,34 @@ struct HotSeatHandoffView: View {
 
             if needsPin {
                 Text("Enter your PIN").foregroundColor(.white.opacity(0.85))
-                PinBoxField(pin: $pin)
-                if wrong { Text("Wrong PIN").foregroundColor(.red) }
-            }
-
-            Button(needsPin ? "Unlock" : "I'm ready") {
-                if game.verify(player: player, pin: pin) {
-                    switch purpose {
-                    case .arrange: game.unlockArrange(player: player)
-                    case .shoot: game.startShooting()
-                    }
-                } else {
-                    wrong = true
-                    pin = ""
+                PinBoxField(pin: $pin, autoFocus: true) { entered in
+                    attempt(entered)   // auto-proceed once 4 digits are in
                 }
+                if wrong { Text("Wrong PIN").foregroundColor(.red) }
+            } else {
+                Button("I'm ready") { proceed() }
+                    .buttonStyle(.borderedProminent)
+                    .tint(accent)
+                    .foregroundStyle(.black)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(accent)
-            .foregroundStyle(.black)
         }
         .padding()
+    }
+
+    private func attempt(_ pin: String) {
+        if game.verify(player: player, pin: pin) {
+            proceed()
+        } else {
+            wrong = true
+            self.pin = ""
+        }
+    }
+
+    private func proceed() {
+        switch purpose {
+        case .arrange: game.unlockArrange(player: player)
+        case .shoot: game.startShooting()
+        }
     }
 }
 
@@ -330,10 +350,11 @@ struct HotSeatArrangeView: View {
 struct HotSeatShootingView: View {
     let game: HotSeatGame
     @State private var showingOwnBoard = false
+    @State private var busy = false
 
     var body: some View {
         GeometryReader { geo in
-            let cell = min(geo.size.width, geo.size.height) * 0.075
+            let cell = min(geo.size.width, geo.size.height) * 0.09
             VStack(spacing: 12) {
                 HStack {
                     AvatarBadge(symbol: game.players[game.attacker].avatar, size: 40)
@@ -358,7 +379,7 @@ struct HotSeatShootingView: View {
                 } else {
                     Text("Fire at \(game.players[game.defender].name)").foregroundColor(.white.opacity(0.85))
                     HotSeatBoardGrid(board: game.boards[game.defender], hideShips: true, cellWidth: cell) { row, col in
-                        game.fire(row: row, column: col)
+                        fire(row: row, column: col)
                     }
                 }
 
@@ -377,6 +398,32 @@ struct HotSeatShootingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
+        }
+    }
+
+    /// Plays the shot animation (fire-stroke flash), then drives the turn/match
+    /// transition after a short delay so the result is visible — mirrors the
+    /// vs-computer timing.
+    private func fire(row: Int, column: Int) {
+        guard !busy, game.canFire(row: row, column: column) else { return }
+        busy = true
+        let target = game.defender
+        game.boards[target].fireStrokeArray[row - 1][column - 1] = true
+        let result = game.fire(row: row, column: column)
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.3))
+            game.boards[target].fireStrokeArray[row - 1][column - 1] = false
+            switch result {
+            case .missed?:
+                try? await Task.sleep(for: .seconds(0.8))
+                game.passTurn()
+            case .win?:
+                try? await Task.sleep(for: .seconds(1.0))
+                game.finishMatch()
+            default:
+                break
+            }
+            busy = false
         }
     }
 

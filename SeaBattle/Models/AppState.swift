@@ -51,6 +51,9 @@ class AppState {
     /// the covers survive layout changes — notably on iPad).
     var showHotSeat = false
     var showPaywall = false
+    /// Set when the paywall was opened from "Two players": after subscribing,
+    /// route the player into hot-seat instead of leaving them on the menu.
+    var pendingHotSeat = false
     
     static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }

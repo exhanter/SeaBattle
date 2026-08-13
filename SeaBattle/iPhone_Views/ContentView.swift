@@ -91,7 +91,12 @@ struct ContentView: View {
 
                             Button {
                                 if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium { appState.showHotSeat = true } else { appState.showPaywall = true }
+                                if premiumManager.isPremium {
+                                    appState.showHotSeat = true
+                                } else {
+                                    appState.pendingHotSeat = true
+                                    appState.showPaywall = true
+                                }
                             } label: {
                                 Label("Two players", systemImage: "person.2.fill")
                             }
@@ -150,6 +155,19 @@ struct ContentView: View {
             }
             .sheet(isPresented: $appState.showPaywall) {
                 PaywallView()
+            }
+            .onChange(of: premiumManager.isPremium) { _, isPremium in
+                // After subscribing from "Two players", continue into hot-seat.
+                if isPremium && appState.pendingHotSeat {
+                    appState.pendingHotSeat = false
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(0.4)) // let the paywall dismiss first
+                        appState.showHotSeat = true
+                    }
+                }
+            }
+            .onChange(of: appState.showPaywall) { _, shown in
+                if !shown && !premiumManager.isPremium { appState.pendingHotSeat = false }
             }
         }
     }

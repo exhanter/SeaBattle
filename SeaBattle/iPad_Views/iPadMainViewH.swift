@@ -85,7 +85,12 @@ struct iPadMainViewH: View {
 
                                 Button {
                                     if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                    if premiumManager.isPremium { appState.showHotSeat = true } else { appState.showPaywall = true }
+                                    if premiumManager.isPremium {
+                                        appState.showHotSeat = true
+                                    } else {
+                                        appState.pendingHotSeat = true
+                                        appState.showPaywall = true
+                                    }
                                 } label: {
                                     Label("Two players", systemImage: "person.2.fill")
                                 }

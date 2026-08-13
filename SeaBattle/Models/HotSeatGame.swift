@@ -104,46 +104,67 @@ final class HotSeatGame {
 
     // MARK: - Firing
 
-    func fire(row: Int, column: Int) {
-        guard phase == .shooting, winner == nil else { return }
+    enum ShotResult { case hit, sunk, missed, win }
+
+    /// Whether a shot at this cell is currently legal.
+    func canFire(row: Int, column: Int) -> Bool {
+        phase == .shooting && winner == nil && boards[defender].cells[row - 1][column - 1].isAvailable
+    }
+
+    /// Resolves a shot but does NOT change the turn/phase — the view drives the
+    /// transitions after playing the shot animation (so the result is visible
+    /// before the device is passed). RETURNS the outcome.
+    @discardableResult
+    func fire(row: Int, column: Int) -> ShotResult? {
+        guard canFire(row: row, column: column) else { return nil }
         let target = boards[defender]
         let r = row - 1, c = column - 1
-        guard target.cells[r][c].isAvailable else { return } // already fired here
 
-        if let shipIndex = target.ships.firstIndex(where: { $0.coordinates.contains(where: { $0 == (row, column) }) }) {
-            target.cells[r][c].cellStatus = .onFire
-            target.cells[r][c].isAvailable = false
-            play("blast_onfire2.wav")
-
-            let ship = target.ships[shipIndex]
-            let sunk = ship.coordinates.allSatisfy { coord in
-                let status = target.cells[coord.0 - 1][coord.1 - 1].cellStatus
-                return status == .onFire || status == .destroyed
-            }
-            if sunk {
-                for coord in ship.coordinates {
-                    target.cells[coord.0 - 1][coord.1 - 1].cellStatus = .destroyed
-                }
-                target.ships[shipIndex].isDestroyed = true
-                // Firing around a sunk ship stays allowed unless the player opted
-                // into the beginner protection.
-                if revealAroundSunk { target.markSafeAreaAsMissed(ship: ship) }
-                play("Glass_Break-stephan_schutze-958181291.wav")
-            }
-            if target.numberShipsDestroyed == 10 {
-                winner = attacker
-                players[attacker].sessionWins += 1
-                phase = .finished
-                AppState.musicPlayer?.stop()
-            }
-            // A hit keeps the same attacker firing (no handoff).
-        } else {
+        guard let shipIndex = target.ships.firstIndex(where: { $0.coordinates.contains(where: { $0 == (row, column) }) }) else {
             target.cells[r][c].cellStatus = .missed
             target.cells[r][c].isAvailable = false
             play("blast_missed.wav")
-            attacker = defender
-            phase = .turnHandoff(player: attacker)
+            return .missed
         }
+
+        target.cells[r][c].cellStatus = .onFire
+        target.cells[r][c].isAvailable = false
+        play("blast_onfire2.wav")
+
+        let ship = target.ships[shipIndex]
+        let sunk = ship.coordinates.allSatisfy { coord in
+            let status = target.cells[coord.0 - 1][coord.1 - 1].cellStatus
+            return status == .onFire || status == .destroyed
+        }
+        if sunk {
+            for coord in ship.coordinates {
+                target.cells[coord.0 - 1][coord.1 - 1].cellStatus = .destroyed
+            }
+            target.ships[shipIndex].isDestroyed = true
+            // Firing around a sunk ship stays allowed unless the player opted in.
+            if revealAroundSunk { target.markSafeAreaAsMissed(ship: ship) }
+            play("Glass_Break-stephan_schutze-958181291.wav")
+        }
+        if target.numberShipsDestroyed == 10 {
+            winner = attacker
+            players[attacker].sessionWins += 1
+            AppState.musicPlayer?.stop()
+            return .win
+        }
+        return sunk ? .sunk : .hit
+    }
+
+    /// Passes the turn to the other player (after a miss). View calls this once
+    /// the miss animation has played.
+    func passTurn() {
+        guard winner == nil, phase == .shooting else { return }
+        attacker = defender
+        phase = .turnHandoff(player: attacker)
+    }
+
+    /// Ends the match (after the winning-shot animation).
+    func finishMatch() {
+        phase = .finished
     }
 
     private func play(_ sound: String) {
