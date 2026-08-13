@@ -4,6 +4,13 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Sea Battle uses the local network to play with a nearby device.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_seabattle-mp._tcp</string>
+		<string>_seabattle-mp._udp</string>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Dorsa-Regular.ttf</string>

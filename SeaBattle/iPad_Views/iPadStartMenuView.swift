@@ -38,6 +38,7 @@ struct iPadStartMenuView: View {
         // Presented at the stable root so the covers survive the menu/battle
         // view switching (fixes the iPad hot-seat dismissal).
         .fullScreenCover(isPresented: $appState.showHotSeat) { HotSeatContainerView() }
+        .fullScreenCover(isPresented: $appState.showNearby) { NearbyGameView() }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
         .onChange(of: premiumManager.isPremium) { _, isPremium in
             if isPremium && appState.pendingHotSeat {

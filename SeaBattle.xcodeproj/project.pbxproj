@@ -82,6 +82,11 @@
 		CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */; };
 		CA17D7D9302D9BBA007A33B0 /* HotSeatGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */; };
 		CA17D7DB302D9C2C007A33B0 /* HotSeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */; };
+		CA17D8B9302E7609007A33B0 /* NetworkMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8B8302E7609007A33B0 /* NetworkMessage.swift */; };
+		CA17D8BB302E762A007A33B0 /* NetworkGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BA302E762A007A33B0 /* NetworkGame.swift */; };
+		CA17D8BD302E777B007A33B0 /* AccountID.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BC302E777B007A33B0 /* AccountID.swift */; };
+		CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */; };
+		CA17D8C1302E7822007A33B0 /* NetworkGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C0302E7822007A33B0 /* NetworkGameView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -181,6 +186,11 @@
 		CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
 		CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatGame.swift; sourceTree = "<group>"; };
 		CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatView.swift; sourceTree = "<group>"; };
+		CA17D8B8302E7609007A33B0 /* NetworkMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMessage.swift; sourceTree = "<group>"; };
+		CA17D8BA302E762A007A33B0 /* NetworkGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkGame.swift; sourceTree = "<group>"; };
+		CA17D8BC302E777B007A33B0 /* AccountID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountID.swift; sourceTree = "<group>"; };
+		CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerTransport.swift; sourceTree = "<group>"; };
+		CA17D8C0302E7822007A33B0 /* NetworkGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkGameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -232,6 +242,10 @@
 				CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */,
 				CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */,
 				CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */,
+				CA17D8B8302E7609007A33B0 /* NetworkMessage.swift */,
+				CA17D8BA302E762A007A33B0 /* NetworkGame.swift */,
+				CA17D8BC302E777B007A33B0 /* AccountID.swift */,
+				CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -252,6 +266,7 @@
 				CA17D7D2302D2805007A33B0 /* HintButton.swift */,
 				CA17D7D4302D2843007A33B0 /* StatsView.swift */,
 				CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */,
+				CA17D8C0302E7822007A33B0 /* NetworkGameView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";
@@ -559,6 +574,7 @@
 				CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */,
 				2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */,
 				2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */,
+				CA17D8BD302E777B007A33B0 /* AccountID.swift in Sources */,
 				2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */,
 				2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
@@ -571,6 +587,7 @@
 				CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */,
 				CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */,
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
+				CA17D8B9302E7609007A33B0 /* NetworkMessage.swift in Sources */,
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
@@ -587,16 +604,19 @@
 				2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */,
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				2CE731A02D5B627F00954841 /* iPadShipArrangementMenuViewV.swift in Sources */,
+				CA17D8C1302E7822007A33B0 /* NetworkGameView.swift in Sources */,
 				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
 				CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */,
 				2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */,
 				2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
 				2C6A847F2B6E99BA0001A20C /* EnemyFieldView.swift in Sources */,
+				CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */,
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
 				2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */,
 				2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */,
 				2CE7319C2D5A03DE00954841 /* iPadGameScoreViewH.swift in Sources */,
+				CA17D8BB302E762A007A33B0 /* NetworkGame.swift in Sources */,
 				2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */,
 				2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */,
 				2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */,

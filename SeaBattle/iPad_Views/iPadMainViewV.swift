@@ -96,6 +96,15 @@ struct iPadMainViewV: View {
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
                             .padding(.top)
 
+                        Button {
+                            if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                            if premiumManager.isPremium { appState.showNearby = true } else { appState.showPaywall = true }
+                        } label: {
+                            Label("Play nearby", systemImage: "dot.radiowaves.left.and.right")
+                        }
+                            .buttonStyle(.bordered)
+                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+
                         Button("Settings") {
                             self.showSettingsView = true
                         }

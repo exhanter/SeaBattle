@@ -50,6 +50,7 @@ class AppState {
     /// Transient presentation flags (set from the menu, presented at the root so
     /// the covers survive layout changes — notably on iPad).
     var showHotSeat = false
+    var showNearby = false
     var showPaywall = false
     /// Set when the paywall was opened from "Two players": after subscribing,
     /// route the player into hot-seat instead of leaving them on the menu.
