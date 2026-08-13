@@ -79,6 +79,9 @@
 		CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */; };
 		CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D2302D2805007A33B0 /* HintButton.swift */; };
 		CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D4302D2843007A33B0 /* StatsView.swift */; };
+		CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */; };
+		CA17D7D9302D9BBA007A33B0 /* HotSeatGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */; };
+		CA17D7DB302D9C2C007A33B0 /* HotSeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -175,6 +178,9 @@
 		CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
 		CA17D7D2302D2805007A33B0 /* HintButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintButton.swift; sourceTree = "<group>"; };
 		CA17D7D4302D2843007A33B0 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
+		CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatGame.swift; sourceTree = "<group>"; };
+		CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -224,6 +230,8 @@
 				CA17D7C5302CAF2F007A33B0 /* GameStore.swift */,
 				CA17D7C7302CB294007A33B0 /* PremiumManager.swift */,
 				CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */,
+				CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */,
+				CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -243,6 +251,7 @@
 				CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */,
 				CA17D7D2302D2805007A33B0 /* HintButton.swift */,
 				CA17D7D4302D2843007A33B0 /* StatsView.swift */,
+				CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";
@@ -541,6 +550,8 @@
 				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
 				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,
 				2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */,
+				CA17D7D9302D9BBA007A33B0 /* HotSeatGame.swift in Sources */,
+				CA17D7DB302D9C2C007A33B0 /* HotSeatView.swift in Sources */,
 				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
 				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
 				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
@@ -562,6 +573,7 @@
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
+				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
 				CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */,

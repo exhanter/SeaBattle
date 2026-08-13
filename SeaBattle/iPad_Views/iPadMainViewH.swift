@@ -11,10 +11,13 @@ struct iPadMainViewH: View {
     // Apple ID 6738694687
     
     @Environment(AppState.self) private var appState
+    @Environment(PremiumManager.self) private var premiumManager
     var player: PlayerData
     var enemy: PlayerData
     private var gameLogicViewModel: GameLogicViewModel
     @State private var showSettingsView = false
+    @State private var showHotSeat = false
+    @State private var showPaywall = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -82,6 +85,16 @@ struct iPadMainViewH: View {
                                         .padding(.bottom, 5)
                                 }
 
+                                Button {
+                                    if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                                    if premiumManager.isPremium { showHotSeat = true } else { showPaywall = true }
+                                } label: {
+                                    Label("Two players", systemImage: "person.2.fill")
+                                }
+                                    .buttonStyle(.bordered)
+                                    .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                                    .padding(.top)
+
                                 Button("Settings") {
                                     self.showSettingsView = true
                                 }
@@ -96,6 +109,8 @@ struct iPadMainViewH: View {
                         .sheet(isPresented: $showSettingsView) { SettingsView()
                                 .presentationDetents([.fraction(0.58)])
                         }
+                        .fullScreenCover(isPresented: $showHotSeat) { HotSeatContainerView() }
+                        .sheet(isPresented: $showPaywall) { PaywallView() }
                         .ignoresSafeArea()
                     } //ZStack off
                     .ignoresSafeArea()
@@ -119,4 +134,5 @@ struct iPadMainViewH: View {
 #Preview {
     iPadMainViewH(player: PlayerData(name: "Player"), enemy: PlayerData(name: "Enemy"), gameLogicViewModel: GameLogicViewModel())
         .environment(AppState())
+        .environment(PremiumManager())
 }

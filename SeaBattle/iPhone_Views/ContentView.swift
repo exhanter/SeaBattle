@@ -12,10 +12,13 @@ struct ContentView: View {
     // Apple ID 6738694687
     
     @Environment(AppState.self) private var appState
+    @Environment(PremiumManager.self) private var premiumManager
     @Environment(\.scenePhase) private var scenePhase
     @State private var player = PlayerData(name: "Player")
     @State private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
+    @State private var showHotSeat = false
+    @State private var showPaywall = false
     
     var body: some View {
         @Bindable var appState = appState
@@ -88,6 +91,16 @@ struct ContentView: View {
                                 .padding(.bottom, 5)
                             }
 
+                            Button {
+                                if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                                if premiumManager.isPremium { showHotSeat = true } else { showPaywall = true }
+                            } label: {
+                                Label("Two players", systemImage: "person.2.fill")
+                            }
+                            .buttonStyle(.bordered)
+                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .padding(.top)
+
                             Button("Settings") {
                                 self.showSettingsView = true
                             }
@@ -134,6 +147,12 @@ struct ContentView: View {
                     GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
                 }
             }
+            .fullScreenCover(isPresented: $showHotSeat) {
+                HotSeatContainerView()
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
         }
     }
 }
@@ -141,4 +160,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environment(AppState())
+        .environment(PremiumManager())
 }
