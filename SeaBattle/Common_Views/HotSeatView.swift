@@ -2,11 +2,11 @@
 //  HotSeatView.swift
 //  SeaBattle
 //
-//  Phase 5a: the premium two-players-on-one-device (hot-seat) flow, presented as
-//  a full-screen cover so it never touches the vs-computer battle UI. Screens
-//  follow HotSeatGame's phase machine: setup → secret placement (behind a PIN
-//  handoff) → alternating fire (handoff on each miss) → result with the running
-//  session score.
+//  Phase 5a: the premium two-players-on-one-device (hot-seat) flow. Wrapped in
+//  the app's wooden chrome (top title bar + bottom menu bar over the sea
+//  gradient) so it matches the vs-computer screens. Follows HotSeatGame's phase
+//  machine: setup → secret placement (PIN handoff) → alternating fire (handoff
+//  on each miss) → result with the running session score.
 //
 
 import SwiftUI
@@ -25,16 +25,76 @@ private func avatarColor(_ symbol: String) -> Color {
     return avatarPalette[index % avatarPalette.count]
 }
 
+// MARK: - Wooden chrome
+
+/// Shared wooden frame: a top bar with the screen title (and a close button)
+/// and a bottom "menu" bar hosting the screen's actions, over the sea gradient.
+struct HotSeatChrome<Content: View, Bar: View>: View {
+    let title: LocalizedStringKey
+    var onClose: (() -> Void)?
+    @ViewBuilder var content: (CGSize) -> Content
+    @ViewBuilder var bottomBar: (CGSize) -> Bar
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                seaGradient.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    ZStack {
+                        Image("wood").resizable().renderingMode(.original)
+                            .frame(height: geo.size.height * 0.12)
+                        Text(title)
+                            .font(.custom("Dorsa", size: geo.size.width * 0.11))
+                            .foregroundColor(accent)
+                            .shadow(color: .white, radius: 1)
+                        if let onClose {
+                            HStack {
+                                Spacer()
+                                Button(action: onClose) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.white.opacity(0.85))
+                                }
+                                .padding(.trailing, 16)
+                            }
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    content(geo.size)
+                    Spacer(minLength: 0)
+                    ZStack {
+                        Image("wood").resizable().renderingMode(.original)
+                            .frame(height: geo.size.height * 0.14)
+                        bottomBar(geo.size)
+                    }
+                }
+                .ignoresSafeArea()
+            }
+        }
+    }
+}
+
+/// A Dorsa-font text button, matching the app's bottom menu.
+private func menuButton(_ title: LocalizedStringKey, width: CGFloat, enabled: Bool = true, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+        Text(title)
+            .font(.custom("Dorsa", size: width * 0.095))
+            .foregroundColor(accent)
+            .shadow(color: .white, radius: 1)
+            .fixedSize(horizontal: true, vertical: true)
+    }
+    .disabled(!enabled)
+    .opacity(enabled ? 1 : 0.4)
+}
+
 // MARK: - Container
 
 struct HotSeatContainerView: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(AppState.self) private var appState
     @State private var game = HotSeatGame()
 
     var body: some View {
-        ZStack {
-            seaGradient.ignoresSafeArea()
+        Group {
             switch game.phase {
             case .setup:
                 HotSeatSetupView(game: game)
@@ -47,15 +107,7 @@ struct HotSeatContainerView: View {
             case .shooting:
                 HotSeatShootingView(game: game)
             case .finished:
-                HotSeatResultView(game: game, onClose: { dismiss() })
-            }
-        }
-        .overlay(alignment: .topTrailing) {
-            Button { dismiss() } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(.white.opacity(0.8))
-                    .padding()
+                HotSeatResultView(game: game)
             }
         }
         .onAppear {
@@ -63,10 +115,7 @@ struct HotSeatContainerView: View {
             game.revealAroundSunk = appState.autoRevealAroundSunk
             appState.manualShipArrangement = false
         }
-        .onDisappear {
-            // Never leave manual-placement mode on for the vs-computer screens.
-            appState.manualShipArrangement = false
-        }
+        .onDisappear { appState.manualShipArrangement = false }
         .statusBar(hidden: true)
         .persistentSystemOverlays(.hidden)
     }
@@ -106,8 +155,8 @@ struct AvatarPicker: View {
     }
 }
 
-/// A 4-digit PIN entry shown as large boxed, visible digits with a number pad.
-/// Dismisses the keyboard automatically on the 4th digit and reports completion.
+/// A 4-digit PIN entry: large boxed, visible digits with a number pad.
+/// Auto-hides the keyboard on the 4th digit and reports completion.
 struct PinBoxField: View {
     @Binding var pin: String
     var autoFocus: Bool = false
@@ -126,7 +175,7 @@ struct PinBoxField: View {
                     let cleaned = String(value.filter(\.isNumber).prefix(4))
                     if cleaned != value { pin = cleaned }
                     if cleaned.count == 4 {
-                        focused = false           // auto-hide the keyboard
+                        focused = false
                         onComplete?(cleaned)
                     }
                 }
@@ -179,6 +228,7 @@ struct HotSeatBoardGrid: View {
 // MARK: - Setup
 
 struct HotSeatSetupView: View {
+    @Environment(\.dismiss) private var dismiss
     let game: HotSeatGame
     private var profiles = ProfileStore.shared
 
@@ -198,35 +248,28 @@ struct HotSeatSetupView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("Two players")
-                    .font(.custom("Dorsa", size: 60))
-                    .foregroundStyle(accent)
-
-                slot(title: "Player 1", name: $name0, pin: $pin0, avatar: $avatar0)
-                slot(title: "Player 2", name: $name1, pin: $pin1, avatar: $avatar1)
-
-                Button("Start") {
-                    game.begin(name0: name0, avatar0: avatar0, pin0: pin0,
-                               name1: name1, avatar1: avatar1, pin1: pin1)
+        HotSeatChrome(title: "Two players", onClose: { dismiss() }) { _ in
+            ScrollView {
+                VStack(spacing: 16) {
+                    slot(title: "Player 1", name: $name0, pin: $pin0, avatar: $avatar0)
+                    slot(title: "Player 2", name: $name1, pin: $pin1, avatar: $avatar1)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(accent)
-                .foregroundStyle(.black)
-                .disabled(!canStart)
-                .opacity(canStart ? 1 : 0.5)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
             }
-            .padding(24)
+            .scrollDismissesKeyboard(.interactively)
+        } bottomBar: { size in
+            menuButton("Start", width: size.width, enabled: canStart) {
+                game.begin(name0: name0, avatar0: avatar0, pin0: pin0,
+                           name1: name1, avatar1: avatar1, pin1: pin1)
+            }
         }
-        .scrollDismissesKeyboard(.interactively)
     }
 
     private func slot(title: LocalizedStringKey, name: Binding<String>, pin: Binding<String>, avatar: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title).font(.headline).foregroundColor(.white)
-            TextField("Name", text: name)
-                .textFieldStyle(.roundedBorder)
+            TextField("Name", text: name).textFieldStyle(.roundedBorder)
             AvatarPicker(selection: avatar)
             Text("PIN (optional)").font(.caption).foregroundColor(.white.opacity(0.8))
             PinBoxField(pin: pin)
@@ -259,6 +302,7 @@ struct HotSeatSetupView: View {
 
 struct HotSeatHandoffView: View {
     enum Purpose { case arrange, shoot }
+    @Environment(\.dismiss) private var dismiss
     let game: HotSeatGame
     let player: Int
     let purpose: Purpose
@@ -269,42 +313,34 @@ struct HotSeatHandoffView: View {
     private var needsPin: Bool { game.players[player].pinHash != nil }
 
     var body: some View {
-        VStack(spacing: 22) {
-            Image(systemName: "hand.raised.fill")
-                .font(.system(size: 50))
-                .foregroundStyle(accent)
-            Text("Pass the device to")
-                .foregroundColor(.white)
-            AvatarBadge(symbol: game.players[player].avatar, size: 64)
-            Text(game.players[player].name)
-                .font(.custom("Dorsa", size: 56))
-                .foregroundStyle(accent)
-            Text(purpose == .arrange ? "Time to place your fleet" : "Your turn to fire")
-                .foregroundColor(.white.opacity(0.85))
-
-            if needsPin {
-                Text("Enter your PIN").foregroundColor(.white.opacity(0.85))
-                PinBoxField(pin: $pin, autoFocus: true) { entered in
-                    attempt(entered)   // auto-proceed once 4 digits are in
+        HotSeatChrome(title: "Pass the device", onClose: { dismiss() }) { _ in
+            VStack(spacing: 18) {
+                AvatarBadge(symbol: game.players[player].avatar, size: 72)
+                Text(game.players[player].name)
+                    .font(.custom("Dorsa", size: 52))
+                    .foregroundStyle(accent)
+                Text(purpose == .arrange ? "Time to place your fleet" : "Your turn to fire")
+                    .foregroundColor(.white.opacity(0.85))
+                if needsPin {
+                    Text("Enter your PIN").foregroundColor(.white.opacity(0.85))
+                    PinBoxField(pin: $pin, autoFocus: true) { entered in attempt(entered) }
+                    if wrong { Text("Wrong PIN").foregroundColor(.red) }
                 }
-                if wrong { Text("Wrong PIN").foregroundColor(.red) }
+            }
+        } bottomBar: { size in
+            if needsPin {
+                Text("Enter PIN to continue")
+                    .font(.custom("Dorsa", size: size.width * 0.07))
+                    .foregroundColor(.white.opacity(0.7))
             } else {
-                Button("I'm ready") { proceed() }
-                    .buttonStyle(.borderedProminent)
-                    .tint(accent)
-                    .foregroundStyle(.black)
+                menuButton("I'm ready", width: size.width) { proceed() }
             }
         }
-        .padding()
     }
 
     private func attempt(_ pin: String) {
-        if game.verify(player: player, pin: pin) {
-            proceed()
-        } else {
-            wrong = true
-            self.pin = ""
-        }
+        if game.verify(player: player, pin: pin) { proceed() }
+        else { wrong = true; self.pin = "" }
     }
 
     private func proceed() {
@@ -319,6 +355,7 @@ struct HotSeatHandoffView: View {
 
 struct HotSeatArrangeView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     let game: HotSeatGame
     let player: Int
     @State private var topLeft: CGPoint = .zero
@@ -329,48 +366,40 @@ struct HotSeatArrangeView: View {
         GeometryReader { geo in
             let cell = min(geo.size.width, geo.size.height) * 0.09
             ZStack {
-                VStack(spacing: 12) {
+                HotSeatChrome(title: "\(game.players[player].name)", onClose: { dismiss() }) { _ in
+                    VStack(spacing: 10) {
+                        Text(appState.manualShipArrangement
+                             ? "Drag to move · long-press to rotate"
+                             : "Your fleet — hidden from your opponent")
+                            .foregroundColor(.white.opacity(0.85))
+                        VStack(spacing: 0) {
+                            PlayerSquareView(player: game.boards[player],
+                                             leftTopPointOfGameField: $topLeft,
+                                             width: cell)
+                        }
+                    }
+                } bottomBar: { size in
                     HStack {
-                        AvatarBadge(symbol: game.players[player].avatar, size: 40)
-                        Text(game.players[player].name)
-                            .font(.custom("Dorsa", size: 44))
-                            .foregroundStyle(accent)
-                    }
-                    Text(appState.manualShipArrangement
-                         ? "Drag to move · long-press to rotate"
-                         : "Your fleet — hidden from your opponent")
-                        .foregroundColor(.white.opacity(0.85))
-
-                    VStack(spacing: 0) {
-                        PlayerSquareView(player: game.boards[player],
-                                         leftTopPointOfGameField: $topLeft,
-                                         width: cell)
-                    }
-
-                    HStack(spacing: 14) {
-                        Button("Shuffle") { game.randomize(player: player) }
-                            .buttonStyle(.bordered)
-                            .tint(.white)
-                            .disabled(appState.manualShipArrangement)
-                        Button(appState.manualShipArrangement ? "Save" : "Change") {
+                        Spacer()
+                        menuButton("Shuffle", width: size.width, enabled: !appState.manualShipArrangement) {
+                            game.randomize(player: player)
+                        }
+                        Spacer()
+                        menuButton(appState.manualShipArrangement ? "Save" : "Change", width: size.width, enabled: !isDragging) {
                             if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
                             appState.manualShipArrangement.toggle()
                         }
-                        .buttonStyle(.bordered)
-                        .tint(accent)
-                        .disabled(isDragging)
-                        Button("Ready") { game.finishArrangement(player: player) }
-                            .buttonStyle(.borderedProminent)
-                            .tint(accent)
-                            .foregroundStyle(.black)
-                            .disabled(appState.manualShipArrangement || isDragging)
+                        Spacer()
+                        menuButton("Ready", width: size.width, enabled: !appState.manualShipArrangement && !isDragging) {
+                            game.finishArrangement(player: player)
+                        }
+                        Spacer()
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                // Draggable ship overlay (same component as the vs-computer game).
                 if appState.manualShipArrangement {
                     ShipReplacementView(leftTopPointOfGameField: topLeft, cellSize: cell, player: game.boards[player])
+                        .ignoresSafeArea()
                 }
             }
         }
@@ -380,22 +409,15 @@ struct HotSeatArrangeView: View {
 // MARK: - Shooting
 
 struct HotSeatShootingView: View {
+    @Environment(\.dismiss) private var dismiss
     let game: HotSeatGame
     @State private var showingOwnBoard = false
     @State private var busy = false
 
     var body: some View {
-        GeometryReader { geo in
-            let cell = min(geo.size.width, geo.size.height) * 0.09
+        HotSeatChrome(title: "\(game.players[game.attacker].name)", onClose: { dismiss() }) { size in
+            let cell = min(size.width, size.height) * 0.09
             VStack(spacing: 12) {
-                HStack {
-                    AvatarBadge(symbol: game.players[game.attacker].avatar, size: 40)
-                    Text(game.players[game.attacker].name)
-                        .font(.custom("Dorsa", size: 44))
-                        .foregroundStyle(accent)
-                }
-
-                // Live scoreboard so players can compare progress.
                 HStack(spacing: 20) {
                     scoreTag(name: game.players[game.attacker].name,
                              sunk: game.boards[game.defender].numberShipsDestroyed)
@@ -414,28 +436,15 @@ struct HotSeatShootingView: View {
                         fire(row: row, column: col)
                     }
                 }
-
-                Button {
-                    showingOwnBoard.toggle()
-                } label: {
-                    Label(showingOwnBoard ? "Back to attack" : "Show my fleet",
-                          systemImage: showingOwnBoard ? "scope" : "shield.lefthalf.filled")
-                }
-                .buttonStyle(.bordered)
-                .tint(.white)
-
-                Text("Hit again to keep firing — a miss passes the device")
-                    .font(.footnote)
-                    .foregroundColor(.white.opacity(0.7))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
+        } bottomBar: { size in
+            menuButton(showingOwnBoard ? "Attack" : "My fleet", width: size.width) {
+                showingOwnBoard.toggle()
+            }
         }
     }
 
-    /// Plays the shot animation (fire-stroke flash), then drives the turn/match
-    /// transition after a short delay so the result is visible — mirrors the
-    /// vs-computer timing.
+    /// Fire-stroke flash + delayed transition, mirroring the vs-computer timing.
     private func fire(row: Int, column: Int) {
         guard !busy, game.canFire(row: row, column: column) else { return }
         busy = true
@@ -470,52 +479,48 @@ struct HotSeatShootingView: View {
 // MARK: - Result
 
 struct HotSeatResultView: View {
+    @Environment(\.dismiss) private var dismiss
     let game: HotSeatGame
-    let onClose: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "trophy.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(accent)
-            if let winner = game.winner {
-                HStack {
-                    AvatarBadge(symbol: game.players[winner].avatar, size: 50)
-                    Text("\(game.players[winner].name) wins!")
-                        .font(.custom("Dorsa", size: 52))
-                        .foregroundStyle(accent)
+        HotSeatChrome(title: "Result", onClose: { dismiss() }) { _ in
+            VStack(spacing: 18) {
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(accent)
+                if let winner = game.winner {
+                    HStack {
+                        AvatarBadge(symbol: game.players[winner].avatar, size: 50)
+                        Text("\(game.players[winner].name) wins!")
+                            .font(.custom("Dorsa", size: 48))
+                            .foregroundStyle(accent)
+                    }
                 }
-            }
-
-            // Running session score.
-            VStack(spacing: 8) {
-                Text("This session").foregroundColor(.white.opacity(0.8))
-                HStack(spacing: 28) {
-                    ForEach(0..<2, id: \.self) { i in
-                        VStack {
-                            AvatarBadge(symbol: game.players[i].avatar, size: 44)
-                            Text(game.players[i].name).foregroundColor(.white).lineLimit(1)
-                            Text("\(game.players[i].sessionWins)")
-                                .font(.title).bold()
-                                .foregroundColor(accent)
+                VStack(spacing: 8) {
+                    Text("This session").foregroundColor(.white.opacity(0.8))
+                    HStack(spacing: 28) {
+                        ForEach(0..<2, id: \.self) { i in
+                            VStack {
+                                AvatarBadge(symbol: game.players[i].avatar, size: 44)
+                                Text(game.players[i].name).foregroundColor(.white).lineLimit(1)
+                                Text("\(game.players[i].sessionWins)")
+                                    .font(.title).bold().foregroundColor(accent)
+                            }
                         }
                     }
                 }
+                .padding()
+                .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 14))
             }
-            .padding()
-            .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 14))
-
-            HStack(spacing: 16) {
-                Button("Play again") { game.restart() }
-                    .buttonStyle(.borderedProminent)
-                    .tint(accent)
-                    .foregroundStyle(.black)
-                Button("Done") { onClose() }
-                    .buttonStyle(.bordered)
-                    .tint(.white)
+        } bottomBar: { size in
+            HStack {
+                Spacer()
+                menuButton("Play again", width: size.width) { game.restart() }
+                Spacer()
+                menuButton("Done", width: size.width) { dismiss() }
+                Spacer()
             }
         }
-        .padding()
     }
 }
 
