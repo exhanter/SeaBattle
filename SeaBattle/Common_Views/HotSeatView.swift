@@ -61,6 +61,11 @@ struct HotSeatContainerView: View {
         .onAppear {
             game.soundOn = appState.soundOn
             game.revealAroundSunk = appState.autoRevealAroundSunk
+            appState.manualShipArrangement = false
+        }
+        .onDisappear {
+            // Never leave manual-placement mode on for the vs-computer screens.
+            appState.manualShipArrangement = false
         }
         .statusBar(hidden: true)
         .persistentSystemOverlays(.hidden)
@@ -313,34 +318,61 @@ struct HotSeatHandoffView: View {
 // MARK: - Secret placement
 
 struct HotSeatArrangeView: View {
+    @Environment(AppState.self) private var appState
     let game: HotSeatGame
     let player: Int
+    @State private var topLeft: CGPoint = .zero
+
+    private var isDragging: Bool { game.boards[player].shipIsDragging.contains(true) }
 
     var body: some View {
         GeometryReader { geo in
-            VStack(spacing: 14) {
-                HStack {
-                    AvatarBadge(symbol: game.players[player].avatar, size: 40)
-                    Text(game.players[player].name)
-                        .font(.custom("Dorsa", size: 44))
-                        .foregroundStyle(accent)
-                }
-                Text("Your fleet — hidden from your opponent")
-                    .foregroundColor(.white.opacity(0.85))
-                HotSeatBoardGrid(board: game.boards[player], hideShips: false,
-                                 cellWidth: min(geo.size.width, geo.size.height) * 0.075)
-                HStack(spacing: 16) {
-                    Button("Shuffle") { game.randomize(player: player) }
+            let cell = min(geo.size.width, geo.size.height) * 0.09
+            ZStack {
+                VStack(spacing: 12) {
+                    HStack {
+                        AvatarBadge(symbol: game.players[player].avatar, size: 40)
+                        Text(game.players[player].name)
+                            .font(.custom("Dorsa", size: 44))
+                            .foregroundStyle(accent)
+                    }
+                    Text(appState.manualShipArrangement
+                         ? "Drag to move · long-press to rotate"
+                         : "Your fleet — hidden from your opponent")
+                        .foregroundColor(.white.opacity(0.85))
+
+                    VStack(spacing: 0) {
+                        PlayerSquareView(player: game.boards[player],
+                                         leftTopPointOfGameField: $topLeft,
+                                         width: cell)
+                    }
+
+                    HStack(spacing: 14) {
+                        Button("Shuffle") { game.randomize(player: player) }
+                            .buttonStyle(.bordered)
+                            .tint(.white)
+                            .disabled(appState.manualShipArrangement)
+                        Button(appState.manualShipArrangement ? "Save" : "Change") {
+                            if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                            appState.manualShipArrangement.toggle()
+                        }
                         .buttonStyle(.bordered)
-                        .tint(.white)
-                    Button("Ready") { game.finishArrangement(player: player) }
-                        .buttonStyle(.borderedProminent)
                         .tint(accent)
-                        .foregroundStyle(.black)
+                        .disabled(isDragging)
+                        Button("Ready") { game.finishArrangement(player: player) }
+                            .buttonStyle(.borderedProminent)
+                            .tint(accent)
+                            .foregroundStyle(.black)
+                            .disabled(appState.manualShipArrangement || isDragging)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // Draggable ship overlay (same component as the vs-computer game).
+                if appState.manualShipArrangement {
+                    ShipReplacementView(leftTopPointOfGameField: topLeft, cellSize: cell, player: game.boards[player])
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
         }
     }
 }
