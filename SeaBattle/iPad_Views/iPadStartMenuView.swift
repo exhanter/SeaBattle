@@ -34,6 +34,9 @@ struct iPadStartMenuView: View {
             if phase != .active && appState.gameIsActive && !appState.enemysTurn {
                 GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
             }
+            if phase == .active {
+                Task { await CloudSyncManager.shared.refresh() }
+            }
         }
         // Presented at the stable root so the covers survive the menu/battle
         // view switching (fixes the iPad hot-seat dismissal).

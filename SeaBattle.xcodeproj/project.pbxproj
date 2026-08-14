@@ -90,6 +90,7 @@
 		CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */; };
 		CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */; };
 		CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */; };
+		CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -198,6 +199,7 @@
 		CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameKitTransport.swift; sourceTree = "<group>"; };
 		CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineGameView.swift; sourceTree = "<group>"; };
 		CA17D8C8302E7D0B007A33B0 /* SeaBattle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SeaBattle.entitlements; sourceTree = "<group>"; };
+		CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -255,6 +257,7 @@
 				CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */,
 				CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */,
 				CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */,
+				CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -572,6 +575,7 @@
 				2CE731982D56A0A500954841 /* iPadStartButton.swift in Sources */,
 				2CE731962D564D7300954841 /* PlayerSquareView.swift in Sources */,
 				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
+				CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */,
 				2CE9D5C92D5BA11400324F58 /* UpperLabelAndButtonView.swift in Sources */,
 				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
 				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,

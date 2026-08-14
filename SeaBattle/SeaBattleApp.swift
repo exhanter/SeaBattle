@@ -25,6 +25,7 @@ struct SeaBattleApp: App {
             .environment(\.locale, Locale(identifier: appState.language))
             .task {
                 premiumManager.start()
+                CloudSyncManager.shared.start()
             }
         }
     }

@@ -167,6 +167,10 @@ struct ContentView: View {
                 if phase != .active && appState.gameIsActive && !appState.enemysTurn {
                     GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
                 }
+                // Pull the latest synced data when returning to the foreground.
+                if phase == .active {
+                    Task { await CloudSyncManager.shared.refresh() }
+                }
             }
             .fullScreenCover(isPresented: $appState.showHotSeat) {
                 HotSeatContainerView()

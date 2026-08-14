@@ -19,9 +19,14 @@ final class ProfileStore {
     static let maxProfiles = 10
 
     private static let defaultsKey = "playerProfiles"
+    private static let modifiedKey = "playerProfiles.modified"
     private static let salt = "SeaBattle.pin.v1."
 
     private(set) var profiles: [PlayerProfile]
+    private(set) var lastModified: Date
+
+    /// Called after a LOCAL change so the sync layer can push.
+    @ObservationIgnored var didChange: (() -> Void)?
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Self.defaultsKey),
@@ -30,6 +35,18 @@ final class ProfileStore {
         } else {
             self.profiles = []
         }
+        self.lastModified = (UserDefaults.standard.object(forKey: Self.modifiedKey) as? Date) ?? .distantPast
+    }
+
+    // MARK: - Sync bridge
+
+    func exportData() -> Data? { try? JSONEncoder().encode(profiles) }
+
+    func applyRemote(_ data: Data, modified: Date) {
+        guard let decoded = try? JSONDecoder().decode([PlayerProfile].self, from: data) else { return }
+        profiles = decoded
+        lastModified = modified
+        writeLocal()
     }
 
     var canAddMore: Bool { profiles.count < Self.maxProfiles }
@@ -66,8 +83,15 @@ final class ProfileStore {
     }
 
     private func persist() {
+        lastModified = Date()
+        writeLocal()
+        didChange?()
+    }
+
+    private func writeLocal() {
         if let data = try? JSONEncoder().encode(profiles) {
             UserDefaults.standard.set(data, forKey: Self.defaultsKey)
         }
+        UserDefaults.standard.set(lastModified, forKey: Self.modifiedKey)
     }
 }

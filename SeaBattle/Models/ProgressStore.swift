@@ -19,8 +19,15 @@ final class ProgressStore {
     static let shared = ProgressStore()
 
     private static let defaultsKey = "playerStats"
+    private static let modifiedKey = "playerStats.modified"
 
     private(set) var stats: PlayerStats
+    /// When the local data last changed — used for last-writer-wins CloudKit sync.
+    private(set) var lastModified: Date
+
+    /// Called after a LOCAL change so the sync layer can push. Not called when
+    /// applying a remote update.
+    @ObservationIgnored var didChange: (() -> Void)?
 
     private init() {
         if let data = UserDefaults.standard.data(forKey: Self.defaultsKey),
@@ -29,6 +36,19 @@ final class ProgressStore {
         } else {
             self.stats = PlayerStats()
         }
+        self.lastModified = (UserDefaults.standard.object(forKey: Self.modifiedKey) as? Date) ?? .distantPast
+    }
+
+    // MARK: - Sync bridge
+
+    func exportData() -> Data? { try? JSONEncoder().encode(stats) }
+
+    /// Applies a newer copy pulled from CloudKit (does not re-trigger a push).
+    func applyRemote(_ data: Data, modified: Date) {
+        guard let decoded = try? JSONDecoder().decode(PlayerStats.self, from: data) else { return }
+        stats = decoded
+        lastModified = modified
+        writeLocal()
     }
 
     // MARK: - Reads
@@ -75,8 +95,15 @@ final class ProgressStore {
     }
 
     private func persist() {
+        lastModified = Date()
+        writeLocal()
+        didChange?()
+    }
+
+    private func writeLocal() {
         if let data = try? JSONEncoder().encode(stats) {
             UserDefaults.standard.set(data, forKey: Self.defaultsKey)
         }
+        UserDefaults.standard.set(lastModified, forKey: Self.modifiedKey)
     }
 }
