@@ -45,6 +45,7 @@ final class NetworkGame {
     private(set) var iWon: Bool?
     private(set) var busy = false              // awaiting a shot result
     private(set) var opponentShipsSunk = 0     // how many of the opponent's ships I've sunk
+    private(set) var revealedHints: [Coordinate] = [] // opponent ship cells revealed to me by hints
 
     private var iAmReady = false
     private var opponentReady = false
@@ -111,6 +112,23 @@ final class NetworkGame {
         transport.send(.fire(Coordinate(row: row, column: column)))
     }
 
+    // MARK: - Hints (cross-account only)
+
+    var hintCost: Int { AppState.DifficultyLevel.expert.pointsValue }
+
+    /// Hints only make sense against a different account (they cost you points
+    /// and pay the opponent). Available on your turn with enough points.
+    var canUseHint: Bool {
+        phase == .myTurn && !busy && !isSameAccount && ProgressStore.shared.points >= hintCost
+    }
+
+    /// Spend points to ask the opponent to reveal one of their ship cells. The
+    /// opponent receives compensation points and answers with `.hintReveal`.
+    func useHint() {
+        guard canUseHint, ProgressStore.shared.spend(hintCost) else { return }
+        transport.send(.hintUsed)
+    }
+
     // MARK: - Message handling
 
     private func handle(_ message: NetworkMessage) {
@@ -131,8 +149,19 @@ final class NetworkGame {
             applyResult(payload)
 
         case .hintUsed:
-            // Opponent used a hint against me → I receive compensation points.
+            // Opponent used a hint against me → I receive compensation points and
+            // reveal one of my still-unhit ship cells to them.
             if !isSameAccount { ProgressStore.shared.addPoints(AppState.DifficultyLevel.expert.pointsValue) }
+            let candidates = own.ships
+                .filter { !$0.isDestroyed }
+                .flatMap { $0.coordinates }
+                .filter { own.cells[$0.0 - 1][$0.1 - 1].isAvailable }
+            if let pick = candidates.randomElement() {
+                transport.send(.hintReveal(Coordinate(pick)))
+            }
+
+        case .hintReveal(let coordinate):
+            if !revealedHints.contains(coordinate) { revealedHints.append(coordinate) }
 
         case .rematch:
             resetForRematch()
@@ -236,6 +265,7 @@ final class NetworkGame {
         opponentReady = false
         busy = false
         opponentShipsSunk = 0
+        revealedHints = []
         phase = .placing
     }
 

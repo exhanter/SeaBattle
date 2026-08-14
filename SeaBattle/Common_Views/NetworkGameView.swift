@@ -235,14 +235,25 @@ struct NetworkBattleView: View {
                     HotSeatBoardGrid(board: game.own, hideShips: false, cellWidth: cell)
                 } else {
                     Text("Fire at \(game.opponentName)").foregroundColor(.white.opacity(0.85))
-                    HotSeatBoardGrid(board: game.tracking, hideShips: true, cellWidth: cell) { row, col in
+                    HotSeatBoardGrid(board: game.tracking, hideShips: true, cellWidth: cell,
+                                     hintedCells: Set(game.revealedHints)) { row, col in
                         fire(row: row, column: col)
                     }
                 }
             }
         } bottomBar: { size in
-            netMenuButton(showingOwnBoard ? "Attack" : "My fleet", width: size.width, enabled: myTurn) {
-                showingOwnBoard.toggle()
+            HStack {
+                Spacer()
+                netMenuButton(showingOwnBoard ? "Attack" : "My fleet", width: size.width, enabled: myTurn) {
+                    showingOwnBoard.toggle()
+                }
+                if myTurn && !game.isSameAccount {
+                    Spacer()
+                    netMenuButton("Hint (\(game.hintCost))", width: size.width, enabled: game.canUseHint) {
+                        game.useHint()
+                    }
+                }
+                Spacer()
             }
         }
     }

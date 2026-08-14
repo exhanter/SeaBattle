@@ -206,6 +206,7 @@ struct HotSeatBoardGrid: View {
     let board: PlayerData
     let hideShips: Bool
     let cellWidth: CGFloat
+    var hintedCells: Set<Coordinate> = []
     var onTap: ((Int, Int) -> Void)? = nil
 
     var body: some View {
@@ -217,6 +218,14 @@ struct HotSeatBoardGrid: View {
                         let shown: Cell.CurrentStatus = (hideShips && (raw == .showShip || raw == .showShipHalo)) ? .unknown : raw
                         CellView(fireStrokeIsOn: board.fireStrokeArray[row - 1][column - 1],
                                  cellStatus: shown, cellWidth: cellWidth)
+                            .overlay {
+                                if shown == .unknown && hintedCells.contains(Coordinate(row: row, column: column)) {
+                                    Image(systemName: "target")
+                                        .font(.system(size: cellWidth * 0.6))
+                                        .foregroundStyle(Color(red: 248/255, green: 1, blue: 0))
+                                        .shadow(color: .black, radius: 1)
+                                }
+                            }
                             .onTapGesture { onTap?(row, column) }
                     }
                 }

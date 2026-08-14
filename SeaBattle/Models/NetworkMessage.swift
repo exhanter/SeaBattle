@@ -35,6 +35,7 @@ enum NetworkMessage: Codable, Sendable {
     case fire(Coordinate)            // I shoot this cell of your board
     case result(ResultPayload)       // your answer to my shot
     case hintUsed                    // I spent a hint → you get compensation points
+    case hintReveal(Coordinate)      // defender reveals one of its ship cells to the hinter
     case rematch
     case quit
 }
