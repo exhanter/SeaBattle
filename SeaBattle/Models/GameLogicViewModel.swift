@@ -86,11 +86,13 @@ class GameLogicViewModel {
     // MARK: - Hints (Phase 6)
 
     /// The cost of a hint at the current difficulty (== the win reward).
-    var hintCost: Int { appState.difficultyLevel.pointsValue }
+    /// Safe before `configure()` runs (the battle view's body can read this
+    /// before `onAppear` injects the game objects).
+    var hintCost: Int { isConfigured ? appState.difficultyLevel.pointsValue : 0 }
 
     /// True when a hint can be requested right now.
     var canUseHint: Bool {
-        appState.gameIsActive && !appState.enemysTurn && ProgressStore.shared.points >= hintCost
+        isConfigured && appState.gameIsActive && !appState.enemysTurn && ProgressStore.shared.points >= hintCost
     }
 
     /// Spends points to reveal a random enemy cell that definitely holds an

@@ -20,7 +20,7 @@ struct HintButton: View {
             Button {
                 gameLogicViewModel.requestHint()
             } label: {
-                Label("Hint (\(gameLogicViewModel.hintCost))  ·  \(ProgressStore.shared.points) pts",
+                Label("Hint (\(appState.difficultyLevel.pointsValue))  ·  \(ProgressStore.shared.points) pts",
                       systemImage: "lightbulb.max.fill")
                     .font(.headline)
             }
