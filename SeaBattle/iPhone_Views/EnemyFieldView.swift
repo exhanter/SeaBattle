@@ -21,6 +21,10 @@ struct EnemyFieldView: View {
                     .ignoresSafeArea()
                 VStack(alignment: .center, spacing: 0) {
                     Spacer()
+                    // Changing element kept at the TOP so its show/hide is absorbed
+                    // by the spacer above and never shifts the board (anchored below).
+                    HintButton(gameLogicViewModel: gameLogicViewModel)
+                        .padding(.bottom, geometry.size.height * 0.02)
                     if geometry.size.width / geometry.size.height < 0.56 {
                         Text("Opponent")
                             .font(Font.custom("Aldrich", size: 48))
@@ -30,10 +34,7 @@ struct EnemyFieldView: View {
                     }
                     
                     EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.width * 0.09)
-                    .padding(.bottom, geometry.size.height * 0.03)
-
-                    HintButton(gameLogicViewModel: gameLogicViewModel)
-                        .padding(.bottom, geometry.size.height * 0.02)
+                    .padding(.bottom, geometry.size.height * 0.05)
 
                     Text("FIRE!")
                         .font(Font.custom("Aldrich", size: 40))

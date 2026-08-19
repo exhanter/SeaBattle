@@ -32,7 +32,9 @@ struct PlayerSnapshot: Codable, Sendable {
         player.cells = cells
         player.ships = ships
         player.showFinishGameAlert = showFinishGameAlert
-        player.fireStrokeArray = fireStrokeArray
+        // Always clear the transient fire-stroke overlay on restore: if the app
+        // was killed mid-shot a cell could otherwise stay stuck with a red halo.
+        player.fireStrokeArray = fireStrokeArray.map { $0.map { _ in false } }
     }
 }
 
