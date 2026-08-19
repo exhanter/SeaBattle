@@ -61,7 +61,10 @@ final class HotSeatGame {
         // Remember the players (name + avatar only) for next time.
         ProfileStore.shared.upsert(name: name0, avatar: avatar0)
         ProfileStore.shared.upsert(name: name1, avatar: avatar1)
-        phase = .arrangeHandoff(player: 0)
+        // First player already holds the device — skip the pass-the-device screen
+        // and go straight to placement with an auto-arranged fleet. The handoff is
+        // still shown before player 2 places (and before each turn).
+        unlockArrange(player: 0)
     }
 
     func verify(player: Int, pin: String) -> Bool {
