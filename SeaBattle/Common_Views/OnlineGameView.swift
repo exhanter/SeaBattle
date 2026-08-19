@@ -34,7 +34,7 @@ struct OnlineGameView: View {
                 } bottomBar: { size in
                     Button { leave() } label: {
                         Text("Cancel")
-                            .font(.custom("Dorsa", size: size.width * 0.095))
+                            .font(.custom("Dorsa", size: size.width * 0.13))
                             .foregroundColor(onlineAccent)
                             .shadow(color: .white, radius: 1)
                     }

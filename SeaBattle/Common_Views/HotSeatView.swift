@@ -40,23 +40,25 @@ struct HotSeatChrome<Content: View, Bar: View>: View {
             ZStack {
                 seaGradient.ignoresSafeArea()
                 VStack(spacing: 0) {
-                    ZStack {
+                    ZStack(alignment: .bottom) {
                         Image("wood").resizable().renderingMode(.original)
                             .frame(height: geo.size.height * 0.12)
                         Text(title)
-                            .font(.custom("Dorsa", size: geo.size.width * 0.11))
+                            .font(.custom("Dorsa", size: geo.size.width * 0.16))
                             .foregroundColor(accent)
                             .shadow(color: .white, radius: 1)
+                            .padding(.bottom, geo.size.height * 0.012)
                         if let onClose {
                             HStack {
                                 Spacer()
                                 Button(action: onClose) {
                                     Image(systemName: "xmark.circle.fill")
-                                        .font(.title2)
-                                        .foregroundStyle(.white.opacity(0.85))
+                                        .font(.title)
+                                        .foregroundStyle(accent)
                                 }
                                 .padding(.trailing, 16)
                             }
+                            .padding(.bottom, geo.size.height * 0.02)
                         }
                     }
                     Spacer(minLength: 0)
@@ -78,7 +80,7 @@ struct HotSeatChrome<Content: View, Bar: View>: View {
 private func menuButton(_ title: LocalizedStringKey, width: CGFloat, enabled: Bool = true, action: @escaping () -> Void) -> some View {
     Button(action: action) {
         Text(title)
-            .font(.custom("Dorsa", size: width * 0.095))
+            .font(.custom("Dorsa", size: width * 0.13))
             .foregroundColor(accent)
             .shadow(color: .white, radius: 1)
             .fixedSize(horizontal: true, vertical: true)

@@ -15,7 +15,7 @@ private let netAccent = Color(red: 248/255, green: 255/255, blue: 0/255)
 private func netMenuButton(_ title: LocalizedStringKey, width: CGFloat, enabled: Bool = true, action: @escaping () -> Void) -> some View {
     Button(action: action) {
         Text(title)
-            .font(.custom("Dorsa", size: width * 0.095))
+            .font(.custom("Dorsa", size: width * 0.13))
             .foregroundColor(netAccent)
             .shadow(color: .white, radius: 1)
             .fixedSize(horizontal: true, vertical: true)
