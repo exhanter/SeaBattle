@@ -87,12 +87,10 @@ final class ComputerOpponent: Opponent {
         guard !remainingSizes.isEmpty else { return nil }
 
         var heat = [[Int]](repeating: [Int](repeating: 0, count: 10), count: 10)
-        let hitWeight = 50
 
         // Hunt mode (no open hits): concentrate on where the LARGEST remaining
-        // ship can still fit — the fastest way to corner big ships, and exactly
-        // the human expert strategy. Finishing mode considers every size so it
-        // can complete whatever was hit.
+        // ship can still fit. Finishing mode considers every size so it can
+        // complete whatever was hit.
         let sizesToConsider: [Int] = hasHits ? Array(Set(remainingSizes)) : [remainingSizes.max()!]
 
         for size in sizesToConsider {
@@ -106,11 +104,15 @@ final class ComputerOpponent: Opponent {
                             isHorizontal ? (r, c + i) : (r + i, c)
                         }
                         guard isPlacementLegal(cells, knowledge: knowledge) else { continue }
-                        let coversHit = cells.contains { knowledge[$0.0][$0.1] == .hit }
+                        let hitsCovered = cells.reduce(0) { $0 + (knowledge[$1.0][$1.1] == .hit ? 1 : 0) }
                         // When a ship is already damaged, only placements that
-                        // could finish it are worth considering.
-                        if hasHits && !coversHit { continue }
-                        let weight = (coversHit ? hitWeight : 1) * multiplicity
+                        // could finish it count.
+                        if hasHits && hitsCovered == 0 { continue }
+                        // A placement aligned with MORE existing hits is
+                        // exponentially more likely, so once two+ hits are
+                        // collinear the AI extends that line instead of poking
+                        // sideways (100^hits).
+                        let weight = (hitsCovered > 0 ? Int(pow(100.0, Double(hitsCovered))) : 1) * multiplicity
                         for (cr, cc) in cells where knowledge[cr][cc] == .unknown {
                             heat[cr][cc] += weight
                         }
@@ -119,12 +121,19 @@ final class ComputerOpponent: Opponent {
             }
         }
 
+        // Pick the highest-probability cell; break ties toward the cell that
+        // would prune the most (most still-unknown neighbours). This makes the
+        // all-single-deck endgame hunt the centre instead of firing blindly,
+        // since sinking a central cell deactivates more surrounding cells.
         var best: (row: Int, column: Int)?
-        var bestScore = 0
+        var bestScore = -1
         for r in 0..<10 {
-            for c in 0..<10 where knowledge[r][c] == .unknown && heat[r][c] > bestScore {
-                bestScore = heat[r][c]
-                best = (r, c)
+            for c in 0..<10 where knowledge[r][c] == .unknown && heat[r][c] > 0 {
+                let score = heat[r][c] * 16 + openNeighbours(r, c, knowledge)
+                if score > bestScore {
+                    bestScore = score
+                    best = (r, c)
+                }
             }
         }
         guard let target = best else { return nil }
@@ -148,6 +157,19 @@ final class ComputerOpponent: Opponent {
             }
         }
         return true
+    }
+
+    /// Number of still-unknown cells around (r, c) — how much a hit there would
+    /// prune. Used as the endgame tie-breaker.
+    private func openNeighbours(_ r: Int, _ c: Int, _ knowledge: [[CellKnowledge]]) -> Int {
+        var count = 0
+        for dr in -1...1 {
+            for dc in -1...1 where dr != 0 || dc != 0 {
+                let nr = r + dr, nc = c + dc
+                if nr >= 0, nr < 10, nc >= 0, nc < 10, knowledge[nr][nc] == .unknown { count += 1 }
+            }
+        }
+        return count
     }
 
     /// The sizes of ships not yet sunk, inferred from the sunk (destroyed) cell

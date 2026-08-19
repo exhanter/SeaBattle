@@ -63,6 +63,18 @@ class AppState {
     static var soundPlayer: AVAudioPlayer?
     static var shipIsPlaced: [Bool] = Array(repeating: true, count: 10)
     
+    /// Route audio through the playback category so music/effects are heard even
+    /// when the device's silent (mute) switch is on — otherwise there's no sound
+    /// on a real device.
+    static func configureAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Audio session error: \(error.localizedDescription)")
+        }
+    }
+
     static func playMusic(sound: String) {
         guard let soundURL = Bundle.main.url(forResource: sound, withExtension: "") else { return }
         do {
@@ -143,5 +155,6 @@ class AppState {
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier
         self.autoRevealAroundSunk = UserDefaults.standard.bool(forKey: "autoRevealAroundSunk")
+        AppState.configureAudioSession()
     }
 }
