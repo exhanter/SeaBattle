@@ -24,25 +24,22 @@ struct iPadMainViewV: View {
                 ZStack {
                     LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                         .ignoresSafeArea()
-                    VStack(spacing: 0) {
-                        Spacer(minLength: geometry.size.height * 0.10)
+                    ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
                         Text("Sea Battle")
-                            .font(.custom("Dorsa", size: geometry.size.width * 0.25))
+                            .font(.custom("Dorsa", size: geometry.size.width * 0.22))
                             .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                             .shadow(color: .white, radius: 2)
-                        Spacer(minLength: geometry.size.height * 0.02)
                         Image("war_ship8")
                             .resizable()
-                            .scaledToFill()
-                            .frame(width: geometry.size.width * 0.6)
-                            .clipped()
+                            .scaledToFit()
+                            .frame(width: geometry.size.width * 0.5)
                             .cornerRadius(geometry.size.width * 0.03)
                             .shadow(color: .white, radius: 3)
                             .overlay(
                                     RoundedRectangle(cornerRadius: geometry.size.width * 0.03)
                                         .stroke(Color(red: 75/255, green: 56/255, blue: 42/255), lineWidth: 3)
                                 )
-                        Spacer(minLength: geometry.size.height * 0.02)
                         Button {
                             if appState.soundOn {
                                 AppState.playSound(sound: "click_sound.wav")
@@ -119,10 +116,11 @@ struct iPadMainViewV: View {
                         }
                             .buttonStyle(.bordered)
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
-                            .padding()
-                            .padding(.horizontal, geometry.size.width * 0.1)
-                        Spacer(minLength: geometry.size.height * 0.10)
                     } // VStack off
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, geometry.size.height * 0.06)
+                    .padding(.bottom, geometry.size.height * 0.06)
+                    } // ScrollView off
                     .sheet(isPresented: $showSettingsView) { SettingsView()
                             .presentationDetents([.fraction(0.58)])
                     }

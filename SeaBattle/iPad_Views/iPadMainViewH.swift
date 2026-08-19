@@ -36,13 +36,12 @@ struct iPadMainViewH: View {
                                             .stroke(Color(red: 75/255, green: 56/255, blue: 42/255), lineWidth: 3)
                                     )
                             Spacer()
-                            VStack {
-                                Spacer()
+                            ScrollView(showsIndicators: false) {
+                            VStack(spacing: 12) {
                                 Text("Sea Battle")
-                                    .font(.custom("Dorsa", size: geometry.size.height * 0.25))
+                                    .font(.custom("Dorsa", size: geometry.size.height * 0.18))
                                     .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                                     .shadow(color: .white, radius: 2)
-                                Spacer()
                                 Button {
                                     if appState.soundOn {
                                         AppState.playSound(sound: "click_sound.wav")
@@ -121,9 +120,8 @@ struct iPadMainViewH: View {
                                 }
                                     .buttonStyle(.bordered)
                                     .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
-                                    .padding()
-                                    .padding(.horizontal, geometry.size.width * 0.1)
-                                Spacer()
+                            }
+                            .padding(.vertical, geometry.size.height * 0.06)
                             }
                             Spacer()
                         } // HStack off
