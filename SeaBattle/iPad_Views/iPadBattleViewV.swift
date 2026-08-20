@@ -39,8 +39,6 @@ struct iPadBattleViewV: View {
                             iPadStartButton(width: geometry.size.width, height: geometry.size.height)
                         }
                     }
-                    HintButton(gameLogicViewModel: gameLogicViewModel)
-                        .padding(.top, geometry.size.height * 0.02)
                     Spacer()
                 }
                     .ignoresSafeArea()
@@ -58,6 +56,11 @@ struct iPadBattleViewV: View {
                 }
 
             } //ZStack off
+            // Hint kept out of the layout flow so toggling it never shifts the boards.
+            .overlay(alignment: .bottom) {
+                HintButton(gameLogicViewModel: gameLogicViewModel)
+                    .padding(.bottom, geometry.size.height * 0.03)
+            }
             .statusBar(hidden: true)
         }
     }

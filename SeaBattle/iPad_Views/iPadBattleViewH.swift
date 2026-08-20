@@ -36,15 +36,11 @@ struct iPadBattleViewH: View {
                         PlayerSquareView(player: player, leftTopPointOfGameField: $leftTopPointOfGameField, width: geometry.size.height * scaleForCells)
                     }
                     Spacer()
-                    VStack(spacing: 0) {
-                        ZStack {
-                            EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.height * scaleForCells)
-                            if !appState.gameIsActive {
-                                iPadStartButton(width: geometry.size.height, height: geometry.size.width)
-                            }
+                    ZStack {
+                        EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.height * scaleForCells)
+                        if !appState.gameIsActive {
+                            iPadStartButton(width: geometry.size.height, height: geometry.size.width)
                         }
-                        HintButton(gameLogicViewModel: gameLogicViewModel)
-                            .padding(.top, geometry.size.height * 0.03)
                     }
                     Spacer()
                 }
@@ -63,6 +59,12 @@ struct iPadBattleViewH: View {
                 }
 
             } //ZStack off
+            // Hint kept out of the layout flow so toggling it never shifts the boards.
+            .overlay(alignment: .bottomTrailing) {
+                HintButton(gameLogicViewModel: gameLogicViewModel)
+                    .padding(.trailing, geometry.size.width * 0.06)
+                    .padding(.bottom, geometry.size.height * 0.05)
+            }
             .statusBar(hidden: true)
         }
     }
