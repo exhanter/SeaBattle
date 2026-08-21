@@ -83,6 +83,12 @@ final class ComputerOpponent: Opponent {
             }
         }
 
+        // Finishing a damaged ship is handled deterministically (ships are
+        // straight and don't touch), independent of the probability map — this
+        // guarantees the AI extends an established hit-line instead of ever
+        // firing sideways, regardless of other board state.
+        if hasHits, let shot = finishingShot(knowledge) { return shot }
+
         let remainingSizes = remainingShipSizes()
         guard !remainingSizes.isEmpty else { return nil }
 
@@ -157,6 +163,53 @@ final class ComputerOpponent: Opponent {
             }
         }
         return true
+    }
+
+    /// Deterministic "finish the damaged ship" targeting: with two or more
+    /// collinear hits the ship's orientation is known, so only the cells that
+    /// extend that line are candidates; with a single isolated hit, probe its
+    /// orthogonal neighbours. RETURNS nil if there's nothing to finish.
+    private func finishingShot(_ knowledge: [[CellKnowledge]]) -> Coordinate? {
+        var hits: [(Int, Int)] = []
+        for r in 0..<10 {
+            for c in 0..<10 where knowledge[r][c] == .hit { hits.append((r, c)) }
+        }
+        guard !hits.isEmpty else { return nil }
+
+        func isHit(_ r: Int, _ c: Int) -> Bool {
+            r >= 0 && r < 10 && c >= 0 && c < 10 && knowledge[r][c] == .hit
+        }
+        func shootable(_ r: Int, _ c: Int) -> Bool {
+            r >= 0 && r < 10 && c >= 0 && c < 10 && knowledge[r][c] == .unknown
+        }
+
+        // Extend any established (collinear) hit line.
+        var lineCandidates = Set<Int>()
+        for (r, c) in hits {
+            if isHit(r, c - 1) || isHit(r, c + 1) {          // horizontal ship
+                var cc = c - 1; while isHit(r, cc) { cc -= 1 }; if shootable(r, cc) { lineCandidates.insert(r * 10 + cc) }
+                cc = c + 1; while isHit(r, cc) { cc += 1 }; if shootable(r, cc) { lineCandidates.insert(r * 10 + cc) }
+            }
+            if isHit(r - 1, c) || isHit(r + 1, c) {          // vertical ship
+                var rr = r - 1; while isHit(rr, c) { rr -= 1 }; if shootable(rr, c) { lineCandidates.insert(rr * 10 + c) }
+                rr = r + 1; while isHit(rr, c) { rr += 1 }; if shootable(rr, c) { lineCandidates.insert(rr * 10 + c) }
+            }
+        }
+        if let pick = lineCandidates.randomElement() {
+            return Coordinate(row: pick / 10 + 1, column: pick % 10 + 1)
+        }
+
+        // No line yet — a single isolated hit: probe its orthogonal neighbours.
+        var probes = Set<Int>()
+        for (r, c) in hits {
+            for (dr, dc) in [(-1, 0), (1, 0), (0, -1), (0, 1)] where shootable(r + dr, c + dc) {
+                probes.insert((r + dr) * 10 + (c + dc))
+            }
+        }
+        if let pick = probes.randomElement() {
+            return Coordinate(row: pick / 10 + 1, column: pick % 10 + 1)
+        }
+        return nil
     }
 
     /// Number of still-unknown cells around (r, c) — how much a hit there would
