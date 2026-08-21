@@ -16,14 +16,14 @@ import Observation
 @Observable
 final class HotSeatGame {
 
-    struct Player {
+    struct Player: Codable {
         var name: String
         var avatar: String
         var pinHash: String?   // session-only
         var sessionWins: Int = 0
     }
 
-    enum Phase: Equatable {
+    enum Phase: Equatable, Codable {
         case setup
         case arrangeHandoff(player: Int)
         case arrange(player: Int)
@@ -77,10 +77,12 @@ final class HotSeatGame {
             boards[player].shipsRandomArrangement()
         }
         phase = .arrange(player: player)
+        persist()
     }
 
     func randomize(player: Int) {
         boards[player].shipsRandomArrangement()
+        persist()
     }
 
     func finishArrangement(player: Int) {
@@ -90,10 +92,12 @@ final class HotSeatGame {
             attacker = 0
             phase = .turnHandoff(player: 0)
         }
+        persist()
     }
 
     func startShooting() {
         phase = .shooting
+        persist()
     }
 
     /// New game with the same players — keeps names, avatars, PINs and the
@@ -103,6 +107,7 @@ final class HotSeatGame {
         winner = nil
         attacker = 0
         phase = .arrangeHandoff(player: 0)
+        persist()
     }
 
     // MARK: - Firing
@@ -127,6 +132,7 @@ final class HotSeatGame {
             target.cells[r][c].cellStatus = .missed
             target.cells[r][c].isAvailable = false
             play("blast_missed.wav")
+            persist()
             return .missed
         }
 
@@ -152,8 +158,10 @@ final class HotSeatGame {
             winner = attacker
             players[attacker].sessionWins += 1
             AppState.musicPlayer?.stop()
+            persist()
             return .win
         }
+        persist()
         return sunk ? .sunk : .hit
     }
 
@@ -163,14 +171,52 @@ final class HotSeatGame {
         guard winner == nil, phase == .shooting else { return }
         attacker = defender
         phase = .turnHandoff(player: attacker)
+        persist()
     }
 
     /// Ends the match (after the winning-shot animation).
     func finishMatch() {
         phase = .finished
+        persist()
     }
 
     private func play(_ sound: String) {
         if soundOn { AppState.playSound(sound: sound) }
     }
+
+    // MARK: - Session persistence
+
+    func snapshot() -> HotSeatSnapshot {
+        HotSeatSnapshot(players: players,
+                        boardA: PlayerSnapshot(boards[0]),
+                        boardB: PlayerSnapshot(boards[1]),
+                        phase: phase,
+                        attacker: attacker,
+                        winner: winner)
+    }
+
+    /// Restores a saved session into this game.
+    func restore(from snapshot: HotSeatSnapshot) {
+        players = snapshot.players
+        snapshot.boardA.restore(into: boards[0])
+        snapshot.boardB.restore(into: boards[1])
+        attacker = snapshot.attacker
+        winner = snapshot.winner
+        phase = snapshot.phase
+    }
+
+    private func persist() {
+        HotSeatStore.save(snapshot())
+    }
+}
+
+/// A serializable snapshot of a whole hot-seat session (players + both boards +
+/// where the session is), so it survives app relaunch.
+struct HotSeatSnapshot: Codable {
+    var players: [HotSeatGame.Player]
+    var boardA: PlayerSnapshot
+    var boardB: PlayerSnapshot
+    var phase: HotSeatGame.Phase
+    var attacker: Int
+    var winner: Int?
 }

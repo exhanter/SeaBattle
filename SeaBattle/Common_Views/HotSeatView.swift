@@ -93,23 +93,16 @@ private func menuButton(_ title: LocalizedStringKey, width: CGFloat, enabled: Bo
 
 struct HotSeatContainerView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     @State private var game = HotSeatGame()
+    @State private var showResume = HotSeatStore.hasSession
 
     var body: some View {
         Group {
-            switch game.phase {
-            case .setup:
-                HotSeatSetupView(game: game)
-            case .arrangeHandoff(let player):
-                HotSeatHandoffView(game: game, player: player, purpose: .arrange)
-            case .arrange(let player):
-                HotSeatArrangeView(game: game, player: player)
-            case .turnHandoff(let player):
-                HotSeatHandoffView(game: game, player: player, purpose: .shoot)
-            case .shooting:
-                HotSeatShootingView(game: game)
-            case .finished:
-                HotSeatResultView(game: game)
+            if showResume {
+                resumeChooser
+            } else {
+                phaseView
             }
         }
         .onAppear {
@@ -120,6 +113,63 @@ struct HotSeatContainerView: View {
         .onDisappear { appState.manualShipArrangement = false }
         .statusBar(hidden: true)
         .persistentSystemOverlays(.hidden)
+    }
+
+    @ViewBuilder private var phaseView: some View {
+        switch game.phase {
+        case .setup:
+            HotSeatSetupView(game: game)
+        case .arrangeHandoff(let player):
+            HotSeatHandoffView(game: game, player: player, purpose: .arrange)
+        case .arrange(let player):
+            HotSeatArrangeView(game: game, player: player)
+        case .turnHandoff(let player):
+            HotSeatHandoffView(game: game, player: player, purpose: .shoot)
+        case .shooting:
+            HotSeatShootingView(game: game)
+        case .finished:
+            HotSeatResultView(game: game)
+        }
+    }
+
+    private var resumeChooser: some View {
+        HotSeatChrome(title: "Two players", onClose: { dismiss() }) { _ in
+            VStack(spacing: 16) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 56)).foregroundStyle(accent)
+                Text("You have a game in progress.").foregroundColor(.white)
+                if let s = HotSeatStore.load(), s.players.count == 2 {
+                    HStack(spacing: 24) {
+                        ForEach(0..<2, id: \.self) { i in
+                            VStack {
+                                AvatarBadge(symbol: s.players[i].avatar, size: 44)
+                                Text(s.players[i].name).foregroundColor(.white).lineLimit(1)
+                                Text("\(s.players[i].sessionWins)").font(.title2).bold().foregroundColor(accent)
+                            }
+                        }
+                    }
+                }
+            }
+        } bottomBar: { size in
+            HStack {
+                Spacer()
+                menuButton("Continue", width: size.width) {
+                    if let s = HotSeatStore.load() { game.restore(from: s) }
+                    showResume = false
+                }
+                Spacer()
+                menuButton("New", width: size.width) {
+                    HotSeatStore.clear()
+                    showResume = false
+                }
+                Spacer()
+                menuButton("Delete", width: size.width) {
+                    HotSeatStore.clear()
+                    dismiss()
+                }
+                Spacer()
+            }
+        }
     }
 }
 
@@ -528,7 +578,10 @@ struct HotSeatResultView: View {
                 Spacer()
                 menuButton("Play again", width: size.width) { game.restart() }
                 Spacer()
-                menuButton("Done", width: size.width) { dismiss() }
+                menuButton("Done", width: size.width) {
+                    HotSeatStore.clear() // Done ends the session
+                    dismiss()
+                }
                 Spacer()
             }
         }
