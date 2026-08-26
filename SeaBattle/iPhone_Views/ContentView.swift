@@ -90,7 +90,7 @@ struct ContentView: View {
                                 if premiumManager.isPremium {
                                     appState.showHotSeat = true
                                 } else {
-                                    appState.pendingHotSeat = true
+                                    appState.pendingPremiumIntent = .hotSeat
                                     appState.showPaywall = true
                                 }
                             } label: {
@@ -101,7 +101,7 @@ struct ContentView: View {
 
                             Button {
                                 if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium { appState.showNearby = true } else { appState.showPaywall = true }
+                                if premiumManager.isPremium { appState.showNearby = true } else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
                             } label: {
                                 Label("Play nearby", systemImage: "dot.radiowaves.left.and.right")
                             }
@@ -110,7 +110,7 @@ struct ContentView: View {
 
                             Button {
                                 if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium { appState.showOnline = true } else { appState.showPaywall = true }
+                                if premiumManager.isPremium { appState.showOnline = true } else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
                             } label: {
                                 Label("Play online", systemImage: "globe")
                             }
@@ -181,17 +181,27 @@ struct ContentView: View {
                 PaywallView()
             }
             .onChange(of: premiumManager.isPremium) { _, isPremium in
-                // After subscribing from "Two players", continue into hot-seat.
-                if isPremium && appState.pendingHotSeat {
-                    appState.pendingHotSeat = false
+                // Finish whatever the user was doing when the paywall opened.
+                guard isPremium, let intent = appState.pendingPremiumIntent else { return }
+                appState.pendingPremiumIntent = nil
+                switch intent {
+                case .expert:
+                    appState.difficulty = 3
+                    UserDefaults.standard.set(3, forKey: "difficulty")
+                case .hotSeat, .nearby, .online:
                     Task { @MainActor in
                         try? await Task.sleep(for: .seconds(0.4)) // let the paywall dismiss first
-                        appState.showHotSeat = true
+                        switch intent {
+                        case .hotSeat: appState.showHotSeat = true
+                        case .nearby: appState.showNearby = true
+                        case .online: appState.showOnline = true
+                        case .expert: break
+                        }
                     }
                 }
             }
             .onChange(of: appState.showPaywall) { _, shown in
-                if !shown && !premiumManager.isPremium { appState.pendingHotSeat = false }
+                if !shown && !premiumManager.isPremium { appState.pendingPremiumIntent = nil }
             }
         }
     }

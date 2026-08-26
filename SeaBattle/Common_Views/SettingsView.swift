@@ -56,6 +56,7 @@ struct SettingsView: View {
                         // the paywall and revert the selection.
                         if newValue == 3 && !premiumManager.isPremium {
                             appState.difficulty = oldValue == 3 ? 0 : oldValue
+                            appState.pendingPremiumIntent = .expert // switch to Expert after subscribing
                             showPaywall = true
                             return
                         }
@@ -135,6 +136,10 @@ struct SettingsView: View {
         .statusBar(hidden: true)
         .sheet(isPresented: $showPaywall) {
             PaywallView()
+        }
+        .onChange(of: showPaywall) { _, shown in
+            // Cancelled without subscribing → drop the pending Expert switch.
+            if !shown && !premiumManager.isPremium { appState.pendingPremiumIntent = nil }
         }
         .sheet(isPresented: $showStats) {
             StatsView()

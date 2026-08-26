@@ -83,7 +83,7 @@ struct iPadMainViewV: View {
                             if premiumManager.isPremium {
                                 appState.showHotSeat = true
                             } else {
-                                appState.pendingHotSeat = true
+                                appState.pendingPremiumIntent = .hotSeat
                                 appState.showPaywall = true
                             }
                         } label: {
@@ -95,7 +95,7 @@ struct iPadMainViewV: View {
 
                         Button {
                             if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                            if premiumManager.isPremium { appState.showNearby = true } else { appState.showPaywall = true }
+                            if premiumManager.isPremium { appState.showNearby = true } else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
                         } label: {
                             Label("Play nearby", systemImage: "dot.radiowaves.left.and.right")
                         }
@@ -104,7 +104,7 @@ struct iPadMainViewV: View {
 
                         Button {
                             if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                            if premiumManager.isPremium { appState.showOnline = true } else { appState.showPaywall = true }
+                            if premiumManager.isPremium { appState.showOnline = true } else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
                         } label: {
                             Label("Play online", systemImage: "globe")
                         }

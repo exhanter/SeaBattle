@@ -56,10 +56,10 @@ struct iPadBattleViewV: View {
                 }
 
             } //ZStack off
-            // Hint kept out of the layout flow so toggling it never shifts the boards.
-            .overlay(alignment: .bottom) {
+            // Hint kept out of the layout flow (top-centre, clear of the boards).
+            .overlay(alignment: .top) {
                 HintButton(gameLogicViewModel: gameLogicViewModel)
-                    .padding(.bottom, geometry.size.height * 0.03)
+                    .padding(.top, geometry.size.height * 0.02)
             }
             .statusBar(hidden: true)
         }

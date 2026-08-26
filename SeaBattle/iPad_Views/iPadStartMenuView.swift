@@ -45,16 +45,26 @@ struct iPadStartMenuView: View {
         .fullScreenCover(isPresented: $appState.showOnline) { OnlineGameView() }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
         .onChange(of: premiumManager.isPremium) { _, isPremium in
-            if isPremium && appState.pendingHotSeat {
-                appState.pendingHotSeat = false
+            guard isPremium, let intent = appState.pendingPremiumIntent else { return }
+            appState.pendingPremiumIntent = nil
+            switch intent {
+            case .expert:
+                appState.difficulty = 3
+                UserDefaults.standard.set(3, forKey: "difficulty")
+            case .hotSeat, .nearby, .online:
                 Task { @MainActor in
                     try? await Task.sleep(for: .seconds(0.4))
-                    appState.showHotSeat = true
+                    switch intent {
+                    case .hotSeat: appState.showHotSeat = true
+                    case .nearby: appState.showNearby = true
+                    case .online: appState.showOnline = true
+                    case .expert: break
+                    }
                 }
             }
         }
         .onChange(of: appState.showPaywall) { _, shown in
-            if !shown && !premiumManager.isPremium { appState.pendingHotSeat = false }
+            if !shown && !premiumManager.isPremium { appState.pendingPremiumIntent = nil }
         }
     }
 }

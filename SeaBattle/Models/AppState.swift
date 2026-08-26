@@ -53,9 +53,10 @@ class AppState {
     var showNearby = false
     var showOnline = false
     var showPaywall = false
-    /// Set when the paywall was opened from "Two players": after subscribing,
-    /// route the player into hot-seat instead of leaving them on the menu.
-    var pendingHotSeat = false
+    /// What the user was trying to do when a premium paywall opened, so the
+    /// action can be completed automatically once they subscribe.
+    enum PremiumIntent { case expert, hotSeat, nearby, online }
+    var pendingPremiumIntent: PremiumIntent?
     
     static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
     static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
