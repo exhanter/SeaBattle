@@ -230,6 +230,13 @@ struct NetworkBattleView: View {
                 }
                 .font(.subheadline).foregroundColor(.white)
 
+                // Hint kept near the top (never blocks the board).
+                if myTurn && !game.isSameAccount {
+                    netMenuButton("Hint (\(game.hintCost))", width: size.width, enabled: game.canUseHint) {
+                        game.useHint()
+                    }
+                }
+
                 if showingOwnBoard || !myTurn {
                     Text(myTurn ? "Your fleet" : "Incoming fire").foregroundColor(.white.opacity(0.85))
                     HotSeatBoardGrid(board: game.own, hideShips: false, cellWidth: cell)
@@ -242,17 +249,14 @@ struct NetworkBattleView: View {
                 }
             }
         } bottomBar: { size in
+            // Base-style menu: Menu (exit) / Player (own board) / Enemy (shoot).
             HStack {
                 Spacer()
-                netMenuButton(showingOwnBoard ? "Attack" : "My fleet", width: size.width, enabled: myTurn) {
-                    showingOwnBoard.toggle()
-                }
-                if myTurn && !game.isSameAccount {
-                    Spacer()
-                    netMenuButton("Hint (\(game.hintCost))", width: size.width, enabled: game.canUseHint) {
-                        game.useHint()
-                    }
-                }
+                netMenuButton("Menu", width: size.width) { onExit() }
+                Spacer()
+                netMenuButton("Player", width: size.width) { showingOwnBoard = true }
+                Spacer()
+                netMenuButton("Enemy", width: size.width) { showingOwnBoard = false }
                 Spacer()
             }
         }
