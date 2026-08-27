@@ -27,6 +27,11 @@ struct WoodenButton: ButtonStyle {
                 .offset(y: -50)
         )
         .cornerRadius(radius)
+        // Restrict the tap area to the button's own frame. The wood background is
+        // drawn with a negative offset and isn't clipped for hit-testing, so
+        // without this a button's touch region bleeds over its neighbours (the
+        // bottom-most button would otherwise swallow taps meant for the ones above).
+        .contentShape(Rectangle())
         .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
         .opacity(configuration.isPressed ? 0.8 : 1.0)
         .animation(.easeInOut, value: configuration.isPressed)
