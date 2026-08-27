@@ -47,13 +47,16 @@ struct EnemyFieldView: View {
                 .ignoresSafeArea()
                 
                 if enemy.showFinishGameAlert {
-                    WinAlertView(didPlayerWin: true)
-                        .onTapGesture {
-                            if appState.isTapEnabled {
-                                appState.resetData(player: player, enemy: enemy)
-                                appState.isTapEnabled = false
-                            }
-                        }
+                    WinAlertView(
+                        didPlayerWin: true,
+                        onPlayAgain: {
+                            appState.resetData(player: player, enemy: enemy)
+                            player.shipsRandomArrangement()
+                            enemy.shipsRandomArrangement()
+                            appState.selectedTab = .playerView
+                        },
+                        onMenu: { appState.resetData(player: player, enemy: enemy) }
+                    )
                 }
             } //ZStack off
             .statusBar(hidden: true)

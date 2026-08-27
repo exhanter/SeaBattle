@@ -36,14 +36,17 @@ struct PlayerFieldView: View {
                 .ignoresSafeArea()
                 
                 if player.showFinishGameAlert {
-                    WinAlertView(didPlayerWin: false)
-                        .accessibility(identifier: "winAlert")
-                        .onTapGesture {
-                            if appState.isTapEnabled {
-                                appState.resetData(player: player, enemy: enemy)
-                                appState.isTapEnabled = false
-                            }
-                        }
+                    WinAlertView(
+                        didPlayerWin: false,
+                        onPlayAgain: {
+                            appState.resetData(player: player, enemy: enemy)
+                            player.shipsRandomArrangement()
+                            enemy.shipsRandomArrangement()
+                            appState.selectedTab = .playerView
+                        },
+                        onMenu: { appState.resetData(player: player, enemy: enemy) }
+                    )
+                    .accessibility(identifier: "winAlert")
                 }
                 if appState.manualShipArrangement {
                     ShipReplacementView(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * 0.09, player: player)

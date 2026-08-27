@@ -43,13 +43,16 @@ struct iPadBattleViewV: View {
                 }
                     .ignoresSafeArea()
                 if player.showFinishGameAlert || enemy.showFinishGameAlert {
-                    WinAlertView(didPlayerWin: enemy.showFinishGameAlert ? true : false)
-                        .onTapGesture {
-                            if appState.isTapEnabled {
-                                appState.resetData(player: player, enemy: enemy)
-                                appState.isTapEnabled = false
-                            }
-                        }
+                    WinAlertView(
+                        didPlayerWin: enemy.showFinishGameAlert ? true : false,
+                        onPlayAgain: {
+                            appState.resetData(player: player, enemy: enemy)
+                            player.shipsRandomArrangement()
+                            enemy.shipsRandomArrangement()
+                            appState.selectedTab = .iPadBattleView
+                        },
+                        onMenu: { appState.resetData(player: player, enemy: enemy) }
+                    )
                 }
                 if appState.manualShipArrangement {
                     ShipReplacementView(leftTopPointOfGameField: leftTopPointOfGameField, cellSize: geometry.size.width * scaleForCells, player: player) // 0.09
