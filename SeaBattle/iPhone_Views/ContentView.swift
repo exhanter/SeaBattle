@@ -17,7 +17,58 @@ struct ContentView: View {
     @State private var player = PlayerData(name: "Player")
     @State private var enemy = PlayerData(name: "Enemy")
     @State private var showSettingsView = false
-    
+    @State private var showNewGameOptions = false
+    @State private var showContinueOptions = false
+
+    // MARK: - Menu actions
+
+    /// Start a fresh vs-computer match (arrange your fleet, then battle).
+    private func startVsComputer() {
+        appState.resetData(player: player, enemy: enemy)
+        player.shipsRandomArrangement()
+        enemy.shipsRandomArrangement()
+        appState.selectedTab = .playerView
+    }
+
+    /// Resume the saved vs-computer match.
+    private func continueVsComputer() {
+        guard let snapshot = GameStore.load() else { return }
+        snapshot.apply(to: appState, player: player, enemy: enemy)
+        if appState.musicOn {
+            AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
+        }
+        appState.selectedTab = .enemyView
+    }
+
+    /// Decide what "Continue" resumes: if both a vs-computer save and a
+    /// hot-seat session exist, ask; otherwise go straight to the one present.
+    private func continueGame() {
+        let hasVsComputer = GameStore.hasSavedGame
+        let hasHotSeat = HotSeatStore.hasSession
+        if hasVsComputer && hasHotSeat {
+            showContinueOptions = true
+        } else if hasVsComputer {
+            continueVsComputer()
+        } else if hasHotSeat {
+            appState.showHotSeat = true
+        }
+    }
+
+    private func launchHotSeat() {
+        if premiumManager.isPremium { appState.showHotSeat = true }
+        else { appState.pendingPremiumIntent = .hotSeat; appState.showPaywall = true }
+    }
+
+    private func launchNearby() {
+        if premiumManager.isPremium { appState.showNearby = true }
+        else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
+    }
+
+    private func launchOnline() {
+        if premiumManager.isPremium { appState.showOnline = true }
+        else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
+    }
+
     var body: some View {
         @Bindable var appState = appState
         return GeometryReader { geometry in
@@ -26,18 +77,20 @@ struct ContentView: View {
                     ZStack {
                             LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                             .ignoresSafeArea()
-                        ScrollView(showsIndicators: false) {
-                            VStack(spacing: 12) {
+                        VStack(spacing: 0) {
                             Text("Sea Battle")
                                 .font(.custom("Dorsa", size: geometry.size.width * 0.20))
                                 .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
                                 .shadow(color: .white, radius: 1)
                                 .accessibility(identifier: "titleMainText")
+                                .padding(.top, geometry.size.height * 0.13)
+
+                            Spacer(minLength: geometry.size.height * 0.02)
 
                             Image("war_ship8")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: geometry.size.width * 0.5)
+                                .frame(width: geometry.size.width * 0.7)
                                 .cornerRadius(geometry.size.width * 0.03)
                                 .shadow(color: .white, radius: 3)
                                 .overlay(
@@ -45,100 +98,71 @@ struct ContentView: View {
                                             .stroke(Color(red: 75/255, green: 56/255, blue: 42/255), lineWidth: 3)
                                     )
 
-                            Button {
-                                if appState.soundOn {
-                                    AppState.playSound(sound: "click_sound.wav")
-                                }
-                                if !appState.gameIsActive {
-                                    appState.resetData(player: player, enemy: enemy)
-                                    player.shipsRandomArrangement()
-                                    enemy.shipsRandomArrangement()
-                                    appState.selectedTab = .playerView
-                                } else if appState.gameIsActive {
-                                    AppState.musicPlayer?.stop()
-                                    appState.resetData(player: player, enemy: enemy)
-                                }
-                            } label: {
-                                Text(appState.gameIsActive ? "Stop game" : "New game")
-                            }
-                            .accessibility(identifier: "newOrStopGameButton")
-                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
-                            .shadow(color: .white, radius: 1, y: 1)
+                            Spacer(minLength: geometry.size.height * 0.03)
 
-                            if !appState.gameIsActive && GameStore.hasSavedGame {
+                            VStack(spacing: geometry.size.height * 0.02) {
+                                // New game — choose the opponent type.
                                 Button {
-                                    if appState.soundOn {
-                                        AppState.playSound(sound: "click_sound.wav")
-                                    }
-                                    if let snapshot = GameStore.load() {
-                                        snapshot.apply(to: appState, player: player, enemy: enemy)
-                                        if appState.musicOn {
-                                            AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
-                                        }
-                                        appState.selectedTab = .enemyView
-                                    }
+                                    if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                                    showNewGameOptions = true
                                 } label: {
-                                    Text("Continue game")
+                                    Text("New game")
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.6)
                                 }
-                                .accessibility(identifier: "continueGameButton")
+                                .accessibility(identifier: "newGameButton")
                                 .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
                                 .shadow(color: .white, radius: 1, y: 1)
-                            }
 
-                            Button {
-                                if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium {
-                                    appState.showHotSeat = true
-                                } else {
-                                    appState.pendingPremiumIntent = .hotSeat
-                                    appState.showPaywall = true
+                                // Continue — shown only when a resumable game exists (a
+                                // vs-computer save or a hot-seat session). Networked games
+                                // can't be resumed once the app is closed.
+                                if GameStore.hasSavedGame || HotSeatStore.hasSession {
+                                    Button {
+                                        if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+                                        continueGame()
+                                    } label: {
+                                        Text("Continue game")
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.6)
+                                    }
+                                    .accessibility(identifier: "continueGameButton")
+                                    .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
+                                    .shadow(color: .white, radius: 1, y: 1)
                                 }
-                            } label: {
-                                Text("Two players")
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
                             }
-                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
-                            .shadow(color: .white, radius: 1, y: 1)
 
-                            Button {
-                                if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium { appState.showNearby = true } else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
-                            } label: {
-                                Text("Play nearby")
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                            }
-                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
-                            .shadow(color: .white, radius: 1, y: 1)
+                            Spacer(minLength: geometry.size.height * 0.03)
 
-                            Button {
-                                if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-                                if premiumManager.isPremium { appState.showOnline = true } else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
-                            } label: {
-                                Text("Play online")
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                            }
-                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
-                            .shadow(color: .white, radius: 1, y: 1)
-
+                            // Settings — plain text link, not a wooden button.
                             Button {
                                 self.showSettingsView = true
                             } label: {
                                 Text("Settings")
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
+                                    .font(.custom("Aldrich", size: geometry.size.width * 0.05))
+                                    .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                                    .shadow(color: .black, radius: 1, y: 1)
+                                    .padding(8)
+                                    .contentShape(Rectangle())
                             }
-                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
-                            .shadow(color: .white, radius: 1, y: 1)
-                            } // VStack off
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, geometry.size.height * 0.13)
-                            .padding(.bottom, geometry.size.height * 0.16)
-                        }
+                            .accessibility(identifier: "settingsButton")
+                            .padding(.bottom, geometry.size.height * 0.14)
+                        } // VStack off
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .sheet(isPresented: $showSettingsView) { SettingsView()
                                 .presentationDetents([.fraction(0.55)])
+                        }
+                        .confirmationDialog("New game", isPresented: $showNewGameOptions, titleVisibility: .visible) {
+                            Button("Play vs computer") { startVsComputer() }
+                            Button("Two players") { launchHotSeat() }
+                            Button("Play online") { launchOnline() }
+                            Button("Play nearby") { launchNearby() }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                        .confirmationDialog("Continue game", isPresented: $showContinueOptions, titleVisibility: .visible) {
+                            Button("Play vs computer") { continueVsComputer() }
+                            Button("Two players") { appState.showHotSeat = true }
+                            Button("Cancel", role: .cancel) { }
                         }
                         .ignoresSafeArea()
                     } //ZStack off
