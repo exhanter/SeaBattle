@@ -94,34 +94,44 @@ struct ContentView: View {
                                     appState.showPaywall = true
                                 }
                             } label: {
-                                Label("Two players", systemImage: "person.2.fill")
+                                Text("Two players")
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.6)
                             }
-                            .buttonStyle(.bordered)
-                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
+                            .shadow(color: .white, radius: 1, y: 1)
 
                             Button {
                                 if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
                                 if premiumManager.isPremium { appState.showNearby = true } else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
                             } label: {
-                                Label("Play nearby", systemImage: "dot.radiowaves.left.and.right")
+                                Text("Play nearby")
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.6)
                             }
-                            .buttonStyle(.bordered)
-                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
+                            .shadow(color: .white, radius: 1, y: 1)
 
                             Button {
                                 if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
                                 if premiumManager.isPremium { appState.showOnline = true } else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
                             } label: {
-                                Label("Play online", systemImage: "globe")
+                                Text("Play online")
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.6)
                             }
-                            .buttonStyle(.bordered)
-                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
+                            .shadow(color: .white, radius: 1, y: 1)
 
-                            Button("Settings") {
+                            Button {
                                 self.showSettingsView = true
+                            } label: {
+                                Text("Settings")
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.6)
                             }
-                            .buttonStyle(.bordered)
-                            .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
+                            .buttonStyle(WoodenButton(radius: 16, fontSize: geometry.size.width * 0.075, width: geometry.size.width * 0.8, height: geometry.size.height * 0.085))
+                            .shadow(color: .white, radius: 1, y: 1)
                             } // VStack off
                             .frame(maxWidth: .infinity)
                             .padding(.top, geometry.size.height * 0.13)
