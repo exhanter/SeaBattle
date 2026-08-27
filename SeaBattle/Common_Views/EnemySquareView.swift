@@ -49,10 +49,20 @@ struct EnemySquareView: View {
                             CellView(fireStrokeIsOn: enemy.fireStrokeArray[row - 1][column - 1], cellStatus: status, cellWidth: width)
                                 .overlay {
                                     if status == .unknown && appState.revealedHintCells.contains(where: { $0 == (row, column) }) {
+                                        // Rendered as a sized image (not via .font) so it
+                                        // sits on the cell's geometric centre — an SF Symbol
+                                        // drawn as text is offset by the font baseline.
+                                        // The cell's bevel (light top-left, thick dark
+                                        // bottom-right) pulls the perceived centre up-left, so
+                                        // nudge the marker up-left to look centred. Tune here.
+                                        let hintNudge = width * 0.025
                                         Image(systemName: "target")
-                                            .font(.system(size: width * 0.6))
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: width * 0.6, height: width * 0.6)
                                             .foregroundStyle(Color(red: 248/255, green: 1, blue: 0))
                                             .shadow(color: .black, radius: 1)
+                                            .offset(x: -hintNudge, y: -hintNudge)
                                     }
                                 }
                         }
