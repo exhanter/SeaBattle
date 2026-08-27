@@ -35,7 +35,7 @@ struct iPadBattleViewV: View {
                     Spacer()
                     ZStack {
                         EnemySquareView(enemy: enemy, gameLogicViewModel: gameLogicViewModel, width: geometry.size.width * scaleForCells)
-                        if !appState.gameIsActive {
+                        if !appState.gameIsActive && !player.showFinishGameAlert && !enemy.showFinishGameAlert {
                             iPadStartButton(width: geometry.size.width, height: geometry.size.height)
                         }
                     }
