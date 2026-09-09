@@ -83,6 +83,7 @@ final class GameEngine {
         }
         if target.numberShipsDestroyed == 10 {
             appState.gameIsActive = false
+            appState.gameIsOver = true
             AppState.musicPlayer?.stop()
             // The match is over — drop the saved game.
             GameStore.clear()

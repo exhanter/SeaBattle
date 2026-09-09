@@ -19,8 +19,25 @@ final class HotSeatGame {
     struct Player: Codable {
         var name: String
         var avatar: String
+        /// Index into the view layer's avatar colour palette (see HotSeatView).
+        var colorIndex: Int = 0
         var pinHash: String?   // session-only
         var sessionWins: Int = 0
+
+        // Lenient decoding so sessions saved before `colorIndex` existed still load.
+        private enum CodingKeys: String, CodingKey { case name, avatar, colorIndex, pinHash, sessionWins }
+        init(name: String, avatar: String, colorIndex: Int = 0, pinHash: String? = nil, sessionWins: Int = 0) {
+            self.name = name; self.avatar = avatar; self.colorIndex = colorIndex
+            self.pinHash = pinHash; self.sessionWins = sessionWins
+        }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            name = try c.decode(String.self, forKey: .name)
+            avatar = try c.decode(String.self, forKey: .avatar)
+            colorIndex = try c.decodeIfPresent(Int.self, forKey: .colorIndex) ?? 0
+            pinHash = try c.decodeIfPresent(String.self, forKey: .pinHash)
+            sessionWins = try c.decodeIfPresent(Int.self, forKey: .sessionWins) ?? 0
+        }
     }
 
     enum Phase: Equatable, Codable {
@@ -35,8 +52,8 @@ final class HotSeatGame {
     private(set) var phase: Phase = .setup
     let boards: [PlayerData] = [PlayerData(name: "Player"), PlayerData(name: "Player")]
     private(set) var players: [Player] = [
-        Player(name: "", avatar: HotSeatAvatars.symbols[0]),
-        Player(name: "", avatar: HotSeatAvatars.symbols[1])
+        Player(name: "", avatar: HotSeatAvatars.symbols[0], colorIndex: 0),
+        Player(name: "", avatar: HotSeatAvatars.symbols[1], colorIndex: 1)
     ]
     private(set) var attacker = 0
     private(set) var winner: Int?
@@ -50,17 +67,24 @@ final class HotSeatGame {
 
     // MARK: - Setup / flow
 
-    func begin(name0: String, avatar0: String, pin0: String,
-               name1: String, avatar1: String, pin1: String) {
+    func begin(name0: String, avatar0: String, color0: Int, pin0: String,
+               name1: String, avatar1: String, color1: Int, pin1: String) {
+        // Blank names fall back to localized "Player 1" / "Player 2" so the
+        // impatient can just tap Start without typing anything.
+        let n0 = name0.trimmingCharacters(in: .whitespaces)
+        let n1 = name1.trimmingCharacters(in: .whitespaces)
+        let finalName0 = n0.isEmpty ? String(localized: "Player 1") : n0
+        let finalName1 = n1.isEmpty ? String(localized: "Player 2") : n1
         players = [
-            Player(name: name0.trimmingCharacters(in: .whitespaces), avatar: avatar0,
+            Player(name: finalName0, avatar: avatar0, colorIndex: color0,
                    pinHash: pin0.isEmpty ? nil : ProfileStore.hash(pin: pin0)),
-            Player(name: name1.trimmingCharacters(in: .whitespaces), avatar: avatar1,
+            Player(name: finalName1, avatar: avatar1, colorIndex: color1,
                    pinHash: pin1.isEmpty ? nil : ProfileStore.hash(pin: pin1))
         ]
-        // Remember the players (name + avatar only) for next time.
-        ProfileStore.shared.upsert(name: name0, avatar: avatar0)
-        ProfileStore.shared.upsert(name: name1, avatar: avatar1)
+        // Remember the players (name + avatar only) for next time — but only if
+        // they actually typed a name (don't save the default placeholders).
+        if !n0.isEmpty { ProfileStore.shared.upsert(name: n0, avatar: avatar0) }
+        if !n1.isEmpty { ProfileStore.shared.upsert(name: n1, avatar: avatar1) }
         // First player already holds the device — skip the pass-the-device screen
         // and go straight to placement with an auto-arranged fleet. The handoff is
         // still shown before player 2 places (and before each turn).

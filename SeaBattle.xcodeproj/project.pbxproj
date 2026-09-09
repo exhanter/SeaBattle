@@ -91,6 +91,7 @@
 		CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */; };
 		CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */; };
 		CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */; };
+		CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -200,6 +201,7 @@
 		CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineGameView.swift; sourceTree = "<group>"; };
 		CA17D8C8302E7D0B007A33B0 /* SeaBattle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SeaBattle.entitlements; sourceTree = "<group>"; };
 		CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
+		CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -258,6 +260,7 @@
 				CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */,
 				CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */,
 				CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */,
+				CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -593,6 +596,7 @@
 				CA17D8BD302E777B007A33B0 /* AccountID.swift in Sources */,
 				2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */,
 				2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */,
+				CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
 				CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */,

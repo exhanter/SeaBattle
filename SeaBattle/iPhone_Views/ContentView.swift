@@ -73,7 +73,13 @@ struct ContentView: View {
         @Bindable var appState = appState
         return GeometryReader { geometry in
             ZStack {
-                TabView(selection: $appState.selectedTab) {
+                // No system TabView: it renders a tab bar (a floating, rounded
+                // glass bar on newer iOS) that peeks out above our wooden
+                // CustomTabView. Navigation is driven entirely by
+                // appState.selectedTab + CustomTabView, so we switch content
+                // ourselves and there is no system bar to hide.
+                switch appState.selectedTab {
+                case .menu:
                     ZStack {
                             LinearGradient(gradient: Gradient(colors: [Color(red: 0.11, green: 0.77, blue: 0.56).opacity(0.60), Color(red: 0.04, green: 0.10, blue: 0.25).opacity(0.80)]), startPoint: .bottom, endPoint: .top)
                             .ignoresSafeArea()
@@ -165,15 +171,16 @@ struct ContentView: View {
                             Button("Cancel", role: .cancel) { }
                         }
                         .ignoresSafeArea()
-                    } //ZStack off
-                    .tag(AppState.SelectedTabs.menu)
+                        } //ZStack off (menu)
+                case .playerView:
                     PlayerFieldView(player: player, enemy: enemy)
-                        .tag(AppState.SelectedTabs.playerView)
+                case .enemyView:
                     EnemyFieldView(player: player, enemy: enemy)
-                        .tag(AppState.SelectedTabs.enemyView)
+                case .about:
                     AboutView()
-                        .tag(AppState.SelectedTabs.about)
-                } // TabView off
+                case .iPadBattleView:
+                    EmptyView() // iPad-only tab, never selected on iPhone
+                } // switch off
                 VStack(spacing: 0) {
                     ZStack {
                         Image("wood")

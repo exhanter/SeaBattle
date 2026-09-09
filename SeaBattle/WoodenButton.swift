@@ -21,10 +21,15 @@ struct WoodenButton: ButtonStyle {
         }
         .frame(width: width, height: height)
         .background(
+            // Size and clip the wood to the button's exact frame. Without an
+            // explicit frame the .fill crop height depended on the button's
+            // aspect ratio, so narrow buttons (e.g. the win-alert pair) came out
+            // clipped flat at the bottom.
             Image("wood")
                 .resizable()
-                .aspectRatio(contentMode: .fill)
-                .offset(y: -50)
+                .scaledToFill()
+                .frame(width: width, height: height)
+                .clipped()
         )
         .cornerRadius(radius)
         // Restrict the tap area to the button's own frame. The wood background is

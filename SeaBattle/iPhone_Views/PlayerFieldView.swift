@@ -31,7 +31,12 @@ struct PlayerFieldView: View {
                     }
                     .padding(.bottom, geometry.size.height * 0.05)
                     
+                    // Hidden via opacity (not removed) so its space stays reserved
+                    // and the board doesn't shift down when the game ends — mirrors
+                    // how "FIRE!" is kept in place in EnemyFieldView.
                     YourTurnButtonView(width: geometry.size.width, height: geometry.size.height)
+                        .opacity(appState.gameIsOver ? 0 : 1)
+                        .allowsHitTesting(!appState.gameIsOver)
                 }
                 .ignoresSafeArea()
                 
@@ -44,7 +49,9 @@ struct PlayerFieldView: View {
                             enemy.shipsRandomArrangement()
                             appState.selectedTab = .playerView
                         },
-                        onMenu: { appState.resetData(player: player, enemy: enemy) }
+                        onMenu: { appState.resetData(player: player, enemy: enemy) },
+                        alignBottom: true,
+                        bottomInset: geometry.size.height * 0.15
                     )
                     .accessibility(identifier: "winAlert")
                 }

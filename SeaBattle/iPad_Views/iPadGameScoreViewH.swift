@@ -16,16 +16,27 @@ struct iPadGameScoreViewH: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             Spacer()
-            Text("Player \(player.numberShipsDestroyed) / 10") // 8 char max
-                .font(.custom("Aldrich", size: width * 0.04))
-                .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                .shadow(color: Color(red: 0.11, green: 0.77, blue: 0.56), radius: 1)
+            VStack(spacing: 4) {
+                Text("Player \(player.numberShipsDestroyed) / 10") // 8 char max
+                    .font(.custom("Aldrich", size: width * 0.04))
+                    .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                    .shadow(color: Color(red: 0.11, green: 0.77, blue: 0.56), radius: 1)
+                // Crossed-out marks = ships SUNK (not remaining).
+                FleetTally(sunk: player.numberShipsDestroyed,
+                           color: Color(red: 248/255, green: 255/255, blue: 0/255),
+                           markSize: width * 0.018)
+            }
             Spacer()
             Spacer()
-            Text("Enemy \(enemy.numberShipsDestroyed) / 10")
-                .font(.custom("Aldrich", size: width * 0.04))
-                .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
-                .shadow(color: Color(red: 0.11, green: 0.77, blue: 0.56), radius: 1)
+            VStack(spacing: 4) {
+                Text("Enemy \(enemy.numberShipsDestroyed) / 10")
+                    .font(.custom("Aldrich", size: width * 0.04))
+                    .foregroundStyle(Color(red: 248/255, green: 255/255, blue: 0/255))
+                    .shadow(color: Color(red: 0.11, green: 0.77, blue: 0.56), radius: 1)
+                FleetTally(sunk: enemy.numberShipsDestroyed,
+                           color: Color(red: 248/255, green: 255/255, blue: 0/255),
+                           markSize: width * 0.018)
+            }
             Spacer()
         }
         .padding(.top, height * 0.11)//0.0132

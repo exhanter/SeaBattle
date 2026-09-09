@@ -33,6 +33,11 @@ class AppState {
     var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
     var enemysTurn = false
     var gameIsActive = false
+    /// True from the moment a fleet is fully sunk until the next reset. Unlike
+    /// `gameIsActive` (which also is false *before* a match starts), this marks a
+    /// match that has *ended*, so the "Start" button stays hidden during the
+    /// brief window before the win/defeat alert appears.
+    var gameIsOver = false
     var soundOn: Bool
     var musicOn: Bool
     var selectedTab: SelectedTabs = .menu
@@ -125,6 +130,7 @@ class AppState {
             enemy.fireStrokeArray.append(boolArray)
         }
         self.gameIsActive = false
+        self.gameIsOver = false
         self.selectedTab = .menu
         // Starting a new game or stopping the current one discards the save.
         GameStore.clear()

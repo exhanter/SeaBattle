@@ -55,7 +55,9 @@ struct EnemyFieldView: View {
                             enemy.shipsRandomArrangement()
                             appState.selectedTab = .playerView
                         },
-                        onMenu: { appState.resetData(player: player, enemy: enemy) }
+                        onMenu: { appState.resetData(player: player, enemy: enemy) },
+                        alignBottom: true,
+                        bottomInset: geometry.size.height * 0.15
                     )
                 }
             } //ZStack off
