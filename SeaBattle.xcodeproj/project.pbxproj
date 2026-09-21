@@ -94,6 +94,9 @@
 		CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */; };
 		CA4F06353061DB140083DE5C /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06343061DB140083DE5C /* AudioService.swift */; };
 		CA4F06373061DB170083DE5C /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06363061DB170083DE5C /* Log.swift */; };
+		CA4F063A3061E1E20083DE5C /* Side.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06393061E1E20083DE5C /* Side.swift */; };
+		CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063B3061E2090083DE5C /* ShipPlacement.swift */; };
+		CA4F063E3061E2490083DE5C /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063D3061E2490083DE5C /* Board.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -206,6 +209,9 @@
 		CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatStore.swift; sourceTree = "<group>"; };
 		CA4F06343061DB140083DE5C /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		CA4F06363061DB170083DE5C /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		CA4F06393061E1E20083DE5C /* Side.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Side.swift; sourceTree = "<group>"; };
+		CA4F063B3061E2090083DE5C /* ShipPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPlacement.swift; sourceTree = "<group>"; };
+		CA4F063D3061E2490083DE5C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -267,6 +273,7 @@
 				CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */,
 				CA4F06343061DB140083DE5C /* AudioService.swift */,
 				CA4F06363061DB170083DE5C /* Log.swift */,
+				CA4F06383061E1E20083DE5C /* Core */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -409,6 +416,16 @@
 				CA17D7CE302CC22F007A33B0 /* StoreKit.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CA4F06383061E1E20083DE5C /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				CA4F06393061E1E20083DE5C /* Side.swift */,
+				CA4F063B3061E2090083DE5C /* ShipPlacement.swift */,
+				CA4F063D3061E2490083DE5C /* Board.swift */,
+			);
+			path = Core;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -595,6 +612,7 @@
 				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
 				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
 				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
+				CA4F063E3061E2490083DE5C /* Board.swift in Sources */,
 				2CE7319A2D57A5EA00954841 /* iPadGameScoreViewV.swift in Sources */,
 				CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */,
 				2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */,
@@ -607,6 +625,7 @@
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
 				CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */,
 				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
+				CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */,
 				2CE731A22D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift in Sources */,
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
 				CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */,
@@ -620,6 +639,7 @@
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
 				CA4F06353061DB140083DE5C /* AudioService.swift in Sources */,
+				CA4F063A3061E1E20083DE5C /* Side.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
 				CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */,

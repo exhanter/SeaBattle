@@ -4,6 +4,13 @@
 //
 //  Created by Ivan Tkachev on 05/02/2025.
 //
+//  NOTE (R0.3): three of these tests drive the pre-b6fd237 main screen —
+//  "newOrStopGameButton", "startOrYourTurnButton", "changeOrSaveButton" — which
+//  went away when the menu was reduced to New game / Continue game / Settings.
+//  They have been failing since then. Rather than leave the suite permanently
+//  red, they are skipped with an explicit reason; they are rewritten against
+//  the redesigned screens in R2 (see docs/REDESIGN_PLAN.md).
+//
 
 import XCTest
 
@@ -39,6 +46,7 @@ final class SeaBattleUITests: XCTestCase {
     
     @MainActor
     func testSideButtonsDisabledBeforeStart() throws {
+        throw XCTSkip("Drives the pre-redesign main screen; rewritten in R2 against the new UI.")
         let sideMenuButton = app.buttons["sideMenuButton"]
         let sidePlayerButton = app.buttons["sidePlayerButton"]
         let sideEnemyButton = app.buttons["sideEnemyButton"]
@@ -54,6 +62,7 @@ final class SeaBattleUITests: XCTestCase {
     
     @MainActor
     func testButtonsDisabledWhileShipsReplacement() throws {
+        throw XCTSkip("Drives the pre-redesign main screen; rewritten in R2 against the new UI.")
         let startOrYourTurnButton = app.buttons["startOrYourTurnButton"]
         let sideMenuButton = app.buttons["sideMenuButton"]
         let sidePlayerButton = app.buttons["sidePlayerButton"]
@@ -72,6 +81,7 @@ final class SeaBattleUITests: XCTestCase {
     
     @MainActor
     func testAlghoritmWithPressingButtonsConsistently() throws {
+        throw XCTSkip("Drives the pre-redesign main screen; rewritten in R2 against the new UI.")
         var endGame = false
         let testCell: XCUIElement = app.buttons["testCell"]
 
