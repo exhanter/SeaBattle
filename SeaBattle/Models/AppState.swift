@@ -9,6 +9,7 @@ import AVFoundation
 import Observation
 import SwiftUI
 
+@MainActor
 @Observable
 class AppState {
 
@@ -63,49 +64,32 @@ class AppState {
     enum PremiumIntent { case expert, hotSeat, nearby, online }
     var pendingPremiumIntent: PremiumIntent?
     
-    static var isPad: Bool { return UIDevice.current.userInterfaceIdiom == .pad }
-    static var deviceHasWideNotch: Bool { return UIScreen.main.bounds.width == 375.0 || UIScreen.main.bounds.width == 320.0 ? true : false }
-    static var musicPlayer: AVAudioPlayer?
-    static var soundPlayer: AVAudioPlayer?
-    static var shipIsPlaced: [Bool] = Array(repeating: true, count: 10)
-    
-    /// Route audio through the playback category so music/effects are heard even
-    /// when the device's silent (mute) switch is on — otherwise there's no sound
-    /// on a real device.
-    static func configureAudioSession() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            print("Audio session error: \(error.localizedDescription)")
-        }
+    static var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    /// True on the narrow iPhones (SE / mini, 375 and 320 pt wide), which need a
+    /// smaller type scale. TODO (R2): the redesign sizes everything from the
+    /// container, so this goes away with the old views.
+    static var isSmallPhone: Bool {
+        let width = UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.screen.bounds.width }
+            .first ?? 393
+        return width <= 375
     }
 
+    // MARK: - Audio
+
+    // Sound and music live in `AudioService` (R0.2). These forwarders keep the
+    // existing call sites working; new code should call `AudioService.shared`.
+
     static func playMusic(sound: String) {
-        guard let soundURL = Bundle.main.url(forResource: sound, withExtension: "") else { return }
-        do {
-            musicPlayer = try AVAudioPlayer(contentsOf: soundURL)
-            self.musicPlayer?.numberOfLoops = -1
-            musicPlayer?.volume = 0.5
-            musicPlayer?.play()
-        } catch {
-            print("Error: \(error.localizedDescription)")
-        }
+        AudioService.shared.startMusic()
     }
-    
+
+    static func stopMusic() {
+        AudioService.shared.stopMusic()
+    }
+
     static func playSound(sound: String) {
-        var level: Float = 1.0
-        if sound == "Glass_Break-stephan_schutze-958181291.wav" || sound == "blast_missed.wav" {
-            level = 2.0
-        }
-        guard let soundURL = Bundle.main.url(forResource: sound, withExtension: "") else { return }
-        do {
-            soundPlayer = try AVAudioPlayer(contentsOf: soundURL)
-            soundPlayer?.play()
-            soundPlayer?.volume = level
-        } catch {
-            print("Error: \(error.localizedDescription)")
-        }
+        AudioService.shared.play(named: sound)
     }
     
     func resetData(player: PlayerData, enemy: PlayerData) {
@@ -117,17 +101,18 @@ class AppState {
         player.showFinishGameAlert = false
         player.fireStrokeArray = []
         enemy.fireStrokeArray = []
-        var boolArray = [Bool]()
+        // A 10 x 10 grid per side. The previous version reused one growing
+        // `boolArray` across rows, so `fireStrokeArray` came out ragged
+        // (10, 20, ... 100 entries per row) — 550 values instead of 100.
         for row in 1...10 {
             var arrayOfrows = [Cell]()
             for column in 1...10 {
                 arrayOfrows.append(Cell(column: column, row: row))
-                boolArray.append(false)
             }
             player.cells.append(arrayOfrows)
             enemy.cells.append(arrayOfrows)
-            player.fireStrokeArray.append(boolArray)
-            enemy.fireStrokeArray.append(boolArray)
+            player.fireStrokeArray.append([Bool](repeating: false, count: 10))
+            enemy.fireStrokeArray.append([Bool](repeating: false, count: 10))
         }
         self.gameIsActive = false
         self.gameIsOver = false
@@ -162,6 +147,8 @@ class AppState {
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier
         self.autoRevealAroundSunk = UserDefaults.standard.bool(forKey: "autoRevealAroundSunk")
-        AppState.configureAudioSession()
+        // Touching the service configures the audio session (playback category,
+        // so the game is heard with the mute switch on).
+        _ = AudioService.shared
     }
 }

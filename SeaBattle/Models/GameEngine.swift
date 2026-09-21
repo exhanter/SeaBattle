@@ -84,7 +84,7 @@ final class GameEngine {
         if target.numberShipsDestroyed == 10 {
             appState.gameIsActive = false
             appState.gameIsOver = true
-            AppState.musicPlayer?.stop()
+            AppState.stopMusic()
             // The match is over — drop the saved game.
             GameStore.clear()
             // Record the result: the side whose whole fleet is sunk is the loser.

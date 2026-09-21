@@ -33,7 +33,7 @@ enum GameStore {
             let data = try JSONEncoder().encode(snapshot)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("GameStore save error: \(error.localizedDescription)")
+            Log.store.error("GameStore save failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

@@ -241,7 +241,7 @@ final class NetworkGame {
     private func finish(iWon won: Bool) {
         iWon = won
         phase = .finished
-        AppState.musicPlayer?.stop()
+        AppState.stopMusic()
         // Points only for cross-account matches (expert values).
         guard !isSameAccount else { return }
         if won {

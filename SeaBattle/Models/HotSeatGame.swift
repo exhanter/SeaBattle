@@ -181,7 +181,7 @@ final class HotSeatGame {
         if target.numberShipsDestroyed == 10 {
             winner = attacker
             players[attacker].sessionWins += 1
-            AppState.musicPlayer?.stop()
+            AppState.stopMusic()
             persist()
             return .win
         }

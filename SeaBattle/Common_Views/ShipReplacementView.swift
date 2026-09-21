@@ -24,7 +24,7 @@ struct ShipReplacementView: View {
                             .onEnded { _ in
                                 player.ships[ship.number].orientation = player.ships[ship.number].orientation == .vertical ? .horizontal : .vertical
                                 player.shipIsDragging[ship.number] = true
-                                AppState.shipIsPlaced[ship.number] = false
+                                player.shipIsPlaced[ship.number] = false
                             }
                     )
                         .gesture(

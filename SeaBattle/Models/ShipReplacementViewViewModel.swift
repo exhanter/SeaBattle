@@ -62,9 +62,9 @@ extension ShipReplacementView {
             let newCoordinates = self.convertCenterCGPointToShipCoordinates(index: index, cellSize: cellSize, leftTopPointOfGameField: leftTopPointOfGameField)
             if !self.newShipCrossesOthers(index: index, newCoordinates: newCoordinates) {
                     player.ships[index].coordinates = newCoordinates
-                AppState.shipIsPlaced[index] = true
+                player.shipIsPlaced[index] = true
                 } else {
-                    AppState.shipIsPlaced[index] = false
+                    player.shipIsPlaced[index] = false
                     player.ships[index].coordinates = newCoordinates
                 }
             for coordinate in startCoordinates {
@@ -79,7 +79,7 @@ extension ShipReplacementView {
             for coordinate in player.ships[index].coordinates {
                 player.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus = .showShip
             }
-            if AppState.shipIsPlaced[index] == true {
+            if player.shipIsPlaced[index] == true {
                 player.shipIsDragging[index] = false
             }
             player.makeCellsAvailableAgain()

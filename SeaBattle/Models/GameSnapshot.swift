@@ -18,6 +18,7 @@ struct PlayerSnapshot: Codable, Sendable {
     var showFinishGameAlert: Bool
     var fireStrokeArray: [[Bool]]
 
+    @MainActor
     init(_ player: PlayerData) {
         self.name = player.name
         self.cells = player.cells
@@ -28,6 +29,7 @@ struct PlayerSnapshot: Codable, Sendable {
 
     /// Restores this snapshot into an existing `PlayerData`. `name` is a `let`
     /// on `PlayerData` and is intentionally left untouched.
+    @MainActor
     func restore(into player: PlayerData) {
         player.cells = cells
         player.ships = ships
@@ -49,6 +51,7 @@ struct GameSnapshot: Codable, Sendable {
     var player: PlayerSnapshot
     var enemy: PlayerSnapshot
 
+    @MainActor
     init(appState: AppState, player: PlayerData, enemy: PlayerData) {
         self.schemaVersion = 1
         self.difficulty = appState.difficulty
@@ -62,6 +65,7 @@ struct GameSnapshot: Codable, Sendable {
     }
 
     /// Applies this snapshot back onto the live game objects.
+    @MainActor
     func apply(to appState: AppState, player: PlayerData, enemy: PlayerData) {
         appState.difficulty = difficulty
         appState.enemysTurn = enemysTurn

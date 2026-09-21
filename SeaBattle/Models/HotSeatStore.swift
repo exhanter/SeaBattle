@@ -30,7 +30,7 @@ enum HotSeatStore {
             let data = try JSONEncoder().encode(snapshot)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("HotSeatStore save error: \(error.localizedDescription)")
+            Log.store.error("HotSeatStore save failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

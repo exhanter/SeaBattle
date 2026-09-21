@@ -26,7 +26,10 @@ final class MultipeerTransport: NSObject, NetworkTransport {
 
     private static let serviceType = "seabattle-mp"
     let myPeerID: MCPeerID
-    @ObservationIgnored private let session: MCSession
+    /// MCSession is created once and is safe to use from the Multipeer delegate
+    /// queue; the invitation handler must be answered synchronously there, so
+    /// the session cannot live behind the main actor.
+    @ObservationIgnored nonisolated(unsafe) private let session: MCSession
     @ObservationIgnored private var advertiser: MCNearbyServiceAdvertiser?
     @ObservationIgnored private var browser: MCNearbyServiceBrowser?
 
@@ -109,18 +112,23 @@ extension MultipeerTransport: MCNearbyServiceAdvertiserDelegate {
                                 didReceiveInvitationFromPeer peerID: MCPeerID,
                                 withContext context: Data?,
                                 invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-        Task { @MainActor in invitationHandler(true, self.session) } // auto-accept the single opponent
+        // Auto-accept the single opponent. Answered inline: the handler is not
+        // Sendable and Multipeer expects a prompt reply on this queue.
+        invitationHandler(true, session)
     }
 }
 
 extension MultipeerTransport: MCNearbyServiceBrowserDelegate {
     nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
+        // MCPeerID is immutable but not marked Sendable, so hand it over explicitly.
+        nonisolated(unsafe) let peer = peerID
         Task { @MainActor in
-            if !self.discoveredPeers.contains(peerID) { self.discoveredPeers.append(peerID) }
+            if !self.discoveredPeers.contains(peer) { self.discoveredPeers.append(peer) }
         }
     }
 
     nonisolated func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        Task { @MainActor in self.discoveredPeers.removeAll { $0 == peerID } }
+        nonisolated(unsafe) let peer = peerID
+        Task { @MainActor in self.discoveredPeers.removeAll { $0 == peer } }
     }
 }

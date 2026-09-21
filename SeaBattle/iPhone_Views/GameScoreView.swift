@@ -27,7 +27,7 @@ struct GameScoreView: View {
     private func scoreSide(sunk: Int, color: Color) -> some View {
         VStack(spacing: 2) {
             Text("\(sunk) / 10")
-                .font(AppState.deviceHasWideNotch ? .custom("Dorsa", size: 42) : .custom("Aldrich", size: 24))
+                .font(AppState.isSmallPhone ? .custom("Dorsa", size: 42) : .custom("Aldrich", size: 24))
                 .foregroundStyle(color)
             FleetTally(sunk: sunk, color: color, markSize: 12)
         }

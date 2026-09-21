@@ -39,7 +39,7 @@ struct YourTurnButtonView: View {
         .shadow(color: appState.enemysTurn || appState.tabsBlocked ? .clear : .white, radius: 1, y: 1)
         .opacity(appState.enemysTurn || appState.tabsBlocked ? 0.5 : 1)
         .padding(.bottom, height * 0.15)
-        .onChange(of: appState.enemysTurn) { newValue in
+        .onChange(of: appState.enemysTurn) { _, newValue in
             if newValue == false {
                 Task { @MainActor in
                     try? await Task.sleep(for: .seconds(1))

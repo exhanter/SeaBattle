@@ -92,6 +92,8 @@
 		CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */; };
 		CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */; };
 		CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */; };
+		CA4F06353061DB140083DE5C /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06343061DB140083DE5C /* AudioService.swift */; };
+		CA4F06373061DB170083DE5C /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06363061DB170083DE5C /* Log.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -202,6 +204,8 @@
 		CA17D8C8302E7D0B007A33B0 /* SeaBattle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SeaBattle.entitlements; sourceTree = "<group>"; };
 		CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
 		CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatStore.swift; sourceTree = "<group>"; };
+		CA4F06343061DB140083DE5C /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
+		CA4F06363061DB170083DE5C /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -261,6 +265,8 @@
 				CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */,
 				CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */,
 				CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */,
+				CA4F06343061DB140083DE5C /* AudioService.swift */,
+				CA4F06363061DB170083DE5C /* Log.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -610,8 +616,10 @@
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
 				CA17D8B9302E7609007A33B0 /* NetworkMessage.swift in Sources */,
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
+				CA4F06373061DB170083DE5C /* Log.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
+				CA4F06353061DB140083DE5C /* AudioService.swift in Sources */,
 				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
 				CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */,
@@ -672,7 +680,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattleUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = SeaBattle;
 			};
@@ -689,7 +697,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = nl.brapps.SeaBattleUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = SeaBattle;
 			};
@@ -711,7 +719,7 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SeaBattle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SeaBattle";
 				XROS_DEPLOYMENT_TARGET = 2.2;
@@ -734,7 +742,7 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SeaBattle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SeaBattle";
 				XROS_DEPLOYMENT_TARGET = 2.2;
@@ -903,8 +911,11 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -946,8 +957,11 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

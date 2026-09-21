@@ -25,6 +25,11 @@ class PlayerData {
 
     var shipPositions: [CGPoint] = Array(repeating: .zero, count: 10)
     var shipIsDragging: [Bool] = Array(repeating: false, count: 10)
+    /// Per-ship flag used while arranging manually: false means the ship is in
+    /// an illegal spot and is still "in the player's hand". Indexed by
+    /// `Ship.number`, like `shipIsDragging`. Was a mutable global on `AppState`
+    /// until R0.2 — it is per-board state and belongs here.
+    var shipIsPlaced: [Bool] = Array(repeating: true, count: 10)
     var fireStrokeArray = [[Bool]]()
     
     ///Method creates and arranges ships on the field.
@@ -210,15 +215,15 @@ class PlayerData {
     
     init(name: String) {
         self.name = name
-        var boolArray = [Bool]()
+        // One row of 10 per board row. The old code reused a single growing
+        // `boolArray`, so row N ended up with (N + 1) * 10 entries.
         for row in 1...10 {
             var arrayOfRows = [Cell]()
             for column in 1...10 {
                 arrayOfRows.append(Cell(column: column, row: row))
-                boolArray.append(false)
             }
             self.cells.append(arrayOfRows)
-            self.fireStrokeArray.append(boolArray)
+            self.fireStrokeArray.append([Bool](repeating: false, count: 10))
         }
     }
 }

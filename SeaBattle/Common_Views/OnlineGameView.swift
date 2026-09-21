@@ -113,7 +113,11 @@ private struct MatchmakerView: UIViewControllerRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
-    final class Coordinator: NSObject, GKMatchmakerViewControllerDelegate {
+    // GameKit calls the matchmaker delegate back on the main thread, but the
+    // protocol carries no isolation annotation. `@preconcurrency` on the
+    // conformance lets the main-actor methods satisfy it, with a runtime check.
+    @MainActor
+    final class Coordinator: NSObject, @preconcurrency GKMatchmakerViewControllerDelegate {
         let parent: MatchmakerView
         init(_ parent: MatchmakerView) { self.parent = parent }
 

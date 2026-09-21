@@ -30,7 +30,7 @@ struct SettingsView: View {
                         Text("Nederlands").tag("NL")
                         Text("System").tag(Locale.current.identifier)
                     }
-                    .onChange(of: appState.language) { _ in
+                    .onChange(of: appState.language) {
                         UserDefaults.standard.set(appState.language, forKey: "Language")
                     }
                     .pickerStyle(.segmented)
@@ -69,20 +69,20 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                     .padding()
                     Toggle("Music", isOn: $appState.musicOn)
-                        .onChange(of: appState.musicOn) { _ in
+                        .onChange(of: appState.musicOn) {
                             if appState.soundOn {
                                 AppState.playSound(sound: "click_sound.wav")
                             }
                             if appState.musicOn && appState.gameIsActive {
                                 AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
                             } else {
-                                AppState.musicPlayer?.stop()
+                                AppState.stopMusic()
                             }
                             UserDefaults.standard.set(appState.musicOn, forKey: "musicOn")
                         }
                         .padding()
                     Toggle("Sound", isOn: $appState.soundOn)
-                        .onChange(of: appState.soundOn) { _ in
+                        .onChange(of: appState.soundOn) {
                             if appState.soundOn {
                                 AppState.playSound(sound: "click_sound.wav")
                             }
@@ -91,7 +91,7 @@ struct SettingsView: View {
                         .padding()
 
                     Toggle("Reveal empty cells around sunk ships", isOn: $appState.autoRevealAroundSunk)
-                        .onChange(of: appState.autoRevealAroundSunk) { _ in
+                        .onChange(of: appState.autoRevealAroundSunk) {
                             UserDefaults.standard.set(appState.autoRevealAroundSunk, forKey: "autoRevealAroundSunk")
                             if appState.soundOn {
                                 AppState.playSound(sound: "click_sound.wav")
