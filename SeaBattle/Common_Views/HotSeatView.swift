@@ -42,6 +42,10 @@ struct HotSeatChrome<Content: View, Bar: View>: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
+                // Opaque base: the sea gradient is translucent (matches the
+                // vs-computer look over the black window), so without this the
+                // presenting menu shows through the fullScreenCover.
+                Color.black.ignoresSafeArea()
                 seaGradient.ignoresSafeArea()
                 VStack(spacing: 0) {
                     ZStack(alignment: .top) {
