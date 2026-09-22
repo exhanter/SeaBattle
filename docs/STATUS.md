@@ -63,7 +63,7 @@ SwiftUI-игра «Морской бой» (iPhone + iPad), три языка EN
 | R0.1 Аудит и план | `c375fc0` | `docs/AUDIT.md`, `docs/REDESIGN_PLAN.md`, пакет дизайна в `docs/design/` |
 | R0.2 Swift 6 | `8fff3a7` | Все таргеты на Swift 6, strict concurrency `complete`, сборка без предупреждений. Новые `AudioService` и `Log` |
 | R0.3 + R0.5 Ядро правил и тесты | `ded9242` | `Models/Core/` — `Side`, `Orientation`, `ShipPlacement`, `FleetLayout`, `CellState`, `Board`. 401 тест зелёный |
-| R0.4 Режимы на ядре | этот коммит | Все три режима — адаптеры над `Board`. Мост `PlayerData+Board`, `PlayerData.side`, ИИ ослеплён, сейв с проверкой версии и записью вне главного потока. 452 теста |
+| R0.4 Режимы на ядре | `c8de352` | Все три режима — адаптеры над `Board`. Мост `PlayerData+Board`, `PlayerData.side`, ИИ ослеплён, сейв с проверкой версии и записью вне главного потока. 452 теста |
 
 **Состояние сборки:** зелёная, без предупреждений. Тесты: 452 пройдено,
 3 UI-теста пропущены осознанно (водят экран, удалённый в `b6fd237`;
