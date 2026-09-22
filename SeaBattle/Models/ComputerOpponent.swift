@@ -85,7 +85,13 @@ final class ComputerOpponent: Opponent {
             return board.shootableCells()
 
         case .medium:
-            return finishingCandidates(on: board) ?? openCells(on: board)
+            // Follows up a hit properly, but does not use the rule that ships
+            // never touch: it keeps firing into the ring around a sunk ship,
+            // where there cannot be anything. That single blind spot is what
+            // puts it a clear step below `.hard` (see the ladder measurement in
+            // `DifficultyLadderTests`) while still playing like someone who is
+            // paying attention.
+            return finishingCandidates(on: board) ?? board.shootableCells()
 
         case .hard:
             if let finishing = finishingCandidates(on: board) { return finishing }

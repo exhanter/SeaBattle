@@ -88,22 +88,27 @@ struct DifficultyLadderTests {
 
     // MARK: - What each level does with a sunk ship
 
-    @Test("Above easy, the ring around a sunk ship is ruled out")
-    func harderLevelsSkipTheRing() {
+    @Test("Hard and expert know that ships never touch; easy and medium do not")
+    func onlyTheTopTwoSkipTheRing() {
         // Sink the single-deck ship at (5,4) outright.
         let victim = Coordinate(row: 5, column: 4)
         let board = maskedBoard(afterShotsAt: [victim])
         #expect(board[victim] == .sunk)
         let ring = Set(victim.neighbours)
 
-        for level in harderLevels {
+        for level in [AppState.DifficultyLevel.hard, .expert] {
             let candidates = Set(opponent(at: level).targetCandidates(on: board))
             #expect(candidates.isDisjoint(with: ring),
                     "\(level) still considers cells that cannot hold a ship")
         }
-        // Easy keeps wasting shots there, which is the point of easy.
-        let easy = Set(opponent(at: .easy).targetCandidates(on: board))
-        #expect(!easy.isDisjoint(with: ring))
+        // Easy and medium keep wasting shots there. For medium that blind spot
+        // is the whole difference from hard, and it costs it about ten shots a
+        // match — see `theLadderClimbs`.
+        for level in [AppState.DifficultyLevel.easy, .medium] {
+            let candidates = Set(opponent(at: level).targetCandidates(on: board))
+            #expect(!candidates.isDisjoint(with: ring),
+                    "\(level) is not supposed to know that ships never touch")
+        }
     }
 
     // MARK: - Hard: the checkerboard
@@ -233,24 +238,44 @@ struct DifficultyLadderTests {
         let medium = average[.medium]!
         let hard = average[.hard]!
         let expert = average[.expert]!
-        let report: Comment = """
-            shots to sink the six multi-deck ships (and to clear the board):
-            easy \(easy.multiDeck) (\(easy.total)), medium \(medium.multiDeck) (\(medium.total)), \
-            hard \(hard.multiDeck) (\(hard.total)), expert \(expert.multiDeck) (\(expert.total))
+        func line(_ name: String, _ shots: (multiDeck: Double, total: Double)) -> String {
+            let multiDeck = String(format: "%5.2f", shots.multiDeck)
+            let total = String(format: "%5.2f", shots.total)
+            return "  \(name.padding(toLength: 7, withPad: " ", startingAt: 0)) \(multiDeck)   \(total)"
+        }
+        // Printed on every run, not only on failure: the numbers are the whole
+        // argument for how the levels are built, and they are worth seeing
+        // again whenever the targeting is touched.
+        let text = """
+            Difficulty ladder, 100 fleets, each level playing the same ones.
+            Average shots to sink the six multi-deck ships / to clear the board:
+            \(line("easy", easy))
+            \(line("medium", medium))
+            \(line("hard", hard))
+            \(line("expert", expert))
             """
+        print(text)
+        let report = Comment(rawValue: text)
 
-        // Paired over 100 random fleets. Any two levels coming out equal here
-        // would be the flat ladder of finding A6 all over again. R0.6 measured
-        // roughly 95 · 53 · 46 · 45 shots; the margins below leave room for
-        // the run-to-run spread but not for a rung collapsing into its
-        // neighbour.
-        #expect(medium.multiDeck < easy.multiDeck - 20, report)
-        #expect(hard.multiDeck < medium.multiDeck - 3, report)
-        #expect(expert.multiDeck < hard.multiDeck - 0.5, report)
+        // Clearing the whole board is what decides a real match, so that is the
+        // column the ladder has to be monotone in. It is also the harder test:
+        // an early version of `.hard` beat medium to the multi-deck ships and
+        // still lost the match on total shots, because sweeping one colour of
+        // the board leaves the single-deck ships hidden for the endgame.
+        // Measured at roughly 96 · 87 · 58 · 57. The gaps are very uneven
+        // because the dials are: following up a hit at all (worth ~9 shots),
+        // knowing that ships never touch (~29), and computing the best cell
+        // rather than sweeping a pattern (~1). The last one is small because
+        // `.hard` is already close to the floor — see the note in `shotsNeeded`.
+        #expect(medium.total < easy.total - 5, report)
+        #expect(hard.total < medium.total - 15, report)
+        #expect(expert.total < hard.total, report)
 
-        // Clearing the whole board stays within a couple of shots across the
-        // three thinking levels, and that is expected: see `shotsNeeded`.
-        #expect(expert.total < medium.total, report)
+        // The multi-deck column shows the same order, with room to spare: it is
+        // the part of a match where reasoning can help at all.
+        #expect(medium.multiDeck < easy.multiDeck - 10, report)
+        #expect(hard.multiDeck < medium.multiDeck - 10, report)
+        #expect(expert.multiDeck < hard.multiDeck, report)
 
         // Sanity: 16 cells belong to multi-deck ships, so nothing can sink them
         // in fewer than 16 shots, and easy is a random sweep of 100 cells.
