@@ -140,6 +140,18 @@ struct Board: Codable, Sendable, Equatable {
         return sunkShipCount >= FleetLayout.shipCount
     }
 
+    /// The same field as the other player sees it: the fleet is hidden and an
+    /// unharmed ship cell reads as untouched water. Hits, sunk ships and misses
+    /// are public and stay.
+    ///
+    /// Anything choosing where to shoot MUST work from this rather than from
+    /// the board itself, or it is reading the hidden layout.
+    func opponentView() -> Board {
+        var view = Board()
+        view.states = states.map { $0 == .ship ? .water : $0 }
+        return view
+    }
+
     /// Cells that are still worth firing at.
     ///
     /// Replaces the old "pick random coordinates until one happens to be free"

@@ -34,7 +34,7 @@ struct Ship: Codable, Identifiable {
         case id, number, orientation, numberOfDecks, isDestroyed, coordinates
     }
 
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let decodedCoordinates = try container.decode([Coordinate].self, forKey: .coordinates)
         self.init(
@@ -47,7 +47,7 @@ struct Ship: Codable, Identifiable {
         )
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(number, forKey: .number)

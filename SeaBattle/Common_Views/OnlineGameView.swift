@@ -124,7 +124,7 @@ private struct MatchmakerView: UIViewControllerRepresentable {
         func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
             parent.onDismiss()
         }
-        func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
+        func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: any Error) {
             parent.onDismiss()
         }
         func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {

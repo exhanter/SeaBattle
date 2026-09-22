@@ -24,7 +24,7 @@ final class NetworkGame {
         case finished
     }
 
-    private let transport: NetworkTransport
+    private let transport: any NetworkTransport
 
     // My identity.
     let localName: String
@@ -56,7 +56,7 @@ final class NetworkGame {
     /// farming points against yourself.
     var isSameAccount: Bool { opponentAccountID == localAccountID }
 
-    init(transport: NetworkTransport, name: String, avatar: String, accountID: String, isHost: Bool) {
+    init(transport: any NetworkTransport, name: String, avatar: String, accountID: String, isHost: Bool) {
         self.transport = transport
         self.localName = name
         self.localAvatar = avatar
@@ -173,58 +173,66 @@ final class NetworkGame {
 
     // MARK: - Defender side
 
+    /// Resolves the opponent's shot at my fleet and reports the outcome back.
+    ///
+    /// This device is the only authority on its own board, so this is where the
+    /// rules run — since R0.4 on `Board`, not on a third hand-written copy of
+    /// hit / sunk / lost (audit finding A1).
     private func resolveIncomingShot(_ coordinate: Coordinate) {
-        let r = coordinate.row - 1, c = coordinate.column - 1
-        guard own.cells[r][c].isAvailable else { return }
+        var board = own.coreBoard
+        let result = board.apply(shotAt: coordinate)
+        own.apply(board)
 
-        guard let shipIndex = own.ships.firstIndex(where: { $0.coordinates.contains(where: { $0 == (coordinate.row, coordinate.column) }) }) else {
-            own.cells[r][c].cellStatus = .missed
-            own.cells[r][c].isAvailable = false
+        let outcome: ShotOutcome
+        var sunkCells: [Coordinate]?
+        switch result {
+        case .miss:
             play("blast_missed.wav")
-            transport.send(.result(ResultPayload(at: coordinate, outcome: .missed, sunkShip: nil, defenderLost: false)))
-            phase = .myTurn // opponent missed — my turn to shoot
+            outcome = .missed
+        case .hit:
+            play("blast_onfire2.wav")
+            outcome = .hit
+        case .sunk(let ship):
+            play("blast_onfire2.wav")
+            play("Glass_Break-stephan_schutze-958181291.wav")
+            outcome = .sunk
+            sunkCells = ship.cells
+        case .repeated, .offBoard:
+            // A cell they have already fired at, or one off the board. Nothing
+            // changed, so answering would desynchronise their turn — a sound
+            // peer never sends this.
             return
         }
 
-        own.cells[r][c].cellStatus = .showShipOnFire
-        own.cells[r][c].isAvailable = false
-        play("blast_onfire2.wav")
-
-        let ship = own.ships[shipIndex]
-        let sunk = ship.coordinates.allSatisfy { coord in
-            let status = own.cells[coord.0 - 1][coord.1 - 1].cellStatus
-            return status == .showShipOnFire || status == .destroyed
-        }
-        var sunkCells: [Coordinate]?
-        if sunk {
-            for coord in ship.coordinates { own.cells[coord.0 - 1][coord.1 - 1].cellStatus = .destroyed }
-            own.ships[shipIndex].isDestroyed = true
-            sunkCells = ship.coordinates.map(Coordinate.init)
-            play("Glass_Break-stephan_schutze-958181291.wav")
-        }
-        let lost = own.numberShipsDestroyed == 10
+        let lost = board.isFleetDestroyed
         transport.send(.result(ResultPayload(at: coordinate,
-                                             outcome: sunk ? .sunk : .hit,
+                                             outcome: outcome,
                                              sunkShip: sunkCells,
                                              defenderLost: lost)))
         if lost {
             finish(iWon: false)
+        } else if outcome == .missed {
+            phase = .myTurn // opponent missed — my turn to shoot
         } // else opponent hit — stays their turn
     }
 
     // MARK: - Shooter side
 
+    /// Records what the opponent said about my shot onto my tracking board.
+    ///
+    /// `tracking` holds no fleet — the opponent's layout lives on their device —
+    /// so this uses the core's manual marking, the same path the paper game
+    /// takes. The sunk tally is then read off the board as connected runs of
+    /// sunk cells rather than counted by hand, so it cannot drift from what is
+    /// drawn.
     private func applyResult(_ payload: ResultPayload) {
-        let r = payload.at.row - 1, c = payload.at.column - 1
-        tracking.cells[r][c].cellStatus = (payload.outcome == .missed) ? .missed : .onFire
-        tracking.cells[r][c].isAvailable = false
-        if let sunkShip = payload.sunkShip {
-            opponentShipsSunk += 1
-            for coord in sunkShip {
-                tracking.cells[coord.row - 1][coord.column - 1].cellStatus = .destroyed
-                tracking.cells[coord.row - 1][coord.column - 1].isAvailable = false
-            }
+        var board = tracking.coreBoard
+        board.mark(payload.outcome == .missed ? .miss : .hit, at: payload.at)
+        for coordinate in payload.sunkShip ?? [] {
+            board.mark(.sunk, at: coordinate)
         }
+        tracking.apply(board)
+        opponentShipsSunk = board.sunkShipCount
         busy = false
 
         if payload.defenderLost {

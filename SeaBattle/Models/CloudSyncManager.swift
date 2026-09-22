@@ -103,8 +103,8 @@ final class CloudSyncManager {
         do {
             let record = (try? await database.record(for: recordID))
                 ?? CKRecord(recordType: Self.recordType, recordID: recordID)
-            record["data"] = data as CKRecordValue
-            record["modified"] = local.modified as CKRecordValue
+            record["data"] = data as any CKRecordValue
+            record["modified"] = local.modified as any CKRecordValue
             _ = try await database.save(record)
         } catch {
             // ignore; a later change or refresh will retry

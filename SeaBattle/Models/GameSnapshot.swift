@@ -42,24 +42,32 @@ struct PlayerSnapshot: Codable, Sendable {
 
 /// A serializable snapshot of an entire match.
 struct GameSnapshot: Codable, Sendable {
+
+    /// Bumped whenever the stored shape changes. `GameStore` refuses to load a
+    /// snapshot written by a different version — the field was written but
+    /// never checked before R0.4 (audit finding B12), so a format change would
+    /// have decoded into nonsense or silently vanished.
+    ///
+    /// Version 2 (R0.4) dropped `potentialCellsForFinishingDamagedShip`: the
+    /// computer's "finish the damaged ship" targeting is now derived from the
+    /// board, so there is no cache to carry across a relaunch.
+    static let currentSchemaVersion = 2
+
     var schemaVersion: Int
     var difficulty: Int
     var enemysTurn: Bool
     var gameIsActive: Bool
     var manualShipArrangement: Bool
-    var potentialCellsForFinishingDamagedShip: [Coordinate]?
     var player: PlayerSnapshot
     var enemy: PlayerSnapshot
 
     @MainActor
     init(appState: AppState, player: PlayerData, enemy: PlayerData) {
-        self.schemaVersion = 1
+        self.schemaVersion = Self.currentSchemaVersion
         self.difficulty = appState.difficulty
         self.enemysTurn = appState.enemysTurn
         self.gameIsActive = appState.gameIsActive
         self.manualShipArrangement = appState.manualShipArrangement
-        self.potentialCellsForFinishingDamagedShip =
-            appState.potentialCellsForFinishingDamagedShip?.map(Coordinate.init)
         self.player = PlayerSnapshot(player)
         self.enemy = PlayerSnapshot(enemy)
     }
@@ -71,8 +79,6 @@ struct GameSnapshot: Codable, Sendable {
         appState.enemysTurn = enemysTurn
         appState.gameIsActive = gameIsActive
         appState.manualShipArrangement = manualShipArrangement
-        appState.potentialCellsForFinishingDamagedShip =
-            potentialCellsForFinishingDamagedShip?.map { $0.tuple }
         self.player.restore(into: player)
         self.enemy.restore(into: enemy)
     }

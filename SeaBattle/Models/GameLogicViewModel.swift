@@ -23,7 +23,7 @@ class GameLogicViewModel {
     @ObservationIgnored private(set) var isConfigured = false
 
     @ObservationIgnored private let engine = GameEngine()
-    @ObservationIgnored private var opponent: Opponent!
+    @ObservationIgnored private var opponent: (any Opponent)!
 
     init() {}
 
@@ -43,6 +43,12 @@ class GameLogicViewModel {
         autosave()
     }
 
+    /// Cancels the pending fire-stroke clear, if any. The overlay used to be
+    /// cleared by a detached task that nobody held on to, so a task started
+    /// just before a new game could write into the freshly rebuilt board
+    /// 0.3 s later (audit finding B13).
+    @ObservationIgnored private var fireStrokeTask: Task<Void, Never>?
+
     /// Persists the game, but only at stable points — when it's the human's turn
     /// and the match is on. Resuming therefore always lands on "player to shoot",
     /// so there is never an in-flight computer sequence to restart.
@@ -55,31 +61,36 @@ class GameLogicViewModel {
     /// and the game is still on.
     func computerTurn() {
         Task { @MainActor in
-            await performShot()
+            await runOpponentTurn()
         }
     }
 
-    private func performShot() async {
-        let shot = await opponent.nextShot()
-        let row = shot.row
-        let column = shot.column
+    /// One whole turn. A loop rather than the recursion this used to be — the
+    /// depth was bounded by the number of consecutive hits, but a loop says
+    /// what it means and does not grow the stack (audit finding C18).
+    private func runOpponentTurn() async {
+        while true {
+            let shot = await opponent.nextShot()
+            showFireStroke(at: shot)
 
-        player.fireStrokeArray[row - 1][column - 1] = true
-        Task {
-            try? await Task.sleep(for: .seconds(0.3))
-            player.fireStrokeArray[row - 1][column - 1] = false
-        }
+            let result = engine.checkShipOnFire(row: shot.row, column: shot.column, target: player)
 
-        engine.checkShipOnFire(row: row, column: column, target: player)
-
-        // Keep firing while the computer keeps hitting and the game is still on.
-        if player.cells[row - 1][column - 1].cellStatus != .missed && appState.gameIsActive {
+            // Keep firing while the computer keeps hitting and the game is on.
+            guard result.keepsTurn, appState.gameIsActive else { break }
             try? await Task.sleep(for: .seconds(1))
-            await performShot()
-        } else {
-            // Computer's turn is over: control returns to the player — a stable
-            // point to persist the game.
-            autosave()
+        }
+        // Control is back with the player — a stable point to persist the game.
+        autosave()
+    }
+
+    /// Flashes the incoming-shot halo on the player's board.
+    private func showFireStroke(at shot: Coordinate) {
+        fireStrokeTask?.cancel()
+        player.fireStrokeArray[shot.row - 1][shot.column - 1] = true
+        fireStrokeTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !Task.isCancelled, let self else { return }
+            player.fireStrokeArray[shot.row - 1][shot.column - 1] = false
         }
     }
 

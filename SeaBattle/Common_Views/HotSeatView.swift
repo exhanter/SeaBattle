@@ -340,13 +340,28 @@ struct HotSeatBoardGrid: View {
     var hintedCells: Set<Coordinate> = []
     var onTap: ((Int, Int) -> Void)? = nil
 
+    /// A cell of the defender's board as the attacker is allowed to see it.
+    ///
+    /// Both hot-seat boards store their owner's hulls (each is a `.you` board),
+    /// so everything that would give the fleet away has to be toned down here:
+    /// an untouched hull reads as open water, and a burning hull reads as the
+    /// plain breach the opponent's board shows in the vs-computer game. Misses
+    /// and sunk ships are public information and pass through.
+    static func masked(_ status: Cell.CurrentStatus) -> Cell.CurrentStatus {
+        switch status {
+        case .showShip, .showShipHalo: return .unknown
+        case .showShipOnFire: return .onFire
+        default: return status
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ForEach(1...10, id: \.self) { row in
                 HStack(spacing: 0) {
                     ForEach(1...10, id: \.self) { column in
                         let raw = board.cells[row - 1][column - 1].cellStatus
-                        let shown: Cell.CurrentStatus = (hideShips && (raw == .showShip || raw == .showShipHalo)) ? .unknown : raw
+                        let shown = hideShips ? Self.masked(raw) : raw
                         // A Button with NoPressEffect (same as the vs-computer
                         // EnemySquareView) so taps register immediately — an
                         // .onTapGesture here felt laggier / less smooth.

@@ -30,7 +30,7 @@ final class HotSeatGame {
             self.name = name; self.avatar = avatar; self.colorIndex = colorIndex
             self.pinHash = pinHash; self.sessionWins = sessionWins
         }
-        init(from decoder: Decoder) throws {
+        init(from decoder: any Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
             name = try c.decode(String.self, forKey: .name)
             avatar = try c.decode(String.self, forKey: .avatar)
@@ -50,7 +50,10 @@ final class HotSeatGame {
     }
 
     private(set) var phase: Phase = .setup
-    let boards: [PlayerData] = [PlayerData(name: "Player"), PlayerData(name: "Player")]
+    /// Both boards are `.you`: each belongs to a human sitting at the device, so
+    /// each stores its own hulls. Hiding them from whoever is currently shooting
+    /// is the view's job (`HotSeatBoardGrid.hideShips`), not the model's.
+    let boards: [PlayerData] = [PlayerData(side: .you), PlayerData(side: .you)]
     private(set) var players: [Player] = [
         Player(name: "", avatar: HotSeatAvatars.symbols[0], colorIndex: 0),
         Player(name: "", avatar: HotSeatAvatars.symbols[1], colorIndex: 1)
@@ -146,39 +149,43 @@ final class HotSeatGame {
     /// Resolves a shot but does NOT change the turn/phase — the view drives the
     /// transitions after playing the shot animation (so the result is visible
     /// before the device is passed). RETURNS the outcome.
+    ///
+    /// Since R0.4 the rules come from `Board`: this used to be the second of
+    /// three hand-written copies of hit / sunk / game-over (audit finding A1),
+    /// and the only one that decided "sunk" by scanning cell statuses — which
+    /// counted a ship as sunk one hit early if its cells had been written in an
+    /// unexpected order.
     @discardableResult
     func fire(row: Int, column: Int) -> ShotResult? {
         guard canFire(row: row, column: column) else { return nil }
         let target = boards[defender]
-        let r = row - 1, c = column - 1
 
-        guard let shipIndex = target.ships.firstIndex(where: { $0.coordinates.contains(where: { $0 == (row, column) }) }) else {
-            target.cells[r][c].cellStatus = .missed
-            target.cells[r][c].isAvailable = false
-            play("blast_missed.wav")
-            persist()
-            return .missed
-        }
-
-        target.cells[r][c].cellStatus = .onFire
-        target.cells[r][c].isAvailable = false
-        play("blast_onfire2.wav")
-
-        let ship = target.ships[shipIndex]
-        let sunk = ship.coordinates.allSatisfy { coord in
-            let status = target.cells[coord.0 - 1][coord.1 - 1].cellStatus
-            return status == .onFire || status == .destroyed
-        }
-        if sunk {
-            for coord in ship.coordinates {
-                target.cells[coord.0 - 1][coord.1 - 1].cellStatus = .destroyed
-            }
-            target.ships[shipIndex].isDestroyed = true
+        var board = target.coreBoard
+        let result = board.apply(shotAt: Coordinate(row: row, column: column))
+        if case .sunk(let ship) = result, revealAroundSunk {
             // Firing around a sunk ship stays allowed unless the player opted in.
-            if revealAroundSunk { target.markSafeAreaAsMissed(ship: ship) }
-            play("Glass_Break-stephan_schutze-958181291.wav")
+            board.revealRing(around: ship)
         }
-        if target.numberShipsDestroyed == 10 {
+        target.apply(board)
+
+        let outcome: ShotResult
+        switch result {
+        case .miss:
+            play("blast_missed.wav")
+            outcome = .missed
+        case .hit:
+            play("blast_onfire2.wav")
+            outcome = .hit
+        case .sunk:
+            play("blast_onfire2.wav")
+            play("Glass_Break-stephan_schutze-958181291.wav")
+            outcome = .sunk
+        case .repeated, .offBoard:
+            // `canFire` rules both out; nothing changed, so nothing to report.
+            return nil
+        }
+
+        if board.isFleetDestroyed {
             winner = attacker
             players[attacker].sessionWins += 1
             AppState.stopMusic()
@@ -186,7 +193,7 @@ final class HotSeatGame {
             return .win
         }
         persist()
-        return sunk ? .sunk : .hit
+        return outcome
     }
 
     /// Passes the turn to the other player (after a miss). View calls this once

@@ -41,7 +41,7 @@ struct PlayerProfile: Codable, Identifiable, Hashable, Sendable {
     // Lenient decoding so profiles saved before `avatar` existed still load.
     private enum CodingKeys: String, CodingKey { case id, name, avatar, pinHash, stats }
 
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try c.decode(String.self, forKey: .name)

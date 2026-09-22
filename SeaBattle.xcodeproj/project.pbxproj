@@ -97,6 +97,7 @@
 		CA4F063A3061E1E20083DE5C /* Side.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06393061E1E20083DE5C /* Side.swift */; };
 		CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063B3061E2090083DE5C /* ShipPlacement.swift */; };
 		CA4F063E3061E2490083DE5C /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063D3061E2490083DE5C /* Board.swift */; };
+		CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -212,6 +213,7 @@
 		CA4F06393061E1E20083DE5C /* Side.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Side.swift; sourceTree = "<group>"; };
 		CA4F063B3061E2090083DE5C /* ShipPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPlacement.swift; sourceTree = "<group>"; };
 		CA4F063D3061E2490083DE5C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
+		CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerData+Board.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -424,6 +426,7 @@
 				CA4F06393061E1E20083DE5C /* Side.swift */,
 				CA4F063B3061E2090083DE5C /* ShipPlacement.swift */,
 				CA4F063D3061E2490083DE5C /* Board.swift */,
+				CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -658,6 +661,7 @@
 				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
 				CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */,
 				2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */,
+				CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */,
 				2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
 				2C6A847F2B6E99BA0001A20C /* EnemyFieldView.swift in Sources */,

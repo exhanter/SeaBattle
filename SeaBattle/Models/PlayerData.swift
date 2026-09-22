@@ -12,7 +12,14 @@ import Observation
 @Observable
 class PlayerData {
 
-    let name: String
+    /// Which role this board plays. Replaces the `name == "Player"` string
+    /// comparisons that used to decide behaviour across the engine (audit A2).
+    let side: Side
+
+    /// Legacy identifier still written into `GameSnapshot`. Derived from `side`
+    /// so the two can never disagree; goes away with the old views (R4.6).
+    var name: String { side == .you ? "Player" : "Enemy" }
+
     var cells = [[Cell]]()
     var ships = [Ship]()
     var showFinishGameAlert = false
@@ -65,7 +72,8 @@ class PlayerData {
 
         makeCellsAvailableAgain()
         placedShips.sort { $0.number < $1.number }
-        if self.name == "Player" {
+        // Only the owner of a board gets to see its hulls.
+        if side == .you {
             for ship in placedShips {
                 for coordinate in ship.coordinates {
                     self.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus = .showShip
@@ -111,22 +119,8 @@ class PlayerData {
         }
     }
     
-    ///Reveals the ring around a sunk ship as "missed" (optional beginner
-    ///protection). Only touches still-unknown cells.
-    func markSafeAreaAsMissed(ship: Ship) {
-        let rows = ship.coordinates.map { $0.0 }
-        let cols = ship.coordinates.map { $0.1 }
-        let minRow = max(1, (rows.min() ?? 1) - 1)
-        let maxRow = min(10, (rows.max() ?? 1) + 1)
-        let minCol = max(1, (cols.min() ?? 1) - 1)
-        let maxCol = min(10, (cols.max() ?? 1) + 1)
-        for row in minRow...maxRow {
-            for column in minCol...maxCol where cells[row - 1][column - 1].cellStatus == .unknown {
-                cells[row - 1][column - 1].cellStatus = .missed
-                cells[row - 1][column - 1].isAvailable = false
-            }
-        }
-    }
+    // `markSafeAreaAsMissed` used to live here — the hot-seat copy of "reveal
+    // the ring around a sunk ship". Both modes now call `Board.revealRing`.
 
     ///Method makes all the cells around ships available again
     func makeCellsAvailableAgain() { // only for player cells
@@ -213,8 +207,12 @@ class PlayerData {
         }
     }
     
-    init(name: String) {
-        self.name = name
+    convenience init(name: String) {
+        self.init(side: name == "Player" ? .you : .foe)
+    }
+
+    init(side: Side) {
+        self.side = side
         // One row of 10 per board row. The old code reused a single growing
         // `boolArray`, so row N ended up with (N + 1) * 10 entries.
         for row in 1...10 {

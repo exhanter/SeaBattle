@@ -42,7 +42,6 @@ class AppState {
     var soundOn: Bool
     var musicOn: Bool
     var selectedTab: SelectedTabs = .menu
-    var potentialCellsForFinishingDamagedShip: [(Int, Int)]?
     /// Enemy cells revealed to the player by a paid hint (Phase 6). Transient —
     /// cleared on reset.
     var revealedHintCells: [(Int, Int)] = []
