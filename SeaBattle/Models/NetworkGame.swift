@@ -5,8 +5,10 @@
 //  Phase 5: transport-agnostic networked match. Each device is ONE player and
 //  is authoritative over its own board (`own`); `tracking` is what this player
 //  knows about the opponent's board from shot results. Turn passes on a miss.
-//  Points follow the multiplayer policy: awarded as EXPERT only when the two
-//  players are on different accounts (never same-account / hot-seat).
+//  Points follow the multiplayer policy: paid at the expert rate, and only when
+//  the two players are on different accounts (never same-account / hot-seat).
+//  The result is filed under the mode's own statistics row since R0.7 — it used
+//  to be counted as a win over the computer's expert level (audit finding A7).
 //
 
 import Foundation
@@ -25,6 +27,13 @@ final class NetworkGame {
     }
 
     private let transport: any NetworkTransport
+
+    /// The statistics row this match is filed under — `.nearby` over Multipeer,
+    /// `.online` over Game Center. The rules are identical; the row is the only
+    /// difference between the two transports (R0.7).
+    let statKey: StatKey
+
+    var mode: GameMode { statKey.mode }
 
     // My identity.
     let localName: String
@@ -56,8 +65,10 @@ final class NetworkGame {
     /// farming points against yourself.
     var isSameAccount: Bool { opponentAccountID == localAccountID }
 
-    init(transport: any NetworkTransport, name: String, avatar: String, accountID: String, isHost: Bool) {
+    init(transport: any NetworkTransport, statKey: StatKey, name: String, avatar: String,
+         accountID: String, isHost: Bool) {
         self.transport = transport
+        self.statKey = statKey
         self.localName = name
         self.localAvatar = avatar
         self.localAccountID = accountID
@@ -151,7 +162,7 @@ final class NetworkGame {
         case .hintUsed:
             // Opponent used a hint against me → I receive compensation points and
             // reveal one of my still-unhit ship cells to them.
-            if !isSameAccount { ProgressStore.shared.addPoints(AppState.DifficultyLevel.expert.pointsValue) }
+            if !isSameAccount { ProgressStore.shared.addPoints(hintCost) }
             let candidates = own.ships
                 .filter { !$0.isDestroyed }
                 .flatMap { $0.coordinates }
@@ -250,12 +261,14 @@ final class NetworkGame {
         iWon = won
         phase = .finished
         AppState.stopMusic()
-        // Points only for cross-account matches (expert values).
+        // Nothing is recorded for a same-account match (my iPhone against my
+        // iPad): the points would be farmed off myself, and the win would be a
+        // win over myself.
         guard !isSameAccount else { return }
         if won {
-            ProgressStore.shared.recordWin(at: .expert)
+            ProgressStore.shared.recordWin(statKey)
         } else {
-            ProgressStore.shared.recordLoss()
+            ProgressStore.shared.recordLoss(statKey)
         }
     }
 

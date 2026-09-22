@@ -133,7 +133,7 @@ struct NearbyGameView: View {
 
     private func beginGame(isHost: Bool) {
         guard let transport, game == nil else { return }
-        let g = NetworkGame(transport: transport, name: name, avatar: avatar,
+        let g = NetworkGame(transport: transport, statKey: .nearby, name: name, avatar: avatar,
                             accountID: AccountID.current(), isHost: isHost)
         g.soundOn = appState.soundOn
         g.start()

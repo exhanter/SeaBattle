@@ -2,11 +2,14 @@
 //  ProgressStore.swift
 //  SeaBattle
 //
-//  Phase 6: the local player's progress — wins per difficulty (tracked for ALL
-//  users, free included), losses, and a single shared points wallet. Points are
-//  earned on every win (amount depends on difficulty) and spent on hints. Kept
-//  as one persisted record for now; per-profile progress arrives with accounts
-//  (Phase 3) and hot-seat (Phase 5a).
+//  Phase 6: the local player's progress — wins and losses per statistics row
+//  (tracked for ALL users, free included) and a single shared points wallet.
+//  Points are earned on every win (amount depends on the row) and spent on
+//  hints. Kept as one persisted record for now; per-profile progress arrives
+//  with accounts (Phase 3) and hot-seat (Phase 5a).
+//
+//  R0.7: a row is a `StatKey` — the mode, plus the level for the computer — so
+//  the modes are counted apart, as the design shows them (spec 4.9).
 //
 
 import Foundation
@@ -55,21 +58,31 @@ final class ProgressStore {
 
     var points: Int { stats.points }
 
-    func wins(for level: AppState.DifficultyLevel) -> Int {
-        stats.winsByDifficulty[level.rawValue] ?? 0
-    }
+    /// Wins and losses in one row of the statistics.
+    func record(_ key: StatKey) -> StatRecord { stats.record(key) }
+
+    /// Wins and losses in a whole mode — the four levels added up, for the
+    /// computer.
+    func record(for mode: GameMode) -> StatRecord { stats.record(for: mode) }
+
+    func wins(for level: AppState.DifficultyLevel) -> Int { stats.record(.computer(level)).wins }
 
     // MARK: - Mutations
 
-    /// Records a win at the given difficulty and awards its points.
-    func recordWin(at level: AppState.DifficultyLevel) {
-        stats.winsByDifficulty[level.rawValue, default: 0] += 1
-        stats.points += level.pointsValue
+    /// Records a win in the given row and awards the points it pays out.
+    ///
+    /// The row carries the mode, so a network win is counted as a network win;
+    /// before R0.7 it was filed as a win over the expert (audit finding A7).
+    func recordWin(_ key: StatKey) {
+        guard key.mode.isTracked else { return }
+        stats.addWin(key)
+        stats.points += key.pointsForWin
         persist()
     }
 
-    func recordLoss() {
-        stats.losses += 1
+    func recordLoss(_ key: StatKey) {
+        guard key.mode.isTracked else { return }
+        stats.addLoss(key)
         persist()
     }
 

@@ -72,8 +72,8 @@ struct OnlineGameView: View {
         let remoteID = match.players.first?.gamePlayerID ?? ""
         let isHost = localID < remoteID // deterministic first mover, same on both sides
         let avatar = ProfileStore.shared.profiles.first?.avatar ?? HotSeatAvatars.symbols[0]
-        let g = NetworkGame(transport: t, name: gc.localDisplayName, avatar: avatar,
-                            accountID: localID, isHost: isHost)
+        let g = NetworkGame(transport: t, statKey: .online, name: gc.localDisplayName,
+                            avatar: avatar, accountID: localID, isHost: isHost)
         g.soundOn = appState.soundOn
         g.start()
         game = g

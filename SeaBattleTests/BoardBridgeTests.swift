@@ -386,8 +386,10 @@ struct NetworkMatchTests {
     /// awards no points, so the tests never touch the real `ProgressStore`.
     private func connectedPair() -> (host: NetworkGame, guest: NetworkGame, hostWire: LoopbackTransport) {
         let (a, b) = LoopbackTransport.pair()
-        let host = NetworkGame(transport: a, name: "H", avatar: "h", accountID: "same", isHost: true)
-        let guest = NetworkGame(transport: b, name: "G", avatar: "g", accountID: "same", isHost: false)
+        let host = NetworkGame(transport: a, statKey: .nearby, name: "H", avatar: "h",
+                               accountID: "same", isHost: true)
+        let guest = NetworkGame(transport: b, statKey: .nearby, name: "G", avatar: "g",
+                                accountID: "same", isHost: false)
         host.soundOn = false
         guest.soundOn = false
         host.start()

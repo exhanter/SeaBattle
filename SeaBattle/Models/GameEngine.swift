@@ -84,9 +84,9 @@ final class GameEngine {
         GameStore.clear()
         // The side whose whole fleet is sunk is the loser.
         if loser.side == .foe {
-            ProgressStore.shared.recordWin(at: appState.difficultyLevel)
+            ProgressStore.shared.recordWin(.computer(appState.difficultyLevel))
         } else {
-            ProgressStore.shared.recordLoss()
+            ProgressStore.shared.recordLoss(.computer(appState.difficultyLevel))
         }
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(1))

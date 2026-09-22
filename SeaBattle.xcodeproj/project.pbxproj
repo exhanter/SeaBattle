@@ -98,6 +98,7 @@
 		CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063B3061E2090083DE5C /* ShipPlacement.swift */; };
 		CA4F063E3061E2490083DE5C /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063D3061E2490083DE5C /* Board.swift */; };
 		CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */; };
+		CA6886273062B53C00859D7B /* GameMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886263062B53C00859D7B /* GameMode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -214,6 +215,7 @@
 		CA4F063B3061E2090083DE5C /* ShipPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPlacement.swift; sourceTree = "<group>"; };
 		CA4F063D3061E2490083DE5C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerData+Board.swift"; sourceTree = "<group>"; };
+		CA6886263062B53C00859D7B /* GameMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -276,6 +278,7 @@
 				CA4F06343061DB140083DE5C /* AudioService.swift */,
 				CA4F06363061DB170083DE5C /* Log.swift */,
 				CA4F06383061E1E20083DE5C /* Core */,
+				CA6886263062B53C00859D7B /* GameMode.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -605,6 +608,7 @@
 				2CE731962D564D7300954841 /* PlayerSquareView.swift in Sources */,
 				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
 				CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */,
+				CA6886273062B53C00859D7B /* GameMode.swift in Sources */,
 				2CE9D5C92D5BA11400324F58 /* UpperLabelAndButtonView.swift in Sources */,
 				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
 				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,
