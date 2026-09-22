@@ -71,7 +71,7 @@ DECISIONS.md — почему так, mockups.html — эталон вида, De
 
 ## R1. Дизайн-система (шаги 1–4 спеки)
 
-- ☑ **R1.1 Токены.** `Colors.xcassets` — 69 цветов, шесть групп с namespace, у каждого
+- ☑ **R1.1 Токены** (`8b63ffe`)**.** `Colors.xcassets` — 69 цветов, шесть групп с namespace, у каждого
   Any + Dark, альфа внутри цвета. `DesignTokens.swift` в проекте: `ColorToken` (все
   имена одним перечислением), статики `Color`, градиенты, `Geometry`, `TypeScale`,
   `Motion`. Экран-галерея `TokenGalleryView` — из превью Xcode, обе темы. Таблицы 15b
