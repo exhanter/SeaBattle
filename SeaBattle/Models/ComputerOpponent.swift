@@ -88,20 +88,17 @@ final class ComputerOpponent: Opponent {
     func targetCandidates(on board: Board) -> [Coordinate] {
         switch appState.difficultyLevel {
         case .easy:
-            // No memory at all: a damaged ship is not followed up, and the ring
-            // around a sunk one stays in play, so shots are wasted there the
-            // way a careless human wastes them. This is the only level that
-            // does not learn from what it can already see.
-            return board.shootableCells()
+            // Finishes a ship it has damaged — otherwise it looks broken rather
+            // than easy — but does not use the rule that ships never touch, so
+            // it keeps firing into the ring around a sunk one where there
+            // cannot be anything. That blind spot alone costs it about thirty
+            // shots a match, which is most of what makes this level easy.
+            return finishingCandidates(on: board) ?? board.shootableCells()
 
         case .medium:
-            // Follows up a hit properly, but does not use the rule that ships
-            // never touch: it keeps firing into the ring around a sunk ship,
-            // where there cannot be anything. That single blind spot is what
-            // puts it a clear step below `.hard` (see the ladder measurement in
-            // `DifficultyLadderTests`) while still playing like someone who is
-            // paying attention.
-            return finishingCandidates(on: board) ?? board.shootableCells()
+            // The same, plus the no-touching rule. Nothing else: everything
+            // above this is worth a shot or two at most.
+            return finishingCandidates(on: board) ?? openCells(on: board)
 
         case .hard:
             if let finishing = finishingCandidates(on: board) { return finishing }

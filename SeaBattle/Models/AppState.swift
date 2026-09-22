@@ -58,8 +58,9 @@ class AppState {
         /// from `.hard`, whose shooting is only a shot or two behind.
         var fleetExposureTarget: Int? {
             switch self {
-            case .easy, .medium, .hard: return nil
-            case .expert: return 58
+            case .easy, .medium: return nil
+            case .hard: return 58
+            case .expert: return 54
             }
         }
     }

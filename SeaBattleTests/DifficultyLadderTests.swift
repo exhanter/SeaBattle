@@ -45,32 +45,27 @@ struct DifficultyLadderTests {
         return board.opponentView()
     }
 
-    private var harderLevels: [AppState.DifficultyLevel] { [.medium, .hard, .expert] }
+    private var allLevels: [AppState.DifficultyLevel] { Self.settings.map(\.level) }
 
     // MARK: - What each level does with damage
 
-    @Test("Every level above easy follows up on a damaged ship")
-    func harderLevelsFinishWhatTheyStarted() {
+    @Test("EVERY level follows up on a damaged ship, easy included")
+    func allLevelsFinishWhatTheyStarted() {
         // One hit on the four-decker at (1,1)-(1,4); it is still afloat.
+        //
+        // Even easy does this. A computer that hits a ship and then wanders off
+        // reads as broken rather than as easy, and it is not needed: easy is
+        // already a giveaway (about one match in a hundred) from not knowing
+        // that ships never touch.
         let board = maskedBoard(afterShotsAt: [Coordinate(row: 1, column: 2)])
         let neighbours = Set(Coordinate(row: 1, column: 2).orthogonalNeighbours)
 
-        for level in harderLevels {
+        for level in allLevels {
             let candidates = opponent(at: level).targetCandidates(on: board)
             #expect(!candidates.isEmpty)
             #expect(candidates.allSatisfy { neighbours.contains($0) },
                     "\(level) considered \(candidates) instead of probing the hit")
         }
-    }
-
-    @Test("Easy walks away from a ship it has already hit")
-    func easyDoesNotFollowUp() {
-        let board = maskedBoard(afterShotsAt: [Coordinate(row: 1, column: 2)])
-        let candidates = opponent(at: .easy).targetCandidates(on: board)
-
-        // Everything that has not been fired at, damage or no damage.
-        #expect(candidates.count == Board.cellCount - 1)
-        #expect(candidates.contains(Coordinate(row: 10, column: 10)))
     }
 
     @Test("Two hits in a row fix the orientation, so only the ends are tried")
@@ -79,7 +74,7 @@ struct DifficultyLadderTests {
                                                Coordinate(row: 1, column: 3)])
         let ends: Set<Coordinate> = [Coordinate(row: 1, column: 1), Coordinate(row: 1, column: 4)]
 
-        for level in harderLevels {
+        for level in allLevels {
             let candidates = Set(opponent(at: level).targetCandidates(on: board))
             #expect(candidates == ends,
                     "\(level) fired sideways off a known line: \(candidates)")
@@ -88,27 +83,25 @@ struct DifficultyLadderTests {
 
     // MARK: - What each level does with a sunk ship
 
-    @Test("Hard and expert know that ships never touch; easy and medium do not")
-    func onlyTheTopTwoSkipTheRing() {
+    @Test("Only easy fails to notice that ships never touch")
+    func onlyEasyIgnoresTheNoTouchingRule() {
         // Sink the single-deck ship at (5,4) outright.
         let victim = Coordinate(row: 5, column: 4)
         let board = maskedBoard(afterShotsAt: [victim])
         #expect(board[victim] == .sunk)
         let ring = Set(victim.neighbours)
 
-        for level in [AppState.DifficultyLevel.hard, .expert] {
+        for level in [AppState.DifficultyLevel.medium, .hard, .expert] {
             let candidates = Set(opponent(at: level).targetCandidates(on: board))
             #expect(candidates.isDisjoint(with: ring),
                     "\(level) still considers cells that cannot hold a ship")
         }
-        // Easy and medium keep wasting shots there. For medium that blind spot
-        // is the whole difference from hard, and it costs it about ten shots a
-        // match — see `theLadderClimbs`.
-        for level in [AppState.DifficultyLevel.easy, .medium] {
-            let candidates = Set(opponent(at: level).targetCandidates(on: board))
-            #expect(!candidates.isDisjoint(with: ring),
-                    "\(level) is not supposed to know that ships never touch")
-        }
+        // Easy keeps wasting shots there, and that single blind spot is most of
+        // what makes it easy: it is worth about thirty shots a match, more than
+        // everything the three levels above it know put together.
+        let easy = Set(opponent(at: .easy).targetCandidates(on: board))
+        #expect(!easy.isDisjoint(with: ring),
+                "Easy is not supposed to know that ships never touch")
     }
 
     // MARK: - Hard: the checkerboard
@@ -262,19 +255,24 @@ struct DifficultyLadderTests {
         // an early version of `.hard` beat medium to the multi-deck ships and
         // still lost the match on total shots, because sweeping one colour of
         // the board leaves the single-deck ships hidden for the endgame.
-        // Measured at roughly 96 · 87 · 58 · 57. The gaps are very uneven
-        // because the dials are: following up a hit at all (worth ~9 shots),
-        // knowing that ships never touch (~29), and computing the best cell
-        // rather than sweeping a pattern (~1). The last one is small because
-        // `.hard` is already close to the floor — see the note in `shotsNeeded`.
-        #expect(medium.total < easy.total - 5, report)
-        #expect(hard.total < medium.total - 15, report)
-        #expect(expert.total < hard.total, report)
+        // THIS TEST ONLY MEASURES ATTACK. Measured at roughly 88 · 59 · 58 · 56
+        // shots to clear the board, so the only large step here is easy to
+        // medium — knowing that ships never touch is worth about thirty shots.
+        // Everything above that is worth a shot or two, because the levels are
+        // already near the floor: the four single-deck ships are invisible to
+        // any amount of cleverness, and hunting them down is most of a match.
+        //
+        // The step from medium to hard is DEFENCE, not attack — hard hides its
+        // own fleet — and it does not show up here at all. The difficulty
+        // ladder as a player experiences it is in `LadderWinRateTests`.
+        #expect(medium.total < easy.total - 15, report)
+        #expect(hard.total < medium.total + 2, report)
+        #expect(expert.total < medium.total, report)
 
-        // The multi-deck column shows the same order, with room to spare: it is
-        // the part of a match where reasoning can help at all.
+        // The multi-deck column separates the shooting more clearly: it is the
+        // part of a match where reasoning can help at all.
         #expect(medium.multiDeck < easy.multiDeck - 10, report)
-        #expect(hard.multiDeck < medium.multiDeck - 10, report)
+        #expect(hard.multiDeck < medium.multiDeck - 3, report)
         #expect(expert.multiDeck < hard.multiDeck, report)
 
         // Sanity: 16 cells belong to multi-deck ships, so nothing can sink them
