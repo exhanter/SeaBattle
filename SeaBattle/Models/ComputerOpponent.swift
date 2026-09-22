@@ -13,9 +13,20 @@
 //  which took an unbounded number of tries once the board filled up (audit
 //  finding B16).
 //
-//  The difficulty ladder itself is still flat — medium and hard behave alike
-//  (finding A6). R0.6 gives each level its own behaviour; this file only moves
-//  the existing behaviour onto the core, unchanged.
+//  R0.6 gave the four levels four different behaviours — before it, three of
+//  them were the same code and only `.easy` differed at all (audit finding A6),
+//  so the player was choosing between "easy" and "one of three identical
+//  hards". Each level adds exactly one idea to the one below it:
+//
+//    easy    fires at random, and never learns anything.
+//    medium  finishes a ship it has damaged, and stops wasting shots in the
+//            ring around a sunk one.
+//    hard    hunts on a checkerboard while a ship of 2+ decks is still afloat.
+//    expert  hunts by probability density (a heat map) instead.
+//
+//  The whole decision is a pure function of the board — there is no per-shot
+//  state to keep in sync, and `targetCandidates(on:)` can be asked what a level
+//  would consider without firing anything.
 //
 
 import Foundation
@@ -44,47 +55,94 @@ final class ComputerOpponent: Opponent {
 
     func nextShot() async -> Coordinate {
         let board = targetBoard.coreBoard.opponentView()
-
-        // Every level finishes a ship it has already damaged. Ships are
-        // straight and never touch, so this is deterministic and needs no
-        // probability map — and it guarantees the AI extends an established
-        // hit line instead of ever firing sideways.
-        if let shot = finishingShot(on: board) { return shot }
-
-        if appState.difficultyLevel == .expert, let shot = expertShot(on: board) {
-            return shot
-        }
-        return huntShot(on: board)
+        return targetCandidates(on: board).randomElement()
+            // Every candidate list can in principle come out empty — the
+            // exclusions are allowed to rule out everything that is left — so
+            // fall back to "anything unshot" before giving up.
+            ?? board.shootableCells().randomElement()
+            ?? Coordinate(row: 1, column: 1)
     }
 
     /// Targeting is recomputed from the board on every shot, so there is no
     /// per-shot state to carry.
     func reportOutcome(_ outcome: ShotOutcome, at coordinate: Coordinate) async {}
 
+    // MARK: - The ladder
+
+    /// Every cell the current level considers equally good to fire at next; the
+    /// shot is then drawn from these at random.
+    ///
+    /// `board` must be an `opponentView()` — a board with the fleet hidden. A
+    /// level that got the real board would be cheating, and the tests pass the
+    /// masked one for exactly that reason.
+    func targetCandidates(on board: Board) -> [Coordinate] {
+        switch appState.difficultyLevel {
+        case .easy:
+            // No memory at all: a damaged ship is not followed up, and the ring
+            // around a sunk one stays in play, so shots are wasted there the
+            // way a careless human wastes them. This is the only level that
+            // does not learn from what it can already see.
+            return board.shootableCells()
+
+        case .medium:
+            return finishingCandidates(on: board) ?? openCells(on: board)
+
+        case .hard:
+            if let finishing = finishingCandidates(on: board) { return finishing }
+            return checkerboardCandidates(on: board)
+
+        case .expert:
+            if let finishing = finishingCandidates(on: board) { return finishing }
+            if let peak = heatMapPeak(on: board) { return [peak] }
+            return openCells(on: board)
+        }
+    }
+
     // MARK: - Hunting
 
-    /// A cell picked at random from those still worth firing at.
+    /// Cells still worth firing at, with the ring around every sunk ship ruled
+    /// out — ships never touch, so no ship can be there. That is exactly the
+    /// distinction the old `defineSafeAreaNearShip` call made, now derived from
+    /// the board instead of cached as a per-cell flag.
+    private func openCells(on board: Board) -> [Coordinate] {
+        board.shootableCells(excludingRingsAroundSunk: true)
+    }
+
+    /// Sweeps one colour of a checkerboard. A ship of two or more decks always
+    /// covers both colours, so half the board is enough to find every one of
+    /// them — and the pattern is what makes this level *look* methodical rather
+    /// than lucky, which is most of what a player notices about it.
     ///
-    /// On `.easy` the ring around a sunk ship stays in play, so the computer
-    /// wastes shots there the way a careless human would. Every other level
-    /// rules it out — ships never touch, so no ship can be there. That is
-    /// exactly the distinction the old `defineSafeAreaNearShip` call made, now
-    /// derived from the board instead of cached as a per-cell flag.
-    private func huntShot(on board: Board) -> Coordinate {
-        let excludeRings = appState.difficultyLevel != .easy
-        if let pick = board.shootableCells(excludingRingsAroundSunk: excludeRings).randomElement() {
-            return pick
+    /// The pattern is dropped once only single-deck ships are left: a one-decker
+    /// fits on either colour, so sticking to one could never finish the match.
+    /// That is the "what is left of the fleet" part, and it reads only
+    /// `remainingShipLengths()`, which is derived from the sunk clusters and so
+    /// is public knowledge.
+    ///
+    /// Deliberately no placement counting here — that is `.expert`'s idea, and
+    /// R0.6 measured a version of this level that borrowed it: it drew level
+    /// with expert, which is finding A6 again with better code. A ladder needs
+    /// a rung between "follows up its hits" and "plays as well as the board
+    /// allows", and structure without arithmetic is exactly that rung.
+    ///
+    /// The colour is fixed rather than chosen per shot on purpose: picking the
+    /// emptier colour each time would alternate between the two and cover the
+    /// whole board evenly, which is the very thing the pattern avoids.
+    private func checkerboardCandidates(on board: Board) -> [Coordinate] {
+        let open = openCells(on: board)
+        guard board.remainingShipLengths().contains(where: { $0 >= 2 }) else {
+            return open
         }
-        // Excluding the rings can in principle rule out everything that is
-        // left; fall back to the unrestricted list before giving up.
-        return board.shootableCells().randomElement() ?? Coordinate(row: 1, column: 1)
+        let onPattern = open.filter { ($0.row + $0.column).isMultiple(of: 2) }
+        // The colour can run out while the other still holds ships.
+        return onPattern.isEmpty ? open : onPattern
     }
 
     /// Finishes a ship that has been hit but not sunk. With two or more
     /// collinear hits the orientation is known, so only the cells extending
     /// that line are candidates; a single isolated hit probes its four
     /// orthogonal neighbours. RETURNS nil when there is nothing to finish.
-    private func finishingShot(on board: Board) -> Coordinate? {
+    private func finishingCandidates(on board: Board) -> [Coordinate]? {
         let hits = Board.allCoordinates.filter { board[$0] == .hit }
         guard !hits.isEmpty else { return nil }
 
@@ -109,10 +167,13 @@ final class ComputerOpponent: Opponent {
                     ends(from: hit, rowStep: 1, columnStep: 0, isHit: isHit, shootable: shootable))
             }
         }
-        if let pick = lineCandidates.randomElement() { return pick }
+        if !lineCandidates.isEmpty { return Array(lineCandidates) }
 
         // No line yet — probe around the lone hit.
-        return hits.flatMap(\.orthogonalNeighbours).filter(shootable).randomElement()
+        let probes = hits.flatMap(\.orthogonalNeighbours).filter(shootable)
+        // Damage with nowhere left to extend: the hits are boxed in by earlier
+        // shots, so there is nothing to finish after all.
+        return probes.isEmpty ? nil : Array(Set(probes))
     }
 
     /// Walks off both ends of the run of hits through `origin` along one axis
@@ -137,40 +198,22 @@ final class ComputerOpponent: Opponent {
 
     // MARK: - Expert targeting (probability-density heat map)
 
-    /// Picks the cell most likely to hold a ship by counting, for the largest
-    /// ship still afloat, every legal placement passing through each cell —
-    /// the same reasoning as a human asking "where can the big one still fit?".
+    /// Picks the cell most likely to hold a ship by counting, for every ship
+    /// still afloat, all the ways it could still be lying across that cell —
+    /// the same reasoning as a human asking "where can what is left still fit?".
     /// RETURNS nil if it cannot decide, so the caller falls back to hunting.
     ///
-    /// Only reached when nothing is damaged: `finishingShot` handles that case
-    /// first, and deterministically.
-    private func expertShot(on board: Board) -> Coordinate? {
-        guard let longest = board.remainingShipLengths().max() else { return nil }
-
-        // Cells ruled out for good: already shot at, or in the ring of a sunk
-        // ship, where the rules forbid another ship.
-        let open = Set(board.shootableCells(excludingRingsAroundSunk: true))
-        guard !open.isEmpty else { return nil }
-
-        var heat: [Coordinate: Int] = [:]
-        for orientation in Orientation.allCases {
-            let maxRow = orientation == .vertical ? Board.size - longest + 1 : Board.size
-            let maxColumn = orientation == .horizontal ? Board.size - longest + 1 : Board.size
-            guard maxRow >= 1, maxColumn >= 1 else { continue }
-            for row in 1...maxRow {
-                for column in 1...maxColumn {
-                    let candidate = ShipPlacement(length: longest,
-                                                  origin: Coordinate(row: row, column: column),
-                                                  orientation: orientation)
-                    guard candidate.cells.allSatisfy({ open.contains($0) }) else { continue }
-                    for cell in candidate.cells { heat[cell, default: 0] += 1 }
-                }
-            }
-            // A one-deck ship is the same either way round; counting it twice
-            // would only double every tally.
-            if longest == 1 { break }
-        }
+    /// Only reached when nothing is damaged: `finishingCandidates` handles that
+    /// case first, and deterministically.
+    ///
+    /// Every remaining ship is counted, not just the longest one. R0.6 measured
+    /// the longest-ship-only version this replaced and it needed the same
+    /// number of shots as `.medium` — a heat map drawn from one four-decker
+    /// says little once that ship is sunk, which is most of the match.
+    private func heatMapPeak(on board: Board) -> Coordinate? {
+        let heat = placementCounts(on: board, lengths: board.remainingShipLengths())
         guard let peak = heat.values.max() else { return nil }
+        let open = Set(openCells(on: board))
 
         // Break ties towards the cell that rules out the most: a central cell
         // deactivates more of its surroundings when it sinks, which keeps the
@@ -179,6 +222,41 @@ final class ComputerOpponent: Opponent {
             .filter { $0.value == peak }
             .max { openNeighbours($0.key, open) < openNeighbours($1.key, open) }?
             .key
+    }
+
+    /// For every cell still worth firing at, how many ways a ship of one of the
+    /// given lengths could be lying across it. A cell no such ship can cover
+    /// does not appear at all.
+    ///
+    /// Shared by `.hard` and `.expert` — the levels differ in what they pass
+    /// in and what they do with the answer. Derived only from public knowledge:
+    /// the lengths come from `remainingShipLengths()`, which reads the sunk
+    /// clusters, and the open cells from what has been fired at.
+    private func placementCounts(on board: Board, lengths: [Int]) -> [Coordinate: Int] {
+        let open = Set(openCells(on: board))
+        guard !lengths.isEmpty, !open.isEmpty else { return [:] }
+
+        var heat: [Coordinate: Int] = [:]
+        for length in lengths {
+            for orientation in Orientation.allCases {
+                let maxRow = orientation == .vertical ? Board.size - length + 1 : Board.size
+                let maxColumn = orientation == .horizontal ? Board.size - length + 1 : Board.size
+                guard maxRow >= 1, maxColumn >= 1 else { continue }
+                for row in 1...maxRow {
+                    for column in 1...maxColumn {
+                        let candidate = ShipPlacement(length: length,
+                                                      origin: Coordinate(row: row, column: column),
+                                                      orientation: orientation)
+                        guard candidate.cells.allSatisfy({ open.contains($0) }) else { continue }
+                        for cell in candidate.cells { heat[cell, default: 0] += 1 }
+                    }
+                }
+                // A one-deck ship is the same either way round; counting it
+                // twice would only double every tally.
+                if length == 1 { break }
+            }
+        }
+        return heat
     }
 
     /// How many still-shootable cells surround `coordinate`.
