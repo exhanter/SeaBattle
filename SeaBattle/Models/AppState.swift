@@ -26,6 +26,42 @@ class AppState {
             case .expert: return 10
             }
         }
+
+        /// How much water this level lets its own fleet give away, in cells, or
+        /// `nil` to arrange at random and not care.
+        ///
+        /// Sinking a ship reveals that everything touching it is water, so a
+        /// fleet packed against the edges and into each other's gaps hands the
+        /// player far fewer free cells. This is by far the strongest lever in
+        /// the game: every targeting improvement in the ladder put together is
+        /// worth about three shots a match, and this one is worth twenty.
+        ///
+        /// **It is therefore a difficulty dial, not something to maximise.**
+        /// Measured win rates against an opponent shooting as well as the
+        /// expert does, with the player opening (`ExpertPlacementTests`):
+        ///
+        ///     62 cells (as random)  60%
+        ///     58 cells              65%   <- expert
+        ///     54 cells              80%
+        ///     50 cells              81%
+        ///     42 cells              96%
+        ///     34 cells (the floor) 100%
+        ///
+        /// A live player is weaker than that opponent, so the real rate is
+        /// higher than the table. 58 leaves the expert clearly the hardest
+        /// thing in the app while still losing often enough that the 10 points
+        /// for beating it, and the hints priced against it, mean something.
+        /// Hiding as well as possible wins literally every match, and a level
+        /// nobody can beat pays out nothing.
+        ///
+        /// Only the expert hides, and that is now the main thing separating it
+        /// from `.hard`, whose shooting is only a shot or two behind.
+        var fleetExposureTarget: Int? {
+            switch self {
+            case .easy, .medium, .hard: return nil
+            case .expert: return 58
+            }
+        }
     }
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about, iPadBattleView

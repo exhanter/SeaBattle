@@ -48,8 +48,18 @@ final class ComputerOpponent: Opponent {
         self.targetBoard = targetBoard
     }
 
+    /// Arranges the computer's own fleet.
+    ///
+    /// Only `.expert` hides its ships deliberately; every other level takes a
+    /// plain random layout, which is the other half of what makes the levels
+    /// differ. See `FleetLayout.leastExposed` for what "deliberately" means and
+    /// why it does not make the computer predictable.
     func provideFleet() async -> [Ship] {
-        ownFleet.shipsRandomArrangement()
+        if let target = appState.difficultyLevel.fleetExposureTarget {
+            ownFleet.place(FleetLayout.arrangement(givingAwayAtMost: target))
+        } else {
+            ownFleet.shipsRandomArrangement()
+        }
         return ownFleet.ships
     }
 

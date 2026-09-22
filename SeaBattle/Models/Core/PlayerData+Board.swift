@@ -97,9 +97,38 @@ extension PlayerData {
     }
 }
 
+extension PlayerData {
+
+    /// Replaces this side's fleet with a layout produced by the core.
+    ///
+    /// `shipsRandomArrangement()` still exists for the random case the arranging
+    /// screen and the lower difficulty levels use; this is the way in for a
+    /// layout that was chosen rather than rolled (see
+    /// `FleetLayout.leastExposed`).
+    func place(_ layout: [ShipPlacement]) {
+        clearShips()
+        // `number` is what the old views use to address a ship, and they expect
+        // the fleet longest-first, which is the order `FleetLayout` returns.
+        ships = layout.enumerated().map { Ship($0.element, number: $0.offset) }
+        shipPositions = Array(repeating: .zero, count: FleetLayout.shipCount)
+        apply(Board(ships: layout))
+    }
+}
+
 // MARK: - Ship <-> ShipPlacement
 
 extension Ship {
+
+    /// The legacy view of a core placement. The cells are materialised here
+    /// because the old type stores them.
+    init(_ placement: ShipPlacement, number: Int) {
+        self.init(number: number,
+                  orientation: placement.orientation == .horizontal ? .horizontal : .vertical,
+                  numberOfDecks: placement.length,
+                  coordinates: placement.cells.map { ($0.row, $0.column) },
+                  id: placement.id)
+    }
+
     /// The core's view of this ship. The legacy type stores every coordinate;
     /// the core derives them, so only the first cell and the orientation carry
     /// over. The `id` is preserved so the two stay matched up.

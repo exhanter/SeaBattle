@@ -205,6 +205,144 @@ enum FleetLayout {
         return candidates.randomElement(using: &generator)
     }
 
+    // MARK: - Defensive arrangement
+
+    /// How many cells of water this layout gives away for free.
+    ///
+    /// Sinking a ship tells the other player that every cell touching it is
+    /// water — ships never touch — so those cells never have to be fired at.
+    /// This counts the DISTINCT such cells across the whole fleet, which is
+    /// exactly the number of shots the opponent gets for nothing.
+    ///
+    /// Two things shrink it, and both are positions a careless layout avoids:
+    /// a ship against an edge or in a corner has part of its ring cut off by
+    /// the board, and two ships one cell apart share the cells between them
+    /// instead of donating two separate rings. A one-deck ship is the extreme
+    /// case: alone in open water it hands over eight cells for a single shot,
+    /// in a corner only three.
+    ///
+    /// The count is public information — it says nothing about WHERE the ships
+    /// are, only how exposed they are — so an opponent could compute it too.
+    static func ringExposure(of ships: [ShipPlacement]) -> Int {
+        var exposed = Set<Coordinate>()
+        for ship in ships {
+            exposed.formUnion(ship.ring)
+        }
+        return exposed.count
+    }
+
+    /// How exposed a random layout is, on average — about 62 of the 80 water
+    /// cells. The reference point for `arrangement(givingAwayAtMost:)`.
+    static let randomExposure = 62
+
+    /// A legal layout that gives away no more than `target` cells of water, for
+    /// the computer to hide its own fleet behind.
+    ///
+    /// Random layouts, each improved by moving one ship at a time to wherever
+    /// it is least exposed, stopping as soon as the target is met. Hill
+    /// climbing rather than an exhaustive search: the space is far too large to
+    /// solve, but one ship at a time converges in a few passes.
+    ///
+    /// - Parameter target: the exposure to aim for, in cells. `randomExposure`
+    ///   or more means "don't bother hiding"; the floor reachable by this
+    ///   search is around 34. **This is a difficulty dial, not an optimisation
+    ///   target** — hiding as well as possible makes the computer unbeatable
+    ///   (measured at 100 matches out of 100 against an opponent playing as
+    ///   well as it does), so the level picks a value it can still lose with.
+    /// - Parameter attempts: how many random starts to try before settling for
+    ///   the best found. A few milliseconds once per match.
+    ///
+    /// Stopping at the target rather than at the optimum is also what keeps the
+    /// fleet unpredictable: hill climbing from a random start stops somewhere
+    /// different every time. That matters as much as the exposure itself — a
+    /// fleet that packed into the same corner every game would be learned in
+    /// two matches, and then the whole idea would be worth less than nothing.
+    static func arrangement<G: RandomNumberGenerator>(
+        givingAwayAtMost target: Int,
+        attempts: Int = 8,
+        using generator: inout G
+    ) -> [ShipPlacement] {
+        var best: [ShipPlacement] = []
+        var bestExposure = Int.max
+
+        for _ in 0..<max(1, attempts) {
+            let candidate = improve(random(using: &generator), stoppingAt: target)
+            let exposure = ringExposure(of: candidate)
+            if exposure <= target { return candidate }
+            if exposure < bestExposure {
+                bestExposure = exposure
+                best = candidate
+            }
+        }
+        return best.isEmpty ? random(using: &generator) : best
+    }
+
+    static func arrangement(givingAwayAtMost target: Int, attempts: Int = 8) -> [ShipPlacement] {
+        var generator = SystemRandomNumberGenerator()
+        return arrangement(givingAwayAtMost: target, attempts: attempts, using: &generator)
+    }
+
+    /// Moves one ship at a time to its least exposed legal position, repeating
+    /// until the target is met or a whole pass changes nothing. RETURNS a layout
+    /// that is still legal and still the standard fleet.
+    private static func improve(_ layout: [ShipPlacement], stoppingAt target: Int) -> [ShipPlacement] {
+        var ships = layout
+        if ringExposure(of: ships) <= target { return ships }
+        // Three passes is well past the point where anything still moves; the
+        // bound is only here so a pathological case cannot spin.
+        for _ in 0..<3 {
+            var moved = false
+            for index in ships.indices {
+                if ringExposure(of: ships) <= target { return ships }
+                let others = ships.enumerated().filter { $0.offset != index }.map(\.element)
+                let blocked = others.reduce(into: Set<Coordinate>()) { $0.formUnion($1.footprint) }
+                let othersExposure = others.reduce(into: Set<Coordinate>()) { $0.formUnion($1.ring) }
+
+                var bestPosition = ships[index]
+                var bestExposure = Int.max
+                for candidate in positions(for: ships[index], avoiding: blocked) {
+                    let exposure = othersExposure.union(candidate.ring).count
+                    if exposure < bestExposure {
+                        bestExposure = exposure
+                        bestPosition = candidate
+                    }
+                }
+                if bestPosition.origin != ships[index].origin
+                    || bestPosition.orientation != ships[index].orientation {
+                    ships[index] = bestPosition
+                    moved = true
+                }
+            }
+            if !moved { break }
+        }
+        return ships
+    }
+
+    /// Every legal position for one ship with the rest of the fleet fixed,
+    /// including the one it already occupies.
+    private static func positions(for ship: ShipPlacement,
+                                  avoiding blocked: Set<Coordinate>) -> [ShipPlacement] {
+        var result: [ShipPlacement] = []
+        for orientation in Orientation.allCases {
+            let maxRow = orientation == .vertical ? Board.size - ship.length + 1 : Board.size
+            let maxColumn = orientation == .horizontal ? Board.size - ship.length + 1 : Board.size
+            guard maxRow >= 1, maxColumn >= 1 else { continue }
+            for row in 1...maxRow {
+                for column in 1...maxColumn {
+                    let candidate = ShipPlacement(id: ship.id,
+                                                  length: ship.length,
+                                                  origin: Coordinate(row: row, column: column),
+                                                  orientation: orientation)
+                    if candidate.cells.allSatisfy({ !blocked.contains($0) }) {
+                        result.append(candidate)
+                    }
+                }
+            }
+            if ship.length == 1 { break }
+        }
+        return result
+    }
+
     /// A fixed legal layout: every ship on an odd row with at least one clear
     /// column between neighbours. Used as the fallback above and as a fixture
     /// in tests, where a known board beats a random one.
