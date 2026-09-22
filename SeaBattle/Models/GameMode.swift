@@ -84,6 +84,10 @@ enum StatKey: Hashable, Sendable {
 
     /// Every row the statistics screen can show, in menu order. Hot-seat is
     /// absent by design — see `GameMode.isTracked`.
+    ///
+    /// Whether the paper game deserves a row of its own is still open (the
+    /// player types its result in, so it is self-reported). The counting stays
+    /// either way; hiding it would be a change to the screen, not to the store.
     static let tracked: [StatKey] = [
         .computer(.easy), .computer(.medium), .computer(.hard), .computer(.expert),
         .paper, .nearby, .online
