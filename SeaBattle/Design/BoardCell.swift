@@ -80,7 +80,10 @@ struct BoardCell: View {
         // Режимы смешивания у F1 обязаны видеть только саму клетку, а не экран
         // под ней, иначе огонь размажется по соседям.
         .compositingGroup()
-        .clipShape(shape)
+        // Обрезки по форме здесь нет намеренно: ореол пробоины в макете светит
+        // **наружу**, на подложку поля. Каждое состояние рисуется по `shape`
+        // и потому не вылезает само по себе; обрезаются только те слои,
+        // которым это нужно.
     }
 
     // MARK: Состояния
@@ -132,19 +135,25 @@ struct BoardCell: View {
     private var breach: some View {
         water
             .overlay { shape.fill(Color.fireDarken) }
-            .overlay {
-                shape
-                    .strokeBorder(Color.fireHalo, lineWidth: max(1.5, px(0.07)))
-                    .blur(radius: px(0.035))
-            }
+            // Свечение внутрь: ярче всего у самой кромки, гаснет внутрь. В CSS
+            // это `inset 0 0 N` — тень без смещения и разброса, поэтому полная
+            // плотность приходится на границу, а не на полосу шириной N.
+            // Обводка шириной N/2, размытая на N/2, даёт ровно такой спад;
+            // сплошная полоса в N залила бы середину и сквозь пробоину
+            // перестала бы быть видна вода — то единственное, чем F4
+            // отличается от F1.
+            .overlay { innerGlow(.fireGlowOut, width: 0.18, blur: 0.18) }
+            .overlay { innerGlow(.fireGlowIn, width: 0.05, blur: 0.035) }
             .overlay {
                 shape.strokeBorder(edgeGradient, lineWidth: max(1, px(0.042)))
             }
-            // Свечение внутрь — это размытая тень внутрь у кромок, а не кольцо:
-            // середина остаётся прозрачной, иначе сквозь пробоину перестаёт
-            // быть видна вода, ради которой F4 и отличается от F1.
-            .overlay { shape.fill(innerGlow(.fireGlowOut, from: 0.10, to: 0.75)) }
-            .overlay { shape.fill(innerGlow(.fireGlowIn, from: 0.30, to: 0.62)) }
+            // Ореол светит наружу, на подложку поля, и потому не обрезается.
+            .overlay {
+                shape
+                    .strokeBorder(Color.fireHalo, lineWidth: max(1.5, px(0.07)))
+                    .blur(radius: px(0.05))
+                    .padding(-px(0.015))
+            }
             .overlay { crossBars(ink: .fireCross, stroke: .fireCrossEdge) }
     }
 
@@ -206,13 +215,15 @@ struct BoardCell: View {
         }
     }
 
-    /// Свечение от кромок внутрь. Радиусы — доли размера клетки: `from` там, где
-    /// свечение ещё не началось, `to` — где оно в полную силу у края.
-    private func innerGlow(_ color: Color, from: CGFloat, to: CGFloat) -> RadialGradient {
-        RadialGradient(stops: [.init(color: .clear, location: 0),
-                               .init(color: color, location: 1)],
-                       center: .center,
-                       startRadius: px(from), endRadius: px(to))
+    /// Свечение от кромки внутрь: полоса шириной `width` с размытием `blur`,
+    /// обе величины — доли размера клетки. Значения подобраны не на глаз, а по
+    /// профилю яркости эталона: тёплый свет держится у кромки и гаснет к 30 %
+    /// ширины клетки, дальше видна холодная вода.
+    private func innerGlow(_ color: Color, width: CGFloat, blur: CGFloat) -> some View {
+        shape
+            .strokeBorder(color, lineWidth: px(width))
+            .blur(radius: px(blur))
+            .clipShape(shape)
     }
 
     /// Четыре кромки пробоины. В CSS это border с четырьмя цветами и жёсткими
@@ -317,6 +328,21 @@ private struct BoardCellGallery: View {
     }
 }
 
+/// Одна клетка крупно, по центру экрана, без обвязки. Нужна для сверки с
+/// эталоном по пикселям: макет рендерится в headless-Chrome, оба снимка
+/// сканируются по средней линии и сравниваются числами. Глазом кромку в
+/// полтора пикселя и спад свечения не оценить — на миниатюре приглушённая
+/// тёплая кромка выглядит яркой оранжевой, проверено.
+private struct SingleCellProbe: View {
+    let state: BoardCellState
+    var body: some View {
+        ZStack {
+            LinearGradient.sea.ignoresSafeArea()
+            BoardCell(state, size: 200)
+        }
+    }
+}
+
 #Preview("Клетка · тёмная") {
     BoardCellGallery()
         .preferredColorScheme(.dark)
@@ -325,4 +351,9 @@ private struct BoardCellGallery: View {
 #Preview("Клетка · светлая") {
     BoardCellGallery()
         .preferredColorScheme(.light)
+}
+
+#Preview("Сверка · пробоина F4") {
+    SingleCellProbe(state: .hit)
+        .preferredColorScheme(.dark)
 }
