@@ -102,6 +102,8 @@
 		CA6886273062B53C00859D7B /* GameMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886263062B53C00859D7B /* GameMode.swift */; };
 		CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68863F3062FF3400859D7B /* DesignTokens.swift */; };
 		CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886413062FF6700859D7B /* TokenGalleryView.swift */; };
+		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
+		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
 /* End PBXBuildFile section */
 
@@ -223,6 +225,8 @@
 		CA6886263062B53C00859D7B /* GameMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMode.swift; sourceTree = "<group>"; };
 		CA68863F3062FF3400859D7B /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		CA6886413062FF6700859D7B /* TokenGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenGalleryView.swift; sourceTree = "<group>"; };
+		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
+		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -450,6 +454,8 @@
 				CA68863F3062FF3400859D7B /* DesignTokens.swift */,
 				CA6886413062FF6700859D7B /* TokenGalleryView.swift */,
 				CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */,
+				CAA32FCE3064040000469335 /* SeaBackground.swift */,
+				CAA32FD03064042800469335 /* GlassPanel.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -627,6 +633,7 @@
 				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,
 				2CE9D5CB2D5BAD4C00324F58 /* YourTurnButtonView.swift in Sources */,
 				2CE731982D56A0A500954841 /* iPadStartButton.swift in Sources */,
+				CAA32FD13064042800469335 /* GlassPanel.swift in Sources */,
 				2CE731962D564D7300954841 /* PlayerSquareView.swift in Sources */,
 				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
 				CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */,
@@ -650,6 +657,7 @@
 				2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */,
 				2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */,
 				CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */,
+				CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
 				CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */,
