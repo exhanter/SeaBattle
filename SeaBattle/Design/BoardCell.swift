@@ -114,9 +114,12 @@ struct BoardCell: View {
                         }
                     }
                 Circle()
+                    // У края пятна остаётся 12 % плотности, а не ноль: в макете
+                    // воронка не растворяется полностью, иначе она мельчает и
+                    // читается точкой вместо вмятины.
                     .fill(RadialGradient(stops: [.init(color: .missPit, location: 0),
-                                                 .init(color: .missPit.opacity(0.45), location: 0.62),
-                                                 .init(color: .missPit.opacity(0), location: 1)],
+                                                 .init(color: .missPit.opacity(0.53), location: 0.62),
+                                                 .init(color: .missPit.opacity(0.14), location: 1)],
                                          center: .init(x: 0.5, y: 0.32),
                                          startRadius: 0, endRadius: px(0.28)))
             }
@@ -203,15 +206,21 @@ struct BoardCell: View {
     private func px(_ fraction: CGFloat) -> CGFloat { size * fraction }
 
     /// Выпуклость: светлая линия по верхней кромке и мягкая тень внутрь снизу.
+    ///
+    /// Величины взяты из CSS макета и переведены в доли размера: линия там 1 px
+    /// при клетке 48 px, то есть 2 % размера, а тень — `inset 0 -2px 4px`, она
+    /// достаёт внутрь на 2 + 4/2 = 4 px, то есть на 8 %. Первая версия давала
+    /// 5 % и 40 % — сверка по пикселям показала выбеленную верхнюю кромку и
+    /// пережатый низ у стали и корпуса.
     private func bevel(highlight: Color, shade: Color) -> some View {
         ZStack {
-            shape.fill(LinearGradient(stops: [.init(color: .clear, location: 0.6),
+            shape.fill(LinearGradient(stops: [.init(color: .clear, location: 0.88),
                                               .init(color: shade, location: 1)],
                                       startPoint: .top, endPoint: .bottom))
             shape.strokeBorder(LinearGradient(stops: [.init(color: highlight, location: 0),
                                                       .init(color: .clear, location: 0.35)],
                                               startPoint: .top, endPoint: .bottom),
-                               lineWidth: max(1, px(0.05)))
+                               lineWidth: max(1, px(0.02)))
         }
     }
 
@@ -338,6 +347,11 @@ private struct SingleCellProbe: View {
     var body: some View {
         ZStack {
             LinearGradient.sea.ignoresSafeArea()
+            // Клетка по центру и крупно; границы скрипт сверки находит сам,
+            // сканируя центральную колонку снимка. Угадывать положение нельзя:
+            // первая версия кропа промахнулась на полтора десятка пикселей и
+            // срезала низ клетки — «расхождение» у корпуса и стали внизу
+            // оказалось артефактом замера, а не кода.
             BoardCell(state, size: 200)
         }
     }
@@ -355,5 +369,30 @@ private struct SingleCellProbe: View {
 
 #Preview("Сверка · пробоина F4") {
     SingleCellProbe(state: .hit)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Сверка · вода W1") {
+    SingleCellProbe(state: .water)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Сверка · промах M1") {
+    SingleCellProbe(state: .miss)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Сверка · корпус K2") {
+    SingleCellProbe(state: .ship)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Сверка · огонь на корпусе F1") {
+    SingleCellProbe(state: .hitMine)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Сверка · уничтожен S4") {
+    SingleCellProbe(state: .sunk)
         .preferredColorScheme(.dark)
 }
