@@ -77,6 +77,38 @@ enum WoodEdge: Sendable {
     }
 }
 
+// MARK: - Чем рисовать стекло
+
+/// На iOS 26 стекло рисует система: настоящее преломление, блик по кромке и
+/// подстройка под то, что лежит под панелью. На iOS 18 такого нет, остаются
+/// системные материалы — раскладка и токены при этом те же, отличается только
+/// материал. Ветвление ровно одно и живёт здесь.
+enum GlassTreatment: Sendable {
+    /// Системное стекло, где оно есть; материалы, где нет.
+    case automatic
+    /// Принудительно системное стекло — для сравнения в превью.
+    case liquid
+    /// Принудительно материалы — для сравнения в превью и для G1.
+    case material
+
+    /// Решение вынесено в чистую функцию, чтобы правило «G1 стеклом не бывает»
+    /// проверялось тестом, а не полагалось на память.
+    ///
+    /// G1 — глухая шторка передачи устройства: сквозь неё не должно просвечивать
+    /// поле соперника. Системное стекло прозрачно по определению, поэтому для G1
+    /// оно запрещено независимо от версии ОС.
+    static func usesSystemGlass(_ treatment: GlassTreatment,
+                                level: GlassLevel,
+                                systemGlassAvailable: Bool) -> Bool {
+        guard level != .g1 else { return false }
+        switch treatment {
+        case .material: return false
+        case .liquid: return systemGlassAvailable
+        case .automatic: return systemGlassAvailable
+        }
+    }
+}
+
 // MARK: - Панель
 
 extension View {
@@ -84,8 +116,10 @@ extension View {
     /// вызывающий: у строки режима и у панели счёта они разные.
     func glassPanel(_ level: GlassLevel = .g2,
                     radius: CGFloat = Geometry.Radius.panel,
-                    wood: WoodEdge = .none) -> some View {
-        modifier(GlassPanelModifier(level: level, radius: radius, wood: wood))
+                    wood: WoodEdge = .none,
+                    treatment: GlassTreatment = .automatic) -> some View {
+        modifier(GlassPanelModifier(level: level, radius: radius,
+                                    wood: wood, treatment: treatment))
     }
 }
 
@@ -93,10 +127,51 @@ struct GlassPanelModifier: ViewModifier {
     let level: GlassLevel
     let radius: CGFloat
     let wood: WoodEdge
+    var treatment: GlassTreatment = .automatic
 
     func body(content: Content) -> some View {
-        let spec = level.spec
+        Group {
+            if #available(iOS 26, *),
+               GlassTreatment.usesSystemGlass(treatment, level: level,
+                                              systemGlassAvailable: true) {
+                systemGlass(content)
+            } else {
+                materials(content)
+            }
+        }
+    }
+
+    /// iOS 26+. Заливку, обводку и блик рисует система, поэтому своих здесь нет —
+    /// иначе они удвоились бы. Тон задаётся `Glass/Fill`: без тонировки белая
+    /// краска на светлом море теряет контраст, а тонировка берётся из ассета и
+    /// потому по-прежнему не требует проверки темы в коде.
+    @available(iOS 26, *)
+    private func systemGlass(_ content: Content) -> some View {
         content
+            .glassEffect(.regular.tint(Color.glassFill), in: shape)
+            .overlay { woodEdge }
+    }
+
+    /// Кант рисуется во весь размер панели и обрезается её формой, а не сам по
+    /// себе: полоску 2 pt скруглением не обрезать — она обрежется по своей
+    /// высоте и повиснет отдельной чертой мимо углов.
+    @ViewBuilder
+    private var woodEdge: some View {
+        if wood != .none {
+            shape
+                .fill(.clear)
+                .overlay(alignment: wood.alignment) {
+                    Color.wood.frame(height: Geometry.woodEdge)
+                }
+                .clipShape(shape)
+        }
+    }
+
+    /// iOS 18 и всё, что не стекло: материал плюс наши заливка, обводка, блик и
+    /// тень по таблице спеки 2.2.
+    private func materials(_ content: Content) -> some View {
+        let spec = level.spec
+        return content
             .background {
                 shape
                     .fill(fill)
@@ -120,11 +195,7 @@ struct GlassPanelModifier: ViewModifier {
                         .strokeBorder(sheenGradient, lineWidth: spec.sheenWidth)
                 }
             }
-            .overlay(alignment: wood.alignment) {
-                if wood != .none {
-                    Color.wood.frame(height: Geometry.woodEdge)
-                }
-            }
+            .overlay { woodEdge }
             .clipShape(shape)
             .shadow(color: spec.hasShadow ? shadowColor : .clear,
                     radius: spec.shadowRadius,
@@ -225,6 +296,63 @@ private struct GlassPanelDemo: View {
     }
 }
 
+/// Сравнение двух трактовок в одном кадре: слева то, что увидят на iOS 26,
+/// справа — то, что останется на iOS 18. Раскладка, радиусы, кант и краска
+/// одинаковы, отличается только материал.
+private struct GlassTreatmentComparison: View {
+    var body: some View {
+        ZStack {
+            SeaBackground()
+
+            VStack(spacing: 18) {
+                Text("iOS 26 · системное стекло  ↔  iOS 18 · материалы")
+                    .font(TypeScale.footnote)
+                    .foregroundStyle(Color.inkSecondary)
+
+                ForEach([GlassLevel.g2, .g3, .g1], id: \.self) { level in
+                    HStack(spacing: 12) {
+                        panel(level, .liquid)
+                        panel(level, .material)
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    tabBar(.liquid)
+                    tabBar(.material)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, Geometry.Inset.phoneSide)
+            .padding(.vertical, 54)
+        }
+    }
+
+    private func panel(_ level: GlassLevel, _ treatment: GlassTreatment) -> some View {
+        VStack(spacing: 4) {
+            Text(level.rawValue.uppercased())
+                .font(TypeScale.headline)
+                .foregroundStyle(Color.inkPrimary)
+            Text("ход 14 · 02:41")
+                .font(TypeScale.footnote)
+                .foregroundStyle(Color.inkSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(14)
+        .glassPanel(level, treatment: treatment)
+    }
+
+    private func tabBar(_ treatment: GlassTreatment) -> some View {
+        Text("нижняя панель")
+            .font(TypeScale.caption)
+            .foregroundStyle(Color.inkSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .glassPanel(.g2, radius: Geometry.Radius.panelLarge,
+                        wood: .top, treatment: treatment)
+    }
+}
+
 #Preview("Стекло · тёмная") {
     GlassPanelDemo()
         .preferredColorScheme(.dark)
@@ -232,5 +360,15 @@ private struct GlassPanelDemo: View {
 
 #Preview("Стекло · светлая") {
     GlassPanelDemo()
+        .preferredColorScheme(.light)
+}
+
+#Preview("iOS 26 против iOS 18 · тёмная") {
+    GlassTreatmentComparison()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("iOS 26 против iOS 18 · светлая") {
+    GlassTreatmentComparison()
         .preferredColorScheme(.light)
 }

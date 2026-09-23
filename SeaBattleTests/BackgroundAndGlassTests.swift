@@ -100,6 +100,44 @@ struct BackgroundAndGlassTests {
         #expect(g3.shadowOffsetY > g2.shadowOffsetY)
     }
 
+    // MARK: - Выбор материала: системное стекло или материалы
+
+    @Test("G1 стеклом не бывает ни при какой версии ОС")
+    func theBlackoutCurtainIsNeverGlass() {
+        // Сквозь шторку передачи устройства не должно просвечивать поле
+        // соперника, а системное стекло прозрачно по определению. Это правило,
+        // а не вкус, поэтому проверяется при всех комбинациях.
+        for treatment in [GlassTreatment.automatic, .liquid, .material] {
+            for available in [true, false] {
+                #expect(GlassTreatment.usesSystemGlass(treatment, level: .g1,
+                                                       systemGlassAvailable: available) == false)
+            }
+        }
+    }
+
+    @Test("На iOS 26 панели берут системное стекло, на iOS 18 — материалы")
+    func theTreatmentFollowsTheSystem() {
+        for level in [GlassLevel.g2, .g3] {
+            #expect(GlassTreatment.usesSystemGlass(.automatic, level: level,
+                                                   systemGlassAvailable: true))
+            #expect(GlassTreatment.usesSystemGlass(.automatic, level: level,
+                                                   systemGlassAvailable: false) == false)
+        }
+    }
+
+    @Test("Принудительные трактовки нужны только для сравнения в превью")
+    func forcedTreatmentsAreForPreviewsOnly() {
+        // `.material` не спрашивает систему вовсе — иначе на iOS 26 нельзя было
+        // бы посмотреть, что увидят на iOS 18.
+        #expect(GlassTreatment.usesSystemGlass(.material, level: .g2,
+                                               systemGlassAvailable: true) == false)
+        // `.liquid` систему всё же спрашивает: на iOS 18 стекла нет физически.
+        #expect(GlassTreatment.usesSystemGlass(.liquid, level: .g2,
+                                               systemGlassAvailable: false) == false)
+        #expect(GlassTreatment.usesSystemGlass(.liquid, level: .g2,
+                                               systemGlassAvailable: true))
+    }
+
     @Test("Деревянный кант ложится на кромку, обращённую к морю")
     func theWoodEdgeSitsOnTheSideFacingTheSea() {
         // Верхняя панель получает кант по низу, нижняя — по верху; левых и
