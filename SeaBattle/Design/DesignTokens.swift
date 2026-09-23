@@ -3,286 +3,184 @@
 //  Sea Battle — дизайн-система «Стекло и латунь»
 //
 //  Единственный источник значений для интерфейса. Правило реализации:
-//  цвет живёт в Colors.xcassets с вариантами Any/Dark (альфа входит в цвет),
+//  цвет живёт в ассет-каталоге с вариантами Any/Dark (альфа входит в цвет),
 //  в коде нет ни одной проверки `colorScheme`. Геометрия и длительности —
 //  здесь, литералами.
 //
 //  Требуется: iOS 18+. Нормы iOS 26 Liquid Glass — база, ниже фолбэк
 //  на системные материалы (см. Material.glassPanel).
 //
-//  Источник значений: docs/design/SPEC.md (таблица 15b) и исходник макетов
-//  docs/design/mockups.html. В `ColorToken` у каждой группы помечено, откуда
-//  взяты числа: «15b» — утверждённая таблица, «макеты» — значения, которые в
-//  таблицу не попали и вынуты из кода макета (вариант огня P4, корпус K2).
-//
 
 import SwiftUI
 
 // MARK: - Цвет
 
-/// Каждый токен — путь внутри `Colors.xcassets`. Перечисление существует,
-/// чтобы галерея показывала все цвета до единого, а тест проверял, что каждый
-/// из них есть в каталоге: опечатка в имени ассета иначе молчит до рантайма.
-enum ColorToken: String, CaseIterable, Sendable {
-
-    // Море: единственный фон приложения (15b).
-    case seaTop    = "Sea/Top"
-    case seaMid    = "Sea/Mid"
-    case seaBottom = "Sea/Bottom"
-
-    // Роли: тёплый акцент — всегда «ты», холодный — всегда противник (15b).
-    case roleYou     = "Role/You"
-    case roleFoe     = "Role/Foe"
-    case roleYouSoft = "Role/YouSoft"
-
-    // Хром (15b).
-    case wood = "Chrome/Wood"
-    case fire = "Chrome/Fire"
-
-    // Стекло G2 — все обычные панели (15b; тень — макеты).
-    case glassFill   = "Glass/Fill"
-    case glassFill2  = "Glass/Fill2"
-    case glassStroke = "Glass/Stroke"
-    case glassSheen  = "Glass/Sheen"
-    case glassShadow = "Glass/Shadow"
-
-    // Стекло G1 — глухие слои: передача устройства, шторки (15b; обводка — макеты).
-    case glassSolid       = "Glass/Solid"
-    case glassSolidStroke = "Glass/SolidStroke"
-
-    // Стекло G3 — листы, поповеры, окошки выбора (макеты).
-    case glassRaisedFill   = "Glass/RaisedFill"
-    case glassRaisedFill2  = "Glass/RaisedFill2"
-    case glassRaisedStroke = "Glass/RaisedStroke"
-    case glassRaisedSheen  = "Glass/RaisedSheen"
-    case glassRaisedShadow = "Glass/RaisedShadow"
-
-    // Краска на стекле: в обеих темах панели тёмные, поэтому набор текста один (15b).
-    case inkPrimary   = "Ink/Primary"
-    case inkSecondary = "Ink/Secondary"
-    case inkTertiary  = "Ink/Tertiary"
-    case inkOnBrass   = "Ink/OnBrass"
-
-    // Клетка · вода W1 / L2 (15b).
-    case waterTop    = "Cell/WaterTop"
-    case waterBottom = "Cell/WaterBottom"
-    case waterSheen  = "Cell/WaterSheen"
-    case waterShade  = "Cell/WaterShade"
-
-    // Клетка · корпус K2 «Песок» — свой корабль (15b).
-    case hullSandLight = "Cell/HullSandLight"
-    case hullSand      = "Cell/HullSand"
-    case hullSandDark  = "Cell/HullSandDark"
-
-    // Клетка · холодный корпус — чужой флот в разборе партии (макеты).
-    case hullFoeLight = "Cell/HullFoeLight"
-    case hullFoe      = "Cell/HullFoe"
-    case hullFoeDark  = "Cell/HullFoeDark"
-
-    // Клетка · запрещённая позиция при расстановке (15b).
-    case hullDeniedLight = "Cell/HullDeniedLight"
-    case hullDenied      = "Cell/HullDenied"
-    case hullDeniedDark  = "Cell/HullDeniedDark"
-
-    // Клетка · бевель корпуса и белый крест поверх него (макеты).
-    case hullSheen = "Cell/HullSheen"
-    case hullShade = "Cell/HullShade"
-    case hullCross = "Cell/HullCross"
-
-    // Клетка · промах M1 «воронка» (15b).
-    case missPit = "Cell/MissPit"
-    case missRim = "Cell/MissRim"
-
-    // Клетка · пробоина F4 на поле противника (свечение и крест — 15b,
-    // четыре кромки, внутренние свечения и обводка креста — макеты, вариант P4).
-    case fireHalo       = "Cell/FireHalo"
-    case fireEdgeTop    = "Cell/FireEdgeTop"
-    case fireEdgeLeft   = "Cell/FireEdgeLeft"
-    case fireEdgeRight  = "Cell/FireEdgeRight"
-    case fireEdgeBottom = "Cell/FireEdgeBottom"
-    case fireEdgeSheen  = "Cell/FireEdgeSheen"
-    case fireEdgeShade  = "Cell/FireEdgeShade"
-    case fireGlowIn     = "Cell/FireGlowIn"
-    case fireGlowOut    = "Cell/FireGlowOut"
-    case fireDarken     = "Cell/FireDarken"
-    case fireCross      = "Cell/FireCross"
-    case fireCrossEdge  = "Cell/FireCrossEdge"
-    case fireCrossHalo  = "Cell/FireCrossHalo"
-
-    // Клетка · огонь F1 поверх своего корпуса: три слоя тинта (макеты).
-    // В обеих темах одинаковы — под ними всегда песочный корпус, а не море.
-    case fireTintTop     = "Cell/FireTintTop"
-    case fireTintBottom  = "Cell/FireTintBottom"
-    case fireSatTop      = "Cell/FireSatTop"
-    case fireSatBottom   = "Cell/FireSatBottom"
-    case fireWarmIn      = "Cell/FireWarmIn"
-    case fireWarmOut     = "Cell/FireWarmOut"
-    case fireCrossShadow = "Cell/FireCrossShadow"
-
-    // Клетка · уничтожен S4 «выгоревшая сталь» (рампа — 15b, остальное — макеты).
-    case steelTop      = "Cell/SteelTop"
-    case steelMid      = "Cell/SteelMid"
-    case steelBottom   = "Cell/SteelBottom"
-    case steelSheen    = "Cell/SteelSheen"
-    case steelShade    = "Cell/SteelShade"
-    case sunkCross     = "Cell/SunkCross"
-    case sunkCrossEdge = "Cell/SunkCrossEdge"
-
-    var color: Color { Color(rawValue) }
-
-    /// Первая часть пути: Sea · Role · Chrome · Glass · Ink · Cell.
-    var group: String { String(rawValue.prefix(while: { $0 != "/" })) }
-
-    /// Имя без группы — подпись в галерее.
-    var shortName: String { String(rawValue.drop(while: { $0 != "/" }).dropFirst()) }
-}
-
+/// Имена соответствуют папкам и ассетам в Colors.xcassets.
+/// Каждый ассет содержит Any Appearance (светлая тема) и Dark Appearance.
 extension Color {
 
-    // Море
-    static let seaTop    = ColorToken.seaTop.color
-    static let seaMid    = ColorToken.seaMid.color
-    static let seaBottom = ColorToken.seaBottom.color
+    // Море: единственный фон приложения. Один LinearGradient на всю игру.
+    static let seaTop    = Color("Sea/Top")     // dark #061729 · light #1F5474
+    static let seaMid    = Color("Sea/Mid")     // dark #0D3450 · light #2E7A92 — 46 % в обеих темах
+    static let seaBottom = Color("Sea/Bottom")  // dark #12566B · light #45A3A8
+    /// Центр радиального свечения над градиентом. Единственный дышащий слой.
+    static let seaGlow   = Color("Sea/Glow")    // dark rgba(120,220,220,.30) · light rgba(210,255,250,.34)
 
-    // Роли
-    static let roleYou     = ColorToken.roleYou.color
-    static let roleFoe     = ColorToken.roleFoe.color
-    static let roleYouSoft = ColorToken.roleYouSoft.color
+    // Роли. Тёплый акцент — всегда «ты», холодный — всегда противник,
+    // одинаково у всех игроков и во всех режимах.
+    static let roleYou     = Color("Role/You")      // #D19A3C — латунь
+    static let roleFoe     = Color("Role/Foe")      // #3C7FBF — лазурь
+    static let roleYouSoft = Color("Role/YouSoft")  // rgba(209,154,60,.22) — подложка ленты
 
     // Хром
-    static let wood = ColorToken.wood.color
-    static let fire = ColorToken.fire.color
+    static let wood = Color("Chrome/Wood")   // #6B4A2F — кант 2 pt и мат вокруг фото
+    static let fire = Color("Chrome/Fire")   // #FF7A2F — огонь как состояние, не как хром
 
-    // Стекло
-    static let glassFill         = ColorToken.glassFill.color
-    static let glassFill2        = ColorToken.glassFill2.color
-    static let glassStroke       = ColorToken.glassStroke.color
-    static let glassSheen        = ColorToken.glassSheen.color
-    static let glassShadow       = ColorToken.glassShadow.color
-    static let glassSolid        = ColorToken.glassSolid.color
-    static let glassSolidStroke  = ColorToken.glassSolidStroke.color
-    static let glassRaisedFill   = ColorToken.glassRaisedFill.color
-    static let glassRaisedFill2  = ColorToken.glassRaisedFill2.color
-    static let glassRaisedStroke = ColorToken.glassRaisedStroke.color
-    static let glassRaisedSheen  = ColorToken.glassRaisedSheen.color
-    static let glassRaisedShadow = ColorToken.glassRaisedShadow.color
+    // Стекло. G2 — всегда градиент Fill → Fill2 под 135°; в тёмной теме точки равны,
+    // поэтому заливка выглядит ровной. Геометрия одна, разные только значения.
+    static let glassFill    = Color("Glass/Fill")    // dark rgba(255,255,255,.14) · light rgba(5,30,48,.60)
+    static let glassFill2   = Color("Glass/Fill2")   // dark rgba(255,255,255,.14) · light rgba(5,30,48,.48)
+    static let glassStroke  = Color("Glass/Stroke")  // dark rgba(255,255,255,.24) · light rgba(255,255,255,.40)
+    static let glassSheen   = Color("Glass/Sheen")   // dark rgba(255,255,255,.32) · light rgba(255,255,255,.38)
+    static let glassShadow  = Color("Glass/Shadow")  // dark rgba(0,0,0,.26) · light rgba(4,26,40,.26)
 
-    // Краска
-    static let inkPrimary   = ColorToken.inkPrimary.color
-    static let inkSecondary = ColorToken.inkSecondary.color
-    static let inkTertiary  = ColorToken.inkTertiary.color
-    static let inkOnBrass   = ColorToken.inkOnBrass.color
+    // G3 — приподнятый слой. Свой набор: в тёмной теме заливка плотнее G2.
+    static let glassRaisedFill   = Color("Glass/RaisedFill")   // dark rgba(255,255,255,.26) · light rgba(5,30,48,.72)
+    static let glassRaisedFill2  = Color("Glass/RaisedFill2")  // dark rgba(255,255,255,.05) · light rgba(5,30,48,.56)
+    static let glassRaisedStroke = Color("Glass/RaisedStroke") // dark rgba(255,255,255,.45) · light rgba(255,255,255,.50)
+    static let glassRaisedSheen  = Color("Glass/RaisedSheen")  // dark rgba(255,255,255,.55) · light rgba(255,255,255,.40)
+    static let glassRaisedShadow = Color("Glass/RaisedShadow") // dark rgba(0,0,0,.30) · light rgba(4,26,40,.30)
 
-    // Клетка · вода
-    static let waterTop    = ColorToken.waterTop.color
-    static let waterBottom = ColorToken.waterBottom.color
-    static let waterSheen  = ColorToken.waterSheen.color
-    static let waterShade  = ColorToken.waterShade.color
+    // G1 — глухой слой: ни блюра, ни блика, ни тени.
+    static let glassSolid       = Color("Glass/Solid")       // dark rgba(8,24,42,.80) · light rgba(5,30,48,.86)
+    static let glassSolidStroke = Color("Glass/SolidStroke") // dark rgba(255,255,255,.10) · light rgba(255,255,255,.28)
 
-    // Клетка · корпус
-    static let hullSandLight   = ColorToken.hullSandLight.color
-    static let hullSand        = ColorToken.hullSand.color
-    static let hullSandDark    = ColorToken.hullSandDark.color
-    static let hullFoeLight    = ColorToken.hullFoeLight.color
-    static let hullFoe         = ColorToken.hullFoe.color
-    static let hullFoeDark     = ColorToken.hullFoeDark.color
-    static let hullDeniedLight = ColorToken.hullDeniedLight.color
-    static let hullDenied      = ColorToken.hullDenied.color
-    static let hullDeniedDark  = ColorToken.hullDeniedDark.color
-    static let hullSheen       = ColorToken.hullSheen.color
-    static let hullShade       = ColorToken.hullShade.color
-    static let hullCross       = ColorToken.hullCross.color
+    // Краска на стекле: в обеих темах панели тёмные, поэтому набор текста один.
+    static let inkPrimary   = Color("Ink/Primary")    // rgba(255,255,255,.96)
+    static let inkSecondary = Color("Ink/Secondary")  // rgba(255,255,255,.72)
+    static let inkTertiary  = Color("Ink/Tertiary")   // rgba(255,255,255,.52)
+    static let inkOnBrass   = Color("Ink/OnBrass")    // #0A1A2C — надпись на латунной подложке
 
-    // Клетка · промах
-    static let missPit = ColorToken.missPit.color
-    static let missRim = ColorToken.missRim.color
+    // Клетка · вода W1 / L2
+    static let waterTop    = Color("Cell/WaterTop")    // dark rgba(255,255,255,.26) · light #D3E2EF
+    static let waterBottom = Color("Cell/WaterBottom") // dark rgba(255,255,255,.07) · light #8FB0CD
+    static let waterSheen  = Color("Cell/WaterSheen")  // inset верх: dark .45 · light .95
+    static let waterShade  = Color("Cell/WaterShade")  // inset низ: rgba(0,20,40,.35) · rgba(18,42,72,.40)
 
-    // Клетка · огонь
-    static let fireHalo       = ColorToken.fireHalo.color
-    static let fireEdgeTop    = ColorToken.fireEdgeTop.color
-    static let fireEdgeLeft   = ColorToken.fireEdgeLeft.color
-    static let fireEdgeRight  = ColorToken.fireEdgeRight.color
-    static let fireEdgeBottom = ColorToken.fireEdgeBottom.color
-    static let fireEdgeSheen  = ColorToken.fireEdgeSheen.color
-    static let fireEdgeShade  = ColorToken.fireEdgeShade.color
-    static let fireGlowIn     = ColorToken.fireGlowIn.color
-    static let fireGlowOut    = ColorToken.fireGlowOut.color
-    static let fireDarken     = ColorToken.fireDarken.color
-    static let fireCross      = ColorToken.fireCross.color
-    static let fireCrossEdge  = ColorToken.fireCrossEdge.color
-    static let fireCrossHalo  = ColorToken.fireCrossHalo.color
+    // Клетка · корпус K2 «Песок». Холодного корпуса в токенах нет: он нужен только
+    // для разбора партии, а разбор отложен до будущих обновлений.
+    static let hullSandLight = Color("Cell/HullSandLight") // #F8E9CD
+    static let hullSand      = Color("Cell/HullSand")      // #E0C48F
+    static let hullSandDark  = Color("Cell/HullSandDark")  // #A68A5B
+    static let hullSheen     = Color("Cell/HullSheen")     // rgba(255,255,255,.60) — бевель сверху
+    static let hullShade     = Color("Cell/HullShade")     // rgba(0,0,0,.32) — бевель снизу
 
-    static let fireTintTop     = ColorToken.fireTintTop.color
-    static let fireTintBottom  = ColorToken.fireTintBottom.color
-    static let fireSatTop      = ColorToken.fireSatTop.color
-    static let fireSatBottom   = ColorToken.fireSatBottom.color
-    static let fireWarmIn      = ColorToken.fireWarmIn.color
-    static let fireWarmOut     = ColorToken.fireWarmOut.color
-    static let fireCrossShadow = ColorToken.fireCrossShadow.color
+    // Клетка · промах M1 «воронка»
+    static let missPit = Color("Cell/MissPit") // dark rgba(0,18,34,.85) · light rgba(20,45,72,.60)
+    static let missRim = Color("Cell/MissRim") // подсвеченная нижняя кромка
 
-    // Клетка · уничтожен
-    static let steelTop      = ColorToken.steelTop.color
-    static let steelMid      = ColorToken.steelMid.color
-    static let steelBottom   = ColorToken.steelBottom.color
-    static let steelSheen    = ColorToken.steelSheen.color
-    static let steelShade    = ColorToken.steelShade.color
-    static let sunkCross     = ColorToken.sunkCross.color
-    static let sunkCrossEdge = ColorToken.sunkCrossEdge.color
+    // Клетка · огонь. F4 на поле противника: кромок четыре, разного тона — они
+    // изображают объём пробоины: свет сверху, тень снизу-справа.
+    static let fireHalo       = Color("Cell/FireHalo")       // dark #A9552C 42 % · light #FF8A00 70 % (P4)
+    static let fireEdgeTop    = Color("Cell/FireEdgeTop")    // dark rgba(214,150,114,.85) · light rgba(255,196,40,1)
+    static let fireEdgeLeft   = Color("Cell/FireEdgeLeft")   // dark rgba(198,132,92,.80) · light rgba(255,140,10,1)
+    static let fireEdgeRight  = Color("Cell/FireEdgeRight")  // dark rgba(160,98,60,.80) · light rgba(224,70,0,1)
+    static let fireEdgeBottom = Color("Cell/FireEdgeBottom") // dark rgba(135,80,48,.85) · light rgba(188,42,0,1)
+    static let fireEdgeHi     = Color("Cell/FireEdgeHi")     // dark rgba(255,195,145,.22) · light rgba(255,205,150,.32)
+    static let fireEdgeShadow = Color("Cell/FireEdgeShadow") // dark rgba(90,26,0,.26) · light rgba(95,22,0,.30)
+    static let fireGlowIn     = Color("Cell/FireGlowIn")     // dark rgba(255,110,25,.62) · light rgba(255,130,15,.68)
+    static let fireGlowOut    = Color("Cell/FireGlowOut")    // dark rgba(255,150,45,.40) · light rgba(255,180,50,.45)
+    static let fireDarken     = Color("Cell/FireDarken")     // dark прозрачный · light rgba(200,130,20,.10)
+    /// В светлой теме крест и обводка меняются ролями: белый крест на светлом
+    /// море потерялся бы. Геометрия и код одни, разные только значения ассетов.
+    static let fireCross      = Color("Cell/FireCross")      // dark rgba(255,248,238,.92) · light rgba(255,82,18,1)
+    static let fireCrossEdge  = Color("Cell/FireCrossEdge")  // dark rgba(198,74,10,.95) · light rgba(255,250,240,.95)
+    static let fireCrossHalo  = Color("Cell/FireCrossHalo")  // dark rgba(255,120,30,.50) · light rgba(230,80,12,.45)
+
+    // Клетка · F1, попадание по своему кораблю. Свой корпус всегда песочный,
+    // поэтому и огонь поверх него один на обе темы. Режимы смешивания обязательны:
+    // без них получается плоская оранжевая заливка, а не горящий корпус.
+    static let hitTintMulTop    = Color("Cell/HitTintMulTop")    // rgba(255,140,15,.62)
+    static let hitTintMulBottom = Color("Cell/HitTintMulBottom") // rgba(255,60,0,.70)
+    static let hitTintScrTop    = Color("Cell/HitTintScrTop")    // rgba(255,120,0,.30)
+    static let hitTintScrBottom = Color("Cell/HitTintScrBottom") // rgba(255,40,0,.28)
+    static let hitWarmIn        = Color("Cell/HitWarmIn")        // rgba(255,190,70,.40)
+    static let hitWarmOut       = Color("Cell/HitWarmOut")       // rgba(255,90,10,.18) на 68 %
+    static let hitCross         = Color("Cell/HitCross")         // #FFF8EC — крест F1
+    static let hitCrossShadow   = Color("Cell/HitCrossShadow")   // rgba(120,35,0,.85) — тень креста F1
+
+    // Клетка · уничтожен S4 «выгоревшая сталь». Крест лежит на тёмной стали и в
+    // обеих темах оранжевый — это не тот же токен, что крест пробоины.
+    static let steelTop       = Color("Cell/SteelTop")       // #4A555F
+    static let steelMid       = Color("Cell/SteelMid")       // #28313A
+    static let steelBottom    = Color("Cell/SteelBottom")    // #10161C
+    static let steelSheen     = Color("Cell/SteelSheen")     // rgba(255,255,255,.14) — бевель сверху
+    static let steelShade     = Color("Cell/SteelShade")     // rgba(0,0,0,.60) — бевель снизу
+    static let sunkCross      = Color("Cell/SunkCross")      // dark rgba(255,122,47,.95) · light rgba(255,110,30,.95)
+    static let sunkCrossEdge  = Color("Cell/SunkCrossEdge")  // rgba(150,44,4,.90)
+
+    // Запрет при расстановке: та же рампа, что у корпуса, в розовом
+    static let hullDeniedLight = Color("Cell/HullDeniedLight") // #FFD5D5
+    static let hullDenied      = Color("Cell/HullDenied")      // #F0A3A3
+    static let hullDeniedDark  = Color("Cell/HullDeniedDark")  // #C97B7B
+
+    // Главная кнопка (PrimaryButton). Кант — Role/You, ореол — Role/YouSoft,
+    // надпись — Ink/Primary. Одна на обе темы.
+    static let buttonBrassTop    = Color("Button/BrassTop")    // rgba(209,154,60,.42)
+    static let buttonBrassBottom = Color("Button/BrassBottom") // rgba(209,154,60,.16)
+    static let buttonSheen       = Color("Button/Sheen")       // rgba(255,255,255,.55) — inset 0 1 0
+    static let buttonShade       = Color("Button/Shade")       // rgba(0,0,0,.28) — inset 0 −2 6
+    static let buttonShadow      = Color("Button/Shadow")      // rgba(0,0,0,.34) — 0 6 18
+    static let buttonTextShadow  = Color("Button/TextShadow")  // rgba(0,0,0,.45) — 0 1 2
 }
 
-// MARK: - Градиенты
+extension RadialGradient {
+    /// Свечение снизу по центру — единственный слой, который дышит.
+    /// Геометрия одна на все экраны и обе темы: центр (50 %, 91 %),
+    /// радиус 60 % ширины области. Масштаб дыхания — scaleEffect внутри
+    /// обрезающего контейнера; констант вылета за края не нужно.
+    static func seaGlow(in size: CGSize) -> RadialGradient {
+        RadialGradient(
+            gradient: Gradient(stops: [.init(color: .seaGlow, location: 0),
+                                       .init(color: .clear, location: 0.70)]),
+            center: .init(x: 0.5, y: 0.91),
+            startRadius: 0,
+            endRadius: size.width * 0.60)
+    }
+}
 
 extension LinearGradient {
+    /// Фон всего приложения. **Неподвижен** — дышит только слой свечения
+    /// над ним (см. Motion.breathe). Рисунка волн нет. Точка перелома 46 % в обеих темах.
+    static let sea = LinearGradient(
+        stops: [.init(color: .seaTop, location: 0),
+                .init(color: .seaMid, location: 0.46),
+                .init(color: .seaBottom, location: 1)],
+        startPoint: .top, endPoint: .bottom)
 
-    /// Фон всего приложения. Дышит 18 с (см. Motion.breathe), рисунка волн нет.
-    /// Середина стоит на 46 % в обеих темах: в макете у светлой она на 48 %,
-    /// но разницу в 2 % не видно, а зависимость от темы стоила бы проверки
-    /// `colorScheme` в коде — она запрещена правилом дизайна.
-    static var sea: LinearGradient {
-        LinearGradient(stops: [.init(color: .seaTop, location: 0),
-                               .init(color: .seaMid, location: 0.46),
-                               .init(color: .seaBottom, location: 1)],
-                       startPoint: .top, endPoint: .bottom)
-    }
+    static let waterCell = LinearGradient(
+        colors: [.waterTop, .waterBottom],
+        startPoint: .init(x: 0.15, y: 0), endPoint: .init(x: 0.85, y: 1))
 
-    /// Вода в клетке: диагональ 160°, как в макете.
-    static var waterCell: LinearGradient {
-        LinearGradient(colors: [.waterTop, .waterBottom],
-                       startPoint: .init(x: 0.15, y: 0), endPoint: .init(x: 0.85, y: 1))
-    }
-
-    /// Корпус своего корабля K2 «Песок».
-    static var hullSand: LinearGradient { hullRamp(.hullSandLight, .hullSand, .hullSandDark) }
-
-    /// Холодный корпус — чужой флот, показывается только в разборе партии.
-    static var hullFoe: LinearGradient { hullRamp(.hullFoeLight, .hullFoe, .hullFoeDark) }
+    static let hullSand = LinearGradient(
+        stops: [.init(color: .hullSandLight, location: 0),
+                .init(color: .hullSand, location: 0.46),
+                .init(color: .hullSandDark, location: 1)],
+        startPoint: .top, endPoint: .bottom)
 
     /// Корабль в запрещённой позиции: в руке — с прозрачностью 0.62, после
     /// отпускания плотный. Геометрия та же, что у hullSand.
-    static var hullDenied: LinearGradient { hullRamp(.hullDeniedLight, .hullDenied, .hullDeniedDark) }
+    static let hullDenied = LinearGradient(
+        stops: [.init(color: .hullDeniedLight, location: 0),
+                .init(color: .hullDenied, location: 0.46),
+                .init(color: .hullDeniedDark, location: 1)],
+        startPoint: .top, endPoint: .bottom)
 
-    /// Уничтоженный корпус S4 «Выгоревшая сталь».
-    static var steelSunk: LinearGradient { hullRamp(.steelTop, .steelMid, .steelBottom, mid: 0.45) }
-
-    /// Заливка панели G2 и приподнятого слоя G3 — две точки по диагонали 135°.
-    static var glassPanelFill: LinearGradient {
-        LinearGradient(colors: [.glassFill, .glassFill2],
-                       startPoint: .topLeading, endPoint: .bottomTrailing)
-    }
-
-    static var glassRaisedPanelFill: LinearGradient {
-        LinearGradient(colors: [.glassRaisedFill, .glassRaisedFill2],
-                       startPoint: .topLeading, endPoint: .bottomTrailing)
-    }
-
-    /// Все корпуса собраны одной рампой: три точки, середина на 46 %.
-    private static func hullRamp(_ light: Color, _ base: Color, _ dark: Color,
-                                 mid: CGFloat = 0.46) -> LinearGradient {
-        LinearGradient(stops: [.init(color: light, location: 0),
-                               .init(color: base, location: mid),
-                               .init(color: dark, location: 1)],
-                       startPoint: .top, endPoint: .bottom)
-    }
+    static let steelSunk = LinearGradient(
+        stops: [.init(color: .steelTop, location: 0),
+                .init(color: .steelMid, location: 0.45),
+                .init(color: .steelBottom, location: 1)],
+        startPoint: .top, endPoint: .bottom)
 }
 
 // MARK: - Геометрия
@@ -331,21 +229,15 @@ enum Geometry {
 
     /// Кант между стеклом панели и морем: верх нижней панели, низ верхней.
     static let woodEdge: CGFloat = 2
-
-    /// Радиус клетки от её размера. Минимум 4 pt, иначе на 28 pt скругление
-    /// вырождается в квадрат.
-    static func cellRadius(for size: CGFloat) -> CGFloat {
-        max(4, (size * cellRadiusRatio).rounded())
-    }
 }
 
 // MARK: - Материал
 
 extension Material {
-    /// G2 — основной материал панелей: blur 18, saturate 1.6.
+    /// G2 — основной материал панелей: blur 18, saturate 1,6 (в светлой 1,3).
     /// На iOS 18 подменяется на .ultraThinMaterial с той же раскладкой.
     static var glassPanel: Material { .ultraThinMaterial }
-    /// G3 — приподнятый слой (листы, поповеры): blur 26, saturate 2.
+    /// G3 — приподнятый слой (листы, поповеры): blur 26, saturate 2 (в светлой 1,4).
     static var glassRaised: Material { .thinMaterial }
 }
 
@@ -373,11 +265,8 @@ enum Motion {
     static let contourGlow: Double = 0.520
     static let aim: Double = 0.120
     static let sinkPerCell: Double = 0.060   // волна по корпусу, максимум 0.240
-    static let missRing: Double = 0.200      // обводка потопленного промахами
     static let incomingShot: Double = 0.180
     static let feedChip: Double = 0.220
-    static let tallyRoll: Double = 0.200     // число в шапке перекатывается
-    static let aimContourFade: Double = 0.060 // латунный контур гаснет в момент выстрела
 
     // Экраны
     static let turnFade: Double = 0.160     // рамка гаснет
@@ -389,7 +278,10 @@ enum Motion {
     static let handoverOut: Double = 0.180
 
     // Бесконечны ровно два движения
-    static let breathe: Double = 18.0       // дыхание фона
+    static let breathe: Double = 18.0       // дыхание слоя свечения (не всего фона)
+    static let breatheScale: ClosedRange<CGFloat> = 1.04...1.10
+    static let breatheOffsetY: CGFloat = -0.02   // доля высоты области
+    static let breatheOpacity: ClosedRange<Double> = 0.9...1.0
     static let jiggleRange: ClosedRange<Double> = 0.40...0.51 // дрожание клеток
     static let jiggleAngle: Double = 1.4    // градусы, ±
     static let jigglePhase: ClosedRange<Double> = 0...0.24
@@ -398,7 +290,8 @@ enum Motion {
     static let quick = Animation.easeOut(duration: aim)
 
     /// Reduce Motion: перемещения и масштаб → прозрачность, длительности × 0,5,
-    /// дыхание фона и дрожание выключены. Состояния клеток не меняются.
+    /// дрожание выключено, слой свечения стоит неподвижно на средних значениях
+    /// (scale 1.07, offset 0, opacity 1) — не исчезает. Состояния клеток не меняются.
     static func scaled(_ d: Double, reduceMotion: Bool) -> Double {
         reduceMotion ? d * 0.5 : d
     }
@@ -418,4 +311,9 @@ enum Motion {
  6. Главная кнопка одна на всю игру: стекло с бевелем, латунный кант 1 pt,
     латунная подложка, белая надпись. Плоских заливок без бевеля нет.
  7. Передача устройства — не sheet, а непрозрачный слой в том же контейнере.
+ 8. Градиент моря неподвижен. Дышит только слой свечения над ним.
+ 9. Геометрия живёт в коде и одна на обе темы; в ассет-каталог уходят только цвета.
+    Если понадобилась разная геометрия по темам — ошибся дизайн, а не код.
+10. Имена вида "Sea/Top" работают только потому, что у папок в Colors.xcassets включён
+    Provides Namespace. Каталог в пакете уже собран так — не пересобирать вручную.
  */

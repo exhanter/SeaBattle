@@ -65,14 +65,31 @@ struct TokenGalleryView: View {
 
     private var gradients: some View {
         section("Градиенты") {
+            // Море и свечение показаны вместе: в приложении это два слоя одного
+            // фона, и второй виден только поверх первого.
+            VStack(alignment: .leading, spacing: 4) {
+                RoundedRectangle(cornerRadius: Geometry.Radius.chip, style: .continuous)
+                    .fill(LinearGradient.sea)
+                    .frame(height: 68)
+                    .overlay {
+                        GeometryReader { proxy in
+                            RadialGradient.seaGlow(in: proxy.size)
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: Geometry.Radius.chip,
+                                                style: .continuous))
+                Text("sea + seaGlow — неподвижный градиент и дышащий слой над ним")
+                    .font(TypeScale.caption)
+                    .foregroundStyle(Color.inkTertiary)
+            }
             gradientBar("LinearGradient.sea", LinearGradient.sea)
             gradientBar("waterCell", LinearGradient.waterCell)
             gradientBar("hullSand", LinearGradient.hullSand)
-            gradientBar("hullFoe", LinearGradient.hullFoe)
             gradientBar("hullDenied", LinearGradient.hullDenied)
             gradientBar("steelSunk", LinearGradient.steelSunk)
             gradientBar("glassPanelFill (G2)", LinearGradient.glassPanelFill)
-            gradientBar("glassRaisedPanelFill (G3)", LinearGradient.glassRaisedPanelFill)
+            gradientBar("glassRaisedFill (G3)", LinearGradient.glassRaisedFill)
+            gradientBar("buttonBrass — подложка главной кнопки", LinearGradient.buttonBrass)
         }
     }
 
@@ -231,19 +248,6 @@ struct TokenGalleryView: View {
         ("Передача устройства", "260 + 180 мс"),
         ("Дыхание фона", "18 с"),
     ]
-}
-
-extension ColorToken {
-    /// Токены по группам, в том же порядке, в каком объявлены.
-    static var groups: [(name: String, tokens: [ColorToken])] {
-        var order: [String] = []
-        var byGroup: [String: [ColorToken]] = [:]
-        for token in allCases {
-            if byGroup[token.group] == nil { order.append(token.group) }
-            byGroup[token.group, default: []].append(token)
-        }
-        return order.map { ($0, byGroup[$0] ?? []) }
-    }
 }
 
 #Preview("Токены · тёмная") {

@@ -39,21 +39,24 @@ struct DesignTokensTests {
             // и сверяем его с ожидаемым ниже.
             if light == dark { flat.append(token.rawValue) }
         }
-        // Токены, у которых значение по замыслу одно на обе темы (таблица 15b:
-        // прочерк в светлой колонке) плюс корпуса и тинты огня из макетов.
+        // Токены, у которых значение по замыслу одно на обе темы — прочерк в
+        // светлой колонке `docs/design/TOKENS.md`. Корпус и огонь поверх него
+        // сюда входят: свой корабль всегда песочный, поэтому и пламя на нём одно.
         let expectedFlat: Set<String> = [
             "Role/You", "Role/Foe", "Role/YouSoft",
             "Chrome/Wood", "Chrome/Fire",
             "Ink/Primary", "Ink/Secondary", "Ink/Tertiary", "Ink/OnBrass",
             "Cell/HullSandLight", "Cell/HullSand", "Cell/HullSandDark",
-            "Cell/HullFoeLight", "Cell/HullFoe", "Cell/HullFoeDark",
             "Cell/HullDeniedLight", "Cell/HullDenied", "Cell/HullDeniedDark",
-            "Cell/HullSheen", "Cell/HullShade", "Cell/HullCross",
-            "Cell/FireTintTop", "Cell/FireTintBottom",
-            "Cell/FireSatTop", "Cell/FireSatBottom",
-            "Cell/FireWarmIn", "Cell/FireWarmOut", "Cell/FireCrossShadow",
+            "Cell/HullSheen", "Cell/HullShade",
+            "Cell/HitTintMulTop", "Cell/HitTintMulBottom",
+            "Cell/HitTintScrTop", "Cell/HitTintScrBottom",
+            "Cell/HitWarmIn", "Cell/HitWarmOut",
+            "Cell/HitCross", "Cell/HitCrossShadow",
             "Cell/SteelTop", "Cell/SteelMid", "Cell/SteelBottom",
             "Cell/SteelSheen", "Cell/SteelShade", "Cell/SunkCrossEdge",
+            "Button/BrassTop", "Button/BrassBottom", "Button/Sheen",
+            "Button/Shade", "Button/Shadow", "Button/TextShadow",
         ]
         #expect(Set(flat) == expectedFlat,
                 "тема различается не у тех токенов: лишние \(Set(flat).subtracting(expectedFlat)), недостающие \(expectedFlat.subtracting(Set(flat)))")
@@ -82,12 +85,55 @@ struct DesignTokensTests {
         #expect(foeHue * 360 > 190 && foeHue * 360 < 230)
     }
 
+    @Test("Крест пробоины и его обводка меняются ролями по темам")
+    func fireCrossSwapsWithItsEdge() throws {
+        let cross = try #require(UIColor(named: ColorToken.fireCross.rawValue, in: .main, compatibleWith: nil))
+        let edge = try #require(UIColor(named: ColorToken.fireCrossEdge.rawValue, in: .main, compatibleWith: nil))
+        let dark = UITraitCollection(userInterfaceStyle: .dark)
+        let light = UITraitCollection(userInterfaceStyle: .light)
+        // В тёмной теме крест светлый на тёмной обводке, в светлой — наоборот:
+        // белый крест на светлом море потерялся бы.
+        #expect(cross.resolvedColor(with: dark).brightness > edge.resolvedColor(with: dark).brightness)
+        #expect(cross.resolvedColor(with: light).brightness < edge.resolvedColor(with: light).brightness)
+    }
+
+    @Test("Свечение фона в светлой теме светлее, чем в тёмной")
+    func glowStaysLightInTheLightTheme() throws {
+        let glow = try #require(UIColor(named: ColorToken.seaGlow.rawValue, in: .main, compatibleWith: nil))
+        let light = glow.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+        let dark = glow.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
+        // На светлом бирюзовом море тёмная бирюза не читается: свет снизу
+        // должен остаться светом.
+        #expect(light.brightness > dark.brightness)
+    }
+
     @Test("Группы галереи покрывают все токены без потерь")
     func galleryGroupsCoverEveryToken() {
         let grouped = ColorToken.groups.flatMap(\.tokens)
         #expect(grouped.count == ColorToken.allCases.count)
         #expect(Set(grouped) == Set(ColorToken.allCases))
-        #expect(ColorToken.groups.map(\.name) == ["Sea", "Role", "Chrome", "Glass", "Ink", "Cell"])
+        #expect(ColorToken.groups.map(\.name)
+                == ["Sea", "Role", "Chrome", "Glass", "Ink", "Cell", "Button"])
+    }
+
+    @Test("Перечисление описывает весь каталог: 73 токена")
+    func theEnumCoversTheWholeCatalogue() {
+        // Каталог приходит из пакета дизайна готовым, а перечисление ведём мы,
+        // поэтому число зафиксировано: пришёл новый пакет — сверить и поправить.
+        #expect(ColorToken.allCases.count == 73)
+    }
+
+    @Test("Заливка G2 в тёмной теме ровная, в светлой — с перепадом")
+    func theG2FillIsFlatInTheDarkTheme() throws {
+        let fill = try #require(UIColor(named: ColorToken.glassFill.rawValue, in: .main, compatibleWith: nil))
+        let fill2 = try #require(UIColor(named: ColorToken.glassFill2.rawValue, in: .main, compatibleWith: nil))
+        let dark = UITraitCollection(userInterfaceStyle: .dark)
+        let light = UITraitCollection(userInterfaceStyle: .light)
+        // Панель всегда заливается градиентом `Fill → Fill2`, ветки по теме
+        // запрещены. Ровной в тёмной теме она выглядит потому, что там обе
+        // точки равны, — иначе на панелях разной высоты низ светлел бы по-разному.
+        #expect(fill.resolvedColor(with: dark) == fill2.resolvedColor(with: dark))
+        #expect(fill.resolvedColor(with: light) != fill2.resolvedColor(with: light))
     }
 
     @Test("Радиус клетки — 26 % размера, но не меньше 4 pt")
