@@ -142,13 +142,16 @@ struct GlassPanelModifier: ViewModifier {
     }
 
     /// iOS 26+. Заливку, обводку и блик рисует система, поэтому своих здесь нет —
-    /// иначе они удвоились бы. Тон задаётся `Glass/Fill`: без тонировки белая
-    /// краска на светлом море теряет контраст, а тонировка берётся из ассета и
-    /// потому по-прежнему не требует проверки темы в коде.
+    /// иначе они удвоились бы. Тонировка нужна по двум причинам: без неё белая
+    /// краска на светлом море теряет контраст, и без неё приподнятый слой не
+    /// отличается от обычной панели — системное стекло само по себе про уровни
+    /// ничего не знает. Тон берётся из ассета, поэтому проверки темы в коде
+    /// по-прежнему нет.
     @available(iOS 26, *)
     private func systemGlass(_ content: Content) -> some View {
-        content
-            .glassEffect(.regular.tint(Color.glassFill), in: shape)
+        let tint: Color = level == .g3 ? .glassRaisedFill : .glassFill
+        return content
+            .glassEffect(.regular.tint(tint), in: shape)
             .overlay { woodEdge }
     }
 
@@ -309,11 +312,21 @@ private struct GlassTreatmentComparison: View {
                     .font(TypeScale.footnote)
                     .foregroundStyle(Color.inkSecondary)
 
-                ForEach([GlassLevel.g2, .g3, .g1], id: \.self) { level in
-                    HStack(spacing: 12) {
-                        panel(level, .liquid)
-                        panel(level, .material)
-                    }
+                // G2 и G1 показаны панелью, G3 — листом: у каждого уровня свой
+                // настоящий размер. На плашке размером с кнопку обводка G3
+                // в 1,5 pt читается жирным кантом, хотя на листе это тонкий
+                // ободок, — сравнивать надо в том размере, в каком применяется.
+                HStack(spacing: 12) {
+                    panel(.g2, .liquid, height: 64)
+                    panel(.g2, .material, height: 64)
+                }
+                HStack(spacing: 12) {
+                    panel(.g3, .liquid, height: 190, caption: "лист или поповер")
+                    panel(.g3, .material, height: 190, caption: "лист или поповер")
+                }
+                HStack(spacing: 12) {
+                    panel(.g1, .liquid, height: 64, caption: "передача устройства")
+                    panel(.g1, .material, height: 64, caption: "передача устройства")
                 }
 
                 HStack(spacing: 12) {
@@ -328,18 +341,21 @@ private struct GlassTreatmentComparison: View {
         }
     }
 
-    private func panel(_ level: GlassLevel, _ treatment: GlassTreatment) -> some View {
+    private func panel(_ level: GlassLevel, _ treatment: GlassTreatment,
+                       height: CGFloat, caption: String = "ход 14 · 02:41") -> some View {
         VStack(spacing: 4) {
             Text(level.rawValue.uppercased())
                 .font(TypeScale.headline)
                 .foregroundStyle(Color.inkPrimary)
-            Text("ход 14 · 02:41")
+            Text(caption)
                 .font(TypeScale.footnote)
                 .foregroundStyle(Color.inkSecondary)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: height)
         .padding(14)
-        .glassPanel(level, treatment: treatment)
+        .glassPanel(level,
+                    radius: level == .g3 ? Geometry.Radius.sheet : Geometry.Radius.panel,
+                    treatment: treatment)
     }
 
     private func tabBar(_ treatment: GlassTreatment) -> some View {

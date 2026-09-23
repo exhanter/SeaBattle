@@ -57,6 +57,11 @@ struct BreathState: Equatable, Sendable {
 
 struct SeaBackground: View {
 
+    /// Длительность цикла дыхания. В игре всегда `Motion.breathe` — 18 секунд;
+    /// параметр существует ради превью: на 18 секундах движение по замыслу
+    /// незаметно, и убедиться, что оно вообще идёт, иначе нечем.
+    var cycle: Double = Motion.breathe
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var inhaled = false
 
@@ -92,9 +97,80 @@ struct SeaBackground: View {
 
     private func startBreathing() {
         guard !reduceMotion, !inhaled else { return }
-        withAnimation(.easeInOut(duration: Motion.breathe).repeatForever(autoreverses: true)) {
+        withAnimation(.easeInOut(duration: cycle).repeatForever(autoreverses: true)) {
             inhaled = true
         }
+    }
+}
+
+// MARK: - Превью
+
+/// Дыхание на своих 18 секундах увидеть нельзя — это его свойство, а не
+/// недоработка. Здесь оно разобрано на части: ползунок проводит цикл руками,
+/// переключатель запускает его вживую, но за 2 секунды вместо 18. Нужно, чтобы
+/// можно было убедиться, что слой действительно движется, и оценить амплитуду.
+private struct BreathInspector: View {
+    @State private var phase: Double = 0
+    @State private var live = false
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            if live {
+                SeaBackground(cycle: 2)
+            } else {
+                manualLayers
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Живой цикл, 2 с вместо 18", isOn: $live)
+                    .font(TypeScale.callout)
+                    .foregroundStyle(Color.inkPrimary)
+
+                if !live {
+                    Slider(value: $phase)
+                    Text(readout(for: interpolated(phase)))
+                        .font(TypeScale.caption)
+                        .foregroundStyle(Color.inkSecondary)
+                }
+            }
+            .padding(14)
+            .glassPanel(.g2, wood: .top)
+            .padding(Geometry.Inset.phoneSide)
+        }
+    }
+
+    /// Слои те же, что в `SeaBackground`, но фаза задаётся руками.
+    private var manualLayers: some View {
+        GeometryReader { proxy in
+            let size = proxy.size
+            let state = interpolated(phase)
+            LinearGradient.sea
+                .overlay {
+                    RadialGradient.seaGlow(in: size)
+                        .scaleEffect(state.scale)
+                        .offset(y: size.height * state.offsetFraction)
+                        .opacity(state.opacity)
+                }
+                .clipped()
+        }
+        .ignoresSafeArea()
+    }
+
+    private func readout(for state: BreathState) -> String {
+        let scale = String(format: "%.3f", state.scale)
+        let shift = String(format: "%.1f", state.offsetFraction * 100)
+        let opacity = String(format: "%.2f", state.opacity)
+        return "выдох → вдох: масштаб \(scale) · сдвиг \(shift) % высоты · прозрачность \(opacity)"
+    }
+
+    /// Промежуточное состояние цикла. Концы берутся из `BreathState`, поэтому
+    /// разъехаться с игрой значения не могут.
+    private func interpolated(_ t: Double) -> BreathState {
+        let a = BreathState.resting, b = BreathState.inhaled
+        return BreathState(scale: a.scale + (b.scale - a.scale) * CGFloat(t),
+                           offsetFraction: a.offsetFraction
+                                           + (b.offsetFraction - a.offsetFraction) * CGFloat(t),
+                           opacity: a.opacity + (b.opacity - a.opacity) * t)
     }
 }
 
@@ -105,5 +181,15 @@ struct SeaBackground: View {
 
 #Preview("Фон · светлая") {
     SeaBackground()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Дыхание под лупой · тёмная") {
+    BreathInspector()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Дыхание под лупой · светлая") {
+    BreathInspector()
         .preferredColorScheme(.light)
 }
