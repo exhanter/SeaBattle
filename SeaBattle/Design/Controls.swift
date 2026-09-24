@@ -47,14 +47,14 @@ enum ControlMetrics {
     /// Сегментированный переключатель.
     enum Segment {
         static let radius: CGFloat = 13
-        static let padding: CGFloat = 3
+        static let padding = Geometry.Segment.trackInset
         static let font = Font.system(size: 12.5, weight: .semibold)
-        /// По числам макета сегмент выходил 40 pt — ниже минимальной цели
-        /// нажатия 44 pt, которую требует сама спека («везде, кроме клетки
-        /// поля»). Высота поднята до 44 за счёт сегмента, а не обоймы:
-        /// растягивать обойму значило бы ломать её радиусы.
-        static let minHeight: CGFloat = Geometry.Hit.minTarget
-        static var minLabelHeight: CGFloat { minHeight - padding * 2 }
+        /// 44 pt — видимая высота сегмента. В макетах переключатель 40 pt, это
+        /// ошибка макета: спека требует 44 pt везде, кроме клетки поля.
+        /// Подтверждено дизайном, значение пришло в пакет как
+        /// `Geometry.Segment.height`.
+        static let minHeight = Geometry.Segment.height
+        static var minLabelHeight: CGFloat { minHeight }
     }
 }
 

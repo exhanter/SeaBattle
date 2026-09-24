@@ -137,11 +137,12 @@ struct BoardView: View {
             .padding(metrics.inset)
             .background {
                 RoundedRectangle(cornerRadius: metrics.radius, style: .continuous)
-                    .fill(roleColor.opacity(role == .you ? 0.10 : 0.12))
+                    .fill(role == .you ? Color.boardFillYou : Color.boardFillFoe)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: metrics.radius, style: .continuous)
-                    .strokeBorder(roleColor.opacity(0.45), lineWidth: 1)
+                    .strokeBorder(role == .you ? Color.boardStrokeYou : Color.boardStrokeFoe,
+                                  lineWidth: 1)
             }
             // Рамка активного поля рисуется поверх обвязки и **всегда латунная**:
             // она говорит «сюда стреляют сейчас», а не «чьё это поле».
@@ -174,8 +175,6 @@ struct BoardView: View {
         let index = row * BoardMetrics.columns + column
         return cells.indices.contains(index) ? cells[index] : .water
     }
-
-    private var roleColor: Color { role == .you ? .roleYou : .roleFoe }
 
     // MARK: Координаты
 

@@ -95,7 +95,6 @@ extension Color {
     /// море потерялся бы. Геометрия и код одни, разные только значения ассетов.
     static let fireCross      = Color("Cell/FireCross")      // dark rgba(255,248,238,.92) · light rgba(255,82,18,1)
     static let fireCrossEdge  = Color("Cell/FireCrossEdge")  // dark rgba(198,74,10,.95) · light rgba(255,250,240,.95)
-    static let fireCrossHalo  = Color("Cell/FireCrossHalo")  // dark rgba(255,120,30,.50) · light rgba(230,80,12,.45)
 
     // Клетка · F1, попадание по своему кораблю. Свой корпус всегда песочный,
     // поэтому и огонь поверх него один на обе темы. Режимы смешивания обязательны:
@@ -123,6 +122,13 @@ extension Color {
     static let hullDeniedLight = Color("Cell/HullDeniedLight") // #FFD5D5
     static let hullDenied      = Color("Cell/HullDenied")      // #F0A3A3
     static let hullDeniedDark  = Color("Cell/HullDeniedDark")  // #C97B7B
+
+    // Подложка поля B1 — в цвете роли. Одна на обе темы. .opacity() от цветов ролей
+    // в коде не применять: исключений из правила «альфа входит в цвет» нет.
+    static let boardFillYou   = Color("Board/FillYou")   // rgba(209,154,60,.10)
+    static let boardFillFoe   = Color("Board/FillFoe")   // rgba(60,127,191,.12)
+    static let boardStrokeYou = Color("Board/StrokeYou") // rgba(209,154,60,.45) — 1 pt
+    static let boardStrokeFoe = Color("Board/StrokeFoe") // rgba(60,127,191,.45) — 1 pt
 
     // Главная кнопка (PrimaryButton). Кант — Role/You, ореол — Role/YouSoft,
     // надпись — Ink/Primary. Одна на обе темы.
@@ -162,11 +168,16 @@ extension LinearGradient {
         colors: [.waterTop, .waterBottom],
         startPoint: .init(x: 0.15, y: 0), endPoint: .init(x: 0.85, y: 1))
 
+    /// Корпус, запрет и сталь — под 168°, как в макетах. Точки посчитаны по правилу CSS
+    /// для квадратной клетки: линия градиента длиной |sin| + |cos| через центр.
+    static let cellStart = UnitPoint(x: 0.3767, y: -0.0800)
+    static let cellEnd   = UnitPoint(x: 0.6233, y: 1.0800)
+
     static let hullSand = LinearGradient(
         stops: [.init(color: .hullSandLight, location: 0),
                 .init(color: .hullSand, location: 0.46),
                 .init(color: .hullSandDark, location: 1)],
-        startPoint: .top, endPoint: .bottom)
+        startPoint: cellStart, endPoint: cellEnd)
 
     /// Корабль в запрещённой позиции: в руке — с прозрачностью 0.62, после
     /// отпускания плотный. Геометрия та же, что у hullSand.
@@ -174,13 +185,13 @@ extension LinearGradient {
         stops: [.init(color: .hullDeniedLight, location: 0),
                 .init(color: .hullDenied, location: 0.46),
                 .init(color: .hullDeniedDark, location: 1)],
-        startPoint: .top, endPoint: .bottom)
+        startPoint: cellStart, endPoint: cellEnd)
 
     static let steelSunk = LinearGradient(
         stops: [.init(color: .steelTop, location: 0),
                 .init(color: .steelMid, location: 0.45),
                 .init(color: .steelBottom, location: 1)],
-        startPoint: .top, endPoint: .bottom)
+        startPoint: cellStart, endPoint: cellEnd)
 }
 
 // MARK: - Геометрия
@@ -225,6 +236,13 @@ enum Geometry {
 
     enum Hit {
         static let minTarget: CGFloat = 44       // всё, кроме клетки поля
+    }
+
+    /// Сегментированный переключатель: видимый сегмент 44 pt, зона касания = сегмент.
+    /// Обойма 3 pt с каждой стороны → общая высота 50 pt. Радиусы не меняются.
+    enum Segment {
+        static let height: CGFloat = 44
+        static let trackInset: CGFloat = 3
     }
 
     /// Кант между стеклом панели и морем: верх нижней панели, низ верхней.

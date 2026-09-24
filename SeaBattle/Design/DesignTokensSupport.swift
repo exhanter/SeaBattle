@@ -101,7 +101,6 @@ enum ColorToken: String, CaseIterable, Sendable {
     case fireDarken     = "Cell/FireDarken"
     case fireCross      = "Cell/FireCross"
     case fireCrossEdge  = "Cell/FireCrossEdge"
-    case fireCrossHalo  = "Cell/FireCrossHalo"
 
     // Клетка · огонь F1 поверх своего корпуса: три слоя, снизу вверх
     // multiply → screen → обычный, плюс белый крест с тенью.
@@ -124,6 +123,14 @@ enum ColorToken: String, CaseIterable, Sendable {
     case sunkCross     = "Cell/SunkCross"
     case sunkCrossEdge = "Cell/SunkCrossEdge"
 
+    // Подложка поля: тёплая у своего, холодная у чужого. Отдельные токены, а не
+    // `.opacity()` от цветов ролей: при перекраске ролей производные цвета
+    // пришлось бы искать по коду (правило 8 спеки — альфа входит в цвет).
+    case boardFillYou   = "Board/FillYou"
+    case boardFillFoe   = "Board/FillFoe"
+    case boardStrokeYou = "Board/StrokeYou"
+    case boardStrokeFoe = "Board/StrokeFoe"
+
     // Главная кнопка: кант — Role/You, ореол — Role/YouSoft, надпись — Ink/Primary.
     case buttonBrassTop    = "Button/BrassTop"
     case buttonBrassBottom = "Button/BrassBottom"
@@ -134,7 +141,7 @@ enum ColorToken: String, CaseIterable, Sendable {
 
     var color: Color { Color(rawValue) }
 
-    /// Первая часть пути: Sea · Role · Chrome · Glass · Ink · Cell · Button.
+    /// Первая часть пути: Sea · Role · Chrome · Glass · Ink · Cell · Board · Button.
     var group: String { String(rawValue.prefix(while: { $0 != "/" })) }
 
     /// Имя без группы — подпись в галерее.

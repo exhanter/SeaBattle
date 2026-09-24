@@ -52,9 +52,10 @@ struct ControlsTests {
         let containerRadius: CGFloat = 16
         #expect(inner + padding == containerRadius)
         #expect(padding == CGFloat(3))
-        // Цель нажатия. По числам макета выходило 40 pt — спека требует 44 pt
-        // везде, кроме клетки поля, поэтому высота поднята.
-        let height = ControlMetrics.Segment.minLabelHeight + padding * 2
-        #expect(height == Geometry.Hit.minTarget)
+        // Цель нажатия: видимый сегмент 44 pt, обойма по 3 pt — всего 50 pt.
+        // В макетах переключатель 40 pt, это ошибка макета; дизайн подтвердил
+        // 44 pt и прислал значение как `Geometry.Segment.height`.
+        #expect(ControlMetrics.Segment.minHeight == Geometry.Hit.minTarget)
+        #expect(ControlMetrics.Segment.minHeight + padding * 2 == CGFloat(50))
     }
 }

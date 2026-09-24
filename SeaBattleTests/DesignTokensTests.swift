@@ -57,6 +57,7 @@ struct DesignTokensTests {
             "Cell/SteelSheen", "Cell/SteelShade", "Cell/SunkCrossEdge",
             "Button/BrassTop", "Button/BrassBottom", "Button/Sheen",
             "Button/Shade", "Button/Shadow", "Button/TextShadow",
+            "Board/FillYou", "Board/FillFoe", "Board/StrokeYou", "Board/StrokeFoe",
         ]
         #expect(Set(flat) == expectedFlat,
                 "тема различается не у тех токенов: лишние \(Set(flat).subtracting(expectedFlat)), недостающие \(expectedFlat.subtracting(Set(flat)))")
@@ -113,14 +114,14 @@ struct DesignTokensTests {
         #expect(grouped.count == ColorToken.allCases.count)
         #expect(Set(grouped) == Set(ColorToken.allCases))
         #expect(ColorToken.groups.map(\.name)
-                == ["Sea", "Role", "Chrome", "Glass", "Ink", "Cell", "Button"])
+                == ["Sea", "Role", "Chrome", "Glass", "Ink", "Cell", "Board", "Button"])
     }
 
-    @Test("Перечисление описывает весь каталог: 73 токена")
+    @Test("Перечисление описывает весь каталог: 76 токенов")
     func theEnumCoversTheWholeCatalogue() {
         // Каталог приходит из пакета дизайна готовым, а перечисление ведём мы,
         // поэтому число зафиксировано: пришёл новый пакет — сверить и поправить.
-        #expect(ColorToken.allCases.count == 73)
+        #expect(ColorToken.allCases.count == 76)
     }
 
     @Test("Заливка G2 в тёмной теме ровная, в светлой — с перепадом")
