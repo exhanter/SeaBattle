@@ -32,23 +32,31 @@ enum ControlMetrics {
         static let shadowOffsetY: CGFloat = 6
     }
 
-    /// Строка режима в меню. Размеров два, и малый **не выводится** из
-    /// большого: строка теряет 6 pt, значок 4, радиус 2 — это две таблицы из
-    /// макетов (`screen4Menu` на 393 и `screenSmallMenu` на 375), а не
-    /// коэффициент. Спека в 2.11 называет только 58 pt, числа малого размера
-    /// вычитаны из исходника макета (вопрос В7 дизайну).
+    /// Строка режима в меню. Все размеры приходят из `Geometry.SizeClass`
+    /// (таблица 3.3 спеки) — здесь только то, чего в пакете нет.
     enum ModeRow {
         static let lockOpacity: Double = 0.75
-        /// 393 pt и шире.
-        static let regular = ModeRowSize(
-            height: 58, radius: Geometry.Radius.button, horizontalPadding: 13,
-            spacing: 11, iconSize: 30, lockSize: 21,
-            titleSize: 15, subtitleSize: 11.5)
-        /// 375 pt (iPhone SE / mini).
-        static let compact = ModeRowSize(
-            height: 52, radius: 16, horizontalPadding: 11,
-            spacing: 10, iconSize: 26, lockSize: 19,
-            titleSize: 14, subtitleSize: 10.5)
+        /// Зазор между названием и подписью.
+        static let textGap: CGFloat = 2
+    }
+
+    /// Строка выбора `ChoiceRow`, спека 2.13. Числа одни на оба размера:
+    /// в таблице 3.3 её нет, а высота растёт по подписи.
+    enum ChoiceRow {
+        static let radius: CGFloat = 18
+        static let minHeight: CGFloat = 58
+        static let verticalPadding: CGFloat = 13
+        static let horizontalPadding: CGFloat = 14
+        static let spacing: CGFloat = 12
+        static let iconSize: CGFloat = 30
+        static let markSize: CGFloat = 22
+        static let textGap: CGFloat = 3
+        static let title = Font.system(size: 15.5, weight: .semibold, design: .rounded)
+        static let subtitle = Font.system(size: 12)
+        /// Межстрочный 1,4 при кегле 12 — это 16,8 pt, то есть +4,8 к строке.
+        static let subtitleLineSpacing: CGFloat = 12 * 0.4
+        /// Свечение выбранной строки вместо тени.
+        static let selectedGlow: CGFloat = 11        // CSS 0 0 22
     }
 
     /// Сегментированный переключатель.
@@ -125,25 +133,12 @@ extension View {
 
 // MARK: - Строка режима
 
-/// Один размер строки режима. Значок задан **стороной рамки**, как в макетах
-/// (`iconSlot` — квадрат), а не кеглем: у разных символов при одном кегле
-/// разная высота, и ряд из пяти строк от этого разъезжается.
-struct ModeRowSize: Equatable, Sendable {
-    let height: CGFloat
-    let radius: CGFloat
-    let horizontalPadding: CGFloat
-    let spacing: CGFloat
-    let iconSize: CGFloat
-    let lockSize: CGFloat
-    let titleSize: CGFloat
-    let subtitleSize: CGFloat
-
-    /// Кегль символа внутри рамки: доля, при которой SF Symbol заполняет
-    /// квадрат макета (22 pt в рамке 30, 19 в рамке 26).
-    var iconFontSize: CGFloat { (iconSize * 0.73).rounded() }
-
-    var title: Font { .system(size: titleSize, weight: .semibold, design: .rounded) }
-    var subtitle: Font { .system(size: subtitleSize) }
+/// Кегль символа внутри рамки. Значки в макетах заданы **стороной квадрата**
+/// (`iconSlot`), а не кеглем: у разных символов при одном кегле разная высота,
+/// и ряд из пяти строк от этого разъезжается. 0,73 — доля, при которой символ
+/// заполняет квадрат (22 pt в рамке 30, 19 в рамке 26).
+func symbolFontSize(inBox side: CGFloat) -> CGFloat {
+    (side * 0.73).rounded()
 }
 
 /// Строка режима в меню: иконка, название, описание одной строкой, справа —
@@ -157,23 +152,23 @@ struct ModeRow: View {
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey
     var isLocked: Bool = false
-    var size: ModeRowSize = ControlMetrics.ModeRow.regular
+    var size: Geometry.SizeClass = .regular
     var action: () -> Void = {}
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: size.spacing) {
+            HStack(spacing: size.modeRowGap) {
                 Image(systemName: icon)
-                    .font(.system(size: size.iconFontSize))
+                    .font(.system(size: symbolFontSize(inBox: size.modeIcon)))
                     .foregroundStyle(Color.inkPrimary)
-                    .frame(width: size.iconSize, height: size.iconSize)
+                    .frame(width: size.modeIcon, height: size.modeIcon)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: ControlMetrics.ModeRow.textGap) {
                     Text(title)
-                        .font(size.title)
+                        .font(.system(size: size.modeName, weight: .semibold, design: .rounded))
                         .foregroundStyle(Color.inkPrimary)
                     Text(subtitle)
-                        .font(size.subtitle)
+                        .font(.system(size: size.modeSub))
                         .foregroundStyle(Color.inkSecondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -182,18 +177,91 @@ struct ModeRow: View {
 
                 if isLocked {
                     Image(systemName: "lock.fill")
-                        .font(.system(size: (size.lockSize * 0.73).rounded()))
-                        .frame(height: size.lockSize)
+                        .font(.system(size: symbolFontSize(inBox: size.modeLock)))
+                        .frame(height: size.modeLock)
                         .foregroundStyle(Color.inkPrimary)
                         .opacity(ControlMetrics.ModeRow.lockOpacity)
                 }
             }
-            .padding(.horizontal, size.horizontalPadding)
-            .frame(height: size.height)
+            .padding(.horizontal, size.modeRowPadding)
+            .frame(height: size.modeRowHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: size.radius)
+        .glassPanel(.g2, radius: size.modeRowRadius)
+    }
+}
+
+// MARK: - Строка выбора
+
+/// Спека 2.13. Отдельный компонент, а не вариант `ModeRow`: `ModeRow` ведёт на
+/// другой экран, `ChoiceRow` выбирает одно значение из группы. Для VoiceOver это
+/// тоже разные элементы — у выбранной стоит признак «выбрано».
+///
+/// Подпись занимает **до двух строк без обрезки**, поэтому высота задана
+/// минимумом, а не жёстко: на трёх языках длина разная, и подрезанное описание
+/// уровня хуже, чем строка выше на 18 pt.
+struct ChoiceRow: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+    var isSelected: Bool = false
+    var isLocked: Bool = false
+    var action: () -> Void = {}
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: ControlMetrics.ChoiceRow.spacing) {
+                Image(systemName: icon)
+                    .font(.system(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.iconSize)))
+                    .foregroundStyle(Color.inkPrimary)
+                    .frame(width: ControlMetrics.ChoiceRow.iconSize,
+                           height: ControlMetrics.ChoiceRow.iconSize)
+
+                VStack(alignment: .leading, spacing: ControlMetrics.ChoiceRow.textGap) {
+                    Text(title)
+                        .font(ControlMetrics.ChoiceRow.title)
+                        .foregroundStyle(Color.inkPrimary)
+                    Text(subtitle)
+                        .font(ControlMetrics.ChoiceRow.subtitle)
+                        .foregroundStyle(Color.inkSecondary)
+                        .lineSpacing(ControlMetrics.ChoiceRow.subtitleLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Место справа занято всегда одним и тем же: иначе от выбора
+                // строки текст в ней ехал бы по ширине.
+                mark
+                    .frame(width: ControlMetrics.ChoiceRow.markSize,
+                           height: ControlMetrics.ChoiceRow.markSize)
+            }
+            .padding(.vertical, ControlMetrics.ChoiceRow.verticalPadding)
+            .padding(.horizontal, ControlMetrics.ChoiceRow.horizontalPadding)
+            .frame(minHeight: ControlMetrics.ChoiceRow.minHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .glassPanel(.g2, radius: ControlMetrics.ChoiceRow.radius,
+                    highlight: isSelected ? .selected : .none)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+
+    @ViewBuilder
+    private var mark: some View {
+        if isSelected {
+            Image(systemName: "checkmark")
+                .font(.system(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize),
+                              weight: .semibold))
+                .foregroundStyle(Color.roleYou)
+        } else if isLocked {
+            Image(systemName: "lock.fill")
+                .font(.system(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize)))
+                .foregroundStyle(Color.inkPrimary)
+                .opacity(ControlMetrics.ModeRow.lockOpacity)
+        } else {
+            Color.clear
+        }
     }
 }
 
@@ -272,12 +340,23 @@ private struct ControlsDemo: View {
                 VStack(spacing: 8) {
                     ModeRow(icon: "target", title: "Одиночная игра",
                             subtitle: "Против компьютера, 4 уровня")
-                    ModeRow(icon: "square.grid.2x2", title: "Игра на бумаге",
-                            subtitle: "Координаты вслух, счёт ведёт приложение")
                     ModeRow(icon: "person.2", title: "Вдвоём на устройстве",
                             subtitle: "Передавайте телефон по очереди",
                             isLocked: true,
-                            size: ControlMetrics.ModeRow.compact)
+                            size: .compact)
+                }
+
+                // Строка выбора в трёх состояниях: подпись в две строки,
+                // латунная обводка со свечением у выбранной, замок у закрытой.
+                VStack(spacing: 8) {
+                    ChoiceRow(icon: "safari", title: "Средне",
+                              subtitle: "Добивает найденный корабль и не тратит выстрелы на воду вокруг него")
+                    ChoiceRow(icon: "binoculars", title: "Сложно",
+                              subtitle: "Бьёт через клетку и расставляет свой флот так, что его дольше искать",
+                              isSelected: true)
+                    ChoiceRow(icon: "scope", title: "Эксперт",
+                              subtitle: "Считает, где корабли вероятнее всего, и прячет свой флот ещё лучше",
+                              isLocked: true)
                 }
 
                 Toggle("Звук", isOn: $sound)
@@ -286,7 +365,7 @@ private struct ControlsDemo: View {
                     .seaToggleStyle()
                     .padding(.horizontal, 14)
                     .frame(height: 50)
-                    .glassPanel(.g2, radius: ControlMetrics.ModeRow.regular.radius)
+                    .glassPanel(.g2, radius: Geometry.Radius.button)
 
                 Spacer()
             }

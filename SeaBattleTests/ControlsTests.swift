@@ -35,26 +35,54 @@ struct ControlsTests {
 
     @Test("Строка режима: 58 pt на большом экране, 52 на малом, обе под палец")
     func theModeRowHasTwoSizes() {
-        let regular = ControlMetrics.ModeRow.regular
-        let compact = ControlMetrics.ModeRow.compact
-        #expect(regular.height == 58)
-        #expect(regular.radius == Geometry.Radius.button)
-        // 52 pt — из кадра `screenSmallMenu`. Спека в 2.11 называет только 58,
-        // числа малого размера вычитаны из исходника макета (вопрос В7).
-        #expect(compact.height == 52)
+        let regular = Geometry.SizeClass.regular
+        let compact = Geometry.SizeClass.compact
+        #expect(regular.modeRowHeight == 58)
+        #expect(regular.modeRowRadius == Geometry.Radius.button)
+        #expect(compact.modeRowHeight == 52)
         // Обе цели нажатия остаются законными: строка режима — не клетка поля,
         // и правило 44 pt на неё распространяется.
-        #expect(regular.height >= Geometry.Hit.minTarget)
-        #expect(compact.height >= Geometry.Hit.minTarget)
+        #expect(regular.modeRowHeight >= Geometry.Hit.minTarget)
+        #expect(compact.modeRowHeight >= Geometry.Hit.minTarget)
         // Малый размер меньше по всем величинам сразу, а не только по высоте:
         // подогнать одну и забыть остальные — самая вероятная ошибка здесь.
-        #expect(compact.radius < regular.radius)
-        #expect(compact.iconSize < regular.iconSize)
-        #expect(compact.lockSize < regular.lockSize)
-        #expect(compact.titleSize < regular.titleSize)
-        #expect(compact.subtitleSize < regular.subtitleSize)
-        #expect(compact.horizontalPadding < regular.horizontalPadding)
-        #expect(compact.spacing < regular.spacing)
+        #expect(compact.modeRowRadius < regular.modeRowRadius)
+        #expect(compact.modeIcon < regular.modeIcon)
+        #expect(compact.modeLock < regular.modeLock)
+        #expect(compact.modeName < regular.modeName)
+        #expect(compact.modeSub < regular.modeSub)
+        #expect(compact.modeRowPadding < regular.modeRowPadding)
+        #expect(compact.modeRowGap < regular.modeRowGap)
+    }
+
+    @Test("Строка выбора: минимум 58 pt и растёт по подписи")
+    func theChoiceRowGrowsWithItsSubtitle() {
+        // Минимум, а не жёсткая высота: подпись занимает до двух строк без
+        // обрезки (спека 2.13), а на трёх языках её длина разная.
+        #expect(ControlMetrics.ChoiceRow.minHeight == 58)
+        #expect(ControlMetrics.ChoiceRow.minHeight >= Geometry.Hit.minTarget)
+        #expect(ControlMetrics.ChoiceRow.radius == Geometry.Radius.button)
+        // Межстрочный 1,4 при кегле 12 — это +40 % к строке.
+        let expectedLineSpacing: CGFloat = 12 * 0.4
+        #expect(ControlMetrics.ChoiceRow.subtitleLineSpacing == expectedLineSpacing)
+    }
+
+    @Test("Выбранная панель светится вместо тени, и только выбранная")
+    func onlyTheSelectedPanelGlows() {
+        // Свечение **вместо** тени (спека 2.13): вдвоём латунный ободок тонет
+        // в тёмном ореоле. Проверяется признак, на который смотрит панель.
+        #expect(GlassHighlight.selected.isSelected)
+        #expect(!GlassHighlight.none.isSelected)
+    }
+
+    @Test("Строка возврата и NavRow дотягиваются до 44 pt")
+    func theNavigationChromeIsTappable() {
+        // `NavRow` в макете был 41 pt — ошибка макета, дизайн прислал 44.
+        #expect(Geometry.Nav.rowHeight == Geometry.Hit.minTarget)
+        #expect(Geometry.Nav.rowRadius == 20)
+        // Заголовок отсчитан от края экрана, а не от безопасной зоны.
+        #expect(Geometry.Nav.titleTop == 68)
+        #expect(NavMetrics.titleTopBelowSafeArea > 0)
     }
 
     @Test("Сегмент вписан в обойму, а не торчит из неё")

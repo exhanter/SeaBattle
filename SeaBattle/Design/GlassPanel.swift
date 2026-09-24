@@ -60,6 +60,19 @@ struct GlassSpec: Equatable, Sendable {
     var hasShadow: Bool { shadowRadius > 0 }
 }
 
+/// Подсветка панели. Выбранная строка выбора (`ChoiceRow`, спека 2.13)
+/// отличается от обычной ровно двумя вещами: обводка становится латунной и
+/// вместо тени панель даёт свечение. Это свойство панели, а не строки, поэтому
+/// живёт здесь — иначе `ChoiceRow` пришлось бы рисовать обводку поверх готовой
+/// панели, и их стало бы две.
+enum GlassHighlight: Sendable {
+    case none
+    /// Выбрано: обводка `Role/You`, свечение `Role/YouSoft` вместо тени.
+    case selected
+
+    var isSelected: Bool { self == .selected }
+}
+
 /// Деревянный кант 2 pt на кромке, которая смотрит в море: у верхней панели это
 /// низ, у нижней — верх. Левых и правых кантов нет нигде (спека, правило 2).
 enum WoodEdge: Sendable {
@@ -117,9 +130,11 @@ extension View {
     func glassPanel(_ level: GlassLevel = .g2,
                     radius: CGFloat = Geometry.Radius.panel,
                     wood: WoodEdge = .none,
+                    highlight: GlassHighlight = .none,
                     treatment: GlassTreatment = .automatic) -> some View {
         modifier(GlassPanelModifier(level: level, radius: radius,
-                                    wood: wood, treatment: treatment))
+                                    wood: wood, highlight: highlight,
+                                    treatment: treatment))
     }
 }
 
@@ -127,6 +142,7 @@ struct GlassPanelModifier: ViewModifier {
     let level: GlassLevel
     let radius: CGFloat
     let wood: WoodEdge
+    var highlight: GlassHighlight = .none
     var treatment: GlassTreatment = .automatic
 
     func body(content: Content) -> some View {
@@ -153,6 +169,18 @@ struct GlassPanelModifier: ViewModifier {
         return content
             .glassEffect(.regular.tint(tint), in: shape)
             .overlay { woodEdge }
+            .overlay { selectedStroke }
+            .shadow(color: highlight.isSelected ? .roleYouSoft : .clear,
+                    radius: ControlMetrics.ChoiceRow.selectedGlow)
+    }
+
+    /// Латунная обводка выбранной панели. Рисуется поверх и на ветке системного
+    /// стекла тоже: обводку там ставит система, но роль она не знает.
+    @ViewBuilder
+    private var selectedStroke: some View {
+        if highlight.isSelected {
+            shape.strokeBorder(Color.roleYou, lineWidth: level.spec.strokeWidth)
+        }
     }
 
     /// Кант рисуется во весь размер панели и обрезается её формой, а не сам по
@@ -200,9 +228,13 @@ struct GlassPanelModifier: ViewModifier {
             }
             .overlay { woodEdge }
             .clipShape(shape)
-            .shadow(color: spec.hasShadow ? shadowColor : .clear,
-                    radius: spec.shadowRadius,
-                    y: spec.shadowOffsetY)
+            // У выбранной панели свечение **вместо** тени, а не вдобавок к ней
+            // (спека 2.13): иначе латунный ободок тонет в тёмном ореоле.
+            .shadow(color: highlight.isSelected ? .roleYouSoft
+                           : (spec.hasShadow ? shadowColor : .clear),
+                    radius: highlight.isSelected ? ControlMetrics.ChoiceRow.selectedGlow
+                            : spec.shadowRadius,
+                    y: highlight.isSelected ? 0 : spec.shadowOffsetY)
     }
 
     private var shape: RoundedRectangle {
@@ -223,10 +255,11 @@ struct GlassPanelModifier: ViewModifier {
     }
 
     private var stroke: Color {
+        if highlight.isSelected { return .roleYou }
         switch level {
-        case .g1: .glassSolidStroke
-        case .g2: .glassStroke
-        case .g3: .glassRaisedStroke
+        case .g1: return .glassSolidStroke
+        case .g2: return .glassStroke
+        case .g3: return .glassRaisedStroke
         }
     }
 

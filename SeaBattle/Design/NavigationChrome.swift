@@ -1,0 +1,167 @@
+//
+//  NavigationChrome.swift
+//  Sea Battle — верх и низ экранов без таб-бара
+//
+//  Спека 2.11–2.12 и правило 3.1. Таб-бар стоит **только** на корнях трёх
+//  табов; всё, что начинается с выбора режима в меню, — это партия, и там
+//  сверху `ScreenTitle`, снизу `BottomStack`, последней строкой `NavRow`.
+//
+//  Компоненты пришли в пакет в раунде 3: в макетах они использовались 19–20
+//  раз, но в спеке их не было вовсе, поэтому R2.1 собрал меню без них.
+//
+
+import SwiftUI
+
+// MARK: - Заголовок экрана
+
+/// Заголовок с необязательной строкой возврата. Подпись возврата — это
+/// **название экрана, куда он ведёт**, а не слово «Назад»: игрок должен видеть,
+/// куда попадёт, до нажатия.
+///
+/// Тень заголовка рисуется **всегда**: в тёмной теме токен `Ink/TitleShadow`
+/// прозрачный, в светлой держит белый текст на светлом море. Ветки по теме тут
+/// нет и быть не может (правило про `colorScheme`).
+struct ScreenTitle: View {
+    let title: LocalizedStringKey
+    /// Название экрана, куда ведёт возврат. `nil` — строки возврата нет: так на
+    /// корнях табов, в бою (оттуда выходят через «Меню») и в онбординге.
+    var back: LocalizedStringKey?
+    var onBack: () -> Void = {}
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Geometry.Nav.titleGap) {
+            if let back {
+                Button(action: onBack) {
+                    HStack(spacing: NavMetrics.backGap) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: symbolFontSize(inBox: NavMetrics.backChevron),
+                                          weight: .semibold))
+                        Text(back)
+                            .font(.system(size: NavMetrics.backText, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.roleYou)
+                    // Цель нажатия — вся строка целиком, не один шеврон.
+                    .frame(minHeight: Geometry.Hit.minTarget, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text(title)
+                .font(TypeScale.screenTitle)
+                .tracking(TypeScale.screenTitleTracking)
+                .foregroundStyle(Color.inkPrimary)
+                .shadow(color: .inkTitleShadow,
+                        radius: NavMetrics.titleShadowRadius,
+                        y: NavMetrics.titleShadowOffsetY)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Geometry.Nav.titleInset)
+    }
+}
+
+/// То, чего нет в пакете токенов: кегли и мелочи строки возврата.
+enum NavMetrics {
+    static let backChevron: CGFloat = 19
+    static let backText: CGFloat = 14
+    static let backGap: CGFloat = 7
+    static let titleShadowRadius: CGFloat = 2.5   // CSS 0 1 5
+    static let titleShadowOffsetY: CGFloat = 1
+    static let menuIcon: CGFloat = 21
+    static let menuText: CGFloat = 13.5
+    static let menuGap: CGFloat = 8
+    /// Верх заголовка отсчитан от края экрана (68 pt под полосой состояния),
+    /// а не от безопасной зоны — как в макетах. Полоса на современных iPhone
+    /// ≈ 59 pt, отсюда остаток.
+    static let titleTopBelowSafeArea: CGFloat = Geometry.Nav.titleTop - 59
+}
+
+// MARK: - Низ экрана
+
+/// Строка «Меню» — выход из партии. Правая половина в первой версии пуста: там
+/// стояло «ⓘ Правила», и по решению раунда 3 экрана правил в первой версии нет,
+/// а строку не перестраивают — вход вернётся на это же место.
+struct NavRow: View {
+    var onMenu: () -> Void = {}
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Button(action: onMenu) {
+                HStack(spacing: NavMetrics.menuGap) {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: symbolFontSize(inBox: NavMetrics.menuIcon),
+                                      weight: .semibold))
+                    Text("Menu")
+                        .font(.system(size: NavMetrics.menuText, weight: .semibold,
+                                      design: .rounded))
+                }
+                .foregroundStyle(Color.inkPrimary)
+                // Цель нажатия — вся левая половина строки (спека 2.12).
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("navMenuButton")
+
+            // Пустая половина занимает место, а не сжимается: иначе «Меню»
+            // уедет в середину, и строка перестроится, когда правила появятся.
+            Color.clear
+                .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, Geometry.Nav.rowPadding)
+        .frame(height: Geometry.Nav.rowHeight)
+        .glassPanel(.g2, radius: Geometry.Nav.rowRadius, wood: .top)
+    }
+}
+
+/// Колонка действий у нижнего края: вспомогательные действия фазы → главная
+/// кнопка → `NavRow`. **`NavRow` всегда последний**, поэтому он часть
+/// контейнера, а не его содержимого: забыть его или поставить не туда нельзя.
+struct BottomStack<Content: View>: View {
+    var onMenu: () -> Void = {}
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(spacing: Geometry.Nav.stackGap) {
+            content
+            NavRow(onMenu: onMenu)
+        }
+        .padding(.horizontal, Geometry.Nav.stackInset)
+        .padding(.bottom, Geometry.Nav.stackBottom)
+    }
+}
+
+// MARK: - Превью
+
+private struct NavigationChromeDemo: View {
+    var body: some View {
+        ZStack {
+            SeaBackground()
+
+            VStack(spacing: 0) {
+                ScreenTitle(title: "Одиночная игра", back: "Играть")
+                    .padding(.top, NavMetrics.titleTopBelowSafeArea)
+
+                Spacer()
+
+                BottomStack {
+                    Button(action: {}) {
+                        Text("Перемешать")
+                    }
+                    .primaryButton()
+                }
+            }
+        }
+    }
+}
+
+#Preview("Верх и низ · тёмная") {
+    NavigationChromeDemo()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Верх и низ · светлая") {
+    NavigationChromeDemo()
+        .preferredColorScheme(.light)
+}

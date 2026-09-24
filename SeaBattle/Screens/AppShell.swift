@@ -40,36 +40,7 @@ enum ShellTab: String, CaseIterable, Hashable, Sendable {
     }
 }
 
-/// Числа таб-бара, два размера — как у меню. Взяты из `tabBar2` (393) и из
-/// таб-бара внутри `screenSmallMenu` (375): панель теряет 12 pt высоты, а не
-/// 2–4, поэтому это две таблицы, а не поправка.
-struct TabBarSize: Equatable, Sendable {
-    let height: CGFloat
-    let radius: CGFloat
-    let sideInset: CGFloat
-    let bottomInset: CGFloat
-    /// Сторона рамки значка, как `iconSlot` в макетах.
-    let iconSize: CGFloat
-    let labelSize: CGFloat
-    let iconLabelGap: CGFloat
-
-    var iconFontSize: CGFloat { (iconSize * 0.73).rounded() }
-
-    /// 393 pt и шире.
-    static let regular = TabBarSize(
-        height: 68, radius: Geometry.Radius.panelLarge, sideInset: 12,
-        bottomInset: 10, iconSize: 25, labelSize: 11, iconLabelGap: 5)
-
-    /// 375 pt — iPhone SE / mini.
-    static let compact = TabBarSize(
-        height: 56, radius: 22, sideInset: 10,
-        bottomInset: 8, iconSize: 21, labelSize: 10, iconLabelGap: 3)
-
-    static func forWidth(_ width: CGFloat) -> TabBarSize {
-        width < MenuLayout.compactWidthLimit ? .compact : .regular
-    }
-}
-
+/// Все размеры таб-бара приходят из `Geometry.SizeClass` (таблица 3.3 спеки).
 enum TabBarMetrics {
     /// Невыбранный таб гаснет **целиком** — это непрозрачность элемента как
     /// состояния, а не альфа внутри цвета, поэтому правило 8 не нарушено.
@@ -80,7 +51,7 @@ enum TabBarMetrics {
 /// той, что смотрит в море.
 struct SeaTabBar: View {
     @Binding var selection: ShellTab
-    var size: TabBarSize = .regular
+    var size: Geometry.SizeClass = .regular
 
     var body: some View {
         HStack(spacing: 0) {
@@ -91,13 +62,13 @@ struct SeaTabBar: View {
                 Button {
                     withAnimation(Motion.quick) { selection = tab }
                 } label: {
-                    VStack(spacing: size.iconLabelGap) {
+                    VStack(spacing: size.isCompact ? 3 : 5) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: size.iconFontSize))
-                            .frame(height: size.iconSize)
+                            .font(.system(size: symbolFontSize(inBox: size.tabIcon)))
+                            .frame(height: size.tabIcon)
                             .foregroundStyle(Color.inkPrimary)
                         Text(tab.title)
-                            .font(.system(size: size.labelSize,
+                            .font(.system(size: size.tabLabel,
                                           weight: isSelected ? .bold : .medium,
                                           design: .rounded))
                             .foregroundStyle(isSelected ? Color.roleYou : Color.inkPrimary)
@@ -111,10 +82,10 @@ struct SeaTabBar: View {
                 .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             }
         }
-        .frame(height: size.height)
-        .glassPanel(.g2, radius: size.radius, wood: .top)
-        .padding(.horizontal, size.sideInset)
-        .padding(.bottom, size.bottomInset)
+        .frame(height: size.tabHeight)
+        .glassPanel(.g2, radius: size.tabRadius, wood: .top)
+        .padding(.horizontal, size.tabInset)
+        .padding(.bottom, size.tabBottom)
     }
 }
 
@@ -153,6 +124,12 @@ enum ContinueTarget: Equatable, Sendable {
     var isAvailable: Bool { self != .none }
 }
 
+/// Экраны партии: открываются из меню и идут «вглубь», поэтому таб-бара на них
+/// нет, а сверху стоит заголовок со строкой возврата (спека 3.1).
+enum ShellRoute: Equatable, Sendable {
+    case level
+}
+
 // MARK: - Оболочка
 
 struct AppShell: View {
@@ -170,6 +147,13 @@ struct AppShell: View {
     @State private var askWhichGameToContinue = false
     @State private var modeNotBuiltYet: MenuMode?
 
+    /// Экран партии, открытый поверх таба «Играть». Пока один: выбор уровня.
+    /// Дальше сюда встанут расстановка (R2.2), бой (R2.3) и итоги (R2.5).
+    @State private var route: ShellRoute?
+    /// Что выбрано на экране уровня. Живёт в оболочке, а не в экране: после
+    /// покупки Pro прямо с него выбор должен стать «Экспертом».
+    @State private var levelSelection: AppState.DifficultyLevel = .hard
+
     private var continueTarget: ContinueTarget {
         .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
                  hasVsComputer: GameStore.hasSavedGame,
@@ -179,11 +163,17 @@ struct AppShell: View {
     var body: some View {
         @Bindable var appState = appState
         return Group {
-            if appState.selectedTab == .menu {
-                shell
-            } else {
+            if appState.selectedTab != .menu {
                 // ПЕРЕХОДНОЕ: старый бой со своим фоном и деревянными панелями.
                 LegacyBattleShell(player: player, enemy: enemy)
+            } else if let route {
+                ZStack {
+                    SeaBackground()
+                        .ignoresSafeArea()
+                    screen(for: route)
+                }
+            } else {
+                shell
             }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -220,8 +210,11 @@ struct AppShell: View {
             appState.pendingPremiumIntent = nil
             switch intent {
             case .expert:
-                appState.difficulty = 3
-                UserDefaults.standard.set(3, forKey: "difficulty")
+                appState.difficultyLevel = .expert
+                // Пейволл мог подняться с экрана уровня — тогда после покупки
+                // выбранным должен стать «Эксперт», а не «Сложно», на котором
+                // экран открылся.
+                levelSelection = .expert
             case .hotSeat, .nearby, .online:
                 Task { @MainActor in
                     try? await Task.sleep(for: .seconds(0.4)) // дать пейволлу закрыться
@@ -270,6 +263,26 @@ struct AppShell: View {
         }
     }
 
+    // MARK: Экраны партии
+
+    @ViewBuilder
+    private func screen(for route: ShellRoute) -> some View {
+        switch route {
+        case .level:
+            LevelScreen(selected: levelSelection,
+                        isPremium: premiumManager.isPremium,
+                        onSelect: { levelSelection = $0 },
+                        onLocked: {
+                            appState.pendingPremiumIntent = .expert
+                            appState.showPaywall = true
+                        },
+                        onStart: startAfterLevel,
+                        onBack: { self.route = nil },
+                        // До начала боя «Меню» выходит без вопроса (спека 3.1).
+                        onMenu: { self.route = nil })
+        }
+    }
+
     // MARK: Что делают строки меню
 
     private func open(_ item: MenuMode) {
@@ -282,12 +295,35 @@ struct AppShell: View {
         }
 
         switch item.mode {
-        case .computer: startVsComputer()
+        case .computer: openSinglePlayer()
         case .hotSeat: appState.showHotSeat = true
         case .nearby: appState.showNearby = true
         case .online: appState.showOnline = true
         case .paper: modeNotBuiltYet = item   // ПЕРЕХОДНОЕ до R3.1
         }
+    }
+
+    /// Шаг выбора уровня показывается по умолчанию; тумблер в настройках его
+    /// снимает, но исключение с «Экспертом» без Pro сильнее тумблера (4.3).
+    private func openSinglePlayer() {
+        switch LevelStep.resolve(remembered: appState.difficultyLevel,
+                                 askBeforeMatch: appState.askLevelBeforeMatch,
+                                 isPremium: premiumManager.isPremium) {
+        case .ask(let selected):
+            levelSelection = selected
+            route = .level
+        case .start(let level):
+            appState.difficultyLevel = level
+            startVsComputer()
+        }
+    }
+
+    /// «Начать партию» на экране уровня: выбранный уровень запоминается — в том
+    /// числе когда это «Сложно», подставленное вместо закрытого «Эксперта».
+    private func startAfterLevel() {
+        appState.difficultyLevel = levelSelection
+        route = nil
+        startVsComputer()
     }
 
     private func intent(for mode: GameMode) -> AppState.PremiumIntent? {

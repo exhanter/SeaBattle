@@ -49,7 +49,7 @@ struct TokenGalleryView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Токены")
-                .font(TypeScale.display)
+                .font(TypeScale.screenTitle)
                 .foregroundStyle(Color.inkPrimary)
             Text("\(ColorToken.allCases.count) цветов · Colors.xcassets")
                 .font(TypeScale.footnote)
@@ -146,7 +146,10 @@ struct TokenGalleryView: View {
 
     private var typography: some View {
         section("Типографика") {
-            typeRow("display · 34 rounded", TypeScale.display)
+            // `display` (34) удалён из пакета в раунде 3: текста такого размера
+            // не было ни в одном макете. Вместо него два именованных заголовка.
+            typeRow("gameTitle · 36 / 28 rounded", TypeScale.gameTitle(compact: false))
+            typeRow("screenTitle · 30 rounded", TypeScale.screenTitle)
             typeRow("title · 24 rounded", TypeScale.title)
             typeRow("headline · 17", TypeScale.headline)
             typeRow("body · 16", TypeScale.body)

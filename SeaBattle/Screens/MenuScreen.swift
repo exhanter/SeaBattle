@@ -67,84 +67,12 @@ struct MenuMode: Identifiable {
 
 // MARK: - Числа экрана
 
-/// Раскладка меню в одном из двух размеров. Отдельным типом — по той же
-/// причине, что `ControlMetrics` и `BoardMetrics`: на скриншоте разница в две
-/// точки не видна, а в ряду из пяти строк уже да.
-///
-/// **Размеров ровно два, и малый не выводится из большого.** Числа взяты из
-/// `screen4Menu` (393) и `screenSmallMenu` (375) в макетах: там меняется всё
-/// сразу — поля, зазоры, кегли, радиусы и сторона фотографии. Спека (раздел 3)
-/// обещает «панели теряют 2–4 pt», но по кадрам строка теряет 6, а таб-бар 12,
-/// поэтому источник здесь — кадры (вопрос В7 в `docs/DESIGN_QUESTIONS.md`).
-struct MenuLayout: Equatable, Sendable {
-    /// Поля экрана. Это не `Geometry.Inset.phoneSide` (12): тот отступ — для
-    /// панелей в бою, которые идут почти во всю ширину.
-    let sideInset: CGFloat
-    /// Отступ сверху **от безопасной зоны**. В кадрах он задан от края экрана
-    /// (66 на 393 при полосе состояния 59, 28 на 375 при 20), здесь пересчитан.
-    let topInset: CGFloat
-    /// Просвет между содержимым и таб-баром: без него ссылка «Продолжить»
-    /// прижимается к деревянному канту панели навигации вплотную.
-    let bottomGap: CGFloat
-    /// Между блоками экрана: заголовок · фото · список.
-    let blockGap: CGFloat
-    /// Между строками режимов.
-    let rowGap: CGFloat
-
-    /// Заголовок игры. В `TypeScale` такого размера нет — самый крупный
-    /// `display` 34 и без трекинга (вопрос В7).
-    let titleSize: CGFloat
-    /// Трекинг −0,02 em, как в кадрах.
-    var titleTracking: CGFloat { titleSize * -0.02 }
-    var titleFont: Font { .system(size: titleSize, weight: .semibold, design: .rounded) }
-
-    /// Сторона мата вместе с фотографией: фото показывается **целиком**,
-    /// квадратом.
-    let heroSide: CGFloat
-    /// Деревянный мат вокруг фотографии — единственное место, кроме канта
-    /// панелей, где в системе есть дерево (спека, правило 2).
-    let matPadding: CGFloat
-    let matRadius: CGFloat
-    /// Внутренний радиус взят из кадров как отдельное число (17 и 14), а не
-    /// посчитан: так тест сверяет, что оба кадра согласованы между собой и что
-    /// мы их верно переписали — в обоих это ровно `matRadius − matPadding`.
-    let photoRadius: CGFloat
-    let matShadowRadius: CGFloat
-    let matShadowOffsetY: CGFloat
-
-    let row: ModeRowSize
-
-    /// «Продолжить партию» — ссылка, а не кнопка: главная кнопка в игре одна
-    /// (спека, правило 6), и на меню её нет. Зона касания добирается до 44 pt.
-    let continueSize: CGFloat
-    var continueFont: Font {
-        .system(size: continueSize, weight: .semibold, design: .rounded)
-    }
-
-    /// 393 pt и шире.
-    static let regular = MenuLayout(
-        sideInset: 20, topInset: 7, bottomGap: 14, blockGap: 14, rowGap: 8,
-        titleSize: 36,
-        heroSide: 252, matPadding: 5, matRadius: 22, photoRadius: 17,
-        matShadowRadius: 14, matShadowOffsetY: 10,
-        row: ControlMetrics.ModeRow.regular,
-        continueSize: 15)
-
-    /// 375 pt — iPhone SE / mini.
-    static let compact = MenuLayout(
-        sideInset: 16, topInset: 8, bottomGap: 12, blockGap: 12, rowGap: 7,
-        titleSize: 28,
-        heroSide: 170, matPadding: 4, matRadius: 18, photoRadius: 14,
-        matShadowRadius: 11, matShadowOffsetY: 8,
-        row: ControlMetrics.ModeRow.compact,
-        continueSize: 13.5)
-
-    /// Ниже этой ширины экран считается малым (iPhone SE — 375, iPhone 14 — 390).
-    static let compactWidthLimit: CGFloat = 390
-
-    static func forWidth(_ width: CGFloat) -> MenuLayout {
-        width < compactWidthLimit ? .compact : .regular
-    }
+/// Числа, которых нет в таблице 3.3 пакета. Всё остальное приходит из
+/// `Geometry.SizeClass` — два размера iPhone со всеми величинами сразу.
+enum MenuMetrics {
+    /// Отступ сверху **от безопасной зоны**: в кадрах он задан от края экрана
+    /// (66 на 393 при полосе состояния 59, 28 на 375 при 20).
+    static func topInset(compact: Bool) -> CGFloat { compact ? 8 : 7 }
 }
 
 // MARK: - Экран
@@ -157,7 +85,7 @@ struct MenuScreen: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let layout = MenuLayout.forWidth(proxy.size.width)
+            let size = Geometry.SizeClass.forWidth(proxy.size.width)
 
             VStack(spacing: 0) {
                 // Прокрутка нужна не всегда: на 393 × 852 заголовок, фотография
@@ -166,16 +94,16 @@ struct MenuScreen: View {
                 // страховка: при крупном системном шрифте список всё равно
                 // перестанет влезать, и лучше его прокрутить, чем обрезать.
                 ScrollView {
-                    VStack(spacing: layout.blockGap) {
-                        title(layout)
+                    VStack(spacing: size.menuGap) {
+                        title(size)
 
-                        hero(layout)
+                        hero(size)
 
-                        modes(layout)
+                        modes(size)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.horizontal, layout.sideInset)
-                    .padding(.top, layout.topInset)
+                    .padding(.horizontal, size.menuInset)
+                    .padding(.top, MenuMetrics.topInset(compact: size.isCompact))
                 }
                 .scrollBounceBehavior(.basedOnSize)
 
@@ -183,10 +111,10 @@ struct MenuScreen: View {
                 // назад в незакрытую партию, и уезжать за край экрана ему
                 // нельзя. Когда содержимое короче экрана, прокрутка занимает
                 // всё оставшееся место, и ссылка оказывается у низа — как в
-                // макете.
+                // макете. Просвет до таб-бара — тот же зазор блоков.
                 if canContinue {
-                    continueLink(layout)
-                        .padding(.bottom, layout.bottomGap)
+                    continueLink(size)
+                        .padding(.bottom, size.menuGap)
                 }
             }
         }
@@ -194,19 +122,19 @@ struct MenuScreen: View {
 
     // MARK: Заголовок
 
-    private func title(_ layout: MenuLayout) -> some View {
+    private func title(_ size: Geometry.SizeClass) -> some View {
         // Шрифт системный: по логу дизайна в игре только SF Rounded и SF Pro.
         Text("Sea Battle")
-            .font(layout.titleFont)
-            .tracking(layout.titleTracking)
+            .font(TypeScale.gameTitle(compact: size.isCompact))
+            .tracking(TypeScale.gameTitleTracking(compact: size.isCompact))
             .foregroundStyle(Color.inkPrimary)
             .accessibilityIdentifier("titleMainText")
     }
 
     // MARK: Фото в деревянном мате
 
-    private func hero(_ layout: MenuLayout) -> some View {
-        let photoSide = layout.heroSide - layout.matPadding * 2
+    private func hero(_ size: Geometry.SizeClass) -> some View {
+        let photoSide = size.photo - size.mat * 2
         // Фото показывается целиком (`objectFit: contain` в кадрах), поэтому
         // `scaledToFit`, а не `scaledToFill`: сейчас снимок квадратный и разницы
         // нет, но заказчик может заменить арт неквадратным, и тогда обрезка
@@ -215,33 +143,33 @@ struct MenuScreen: View {
             .resizable()
             .scaledToFit()
             .frame(width: photoSide, height: photoSide)
-            .clipShape(RoundedRectangle(cornerRadius: layout.photoRadius,
+            .clipShape(RoundedRectangle(cornerRadius: size.photoInnerRadius,
                                         style: .continuous))
-            .padding(layout.matPadding)
-            // Мат залит ровным `Chrome/Wood`. В кадрах это градиент от того же
-            // тона к более тёмному `#4d3521`, но второго токена дерева в
-            // каталоге нет, а придумывать цвет в коде правило 8 запрещает.
-            // Вопрос В6 в `docs/DESIGN_QUESTIONS.md`.
+            .padding(size.mat)
+            // Единственный градиент дерева в игре: `Chrome/Wood → WoodDeep`.
+            // Кант панелей 2 pt остаётся ровным `Chrome/Wood`.
             .background {
-                RoundedRectangle(cornerRadius: layout.matRadius, style: .continuous)
-                    .fill(Color.wood)
+                RoundedRectangle(cornerRadius: size.photoRadius, style: .continuous)
+                    .fill(LinearGradient.woodMat)
             }
-            .shadow(color: .glassShadow,
-                    radius: layout.matShadowRadius,
-                    y: layout.matShadowOffsetY)
+            // Тень мата пакет задаёт числами, а не токеном: альфа приходит
+            // отдельным значением, поэтому здесь чёрный с этой альфой.
+            .shadow(color: .black.opacity(size.matShadowAlpha),
+                    radius: size.matShadowBlur / 2,
+                    y: size.matShadowY)
             .accessibilityHidden(true)
     }
 
     // MARK: Пять строк режимов
 
-    private func modes(_ layout: MenuLayout) -> some View {
-        VStack(spacing: layout.rowGap) {
+    private func modes(_ size: Geometry.SizeClass) -> some View {
+        VStack(spacing: size.modeListGap) {
             ForEach(MenuMode.all) { item in
                 ModeRow(icon: item.icon,
                         title: item.title,
                         subtitle: item.subtitle,
                         isLocked: item.isLocked(isPremium: isPremium),
-                        size: layout.row) {
+                        size: size) {
                     onMode(item)
                 }
             }
@@ -250,10 +178,10 @@ struct MenuScreen: View {
 
     // MARK: «Продолжить партию»
 
-    private func continueLink(_ layout: MenuLayout) -> some View {
+    private func continueLink(_ size: Geometry.SizeClass) -> some View {
         Button(action: onContinue) {
             Text("Continue game")
-                .font(layout.continueFont)
+                .font(.system(size: size.continueText, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.roleYou)
                 .underline()
                 .frame(minHeight: Geometry.Hit.minTarget)

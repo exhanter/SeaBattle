@@ -63,12 +63,34 @@ class AppState {
             case .expert: return 54
             }
         }
+
+        /// The number this level is stored as in `UserDefaults`, kept from the
+        /// first versions of the game. The order is **not** by difficulty —
+        /// changing it would silently reset the setting for everybody who
+        /// already has the app, so it stays as it is.
+        var storedValue: Int {
+            switch self {
+            case .hard: return 0
+            case .medium: return 1
+            case .easy: return 2
+            case .expert: return 3
+            }
+        }
+
+        /// Only the expert is behind Pro (design log, "Уровни одиночной игры").
+        var isPremium: Bool { self == .expert }
+
+        /// What a player without Pro gets offered instead of the expert. Not a
+        /// silent downgrade: the level screen shows up and says so (spec 4.3).
+        static let freeFallback: DifficultyLevel = .hard
     }
     enum SelectedTabs: CaseIterable {
         case menu, playerView, enemyView, about, iPadBattleView
     }
 
-    var difficulty: Int = UserDefaults.standard.integer(forKey: "difficulty")
+    /// Legacy storage of the level: see `DifficultyLevel.storedValue`. Read and
+    /// written through `difficultyLevel`, which is the typed way in.
+    var difficulty: Int
     var enemysTurn = false
     var gameIsActive = false
     /// True from the moment a fleet is fully sunk until the next reset. Unlike
@@ -89,6 +111,20 @@ class AppState {
     /// Optional beginner protection: reveal the empty ring around a sunk ship so
     /// you can't waste shots there. Default off (firing there stays allowed).
     var autoRevealAroundSunk: Bool
+    /// Whether picking the computer's level is a step before a single-player
+    /// match (spec 4.3 and the setting in 4.11). **On by default**; off starts
+    /// the match straight away at the remembered level.
+    ///
+    /// Persisted here rather than by the settings screen: the flag is read by
+    /// the menu and written by two screens, and the old convention of "the view
+    /// writes `UserDefaults` in `onChange`" loses the value the first time
+    /// somebody adds a third writer.
+    var askLevelBeforeMatch: Bool {
+        didSet {
+            UserDefaults.standard.set(askLevelBeforeMatch, forKey: Self.askLevelKey)
+        }
+    }
+    private static let askLevelKey = "askLevelBeforeMatch"
     /// Transient presentation flags (set from the menu, presented at the root so
     /// the covers survive layout changes — notably on iPad).
     var showHotSeat = false
@@ -157,18 +193,22 @@ class AppState {
         GameStore.clear()
     }
     
+    /// The level the computer plays at. Writing it **persists** — the level is
+    /// remembered between matches (spec 4.3), and having every screen remember
+    /// to write `UserDefaults` itself is how one of them forgets.
     var difficultyLevel: DifficultyLevel {
-        switch self.difficulty {
-        case 2:
-            return .easy
-        case 1:
-            return .medium
-        case 0:
-            return .hard
-        case 3:
-            return .expert
-        default:
-            return .hard
+        get {
+            switch self.difficulty {
+            case 2: return .easy
+            case 1: return .medium
+            case 0: return .hard
+            case 3: return .expert
+            default: return .hard
+            }
+        }
+        set {
+            difficulty = newValue.storedValue
+            UserDefaults.standard.set(difficulty, forKey: "difficulty")
         }
     }
     
@@ -178,7 +218,16 @@ class AppState {
             defaults.set(true, forKey: "musicOn")
             defaults.set(true, forKey: "soundOn")
             defaults.set(true, forKey: "notFirstLaunch")
+            // Spec 4.3: the level selected on a first launch is medium. Without
+            // this the stored 0 would mean "hard", because that is what an
+            // absent integer reads as.
+            defaults.set(DifficultyLevel.medium.storedValue, forKey: "difficulty")
         }
+        self.difficulty = defaults.integer(forKey: "difficulty")
+        // An absent flag has to read as `true` (asking is the default), and
+        // `bool(forKey:)` would read it as `false` for everybody who already
+        // has the app installed.
+        self.askLevelBeforeMatch = defaults.object(forKey: Self.askLevelKey) as? Bool ?? true
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier

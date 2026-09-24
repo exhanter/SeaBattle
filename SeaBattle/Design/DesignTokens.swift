@@ -33,7 +33,8 @@ extension Color {
     static let roleYouSoft = Color("Role/YouSoft")  // rgba(209,154,60,.22) — подложка ленты
 
     // Хром
-    static let wood = Color("Chrome/Wood")   // #6B4A2F — кант 2 pt и мат вокруг фото
+    static let wood     = Color("Chrome/Wood")     // #6B4A2F — кант 2 pt (ровный) и верх мата
+    static let woodDeep = Color("Chrome/WoodDeep") // #4D3521 — низ градиента мата; больше нигде
     static let fire = Color("Chrome/Fire")   // #FF7A2F — огонь как состояние, не как хром
 
     // Стекло. G2 — всегда градиент Fill → Fill2 под 135°; в тёмной теме точки равны,
@@ -58,6 +59,9 @@ extension Color {
     // Краска на стекле: в обеих темах панели тёмные, поэтому набор текста один.
     static let inkPrimary   = Color("Ink/Primary")    // rgba(255,255,255,.96)
     static let inkSecondary = Color("Ink/Secondary")  // rgba(255,255,255,.72)
+    /// Тень заголовков экрана и подписей над полем, 0 1 5. В тёмной теме прозрачная —
+    /// тень рисуется всегда, ветки по теме нет.
+    static let inkTitleShadow = Color("Ink/TitleShadow") // dark rgba(0,0,0,0) · light rgba(4,26,40,.60)
     static let inkTertiary  = Color("Ink/Tertiary")   // rgba(255,255,255,.52)
     static let inkOnBrass   = Color("Ink/OnBrass")    // #0A1A2C — надпись на латунной подложке
 
@@ -156,6 +160,11 @@ extension RadialGradient {
 }
 
 extension LinearGradient {
+    /// Мат вокруг фото на главном — единственный градиент дерева в игре.
+    static let woodMat = LinearGradient(colors: [.wood, .woodDeep], startPoint: .top, endPoint: .bottom)
+}
+
+extension LinearGradient {
     /// Фон всего приложения. **Неподвижен** — дышит только слой свечения
     /// над ним (см. Motion.breathe). Рисунка волн нет. Точка перелома 46 % в обеих темах.
     static let sea = LinearGradient(
@@ -238,6 +247,51 @@ enum Geometry {
         static let minTarget: CGFloat = 44       // всё, кроме клетки поля
     }
 
+    enum Nav {
+        static let rowHeight: CGFloat = 44       // NavRow; в макете 41 — ошибка макета
+        static let rowRadius: CGFloat = 20
+        static let rowPadding: CGFloat = 15
+        static let stackInset: CGFloat = 12      // BottomStack: поля
+        static let stackBottom: CGFloat = 10
+        static let stackGap: CGFloat = 8
+        static let titleInset: CGFloat = 20      // ScreenTitle: поля
+        static let titleTop: CGFloat = 68
+        static let titleGap: CGFloat = 6
+        static let padColumn: CGFloat = 520      // iPad: колонка экрана уровня
+    }
+
+    /// Два размера iPhone. Компактный — ширина экрана < 390 pt. Спека 3.3.
+    /// Величины, которых здесь нет, одинаковы на обоих.
+    struct SizeClass {
+        let menuInset, menuGap: CGFloat
+        let photo, photoRadius, mat, photoInnerRadius: CGFloat
+        let matShadowY, matShadowBlur: CGFloat; let matShadowAlpha: Double
+        let modeListGap, modeRowHeight, modeRowRadius, modeRowPadding, modeRowGap: CGFloat
+        let modeIcon, modeName, modeSub, modeLock: CGFloat
+        let continueText: CGFloat
+        let tabInset, tabBottom, tabHeight, tabRadius, tabIcon, tabLabel: CGFloat
+        let cell, cellCoords: CGFloat
+
+        static let compactBreakpoint: CGFloat = 390
+        static func forWidth(_ w: CGFloat) -> SizeClass { w < compactBreakpoint ? compact : regular }
+
+        static let regular = SizeClass(
+            menuInset: 20, menuGap: 14, photo: 252, photoRadius: 22, mat: 5, photoInnerRadius: 17,
+            matShadowY: 10, matShadowBlur: 28, matShadowAlpha: 0.38,
+            modeListGap: 8, modeRowHeight: 58, modeRowRadius: 18, modeRowPadding: 13, modeRowGap: 11,
+            modeIcon: 30, modeName: 15, modeSub: 11.5, modeLock: 21, continueText: 15,
+            tabInset: 12, tabBottom: 10, tabHeight: 68, tabRadius: 26, tabIcon: 25, tabLabel: 11,
+            cell: 32, cellCoords: 30)
+
+        static let compact = SizeClass(
+            menuInset: 16, menuGap: 12, photo: 170, photoRadius: 18, mat: 4, photoInnerRadius: 14,
+            matShadowY: 8, matShadowBlur: 22, matShadowAlpha: 0.36,
+            modeListGap: 7, modeRowHeight: 52, modeRowRadius: 16, modeRowPadding: 11, modeRowGap: 10,
+            modeIcon: 26, modeName: 14, modeSub: 10.5, modeLock: 19, continueText: 13.5,
+            tabInset: 10, tabBottom: 8, tabHeight: 56, tabRadius: 22, tabIcon: 21, tabLabel: 10,
+            cell: 30, cellCoords: 28)
+    }
+
     /// Сегментированный переключатель: видимый сегмент 44 pt, зона касания = сегмент.
     /// Обойма 3 pt с каждой стороны → общая высота 50 pt. Радиусы не меняются.
     enum Segment {
@@ -262,7 +316,14 @@ extension Material {
 // MARK: - Типографика
 
 enum TypeScale {
-    static let display   = Font.system(size: 34, weight: .semibold, design: .rounded)
+    /// Название игры на главном и приветствии. Трекинг −.02em: .tracking(gameTitleTracking(compact)).
+    static func gameTitle(compact: Bool) -> Font {
+        .system(size: compact ? 28 : 36, weight: .semibold, design: .rounded)
+    }
+    static func gameTitleTracking(compact: Bool) -> CGFloat { compact ? -0.56 : -0.72 }
+    /// Заголовок экрана (ScreenTitle), один на оба размера. Трекинг −.01em.
+    static let screenTitle = Font.system(size: 30, weight: .bold, design: .rounded)
+    static let screenTitleTracking: CGFloat = -0.3
     static let title     = Font.system(size: 24, weight: .semibold, design: .rounded)
     static let headline  = Font.system(size: 17, weight: .semibold)
     static let body      = Font.system(size: 16, weight: .regular)

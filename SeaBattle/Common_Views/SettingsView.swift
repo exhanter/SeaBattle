@@ -98,6 +98,13 @@ struct SettingsView: View {
                             }
                         }
                         .padding(.horizontal)
+
+                    // R2.1a: настройка из спеки 4.11. Стоит на старом экране,
+                    // потому что новый приходит только в R4.2, а без неё шаг
+                    // выбора уровня нечем выключить. Само значение хранит
+                    // `AppState`, поэтому писать `UserDefaults` тут не надо.
+                    Toggle("Ask for the level before a match", isOn: $appState.askLevelBeforeMatch)
+                        .padding(.horizontal)
                         .padding(.bottom)
 
                     Button {

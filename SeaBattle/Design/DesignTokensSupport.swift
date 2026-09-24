@@ -36,9 +36,11 @@ enum ColorToken: String, CaseIterable, Sendable {
     case roleFoe     = "Role/Foe"
     case roleYouSoft = "Role/YouSoft"
 
-    // Хром.
-    case wood = "Chrome/Wood"
-    case fire = "Chrome/Fire"
+    // Хром. `WoodDeep` — низ градиента мата вокруг фотографии и больше нигде:
+    // кант панелей 2 pt остаётся ровным `Chrome/Wood`.
+    case wood     = "Chrome/Wood"
+    case woodDeep = "Chrome/WoodDeep"
+    case fire     = "Chrome/Fire"
 
     // Стекло G2 — все панели. Заливка всегда градиент `Fill → Fill2` под 135°;
     // в тёмной теме точки равны, поэтому выглядит ровной.
@@ -64,6 +66,9 @@ enum ColorToken: String, CaseIterable, Sendable {
     case inkSecondary = "Ink/Secondary"
     case inkTertiary  = "Ink/Tertiary"
     case inkOnBrass   = "Ink/OnBrass"
+    /// Тень заголовка экрана. В тёмной теме прозрачная, в светлой держит белый
+    /// текст на светлом море, поэтому тень рисуется всегда и ветки по теме нет.
+    case inkTitleShadow = "Ink/TitleShadow"
 
     // Клетка · вода W1 / L2.
     case waterTop    = "Cell/WaterTop"
@@ -180,6 +185,18 @@ extension LinearGradient {
         LinearGradient(colors: [.buttonBrassTop, .buttonBrassBottom],
                        startPoint: .top, endPoint: .bottom)
     }
+}
+
+// MARK: - Два размера iPhone
+
+extension Geometry.SizeClass {
+    /// Часть токенов принимает **флаг** компактности, а не сам размер
+    /// (`TypeScale.gameTitle(compact:)`), поэтому нужен обратный вопрос: какой
+    /// из двух размеров перед нами. Отдельного признака в таблице пакета нет, а
+    /// синтез `==` вне файла объявления Swift не делает, поэтому сравнивается
+    /// одно значение из таблицы — сторона фотографии, 252 против 170. Оно
+    /// годится как признак: размеров ровно два и оба заданы литералами.
+    var isCompact: Bool { photo == Self.compact.photo }
 }
 
 // MARK: - Геометрия, считаемая от размера
