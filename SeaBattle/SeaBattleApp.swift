@@ -15,9 +15,11 @@ struct SeaBattleApp: App {
         WindowGroup {
             Group {
                 if UIDevice.current.userInterfaceIdiom == .pad {
+                    // iPad переезжает на новую оболочку в R2.6; до тех пор —
+                    // старое меню.
                     iPadStartMenuView()
                 } else {
-                    ContentView()
+                    AppShell()
                 }
             }
             .environment(appState)

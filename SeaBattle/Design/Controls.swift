@@ -121,10 +121,13 @@ extension View {
 /// Строка режима в меню: иконка, название, описание одной строкой, справа —
 /// замок у закрытого режима. Закрытая строка **выглядит как обычная**: по спеке
 /// её не гасят, чтобы режим оставался приглашением, а не запретом.
+/// Подписи принимаются `LocalizedStringKey`, а не `String`: `Text` переводит
+/// только литерал, а строковую переменную показывает как есть, поэтому со
+/// `String` строки меню молча остались бы английскими на всех языках.
 struct ModeRow: View {
     let icon: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     var isLocked: Bool = false
     var action: () -> Void = {}
 
