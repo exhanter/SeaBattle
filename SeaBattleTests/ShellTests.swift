@@ -26,12 +26,24 @@ struct ShellTests {
         #expect(!ShellTab.allCases.contains { $0.rawValue.contains("premium") })
     }
 
-    @Test("Таб-бар: 66 pt, радиус большой панели, цель нажатия не меньше 44")
+    @Test("Таб-бар: 68 pt на большом экране, 56 на малом, обе цели под палец")
     func theTabBarFollowsTheMockup() {
-        #expect(TabBarMetrics.height == 66)
-        #expect(TabBarMetrics.radius == Geometry.Radius.panelLarge)
-        #expect(TabBarMetrics.height >= Geometry.Hit.minTarget)
-        #expect(TabBarMetrics.inactiveOpacity == 0.6)
+        #expect(TabBarSize.regular.height == 68)
+        #expect(TabBarSize.regular.radius == Geometry.Radius.panelLarge)
+        #expect(TabBarSize.compact.height == 56)
+        #expect(TabBarSize.regular.height >= Geometry.Hit.minTarget)
+        #expect(TabBarSize.compact.height >= Geometry.Hit.minTarget)
+        #expect(TabBarMetrics.inactiveOpacity == 0.62)
+    }
+
+    @Test("Размер таб-бара выбирается по той же границе, что раскладка меню")
+    func theTabBarSwitchesWithTheMenu() {
+        // Разъехавшиеся границы дали бы малый таб-бар под большим меню — и
+        // наоборот; на одном устройстве из семи это выглядело бы случайным.
+        #expect(TabBarSize.forWidth(393) == .regular)
+        #expect(TabBarSize.forWidth(375) == .compact)
+        #expect(MenuLayout.forWidth(393) == .regular)
+        #expect(MenuLayout.forWidth(375) == .compact)
     }
 
     // MARK: Список режимов
@@ -71,19 +83,35 @@ struct ShellTests {
 
     @Test("Фото: 252 pt на большом экране, 170 pt на 375")
     func thePhotoKeepsItsTwoSizes() {
-        #expect(MenuMetrics.heroSide(forWidth: 393) == 252)
-        #expect(MenuMetrics.heroSide(forWidth: 430) == 252)
-        #expect(MenuMetrics.heroSide(forWidth: 375) == 170)
-        #expect(MenuMetrics.heroSide(forWidth: 320) == 170)
+        #expect(MenuLayout.forWidth(393).heroSide == 252)
+        #expect(MenuLayout.forWidth(430).heroSide == 252)
+        #expect(MenuLayout.forWidth(375).heroSide == 170)
+        #expect(MenuLayout.forWidth(320).heroSide == 170)
     }
 
     @Test("Внутренний радиус мата меньше внешнего ровно на толщину мата")
     func theMatCornersNest() {
         // Иначе угол фотографии либо вылезает за мат, либо оставляет просвет —
-        // на скриншоте это пара точек, глазами не ловится.
-        let expected: CGFloat = MenuMetrics.matRadius - MenuMetrics.matPadding
-        #expect(MenuMetrics.photoRadius == expected)
-        #expect(MenuMetrics.photoRadius < MenuMetrics.matRadius)
+        // на скриншоте это пара точек, глазами не ловится. Оба радиуса
+        // переписаны из кадров как отдельные числа, поэтому проверка заодно
+        // говорит, что кадры согласованы и переписаны верно.
+        for layout in [MenuLayout.regular, .compact] {
+            let expected: CGFloat = layout.matRadius - layout.matPadding
+            #expect(layout.photoRadius == expected)
+            #expect(layout.photoRadius < layout.matRadius)
+        }
+    }
+
+    @Test("Заголовок меню: 36 и 28 pt с трекингом −0,02 em")
+    func theTitleKeepsItsTwoSizes() {
+        // Кегль заголовка в `TypeScale` не заведён (крупнее `display` 34 там
+        // ничего нет) — вопрос В7 дизайну. Пока числа живут в раскладке, и
+        // сторожит их этот тест.
+        #expect(MenuLayout.regular.titleSize == 36)
+        #expect(MenuLayout.compact.titleSize == 28)
+        let expectedTracking: CGFloat = 36 * -0.02
+        #expect(MenuLayout.regular.titleTracking == expectedTracking)
+        #expect(MenuLayout.regular.titleTracking < 0)
     }
 
     // MARK: «Продолжить партию»

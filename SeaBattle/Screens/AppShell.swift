@@ -40,24 +40,47 @@ enum ShellTab: String, CaseIterable, Hashable, Sendable {
     }
 }
 
-/// Числа таб-бара из макета. Отдельным типом — чтобы сверялись тестом.
+/// Числа таб-бара, два размера — как у меню. Взяты из `tabBar2` (393) и из
+/// таб-бара внутри `screenSmallMenu` (375): панель теряет 12 pt высоты, а не
+/// 2–4, поэтому это две таблицы, а не поправка.
+struct TabBarSize: Equatable, Sendable {
+    let height: CGFloat
+    let radius: CGFloat
+    let sideInset: CGFloat
+    let bottomInset: CGFloat
+    /// Сторона рамки значка, как `iconSlot` в макетах.
+    let iconSize: CGFloat
+    let labelSize: CGFloat
+    let iconLabelGap: CGFloat
+
+    var iconFontSize: CGFloat { (iconSize * 0.73).rounded() }
+
+    /// 393 pt и шире.
+    static let regular = TabBarSize(
+        height: 68, radius: Geometry.Radius.panelLarge, sideInset: 12,
+        bottomInset: 10, iconSize: 25, labelSize: 11, iconLabelGap: 5)
+
+    /// 375 pt — iPhone SE / mini.
+    static let compact = TabBarSize(
+        height: 56, radius: 22, sideInset: 10,
+        bottomInset: 8, iconSize: 21, labelSize: 10, iconLabelGap: 3)
+
+    static func forWidth(_ width: CGFloat) -> TabBarSize {
+        width < MenuLayout.compactWidthLimit ? .compact : .regular
+    }
+}
+
 enum TabBarMetrics {
-    static let height: CGFloat = 66
-    static let radius = Geometry.Radius.panelLarge    // 26
-    static let sideInset = Geometry.Inset.phoneSide   // 12
-    static let bottomInset: CGFloat = 10
-    static let iconSize: CGFloat = 24
-    static let labelSize: CGFloat = 10
-    static let iconLabelGap: CGFloat = 4
     /// Невыбранный таб гаснет **целиком** — это непрозрачность элемента как
     /// состояния, а не альфа внутри цвета, поэтому правило 8 не нарушено.
-    static let inactiveOpacity: Double = 0.6
+    static let inactiveOpacity: Double = 0.62
 }
 
 /// Нижняя панель навигации: стекло G2 с деревянным кантом по верхней кромке —
 /// той, что смотрит в море.
 struct SeaTabBar: View {
     @Binding var selection: ShellTab
+    var size: TabBarSize = .regular
 
     var body: some View {
         HStack(spacing: 0) {
@@ -68,14 +91,15 @@ struct SeaTabBar: View {
                 Button {
                     withAnimation(Motion.quick) { selection = tab }
                 } label: {
-                    VStack(spacing: TabBarMetrics.iconLabelGap) {
+                    VStack(spacing: size.iconLabelGap) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: TabBarMetrics.iconSize * 0.75))
-                            .frame(height: TabBarMetrics.iconSize)
+                            .font(.system(size: size.iconFontSize))
+                            .frame(height: size.iconSize)
                             .foregroundStyle(Color.inkPrimary)
                         Text(tab.title)
-                            .font(.system(size: TabBarMetrics.labelSize,
-                                          weight: isSelected ? .bold : .medium))
+                            .font(.system(size: size.labelSize,
+                                          weight: isSelected ? .bold : .medium,
+                                          design: .rounded))
                             .foregroundStyle(isSelected ? Color.roleYou : Color.inkPrimary)
                     }
                     .frame(maxWidth: .infinity, minHeight: Geometry.Hit.minTarget)
@@ -87,10 +111,10 @@ struct SeaTabBar: View {
                 .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             }
         }
-        .frame(height: TabBarMetrics.height)
-        .glassPanel(.g2, radius: TabBarMetrics.radius, wood: .top)
-        .padding(.horizontal, TabBarMetrics.sideInset)
-        .padding(.bottom, TabBarMetrics.bottomInset)
+        .frame(height: size.height)
+        .glassPanel(.g2, radius: size.radius, wood: .top)
+        .padding(.horizontal, size.sideInset)
+        .padding(.bottom, size.bottomInset)
     }
 }
 
@@ -222,23 +246,26 @@ struct AppShell: View {
             SeaBackground()
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                switch tab {
-                case .play:
-                    MenuScreen(isPremium: premiumManager.isPremium,
-                               canContinue: continueTarget.isAvailable,
-                               onMode: open(_:),
-                               onContinue: continueGame)
-                case .statistics:
-                    // ПЕРЕХОДНОЕ: свой экран приходит в R4.1. Старый рисует
-                    // собственный фон, поэтому моря под ним не видно.
-                    StatsView()
-                case .settings:
-                    // ПЕРЕХОДНОЕ: свой экран приходит в R4.2.
-                    SettingsView()
-                }
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    switch tab {
+                    case .play:
+                        MenuScreen(isPremium: premiumManager.isPremium,
+                                   canContinue: continueTarget.isAvailable,
+                                   onMode: open(_:),
+                                   onContinue: continueGame)
+                    case .statistics:
+                        // ПЕРЕХОДНОЕ: свой экран приходит в R4.1. Старый рисует
+                        // собственный фон, поэтому моря под ним не видно.
+                        StatsView()
+                    case .settings:
+                        // ПЕРЕХОДНОЕ: свой экран приходит в R4.2.
+                        SettingsView()
+                    }
 
-                SeaTabBar(selection: $tab)
+                    SeaTabBar(selection: $tab,
+                              size: .forWidth(proxy.size.width))
+                }
             }
         }
     }

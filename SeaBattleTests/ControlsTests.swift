@@ -33,11 +33,28 @@ struct ControlsTests {
         #expect(ControlMetrics.Button.haloRadius == 22)
     }
 
-    @Test("Строка режима: высота 58 и запас под палец")
-    func theModeRowIsFiftyEightHigh() {
-        #expect(ControlMetrics.ModeRow.height == 58)
-        #expect(ControlMetrics.ModeRow.height >= Geometry.Hit.minTarget)
-        #expect(ControlMetrics.ModeRow.radius == Geometry.Radius.button)
+    @Test("Строка режима: 58 pt на большом экране, 52 на малом, обе под палец")
+    func theModeRowHasTwoSizes() {
+        let regular = ControlMetrics.ModeRow.regular
+        let compact = ControlMetrics.ModeRow.compact
+        #expect(regular.height == 58)
+        #expect(regular.radius == Geometry.Radius.button)
+        // 52 pt — из кадра `screenSmallMenu`. Спека в 2.11 называет только 58,
+        // числа малого размера вычитаны из исходника макета (вопрос В7).
+        #expect(compact.height == 52)
+        // Обе цели нажатия остаются законными: строка режима — не клетка поля,
+        // и правило 44 pt на неё распространяется.
+        #expect(regular.height >= Geometry.Hit.minTarget)
+        #expect(compact.height >= Geometry.Hit.minTarget)
+        // Малый размер меньше по всем величинам сразу, а не только по высоте:
+        // подогнать одну и забыть остальные — самая вероятная ошибка здесь.
+        #expect(compact.radius < regular.radius)
+        #expect(compact.iconSize < regular.iconSize)
+        #expect(compact.lockSize < regular.lockSize)
+        #expect(compact.titleSize < regular.titleSize)
+        #expect(compact.subtitleSize < regular.subtitleSize)
+        #expect(compact.horizontalPadding < regular.horizontalPadding)
+        #expect(compact.spacing < regular.spacing)
     }
 
     @Test("Сегмент вписан в обойму, а не торчит из неё")
