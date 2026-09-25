@@ -38,11 +38,13 @@ struct LadderWinRateTests {
     private func computerWins(at level: AppState.DifficultyLevel,
                               exposureTarget: Int?) async -> Bool {
         let computerBoard = PlayerData(side: .foe)
+        // Через ту же функцию, которой пользуется приложение. Раньше тест
+        // расставлял скрытый флот сам, и из-за этого восемь месяцев не было
+        // видно, что в живой партии сокрытие вообще не применяется.
         if let target = exposureTarget {
-            computerBoard.place(FleetLayout.arrangement(givingAwayAtMost: target))
-        } else {
-            computerBoard.shipsRandomArrangement()
+            #expect(target == level.fleetExposureTarget, "цель сокрытия разошлась с уровнем")
         }
+        ComputerOpponent.arrangeFleet(for: level, on: computerBoard)
         let playerBoard = PlayerData(side: .you)
         playerBoard.shipsRandomArrangement()
 

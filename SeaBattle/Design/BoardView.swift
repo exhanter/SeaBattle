@@ -58,6 +58,36 @@ struct BoardMetrics: Equatable, Sendable {
         CGSize(width: boardSide + digitsWidth + axisGap,
                height: boardSide + lettersHeight + axisGap)
     }
+
+    // MARK: Место клетки в сетке
+
+    /// Шаг сетки: клетка плюс зазор.
+    var step: CGFloat { cell + gap }
+
+    /// Левый верхний угол клетки **внутри сетки** (без подложки и координат).
+    /// Координата 1-based, как в ядре правил: путаница с нулём здесь стоит
+    /// сдвига поля на клетку, а это видно только на устройстве.
+    func cellOrigin(_ coordinate: Coordinate) -> CGPoint {
+        CGPoint(x: CGFloat(coordinate.column - 1) * step,
+                y: CGFloat(coordinate.row - 1) * step)
+    }
+
+    /// Размер корабля в точках: клетки плюс зазоры между ними.
+    func shipSize(length: Int, orientation: Orientation) -> CGSize {
+        let long = cell * CGFloat(length) + gap * CGFloat(length - 1)
+        return orientation == .horizontal ? CGSize(width: long, height: cell)
+                                          : CGSize(width: cell, height: long)
+    }
+
+    /// В какую клетку попала точка внутри сетки. Возвращает `nil` за пределами
+    /// поля — палец легко уходит с сетки, и молча зажимать его в край нельзя:
+    /// корабль встал бы не туда, куда его отпустили.
+    func cell(at point: CGPoint) -> Coordinate? {
+        let column = Int(floor(point.x / step)) + 1
+        let row = Int(floor(point.y / step)) + 1
+        let coordinate = Coordinate(row: row, column: column)
+        return coordinate.isOnBoard ? coordinate : nil
+    }
 }
 
 // MARK: - Буквы поля

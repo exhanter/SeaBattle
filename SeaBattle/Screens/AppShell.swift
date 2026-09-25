@@ -128,6 +128,10 @@ enum ContinueTarget: Equatable, Sendable {
 /// нет, а сверху стоит заголовок со строкой возврата (спека 3.1).
 enum ShellRoute: Equatable, Sendable {
     case level
+    /// Расстановка. Помнит, откуда пришли: строка возврата ведёт на уровень,
+    /// если он показывался, иначе в меню, и подпись меняется вместе с этим
+    /// (спека 3.1).
+    case arrangement(cameFromLevel: Bool)
 }
 
 // MARK: - Оболочка
@@ -153,6 +157,9 @@ struct AppShell: View {
     /// Что выбрано на экране уровня. Живёт в оболочке, а не в экране: после
     /// покупки Pro прямо с него выбор должен стать «Экспертом».
     @State private var levelSelection: AppState.DifficultyLevel = .hard
+    /// Расстановка. Тоже в оболочке: уход в меню и возврат не должны
+    /// перемешивать флот, который игрок только что выставил руками.
+    @State private var fleet = FleetEditor()
 
     private var continueTarget: ContinueTarget {
         .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
@@ -280,6 +287,13 @@ struct AppShell: View {
                         onBack: { self.route = nil },
                         // До начала боя «Меню» выходит без вопроса (спека 3.1).
                         onMenu: { self.route = nil })
+
+        case .arrangement(let cameFromLevel):
+            ArrangementScreen(editor: $fleet,
+                              backTitle: cameFromLevel ? "Level" : "Play",
+                              onStart: startBattle,
+                              onBack: { self.route = cameFromLevel ? .level : nil },
+                              onMenu: { self.route = nil })
         }
     }
 
@@ -314,7 +328,7 @@ struct AppShell: View {
             route = .level
         case .start(let level):
             appState.difficultyLevel = level
-            startVsComputer()
+            openArrangement(cameFromLevel: false)
         }
     }
 
@@ -322,8 +336,14 @@ struct AppShell: View {
     /// числе когда это «Сложно», подставленное вместо закрытого «Эксперта».
     private func startAfterLevel() {
         appState.difficultyLevel = levelSelection
-        route = nil
-        startVsComputer()
+        openArrangement(cameFromLevel: true)
+    }
+
+    /// Расстановка открывается с новым случайным флотом: это новая партия, а не
+    /// продолжение прошлой.
+    private func openArrangement(cameFromLevel: Bool) {
+        fleet = FleetEditor()
+        route = .arrangement(cameFromLevel: cameFromLevel)
     }
 
     private func intent(for mode: GameMode) -> AppState.PremiumIntent? {
@@ -335,13 +355,26 @@ struct AppShell: View {
         }
     }
 
-    /// ПЕРЕХОДНОЕ: пока нет своего экрана расстановки (R2.2), одиночная партия
-    /// начинается так же, как в старом меню — со случайной расстановки.
-    private func startVsComputer() {
+    /// «Старт» на расстановке: партия начинается с тем флотом, который игрок
+    /// только что видел на экране.
+    ///
+    /// Флот компьютера расставляет `ComputerOpponent` — по уровню, со сокрытием
+    /// у двух верхних. До R2.2 здесь стояло `enemy.shipsRandomArrangement()`, и
+    /// сокрытие не применялось в живой партии вообще.
+    private func startBattle() {
         appState.resetData(player: player, enemy: enemy)
-        player.shipsRandomArrangement()
-        enemy.shipsRandomArrangement()
-        appState.selectedTab = .playerView
+        player.place(fleet.ships)
+        ComputerOpponent.arrangeFleet(for: appState.difficultyLevel, on: enemy)
+
+        if appState.musicOn {
+            AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
+        }
+        appState.gameIsActive = true
+        appState.manualShipArrangement = false
+        route = nil
+        // ПЕРЕХОДНОЕ: бой пока старый (R2.3). Свой экран расстановки заменил
+        // старый, поэтому идём сразу на поле противника, а не на `.playerView`.
+        appState.selectedTab = .enemyView
     }
 
     private func continueGame() {

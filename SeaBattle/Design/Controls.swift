@@ -40,6 +40,17 @@ enum ControlMetrics {
         static let textGap: CGFloat = 2
     }
 
+    /// Второстепенная кнопка. Числа из `secBtn` в макетах: радиус 16, поля
+    /// 13 / 16, кегль 14 rounded 600. Высота поднята до 44 pt — цель нажатия.
+    enum Secondary {
+        static let radius: CGFloat = 16
+        static let minHeight = Geometry.Hit.minTarget
+        static let horizontalPadding: CGFloat = 16
+        static let iconGap: CGFloat = 8
+        static let iconSize: CGFloat = 20
+        static let font = Font.system(size: 14, weight: .semibold, design: .rounded)
+    }
+
     /// Строка выбора `ChoiceRow`, спека 2.13. Числа одни на оба размера:
     /// в таблице 3.3 её нет, а высота растёт по подписи.
     enum ChoiceRow {
@@ -262,6 +273,39 @@ struct ChoiceRow: View {
         } else {
             Color.clear
         }
+    }
+}
+
+// MARK: - Второстепенная кнопка
+
+/// «Перемешать», «Изменить», «Восстановить покупки», «Выйти» — действия, которые
+/// стоят рядом с главной кнопкой и не должны с ней спорить.
+///
+/// **В спеке этого компонента нет**, хотя в макетах он встречается двадцать раз
+/// (`secBtn`) и в тексте спеки упоминается как «второстепенная кнопка». Числа
+/// взяты из кадров; вопрос отправлен дизайну (В9). Правило 6 («плоских заливок
+/// без бевеля нет») здесь не нарушено: это стекло с обводкой, а не заливка —
+/// у кнопки нет ни латуни, ни бевеля именно затем, чтобы она читалась тише
+/// главной.
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: ControlMetrics.Secondary.radius,
+                                     style: .continuous)
+        return configuration.label
+            .font(ControlMetrics.Secondary.font)
+            .foregroundStyle(Color.inkPrimary)
+            .frame(maxWidth: .infinity, minHeight: ControlMetrics.Secondary.minHeight)
+            .background { shape.fill(Color.glassFill) }
+            .overlay { shape.strokeBorder(Color.glassStroke, lineWidth: 1) }
+            .clipShape(shape)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(Motion.quick, value: configuration.isPressed)
+    }
+}
+
+extension View {
+    func secondaryButton() -> some View {
+        buttonStyle(SecondaryButtonStyle())
     }
 }
 

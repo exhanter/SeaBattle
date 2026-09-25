@@ -48,18 +48,31 @@ final class ComputerOpponent: Opponent {
         self.targetBoard = targetBoard
     }
 
-    /// Arranges the computer's own fleet.
+    /// Arranges a fleet the way `level` does.
     ///
-    /// Only `.expert` hides its ships deliberately; every other level takes a
-    /// plain random layout, which is the other half of what makes the levels
-    /// differ. See `FleetLayout.leastExposed` for what "deliberately" means and
+    /// The two top levels hide their ships deliberately; the two lower ones take
+    /// a plain random layout. That is the other half of what makes the levels
+    /// differ — measured at about twenty shots, against two or three for every
+    /// targeting improvement in the ladder put together. See
+    /// `DifficultyLevel.fleetExposureTarget` for what "deliberately" means and
     /// why it does not make the computer predictable.
-    func provideFleet() async -> [Ship] {
-        if let target = appState.difficultyLevel.fleetExposureTarget {
-            ownFleet.place(FleetLayout.arrangement(givingAwayAtMost: target))
+    ///
+    /// Synchronous and static on purpose. It used to exist only as the body of
+    /// the `async` `provideFleet()` below, **which nothing ever called** — every
+    /// screen set the computer's fleet with `shipsRandomArrangement()`, so
+    /// hiding never happened in a real match and the two top levels were weaker
+    /// than the numbers in `docs/STATUS.md`. The win-rate tests did not catch it
+    /// because they arranged the hidden fleet themselves; they now call this.
+    static func arrangeFleet(for level: AppState.DifficultyLevel, on board: PlayerData) {
+        if let target = level.fleetExposureTarget {
+            board.place(FleetLayout.arrangement(givingAwayAtMost: target))
         } else {
-            ownFleet.shipsRandomArrangement()
+            board.shipsRandomArrangement()
         }
+    }
+
+    func provideFleet() async -> [Ship] {
+        Self.arrangeFleet(for: appState.difficultyLevel, on: ownFleet)
         return ownFleet.ships
     }
 

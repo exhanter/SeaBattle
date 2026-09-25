@@ -39,6 +39,11 @@ enum BoardCellState: String, CaseIterable, Sendable {
     case hitMine
     /// Уничтожен S4 — выгоревшая сталь.
     case sunk
+    /// Корабль в запрещённой позиции при расстановке: та же рампа корпуса, но
+    /// розовая. **Из ядра правил не приходит никогда** — у `CellState` такого
+    /// состояния нет и быть не должно: запрет существует только пока корабль
+    /// ставят, а по правилам игры его в этот момент ещё нет на поле.
+    case shipDenied
 
     /// Перевод состояния ядра в состояние отрисовки. Единственное место, где
     /// решается, пробоина это или огонь на своём корпусе: попадание по **своему**
@@ -68,12 +73,13 @@ struct BoardCell: View {
     var body: some View {
         ZStack {
             switch state {
-            case .water:   water
-            case .miss:    missPit
-            case .ship:    hull
-            case .hit:     breach
-            case .hitMine: burningHull
-            case .sunk:    burntSteel
+            case .water:      water
+            case .miss:       missPit
+            case .ship:       hull
+            case .hit:        breach
+            case .hitMine:    burningHull
+            case .sunk:       burntSteel
+            case .shipDenied: deniedHull
             }
         }
         .frame(width: size, height: size)
@@ -130,6 +136,15 @@ struct BoardCell: View {
     private var hull: some View {
         shape
             .fill(LinearGradient.hullSand)
+            .overlay { bevel(highlight: .hullSheen, shade: .hullShade) }
+    }
+
+    /// Запрет при расстановке: та же рампа и тот же бевель, только розовые.
+    /// Геометрия общая с корпусом намеренно — розовый должен читаться как
+    /// «этот самый корабль нельзя сюда», а не как другая клетка.
+    private var deniedHull: some View {
+        shape
+            .fill(LinearGradient.hullDenied)
             .overlay { bevel(highlight: .hullSheen, shade: .hullShade) }
     }
 

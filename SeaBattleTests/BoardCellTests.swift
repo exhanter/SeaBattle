@@ -32,17 +32,20 @@ struct BoardCellTests {
 
     @Test("Каждое состояние ядра переводится во что-то осмысленное")
     func everyCoreStateHasADisplayState() {
-        // Ядро знает пять состояний, отрисовка — шесть: шестое как раз огонь на
-        // своём корпусе. Если в ядре появится новое состояние, компилятор
-        // заставит дописать перевод, а этот тест — проверить, во что именно.
+        // Ядро знает пять состояний, отрисовка — семь. Шестое — огонь на своём
+        // корпусе, седьмое (R2.2) — розовый корабль в запрещённой позиции: оно
+        // существует, только пока корабль ставят, и из ядра не приходит никогда.
+        // Если в ядре появится новое состояние, компилятор заставит дописать
+        // перевод, а этот тест — проверить, во что именно.
         let expected: [CellState: BoardCellState] = [
             .water: .water, .miss: .miss, .ship: .ship, .hit: .hit, .sunk: .sunk,
         ]
         for state in CellState.allCases {
             #expect(BoardCellState.forDisplay(state, on: .foe) == expected[state])
+            #expect(BoardCellState.forDisplay(state, on: .foe) != .shipDenied)
         }
         #expect(CellState.allCases.count == 5)
-        #expect(BoardCellState.allCases.count == 6)
+        #expect(BoardCellState.allCases.count == 7)
     }
 
     @Test("Радиус клетки считается от размера во всех применяемых размерах")
