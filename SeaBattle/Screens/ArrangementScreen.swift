@@ -18,17 +18,13 @@ import SwiftUI
 // MARK: - Числа экрана
 
 enum ArrangementMetrics {
-    /// Подсказка под заголовком: чем экран сейчас занят.
-    static let hintSize: CGFloat = 12.5
-    static let hintLineSpacing: CGFloat = 12.5 * 0.4
     /// Между заголовком и полем.
     static let boardGap: CGFloat = 18
-    /// Строка ошибки под полем.
-    static let warningSize: CGFloat = 13.5
-    static let warningGap: CGFloat = 8
     /// Полупрозрачность корабля в руке (спека 4.4). Это непрозрачность **всего
     /// элемента** как состояния, поэтому правило про альфу в цвете не задето.
     static let draggedOpacity: Double = 0.62
+    /// Предупреждение появляется и гаснет вместе с розовым кораблём (2.16).
+    static let warningFade: Double = 0.160
 }
 
 // MARK: - Экран
@@ -53,7 +49,7 @@ struct ArrangementScreen: View {
                 header
 
                 ScrollView {
-                    VStack(spacing: ArrangementMetrics.warningGap) {
+                    VStack(spacing: Geometry.Warning.belowBoard) {
                         board(metrics)
                         warning
                     }
@@ -64,37 +60,28 @@ struct ArrangementScreen: View {
 
                 actions
             }
+            // Предупреждение появляется и гаснет вместе с розовым кораблём —
+            // одной анимацией на оба, иначе строка приходит после того, как
+            // корабль уже покраснел.
+            .animation(.easeInOut(duration: ArrangementMetrics.warningFade),
+                       value: editor.conflictKind)
         }
     }
 
     // MARK: Заголовок и подсказка
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: Geometry.Nav.titleGap) {
-            ScreenTitle(title: editor.isEditing ? "Change the layout" : "Your fleet",
-                        back: backTitle, onBack: onBack)
-
-            // Подсказка живёт здесь, а не внутри `ScreenTitle`: у компонента из
-            // спеки 2.11 слота под неё нет, а в макетах расстановки заголовок
-            // был панелью с подзаголовком. Вопрос В9 дизайну; переносится
-            // внутрь компонента за десять минут, если ответ будет такой.
-            Text(hint)
-                .font(.system(size: ArrangementMetrics.hintSize))
-                .foregroundStyle(Color.inkSecondary)
-                .lineSpacing(ArrangementMetrics.hintLineSpacing)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, Geometry.Nav.titleInset)
-        }
-        .padding(.top, NavMetrics.titleTopBelowSafeArea)
-    }
-
-    /// Подсказка говорит, что делать, и **не повторяет ошибку**: про ошибку есть
-    /// строка под полем. В макете шапка меняла и заголовок, и подзаголовок на
-    /// текст ошибки, но здесь заголовок занят фазой, и от подмены подсказки
-    /// одно и то же оказывалось написано дважды — над полем и под ним.
-    private var hint: LocalizedStringKey {
-        editor.isEditing ? "Drag a ship to move it · tap to turn it"
-                         : "The ships are placed for you"
+        // Подзаголовок — слот `ScreenTitle` (спека 2.11 после раунда 4): верх
+        // один на все экраны, панели с деревянным кантом из кадров туров 6–8
+        // отменены. Ни название, ни подсказка **не меняются при ошибке** — о
+        // ней говорит `WarningLine` под полем, рядом с розовым кораблём.
+        ScreenTitle(title: editor.isEditing ? "Change the layout" : "Your fleet",
+                    back: backTitle,
+                    subtitle: editor.isEditing
+                        ? "Drag a ship to move it · tap to turn it"
+                        : "The ships are placed for you",
+                    onBack: onBack)
+            .padding(.top, NavMetrics.titleTopBelowSafeArea)
     }
 
     // MARK: Поле
@@ -158,15 +145,12 @@ struct ArrangementScreen: View {
 
     @ViewBuilder
     private var warning: some View {
-        if editor.hasConflicts {
-            // Спека 4.4: одна строка под полем. Капсулы с красной обводкой из
-            // макетов здесь нет — цвета `#ff5212` в каталоге не существует, а
-            // выдумывать его в коде запрещает правило 8. Тон взят из
-            // `Chrome/Fire` — единственного токена тревоги в системе.
-            Text("A one-cell gap is needed")
-                .font(.system(size: ArrangementMetrics.warningSize, weight: .semibold,
-                              design: .rounded))
-                .foregroundStyle(Color.fire)
+        // Два текста, а не один: «Клетка занята» заметнее, чем «нужен зазор»,
+        // и путать их значит объяснять игроку не ту беду (спека 2.16).
+        if let kind = editor.conflictKind {
+            WarningLine(text: kind == .overlap ? "That cell is taken"
+                                               : "A one-cell gap is needed")
+                .transition(.opacity)
         }
     }
 
@@ -180,7 +164,7 @@ struct ArrangementScreen: View {
                 } label: {
                     Label("Shuffle", systemImage: "shuffle")
                 }
-                .secondaryButton()
+                .secondaryButton(enabled: editor.actionsEnabled)
 
                 if !editor.isEditing {
                     Button {
@@ -188,11 +172,9 @@ struct ArrangementScreen: View {
                     } label: {
                         Label("Change", systemImage: "hand.draw")
                     }
-                    .secondaryButton()
+                    .secondaryButton(enabled: editor.actionsEnabled)
                 }
             }
-            .disabled(!editor.actionsEnabled)
-            .opacity(editor.actionsEnabled ? 1 : ControlMetrics.Button.disabledOpacity)
 
             Button {
                 if editor.isEditing {

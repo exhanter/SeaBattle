@@ -40,6 +40,29 @@ struct FleetEditor: Equatable, Sendable {
 
     var hasConflicts: Bool { !conflicts.isEmpty }
 
+    /// Чем именно плоха расстановка. Ядру это различие не нужно — запрещено и
+    /// то и другое, — но `WarningLine` (спека 2.16) говорит разное: «Клетка
+    /// занята» при наложении и «Нужен зазор в одну клетку» при касании.
+    /// Наложение сильнее: если есть и то и другое, игроку надо сказать про
+    /// занятую клетку, потому что она заметнее.
+    var conflictKind: ConflictKind? {
+        guard hasConflicts else { return nil }
+        var occupied = Set<Coordinate>()
+        for ship in ships {
+            for cell in ship.cells where !occupied.insert(cell).inserted {
+                return .overlap
+            }
+        }
+        return .touching
+    }
+
+    enum ConflictKind: Equatable, Sendable {
+        /// Корабли заняли одну и ту же клетку.
+        case overlap
+        /// Корабли только соприкоснулись — между ними нет клетки воды.
+        case touching
+    }
+
     /// «Старт» и «Готово» неактивны, пока на поле есть ошибка, — иначе партия
     /// началась бы с флотом, который правилам не соответствует.
     var canFinish: Bool { !hasConflicts }

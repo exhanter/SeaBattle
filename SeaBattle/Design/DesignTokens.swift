@@ -136,12 +136,17 @@ extension Color {
 
     // Главная кнопка (PrimaryButton). Кант — Role/You, ореол — Role/YouSoft,
     // надпись — Ink/Primary. Одна на обе темы.
-    static let buttonBrassTop    = Color("Button/BrassTop")    // rgba(209,154,60,.42)
-    static let buttonBrassBottom = Color("Button/BrassBottom") // rgba(209,154,60,.16)
+    static let buttonBrassTop    = Color("Button/BrassTop")    // dark rgba(209,154,60,.42) · light rgba(168,112,34,.95)
+    static let buttonBrassBottom = Color("Button/BrassBottom") // dark rgba(209,154,60,.16) · light rgba(120,78,20,.92)
     static let buttonSheen       = Color("Button/Sheen")       // rgba(255,255,255,.55) — inset 0 1 0
     static let buttonShade       = Color("Button/Shade")       // rgba(0,0,0,.28) — inset 0 −2 6
     static let buttonShadow      = Color("Button/Shadow")      // rgba(0,0,0,.34) — 0 6 18
     static let buttonTextShadow  = Color("Button/TextShadow")  // rgba(0,0,0,.45) — 0 1 2
+
+    // Предупреждение (WarningLine): строка текста со значком, без фона, рамки и свечения —
+    // чтобы не читалась как кнопка. Тень текста — Ink/TitleShadow.
+    static let warnIcon = Color("Warn/Icon") // #FF7A2F
+    static let warnText = Color("Warn/Text") // dark #FFC2A6 · light #FFFFFF
 }
 
 extension RadialGradient {
@@ -292,6 +297,22 @@ enum Geometry {
             cell: 30, cellCoords: 28)
     }
 
+    /// SecondaryButton: стекло G2 без бевеля и латуни. Спека 2.15.
+    enum SecondaryButton {
+        static let height: CGFloat = 44
+        static let radius: CGFloat = 16
+        static let padding: CGFloat = 16
+        static let icon: CGFloat = 20
+        static let gap: CGFloat = 8
+    }
+
+    /// WarningLine под полем. Не нажимается и не выглядит нажимаемой. Спека 2.16.
+    enum Warning {
+        static let icon: CGFloat = 16
+        static let gap: CGFloat = 6
+        static let belowBoard: CGFloat = 12
+    }
+
     /// Сегментированный переключатель: видимый сегмент 44 pt, зона касания = сегмент.
     /// Обойма 3 pt с каждой стороны → общая высота 50 pt. Радиусы не меняются.
     enum Segment {
@@ -324,6 +345,10 @@ enum TypeScale {
     /// Заголовок экрана (ScreenTitle), один на оба размера. Трекинг −.01em.
     static let screenTitle = Font.system(size: 30, weight: .bold, design: .rounded)
     static let screenTitleTracking: CGFloat = -0.3
+    /// Подзаголовок ScreenTitle (необязательный): межстрочный 1,4, до двух строк, Ink/Secondary.
+    static let screenSubtitle = Font.system(size: 12.5, weight: .regular)
+    static let secondaryButton = Font.system(size: 14, weight: .semibold, design: .rounded)
+    static let warning = Font.system(size: 13.5, weight: .semibold, design: .rounded)
     static let title     = Font.system(size: 24, weight: .semibold, design: .rounded)
     static let headline  = Font.system(size: 17, weight: .semibold)
     static let body      = Font.system(size: 16, weight: .regular)
@@ -388,7 +413,8 @@ enum Motion {
     за 60 мс и в анимации не участвует.
  5. Верхняя панель показывает и не нажимается. Всё нажимаемое — внизу.
  6. Главная кнопка одна на всю игру: стекло с бевелем, латунный кант 1 pt,
-    латунная подложка, белая надпись. Плоских заливок без бевеля нет.
+    латунная подложка, белая надпись. Второстепенная — стекло G2 без бевеля и латуни,
+    намеренно тише. Других видов кнопок нет.
  7. Передача устройства — не sheet, а непрозрачный слой в том же контейнере.
  8. Градиент моря неподвижен. Дышит только слой свечения над ним.
  9. Геометрия живёт в коде и одна на обе темы; в ассет-каталог уходят только цвета.

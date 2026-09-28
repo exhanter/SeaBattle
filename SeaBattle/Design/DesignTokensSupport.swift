@@ -137,6 +137,8 @@ enum ColorToken: String, CaseIterable, Sendable {
     case boardStrokeFoe = "Board/StrokeFoe"
 
     // Главная кнопка: кант — Role/You, ореол — Role/YouSoft, надпись — Ink/Primary.
+    // Латунь подложки **разная по темам** (раунд 4): прежняя полупрозрачная не
+    // держала белую надпись на светлом море.
     case buttonBrassTop    = "Button/BrassTop"
     case buttonBrassBottom = "Button/BrassBottom"
     case buttonSheen       = "Button/Sheen"
@@ -144,9 +146,15 @@ enum ColorToken: String, CaseIterable, Sendable {
     case buttonShadow      = "Button/Shadow"
     case buttonTextShadow  = "Button/TextShadow"
 
+    // Предупреждение при расстановке (`WarningLine`, спека 2.16): строка текста
+    // со значком, без фона и рамки — с ними она читается как кнопка.
+    case warnIcon = "Warn/Icon"
+    case warnText = "Warn/Text"
+
     var color: Color { Color(rawValue) }
 
-    /// Первая часть пути: Sea · Role · Chrome · Glass · Ink · Cell · Board · Button.
+    /// Первая часть пути: Sea · Role · Chrome · Glass · Ink · Cell · Board ·
+    /// Button · Warn.
     var group: String { String(rawValue.prefix(while: { $0 != "/" })) }
 
     /// Имя без группы — подпись в галерее.

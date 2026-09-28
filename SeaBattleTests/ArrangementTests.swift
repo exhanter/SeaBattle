@@ -266,6 +266,28 @@ struct ArrangementTests {
         #expect(m.cell(at: CGPoint(x: 5, y: m.gridSide + 10)) == nil)
     }
 
+    // MARK: Текст предупреждения
+
+    @Test("Наложение и касание — разные тексты, и наложение сильнее")
+    func theWarningTellsTheTwoErrorsApart() {
+        // Спека 2.16: «Клетка занята» при наложении, «Нужен зазор в одну
+        // клетку» при касании. Путать их значит объяснять игроку не ту беду.
+        var editor = editorWithCanonicalFleet()
+        #expect(editor.conflictKind == nil)
+
+        editor.beginEditing()
+        // Канонический флот: четырёхпалубный в строке 1 столбцы 1–4,
+        // трёхпалубный в строке 3 столбцы 1–3. Ставим однопалубный в строку 2 —
+        // он никого не накрывает, но касается обоих.
+        let single = editor.ships.first { $0.length == 1 }!
+        editor.move(single.id, to: Coordinate(row: 2, column: 2))
+        #expect(editor.conflictKind == .touching)
+
+        // А теперь прямо на четырёхпалубный.
+        editor.move(single.id, to: Coordinate(row: 1, column: 2))
+        #expect(editor.conflictKind == .overlap)
+    }
+
     // MARK: Розовая клетка
 
     @Test("Запрет — состояние отрисовки, из ядра правил не приходит")

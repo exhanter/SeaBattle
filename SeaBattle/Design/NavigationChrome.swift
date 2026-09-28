@@ -26,6 +26,11 @@ struct ScreenTitle: View {
     /// Название экрана, куда ведёт возврат. `nil` — строки возврата нет: так на
     /// корнях табов, в бою (оттуда выходят через «Меню») и в онбординге.
     var back: LocalizedStringKey?
+    /// Подсказка фазы под названием (спека 2.11, раунд 4). До двух строк, без
+    /// обрезки. **Текст ошибок сюда не пишется**: об ошибке говорит
+    /// `WarningLine` под полем, рядом с розовым кораблём, — а написанное дважды
+    /// читается как две разные беды.
+    var subtitle: LocalizedStringKey?
     var onBack: () -> Void = {}
 
     var body: some View {
@@ -55,6 +60,17 @@ struct ScreenTitle: View {
                 .shadow(color: .inkTitleShadow,
                         radius: NavMetrics.titleShadowRadius,
                         y: NavMetrics.titleShadowOffsetY)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(TypeScale.screenSubtitle)
+                    .lineSpacing(NavMetrics.subtitleLineSpacing)
+                    .foregroundStyle(Color.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .shadow(color: .inkTitleShadow,
+                            radius: NavMetrics.titleShadowRadius,
+                            y: NavMetrics.titleShadowOffsetY)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Geometry.Nav.titleInset)
@@ -68,6 +84,8 @@ enum NavMetrics {
     static let backGap: CGFloat = 7
     static let titleShadowRadius: CGFloat = 2.5   // CSS 0 1 5
     static let titleShadowOffsetY: CGFloat = 1
+    /// Межстрочный 1,4 при кегле 12,5 — это +40 % к строке.
+    static let subtitleLineSpacing: CGFloat = 12.5 * 0.4
     static let menuIcon: CGFloat = 21
     static let menuText: CGFloat = 13.5
     static let menuGap: CGFloat = 8
@@ -129,6 +147,34 @@ struct BottomStack<Content: View>: View {
         }
         .padding(.horizontal, Geometry.Nav.stackInset)
         .padding(.bottom, Geometry.Nav.stackBottom)
+    }
+}
+
+// MARK: - Предупреждение
+
+/// Спека 2.16. **Строка текста, а не капсула:** фон, рамка и свечение обещают
+/// нажатие, а нажимать тут нечего — заказчик отклонил капсулу именно за это.
+/// Появляется и гаснет вместе с розовым кораблём.
+struct WarningLine: View {
+    let text: LocalizedStringKey
+
+    var body: some View {
+        HStack(spacing: Geometry.Warning.gap) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: symbolFontSize(inBox: Geometry.Warning.icon)))
+                .frame(height: Geometry.Warning.icon)
+                .foregroundStyle(Color.warnIcon)
+            Text(text)
+                .font(TypeScale.warning)
+                .foregroundStyle(Color.warnText)
+                // Перенос, а не обрезка: на трёх языках длина разная, а
+                // недосказанное предупреждение хуже двух строк.
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .shadow(color: .inkTitleShadow,
+                radius: NavMetrics.titleShadowRadius,
+                y: NavMetrics.titleShadowOffsetY)
+        .accessibilityElement(children: .combine)
     }
 }
 
