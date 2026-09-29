@@ -60,9 +60,15 @@ struct GameSnapshot: Codable, Sendable {
     var manualShipArrangement: Bool
     var player: PlayerSnapshot
     var enemy: PlayerSnapshot
+    /// R2.5: выстрелы, серия и подсказки игрока для экрана итогов. Поле
+    /// необязательное, поэтому версия формата не поднята: сохранение старой
+    /// сборки читается с `nil` (счёт начнётся с нуля), а старая сборка лишний
+    /// ключ просто не заметит.
+    var tally: MatchTally?
 
     @MainActor
-    init(appState: AppState, player: PlayerData, enemy: PlayerData) {
+    init(appState: AppState, player: PlayerData, enemy: PlayerData,
+         tally: MatchTally? = nil) {
         self.schemaVersion = Self.currentSchemaVersion
         self.difficulty = appState.difficulty
         self.enemysTurn = appState.enemysTurn
@@ -70,6 +76,7 @@ struct GameSnapshot: Codable, Sendable {
         self.manualShipArrangement = appState.manualShipArrangement
         self.player = PlayerSnapshot(player)
         self.enemy = PlayerSnapshot(enemy)
+        self.tally = tally
     }
 
     /// Applies this snapshot back onto the live game objects.

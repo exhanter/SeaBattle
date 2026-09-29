@@ -67,13 +67,20 @@ struct BattleScreen: View {
     let battle: BattleController
     /// Выйти в меню. Вопрос «Выйти из партии?» задаёт сам экран.
     var onLeave: () -> Void = {}
-    /// ПЕРЕХОДНОЕ до R2.5: кнопки старого окна итогов.
+    /// Кнопки итогов: «Ещё партия» / «Отыграться» и «В меню».
     var onPlayAgain: () -> Void = {}
     var onMenuAfterResult: () -> Void = {}
 
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var askLeave = false
+    /// Итоги на экране. Ставится после паузы `Motion.toResults`, а не сразу
+    /// с итогом: последний выстрел должен успеть доиграть на поле.
+    @State private var showsResults = false
+
+    /// Партия кончилась — поля уходят в размытие под итоги.
+    private var isOver: Bool { battle.result != nil }
 
     private var alphabet: BoardAlphabet {
         .forLanguage(locale.language.languageCode?.identifier)
@@ -118,7 +125,16 @@ struct BattleScreen: View {
 
                 actions(field, size: size)
             }
+            // Бой → итоги (14c): пауза на поле, поля в размытие. Первая
+            // половина — пауза, чтобы всплеск последнего выстрела доиграл
+            // резким; прозрачность до нуля, чтобы под итогами было одно море,
+            // как в кадре.
+            .blur(radius: isOver ? ResultMetrics.fieldsBlur : 0)
+            .opacity(isOver ? 0 : 1)
+            .allowsHitTesting(!isOver)
+            .animation(fieldsOut, value: isOver)
             .overlay { resultOverlay }
+            .task(id: battle.result) { await presentResults() }
             .modalDialog(isPresented: askLeave) {
                 ModalDialog.leaveMatch(.offline,
                                        onStay: { askLeave = false },
@@ -245,15 +261,35 @@ struct BattleScreen: View {
         }
     }
 
-    // MARK: ПЕРЕХОДНОЕ: итоги
+    // MARK: Итоги
 
-    /// Старое окно победы и поражения — до своего экрана итогов в R2.5.
+    private var fieldsOut: Animation {
+        let half = Motion.scaled(Motion.toResults, reduceMotion: reduceMotion) / 2
+        return .easeInOut(duration: half).delay(half)
+    }
+
     @ViewBuilder
     private var resultOverlay: some View {
-        if battle.enemy.showFinishGameAlert || battle.player.showFinishGameAlert {
-            WinAlertView(didPlayerWin: battle.enemy.showFinishGameAlert,
-                         onPlayAgain: onPlayAgain,
-                         onMenu: onMenuAfterResult)
+        if showsResults, let result = battle.result {
+            ResultsScreen(result: result,
+                          onPlayAgain: onPlayAgain,
+                          onMenu: onMenuAfterResult)
+        }
+    }
+
+    /// Итог пришёл — выждать переход и показать экран; ушёл (новая партия) —
+    /// убрать. `task(id:)` обрывает ожидание, если итог сменился раньше.
+    private func presentResults() async {
+        guard let result = battle.result else {
+            showsResults = false
+            return
+        }
+        try? await Task.sleep(for: .seconds(Motion.scaled(Motion.toResults,
+                                                          reduceMotion: reduceMotion)))
+        guard !Task.isCancelled else { return }
+        showsResults = true
+        if appState.soundOn {
+            AppState.playSound(sound: result.didWin ? "victory_sound.wav" : "defeat_sound.wav")
         }
     }
 }
@@ -302,6 +338,42 @@ private struct BattleDemo: View {
 
 #Preview("Бой · своё поле") {
     BattleDemo(field: .you, enemysTurn: true)
+        .preferredColorScheme(.dark)
+}
+
+/// Переход «бой → итоги» живьём: флот противника добивается сам, последний
+/// выстрел — через полсекунды после появления.
+private struct FinishDemo: View {
+    @State private var appState = AppState()
+    @State private var battle = BattleController(pacing: .instant)
+
+    var body: some View {
+        ZStack {
+            SeaBackground()
+                .ignoresSafeArea()
+            BattleScreen(battle: battle)
+        }
+        .environment(appState)
+        .task {
+            appState.soundOn = false
+            appState.confirmShot = false
+            battle.configure(appState: appState)
+            appState.resetData(player: battle.player, enemy: battle.enemy)
+            battle.player.place(FleetLayout.canonicalLayout())
+            battle.enemy.shipsRandomArrangement()
+            appState.gameIsActive = true
+            appState.selectedTab = .enemyView
+            battle.beginMatch()
+            let cells = battle.enemy.ships.flatMap { $0.coordinates.map(Coordinate.init) }
+            cells.dropLast().forEach(battle.tap)
+            try? await Task.sleep(for: .seconds(0.5))
+            if let last = cells.last { battle.tap(last) }
+        }
+    }
+}
+
+#Preview("Бой → итоги") {
+    FinishDemo()
         .preferredColorScheme(.dark)
 }
 

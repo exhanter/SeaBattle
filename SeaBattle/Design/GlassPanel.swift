@@ -65,12 +65,46 @@ struct GlassSpec: Equatable, Sendable {
 /// вместо тени панель даёт свечение. Это свойство панели, а не строки, поэтому
 /// живёт здесь — иначе `ChoiceRow` пришлось бы рисовать обводку поверх готовой
 /// панели, и их стало бы две.
-enum GlassHighlight: Sendable {
+enum GlassHighlight: Equatable, Sendable {
     case none
     /// Выбрано: обводка `Role/You`, свечение `Role/YouSoft` вместо тени.
     case selected
+    /// Рамка результата на итогах (4.9, кадр `screen10Result`): та же схема —
+    /// обводка и свечение вместо тени, — но в цвете исхода: победа тёплая,
+    /// поражение холодное.
+    case outcome(Side)
 
     var isSelected: Bool { self == .selected }
+    /// Есть ли подсветка вообще: у подсвеченной панели свечение **вместо**
+    /// тени.
+    var isLit: Bool { self != .none }
+
+    var stroke: Color? {
+        switch self {
+        case .none: nil
+        case .selected, .outcome(.you): .roleYou
+        case .outcome(.foe): .roleFoe
+        }
+    }
+
+    /// Свечение поражения в макете — `rgba(60,127,191,.24)`, а токена
+    /// «холодное мягкое» в пакете нет (есть только тёплый `Role/YouSoft`).
+    /// До ответа дизайна (В18) — `Board/FillFoe`, ближайший холодный токен:
+    /// он тише макета, а не громче.
+    var glow: Color {
+        switch self {
+        case .none: .clear
+        case .selected, .outcome(.you): .roleYouSoft
+        case .outcome(.foe): .boardFillFoe
+        }
+    }
+
+    var glowRadius: CGFloat {
+        switch self {
+        case .none, .selected: ControlMetrics.ChoiceRow.selectedGlow
+        case .outcome: ResultMetrics.frameGlow
+        }
+    }
 }
 
 /// Деревянный кант 2 pt на кромке, которая смотрит в море: у верхней панели это
@@ -170,16 +204,15 @@ struct GlassPanelModifier: ViewModifier {
             .glassEffect(.regular.tint(tint), in: shape)
             .overlay { woodEdge }
             .overlay { selectedStroke }
-            .shadow(color: highlight.isSelected ? .roleYouSoft : .clear,
-                    radius: ControlMetrics.ChoiceRow.selectedGlow)
+            .shadow(color: highlight.glow, radius: highlight.glowRadius)
     }
 
     /// Латунная обводка выбранной панели. Рисуется поверх и на ветке системного
     /// стекла тоже: обводку там ставит система, но роль она не знает.
     @ViewBuilder
     private var selectedStroke: some View {
-        if highlight.isSelected {
-            shape.strokeBorder(Color.roleYou, lineWidth: level.spec.strokeWidth)
+        if let stroke = highlight.stroke {
+            shape.strokeBorder(stroke, lineWidth: level.spec.strokeWidth)
         }
     }
 
@@ -230,11 +263,10 @@ struct GlassPanelModifier: ViewModifier {
             .clipShape(shape)
             // У выбранной панели свечение **вместо** тени, а не вдобавок к ней
             // (спека 2.13): иначе латунный ободок тонет в тёмном ореоле.
-            .shadow(color: highlight.isSelected ? .roleYouSoft
+            .shadow(color: highlight.isLit ? highlight.glow
                            : (spec.hasShadow ? shadowColor : .clear),
-                    radius: highlight.isSelected ? ControlMetrics.ChoiceRow.selectedGlow
-                            : spec.shadowRadius,
-                    y: highlight.isSelected ? 0 : spec.shadowOffsetY)
+                    radius: highlight.isLit ? highlight.glowRadius : spec.shadowRadius,
+                    y: highlight.isLit ? 0 : spec.shadowOffsetY)
     }
 
     private var shape: RoundedRectangle {
@@ -255,7 +287,7 @@ struct GlassPanelModifier: ViewModifier {
     }
 
     private var stroke: Color {
-        if highlight.isSelected { return .roleYou }
+        if let stroke = highlight.stroke { return stroke }
         switch level {
         case .g1: return .glassSolidStroke
         case .g2: return .glassStroke

@@ -93,6 +93,12 @@ final class BattleController {
     /// Последний выстрел — по любому полю. Ровно одно: новое событие
     /// заменяет прежнее, поэтому анимации не копятся (спека 5).
     private(set) var lastEvent: CellEvent?
+    /// Итог партии — ставится **в момент** последнего выстрела, а не через
+    /// секунду, как старое окно: паузу перед итогами держит экран
+    /// (`Motion.toResults`), а тесту ждать нечего (R2.5).
+    private(set) var result: MatchResult?
+    /// Выстрелы, серия и подсказки игрока — для итогов и для сохранения.
+    @ObservationIgnored private(set) var tally = MatchTally()
 
     @ObservationIgnored private(set) var appState: AppState?
     @ObservationIgnored private let engine = GameEngine()
@@ -120,12 +126,15 @@ final class BattleController {
     // MARK: Партия
 
     /// Новая или продолженная партия: всё временное — прицел, лента, ход
-    /// компьютера — сбрасывается, поля не трогаются (их готовит вызывающий).
-    func beginMatch() {
+    /// компьютера, итог — сбрасывается, поля не трогаются (их готовит
+    /// вызывающий). Продолженная партия приносит свой счёт из сохранения.
+    func beginMatch(tally: MatchTally = MatchTally()) {
         cancelOpponentTurn()
         aim = nil
         incoming = []
         lastEvent = nil
+        result = nil
+        self.tally = tally
     }
 
     /// Выход в меню посреди партии. Ход компьютера **не** обрывается — он
@@ -241,7 +250,21 @@ final class BattleController {
             lastEvent = event
             nextEventID += 1
         }
+        if target.side == .foe { tally.record(result) }
+        finishIfOver()
         return result
+    }
+
+    /// Партию кончает любой выстрел — и свой, и компьютера. Баланс берётся
+    /// после `GameEngine.finish`, поэтому победа в нём уже начислена.
+    private func finishIfOver() {
+        guard result == nil, let appState, appState.gameIsOver else { return }
+        result = MatchResult(didWin: enemy.coreBoard.isFleetDestroyed,
+                             level: appState.difficultyLevel,
+                             yourLosses: player.numberShipsDestroyed,
+                             foeLosses: enemy.numberShipsDestroyed,
+                             tally: tally,
+                             balance: ProgressStore.shared.points)
     }
 
     /// Событие для показанного поля; чужое поле его не получает.
@@ -290,6 +313,7 @@ final class BattleController {
               let pick = hintCandidates.randomElement(),
               ProgressStore.shared.spend(hintCost) else { return false }
         appState.revealedHintCells.append(pick.tuple)
+        tally.recordHint(cost: hintCost)
         if appState.soundOn { AudioService.shared.play(.click) }
         return true
     }
@@ -314,7 +338,13 @@ final class BattleController {
     /// компьютера после загрузки не бывает.
     private func autosave() {
         guard let appState, appState.gameIsActive, !appState.enemysTurn else { return }
-        GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
+        GameStore.save(snapshot(of: appState))
+    }
+
+    /// Снимок партии вместе со счётом игрока — один на все места, где пишется
+    /// сохранение, чтобы счёт не потерялся ни в одном из них.
+    func snapshot(of appState: AppState) -> GameSnapshot {
+        GameSnapshot(appState: appState, player: player, enemy: enemy, tally: tally)
     }
 
     /// Для тестов: дождаться, пока компьютер доиграет ход.

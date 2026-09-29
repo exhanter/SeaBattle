@@ -153,8 +153,9 @@ struct AppShell: View {
     @State private var askWhichGameToContinue = false
     @State private var modeNotBuiltYet: MenuMode?
 
-    /// Экран партии, открытый поверх таба «Играть». Пока один: выбор уровня.
-    /// Дальше сюда встанут расстановка (R2.2), бой (R2.3) и итоги (R2.5).
+    /// Экран партии до боя, открытый поверх таба «Играть»: уровень или
+    /// расстановка. Бой открывается по `AppState.selectedTab`, итоги — слой
+    /// поверх боя (`BattleScreen`), своего маршрута у них нет.
     @State private var route: ShellRoute?
     /// Что выбрано на экране уровня. Живёт в оболочке, а не в экране: после
     /// покупки Pro прямо с него выбор должен стать «Экспертом».
@@ -196,7 +197,7 @@ struct AppShell: View {
             // Сохранение в стабильной точке — при уходе из приложения посреди
             // партии и не на ходу компьютера.
             if phase != .active && appState.gameIsActive && !appState.enemysTurn {
-                GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
+                GameStore.save(battle.snapshot(of: appState))
             }
             if phase == .active {
                 Task { await CloudSyncManager.shared.refresh() }
@@ -391,14 +392,14 @@ struct AppShell: View {
     /// когда доиграет.
     private func leaveBattle() {
         if appState.gameIsActive && !appState.enemysTurn {
-            GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
+            GameStore.save(battle.snapshot(of: appState))
         }
         battle.leave()
         appState.selectedTab = .menu
     }
 
-    /// ПЕРЕХОДНОЕ до R2.5: «Ещё партия» в старом окне итогов — новая
-    /// расстановка на том же уровне.
+    /// «Ещё партия» / «Отыграться» на итогах — новая расстановка на том же
+    /// уровне, без шага выбора: игрок только что сыграл на нём и просит ещё.
     private func playAgain() {
         closeFinishedMatch()
         openArrangement(cameFromLevel: false)
@@ -426,7 +427,7 @@ struct AppShell: View {
     private func continueVsComputer() {
         guard let snapshot = GameStore.load() else { return }
         snapshot.apply(to: appState, player: player, enemy: enemy)
-        battle.beginMatch()
+        battle.beginMatch(tally: snapshot.tally ?? MatchTally())
         if appState.musicOn {
             AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
         }
