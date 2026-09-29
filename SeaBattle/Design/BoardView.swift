@@ -12,6 +12,9 @@
 //  Рамка активного поля — та, по которой **сейчас стреляют**: на вашем ходу
 //  светится поле противника, на ходу соперника — ваше. Не пульсирует.
 //
+//  Событие клетки (R2.4, спека 5) — всплеск, смена состояния и подсветка
+//  контура — приходит параметром `event`: поле рисует ровно одно, последнее.
+//
 
 import SwiftUI
 
@@ -133,13 +136,19 @@ struct BoardView: View {
     var isActive: Bool = false
     /// Названная клетка: её буква и цифра подсвечиваются латунью.
     var aim: (column: Int, row: Int)?
+    /// Последний выстрел по этому полю. Чужое событие сюда не передавать:
+    /// цвет кольца закреплён за полем, а не за стрелявшим.
+    var event: CellEvent?
     var onTap: ((_ column: Int, _ row: Int) -> Void)?
 
     private var alphabet: BoardAlphabet = .current
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     init(cells: [BoardCellState], role: Side, metrics: BoardMetrics,
          isActive: Bool = false, aim: (column: Int, row: Int)? = nil,
          alphabet: BoardAlphabet = .current,
+         event: CellEvent? = nil,
          onTap: ((_ column: Int, _ row: Int) -> Void)? = nil) {
         self.cells = cells
         self.role = role
@@ -147,6 +156,7 @@ struct BoardView: View {
         self.isActive = isActive
         self.aim = aim
         self.alphabet = alphabet
+        self.event = event
         self.onTap = onTap
     }
 
@@ -162,8 +172,11 @@ struct BoardView: View {
 
     // MARK: Подложка и сетка
 
+    private var timing: CellEventTiming { CellEventTiming(reduceMotion: reduceMotion) }
+
     private var board: some View {
         grid
+            .overlay(alignment: .topLeading) { splash }
             .padding(metrics.inset)
             .background {
                 RoundedRectangle(cornerRadius: metrics.radius, style: .continuous)
@@ -176,13 +189,35 @@ struct BoardView: View {
             }
             // Рамка активного поля рисуется поверх обвязки и **всегда латунная**:
             // она говорит «сюда стреляют сейчас», а не «чьё это поле».
+            // Смена хода (14c): рамка гаснет за 160 мс, вторая разгорается за
+            // 240 после паузы — на iPhone это одно показанное поле.
             .overlay {
-                if isActive {
-                    RoundedRectangle(cornerRadius: metrics.radius, style: .continuous)
-                        .strokeBorder(Color.roleYou, lineWidth: 2.5)
-                        .shadow(color: .roleYouSoft, radius: 13)
-                }
+                RoundedRectangle(cornerRadius: metrics.radius, style: .continuous)
+                    .strokeBorder(Color.roleYou, lineWidth: 2.5)
+                    .shadow(color: .roleYouSoft, radius: 13)
+                    .opacity(isActive ? 1 : 0)
+                    .animation(turnAnimation, value: isActive)
+                    .allowsHitTesting(false)
             }
+    }
+
+    private var turnAnimation: Animation {
+        let fade = Motion.scaled(Motion.turnFade, reduceMotion: reduceMotion)
+        return isActive
+            ? .easeInOut(duration: Motion.scaled(Motion.turnRaise, reduceMotion: reduceMotion)).delay(fade)
+            : .easeInOut(duration: fade)
+    }
+
+    /// Кольца и подсветка у клетки выстрела — слоем поверх сетки: кольцо
+    /// шире клетки и не должно обрезаться соседями.
+    @ViewBuilder
+    private var splash: some View {
+        if let event {
+            let origin = metrics.cellOrigin(event.target)
+            CellSplash(event: event, cell: metrics.cell, timing: timing)
+                .id(event.id)
+                .offset(x: origin.x, y: origin.y)
+        }
     }
 
     private var grid: some View {
@@ -190,7 +225,7 @@ struct BoardView: View {
             ForEach(0..<BoardMetrics.columns, id: \.self) { row in
                 HStack(spacing: metrics.gap) {
                     ForEach(0..<BoardMetrics.columns, id: \.self) { column in
-                        BoardCell(state(row: row, column: column), size: metrics.cell)
+                        cell(row: row, column: column)
                             // Бьют по клетке в сетке, а не по отдельной кнопке,
                             // поэтому размер меньше 44 pt здесь допустим.
                             .contentShape(Rectangle())
@@ -198,6 +233,21 @@ struct BoardView: View {
                     }
                 }
             }
+        }
+    }
+
+    /// Клетка, которую задел последний выстрел, растворяется из прежнего
+    /// состояния; остальные рисуются как есть. Когда событие сменилось,
+    /// прежние клетки сразу стоят в конечном состоянии — анимации не копятся.
+    @ViewBuilder
+    private func cell(row: Int, column: Int) -> some View {
+        let now = state(row: row, column: column)
+        if let event, let change = event.change(at: Coordinate(row: row + 1, column: column + 1)) {
+            SwappingCell(from: .forDisplay(change.from, on: role), to: now, change: change,
+                         start: event.start, size: metrics.cell, timing: timing)
+                .id(event.id)
+        } else {
+            BoardCell(now, size: metrics.cell)
         }
     }
 

@@ -267,6 +267,8 @@ struct ShotFeed: View {
     static let height: CGFloat = 72
     static let fadeWidth: CGFloat = 34
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -293,6 +295,11 @@ struct ShotFeed: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// Reduce Motion: перемещение становится прозрачностью (спека 5).
+    private var chipArrival: AnyTransition {
+        reduceMotion ? .opacity : .move(edge: .trailing).combined(with: .opacity)
+    }
+
     private var chips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 7) {
@@ -305,9 +312,13 @@ struct ShotFeed: View {
                     }
                     ShotChip(entry: entry, isLast: index == entries.count - 1,
                              alphabet: alphabet)
+                        .transition(chipArrival)
                 }
             }
             .padding(.trailing, 14)
+            // Капсула въезжает с края, соседние сдвигаются (14c, 220 мс).
+            .animation(.easeOut(duration: Motion.scaled(Motion.feedChip, reduceMotion: reduceMotion)),
+                       value: entries)
         }
         // При открытии прижата к концу: последний выстрел — самый важный.
         .defaultScrollAnchor(.trailing)

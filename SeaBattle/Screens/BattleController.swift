@@ -90,12 +90,16 @@ final class BattleController {
     private(set) var aim: Coordinate?
     /// «По вам за этот раунд» — выстрелы компьютера за его последний ход.
     private(set) var incoming: [ShotFeedEntry] = []
+    /// Последний выстрел — по любому полю. Ровно одно: новое событие
+    /// заменяет прежнее, поэтому анимации не копятся (спека 5).
+    private(set) var lastEvent: CellEvent?
 
     @ObservationIgnored private(set) var appState: AppState?
     @ObservationIgnored private let engine = GameEngine()
     @ObservationIgnored private var opponent: ComputerOpponent?
     @ObservationIgnored private let pacing: BattlePacing
     @ObservationIgnored private var nextEntryID = 0
+    @ObservationIgnored private var nextEventID = 0
     /// Ход компьютера. Держим ссылку, чтобы новая партия его обрывала: иначе
     /// досыпающий ход прошлой партии стрелял бы по свежему полю.
     @ObservationIgnored private var turnTask: Task<Void, Never>?
@@ -121,6 +125,7 @@ final class BattleController {
         cancelOpponentTurn()
         aim = nil
         incoming = []
+        lastEvent = nil
     }
 
     /// Выход в меню посреди партии. Ход компьютера **не** обрывается — он
@@ -155,8 +160,7 @@ final class BattleController {
 
     private func fire(at coordinate: Coordinate) {
         guard let appState else { return }
-        let result = engine.checkShipOnFire(row: coordinate.row, column: coordinate.column,
-                                            target: enemy)
+        let result = shoot(at: coordinate, on: enemy)
         if appState.soundOn { playOwnShot(result) }
         autosave()
         if appState.gameIsActive && appState.enemysTurn {
@@ -209,7 +213,7 @@ final class BattleController {
         while !Task.isCancelled {
             let shot = await opponent.nextShot()
             guard !Task.isCancelled else { return }
-            let result = engine.checkShipOnFire(row: shot.row, column: shot.column, target: player)
+            let result = shoot(at: shot, on: player)
             log(shot, result)
             guard result.keepsTurn, appState.gameIsActive else { break }
             try? await Task.sleep(for: pacing.betweenShots)
@@ -222,6 +226,27 @@ final class BattleController {
         try? await Task.sleep(for: pacing.backToFoe)
         guard !Task.isCancelled else { return }
         show(.foe)
+    }
+
+    /// Выстрел плюс событие клетки для экрана. Поле противника сравнивается
+    /// так, как его видит игрок (`opponentView()`): иначе событие выдало бы
+    /// нетронутые корабли.
+    private func shoot(at coordinate: Coordinate, on target: PlayerData) -> Board.ShotResult {
+        let visible = { target.side == .foe ? target.coreBoard.opponentView() : target.coreBoard }
+        let before = visible()
+        let result = engine.checkShipOnFire(row: coordinate.row, column: coordinate.column,
+                                            target: target)
+        if let event = CellEvent(id: nextEventID, field: target.side, target: coordinate,
+                                 result: result, before: before, after: visible()) {
+            lastEvent = event
+            nextEventID += 1
+        }
+        return result
+    }
+
+    /// Событие для показанного поля; чужое поле его не получает.
+    func event(on field: Side) -> CellEvent? {
+        lastEvent?.field == field ? lastEvent : nil
     }
 
     private func log(_ shot: Coordinate, _ result: Board.ShotResult) {

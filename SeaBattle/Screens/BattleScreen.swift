@@ -9,8 +9,8 @@
 //  Поле противника — экран стрельбы, своё поле — экран показа: по клеткам не
 //  нажимают, подсказки нет, есть лента «По вам за этот раунд».
 //
-//  Анимации клетки (всплеск, подсветка контура, волна потопления) — R2.4;
-//  здесь достаточно смены состояния.
+//  Анимации клетки (всплеск, подсветка контура, волна потопления) рисует
+//  `BoardView` по последнему событию из `BattleController` (R2.4).
 //
 
 import SwiftUI
@@ -165,6 +165,7 @@ struct BattleScreen: View {
 
         return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
                          alphabet: alphabet,
+                         event: battle.event(on: field),
                          onTap: field == .foe
                             ? { column, row in battle.tap(Coordinate(row: row + 1, column: column + 1)) }
                             : nil)
