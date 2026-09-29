@@ -29,7 +29,7 @@ struct BoardViewTests {
     @Test("Радиус подложки продолжает скругление угловой клетки")
     func theBackingRadiusContinuesTheCorner() {
         for cell in [Geometry.Cell.iPhoneSmallCoords, Geometry.Cell.iPhone,
-                     Geometry.Cell.iPadPortrait, Geometry.Cell.iPadPlacement] {
+                     Geometry.Cell.iPadPortrait, PadTableGeometry.minCell] {
             let m = BoardMetrics(cell: cell)
             #expect(m.radius == Geometry.cellRadius(for: cell) + Geometry.boardInset)
         }

@@ -1,53 +1,49 @@
 //
 //  PadTableScreen.swift
-//  Sea Battle — стол на два поля, iPad (R2.6, шаг 10 порядка сборки)
+//  Sea Battle — стол на два поля, iPad (R2.6, раунд 7)
 //
-//  Спека 4.4 «iPad» и 4.5, кадры `screen8Ipad` (стол до старта, тур 8.1),
-//  `screen11Port` и `screen11Land` (бой, тур 11.2). Отдельного экрана
-//  расстановки нет: партия открывается сразу двумя полями — своё с
-//  авторасставленным флотом и пустое поле противника. «Изменить» правит флот
-//  на том же экране, поле противника при этом приглушается; «Начать» — бой на
-//  том же столе.
+//  Спека 4.4 «iPad» после раунда 7, кадры 21a (`screen21Port`) и 21c
+//  (`screen21Land` с равными отступами). Отдельного экрана расстановки нет:
+//  партия открывается сразу двумя полями — своё с авторасставленным флотом и
+//  пустое поле противника (приглушено). «Изменить» правит флот на том же
+//  столе; «Начать» — бой на том же столе.
 //
-//  Одна рамка 24 pt от всех четырёх краёв в обеих ориентациях (тур 11.2).
-//  Вертикально своё поле сверху, поле противника снизу — стреляют там, где
-//  рука держит планшет. Горизонтально по умолчанию своё слева; сторона — только
-//  в настройках (4.11), вместе с полями переезжают лента, подсказка и блоки
-//  счёта, цвета ролей не меняются.
+//  **Поля не двигаются никогда.** Клетка одна до старта и в бою, верх — одна и
+//  та же панель счёта той же высоты (до старта в центре «Расстановка»). Всё,
+//  что меняется между фазами, стоит на месте квадрата подсказки: до старта там
+//  «Изменить» и «Начать», в бою — подсказка.
 //
-//  Правила экрана те же, что у iPhone: верх показывает и не нажимается, всё
-//  нажимаемое — на нижней линии.
+//  Одна рамка 24 pt от краёв. Вертикально своё поле сверху, поле противника
+//  снизу — стреляют там, где рука держит планшет. Горизонтально отступы слева,
+//  между полями и справа равны; сторона своего поля — только в настройках
+//  (4.11), вместе с полями переезжают лента, кнопки и блоки счёта.
 //
 
 import SwiftUI
 
 // MARK: - Геометрия стола
 
-/// Размер клетки и рамка стола — чистая функция от области, под тестом.
+/// Размер клетки и отступы стола — чистая функция от области, под тестом.
 ///
-/// Клетки из токенов (42 вертикально, 44 горизонтально, 40 на столе до
-/// старта) — **потолок**, а не закон: iPad бывает от mini до 13", и на mini
-/// два поля по 42 pt в вертикали не помещаются физически. Поэтому клетка
-/// считается от места и зажимается сверху токеном.
+/// Клетка 42 из токенов — **потолок**: клетка = min(42, сколько помещается).
+/// iPad бывает от mini до 13", и на mini два поля по 42 в вертикали не
+/// помещаются физически. Считается один раз на ориентацию и **от фазы не
+/// зависит**: в расчёт берётся самое тесное из обеих фаз, поэтому поля по
+/// «Начать» не прыгают.
 struct PadTableGeometry: Equatable, Sendable {
-    enum Phase: Equatable, Sendable {
-        /// Стол до старта: вместо панели счёта — заголовок, внизу ряд кнопок.
-        case placement
-        case battle
-    }
-
     let orientation: PadOrientation
-    let phase: Phase
     let cell: CGFloat
     /// Рамка сверху и снизу. Сверху — не меньше полосы состояния, снизу — не
     /// меньше полоски «домой».
     let top: CGFloat
     let bottom: CGFloat
+    /// Горизонтально: отступ слева и справа от полей и отступ между ними.
+    let sideMargin: CGFloat
+    let middleMargin: CGFloat
 
     static let frame = Geometry.Inset.padFrame
     static let gap = Geometry.Cell.gapPad
-    /// Верхняя панель — одна высота на счёт и заголовок стола, иначе поля
-    /// прыгнули бы по «Начать».
+    /// Верхняя панель — одна высота до старта и в бою.
     static let topPanelHeight: CGFloat = 86
     /// Между верхней панелью и первым полем.
     static let topGap: CGFloat = 16
@@ -55,14 +51,14 @@ struct PadTableGeometry: Equatable, Sendable {
     static let titleHeight: CGFloat = 26
     static let titleGap: CGFloat = 10
     static var titleBlock: CGFloat { titleHeight + titleGap }
-    /// Наименьший зазор между полями по вертикали и над нижним рядом.
+    /// Наименьший зазор между полями по вертикали.
     static let blockGap: CGFloat = 12
-    /// Ряд кнопок стола и нижняя панель — одна высота (тур 11.1).
-    static let bottomRowHeight = Geometry.Inset.hintHeightLandscape
+    /// Квадраты нижней линии.
+    static let tile = Geometry.Inset.padTile
     /// Лента столбиком: подпись, зазор и окно на три капсулы.
     static var feedHeight: CGFloat { ShotColumnMetrics.height }
-    /// Между лентой и кромкой поля — чтобы капсулы не липли к полю.
-    static let feedClearance: CGFloat = 8
+    /// Между лентой и полем (спека 2.8 после раунда 7).
+    static let feedClearance: CGFloat = 14
     static let minCell: CGFloat = 24
 
     /// Сторона поля с подложкой при такой клетке.
@@ -76,7 +72,15 @@ struct PadTableGeometry: Equatable, Sendable {
         return floor((side - gap * (columns - 1) - Geometry.boardInset * 2) / columns)
     }
 
-    init(size: CGSize, safeTop: CGFloat = 0, safeBottom: CGFloat = 0, phase: Phase) {
+    /// Горизонтально отступы слева, между полями и справа равны:
+    /// (ширина − 2 × поле) / 3. Нечётный остаток отдаётся середине (21c).
+    static func margins(width: CGFloat, boardSide: CGFloat) -> (side: CGFloat, middle: CGFloat) {
+        let rest = width - 2 * boardSide
+        let side = floor(rest / 3)
+        return (side, rest - 2 * side)
+    }
+
+    init(size: CGSize, safeTop: CGFloat = 0, safeBottom: CGFloat = 0) {
         let orientation = PadOrientation.of(size)
         let top = max(Self.frame, safeTop)
         let bottom = max(Self.frame, safeBottom)
@@ -85,40 +89,31 @@ struct PadTableGeometry: Equatable, Sendable {
         let body = size.height - top - bottom - Self.topPanelHeight - Self.topGap
 
         let fit: CGFloat
-        let ceiling: CGFloat
-        switch (orientation, phase) {
-        case (.portrait, _):
-            // Два поля друг над другом. В бою нижняя кромка поля противника
-            // стоит на общей нижней линии, рядом — «Меню» и подсказка; до
-            // старта под полем противника ещё ряд кнопок.
-            var height = body - Self.titleBlock * 2 - Self.blockGap
-            if phase == .placement { height -= Self.bottomRowHeight + Self.blockGap }
-            // По бокам поля — ячейки рельса и подсказки (104) и лента (128):
-            // поле не должно под них заходить.
-            let side = Geometry.Inset.feedWidthPortrait + Self.feedClearance
-            let width = phase == .battle ? size.width - 2 * (frame + side) : size.width - 2 * frame
-            fit = Self.cell(fitting: min(height / 2, width))
-            ceiling = phase == .battle ? Geometry.Cell.iPadPortrait : Geometry.Cell.iPadTable
-
-        case (.landscape, _):
-            // Два поля рядом, 34 pt между ними. Под своим полем в бою лента,
-            // она выше ряда кнопок до старта. Считаем от большего в **обеих**
-            // фазах: иначе на iPad mini клетка менялась бы по «Начать».
-            let under = max(Self.feedHeight + Self.feedClearance,
-                            Self.bottomRowHeight + Self.blockGap)
-            let height = body - Self.titleBlock - under
-            let width = (size.width - 2 * frame - Geometry.Inset.boardGapPad) / 2
+        switch orientation {
+        case .portrait:
+            // Два поля друг над другом; нижняя кромка поля противника на общей
+            // нижней линии, рядом — квадраты. По бокам поля — лента (128 + 14)
+            // и квадраты (104): поле не должно под них заходить.
+            let height = (body - Self.titleBlock * 2 - Self.blockGap) / 2
+            let width = size.width - 2 * (frame + Geometry.Inset.feedWidthPortrait + Self.feedClearance)
             fit = Self.cell(fitting: min(height, width))
-            // Горизонтально клетка одна на обе фазы: места хватает, и поля
-            // по «Начать» не прыгают.
-            ceiling = Geometry.Cell.iPadLandscape
+        case .landscape:
+            // Два поля рядом. Под своим полем в бою лента, она выше квадратов
+            // до старта — считаем от неё в обеих фазах.
+            let under = max(Self.feedHeight, Self.tile) + Self.feedClearance
+            let height = body - Self.titleBlock - under
+            let width = (size.width - 3 * frame) / 2
+            fit = Self.cell(fitting: min(height, width))
         }
 
+        let cell = max(Self.minCell, min(Geometry.Cell.iPadPortrait, fit))
+        let margins = Self.margins(width: size.width, boardSide: Self.boardSide(cell: cell))
         self.orientation = orientation
-        self.phase = phase
-        self.cell = max(Self.minCell, min(ceiling, fit))
+        self.cell = cell
         self.top = top
         self.bottom = bottom
+        self.sideMargin = margins.side
+        self.middleMargin = margins.middle
     }
 
     var metrics: BoardMetrics { BoardMetrics(cell: cell, gap: Self.gap) }
@@ -130,8 +125,7 @@ struct PadTableGeometry: Equatable, Sendable {
 struct PadTableScreen: View {
 
     enum Phase {
-        /// Стол до старта. Уровень, который в кадре стоит подзаголовком
-        /// шапки, здесь — капсулой в строке поля противника, как в бою.
+        /// Стол до старта.
         case placement(editor: Binding<FleetEditor>, onStart: () -> Void)
         case battle(BattleController)
     }
@@ -144,11 +138,6 @@ struct PadTableScreen: View {
 
     private var alphabet: BoardAlphabet {
         .forLanguage(locale.language.languageCode?.identifier)
-    }
-
-    private var geometryPhase: PadTableGeometry.Phase {
-        if case .placement = phase { return .placement }
-        return .battle
     }
 
     private var editor: Binding<FleetEditor>? {
@@ -168,8 +157,7 @@ struct PadTableScreen: View {
                                   + proxy.safeAreaInsets.bottom)
             let g = PadTableGeometry(size: size,
                                      safeTop: proxy.safeAreaInsets.top,
-                                     safeBottom: proxy.safeAreaInsets.bottom,
-                                     phase: geometryPhase)
+                                     safeBottom: proxy.safeAreaInsets.bottom)
             Group {
                 if g.orientation == .portrait {
                     portrait(g)
@@ -179,7 +167,6 @@ struct PadTableScreen: View {
             }
             .padding(.top, g.top)
             .padding(.bottom, g.bottom)
-            .padding(.horizontal, PadTableGeometry.frame)
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
         }
@@ -187,11 +174,12 @@ struct PadTableScreen: View {
                    value: editor?.wrappedValue.conflictKind)
     }
 
-    // MARK: Вертикально
+    // MARK: Вертикально (21a)
 
     private func portrait(_ g: PadTableGeometry) -> some View {
         VStack(spacing: 0) {
             topPanel(g)
+                .padding(.horizontal, PadTableGeometry.frame)
             Spacer(minLength: PadTableGeometry.topGap)
             // Лента — справа, нижняя кромка по нижней кромке своего поля.
             ZStack(alignment: .bottomTrailing) {
@@ -203,64 +191,57 @@ struct PadTableScreen: View {
                                alphabet: alphabet)
                 }
             }
+            .padding(.horizontal, PadTableGeometry.frame)
             Spacer(minLength: PadTableGeometry.blockGap)
                 .overlay { warning }
-            // Нижняя кромка поля противника, «Меню» и подсказка кончаются на
-            // одной линии (тур 11.2).
+            // Нижняя кромка поля противника и квадраты кончаются на одной
+            // линии: «Меню» слева, справа кнопки фазы (11b, 21a).
             ZStack(alignment: .bottom) {
                 block(.foe, g)
                     .frame(maxWidth: .infinity)
-                if battle != nil {
-                    HStack(alignment: .bottom) {
-                        PadMenuButton(orientation: .portrait, action: onMenu)
-                            .frame(height: Geometry.Inset.railWidth)
-                        Spacer()
-                        hint(tall: true)
-                    }
+                HStack(alignment: .bottom) {
+                    PadNavTile.menu(onMenu)
+                    Spacer()
+                    phaseTiles(stacked: true)
                 }
             }
-            if editor != nil {
-                placementRow(g)
-                    .padding(.top, PadTableGeometry.blockGap)
-            }
+            .padding(.horizontal, PadTableGeometry.frame)
         }
     }
 
-    // MARK: Горизонтально
+    // MARK: Горизонтально (21c)
 
     private func landscape(_ g: PadTableGeometry) -> some View {
-        let pairWidth = g.boardSide * 2 + Geometry.Inset.boardGapPad
         let ownOnRight = appState.ownBoardOnRight
         return VStack(spacing: 0) {
             topPanel(g)
+                .padding(.horizontal, PadTableGeometry.frame)
                 .padding(.bottom, PadTableGeometry.topGap)
-            HStack(alignment: .top, spacing: Geometry.Inset.boardGapPad) {
+            // Три равных отступа: слева, между полями и справа. Пара полей по
+            // центру, остаток уходит в середину — поэтому боковые выходят сами.
+            HStack(alignment: .top, spacing: g.middleMargin) {
                 block(ownOnRight ? .foe : .you, g)
                 block(ownOnRight ? .you : .foe, g)
             }
+            .frame(maxWidth: .infinity)
             Spacer(minLength: PadTableGeometry.blockGap)
                 .overlay { warning }
-            if editor != nil {
-                placementRow(g)
-            } else {
-                // Лента под своим полем у его внешней кромки, подсказка под
-                // полем противника у дальней кромки, «Меню» по центру (11a).
-                ZStack(alignment: .bottom) {
-                    HStack(alignment: .bottom) {
-                        if ownOnRight { hint(tall: false) } else { feed(g) }
-                        Spacer()
-                        if ownOnRight { feed(g) } else { hint(tall: false) }
-                    }
-                    PadMenuButton(orientation: .landscape, action: onMenu)
-                        .frame(height: PadNavMetrics.barHeight)
+            // Нижняя линия: лента у внешней кромки своего поля, кнопки фазы у
+            // дальней кромки поля противника, «Меню» по центру.
+            ZStack(alignment: .bottom) {
+                HStack(alignment: .bottom) {
+                    if ownOnRight { phaseTiles(stacked: false) } else { feed }
+                    Spacer()
+                    if ownOnRight { feed } else { phaseTiles(stacked: false) }
                 }
-                .frame(width: pairWidth)
+                .padding(.horizontal, g.sideMargin)
+                PadNavTile.menu(onMenu)
             }
         }
     }
 
     @ViewBuilder
-    private func feed(_ g: PadTableGeometry) -> some View {
+    private var feed: some View {
         if let battle {
             ShotColumn(entries: battle.incoming,
                        width: Geometry.Inset.feedWidthLandscape,
@@ -270,41 +251,19 @@ struct PadTableScreen: View {
 
     // MARK: Верхняя панель
 
-    @ViewBuilder
+    /// Одна `ScorePanel` на обе фазы (4.4 после раунда 7): до старта в центре
+    /// «Расстановка» и счёт 0 / 10, по «Начать» меняется только содержимое.
     private func topPanel(_ g: PadTableGeometry) -> some View {
-        Group {
-            if let battle {
-                ScorePanel(yourLosses: battle.player.numberShipsDestroyed,
-                           foeLosses: battle.enemy.numberShipsDestroyed,
-                           isYourTurn: !appState.enemysTurn,
-                           balance: ProgressStore.shared.points,
-                           isPad: true,
-                           yoursOnTrailing: g.orientation == .landscape && appState.ownBoardOnRight)
-            } else if let editor {
-                tableHead(editing: editor.wrappedValue.isEditing)
-            }
-        }
-        .frame(height: PadTableGeometry.topPanelHeight)
-    }
-
-    /// Шапка стола до старта (кадр `screen8Ipad`): название фазы и подсказка.
-    /// Как и на iPhone, **при ошибке они не меняются** — об ошибке говорит
-    /// строка между полями.
-    private func tableHead(editing: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            // Над своим полем уже написано «Ваш флот», поэтому до правки
-            // шапка называет режим, как в кадре.
-            Text(editing ? "Change the layout" : "Single player")
-                .font(.system(size: 19, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.inkPrimary)
-            Text(editing ? "Drag a ship to move it · tap to turn it"
-                         : "The ships are placed for you")
-                .font(.system(size: 13))
-                .foregroundStyle(Color.inkSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .padding(.horizontal, 20)
-        .glassPanel(.g2, radius: Geometry.Radius.panel, wood: .bottom)
+        ScorePanel(yourLosses: battle?.player.numberShipsDestroyed ?? 0,
+                   foeLosses: battle?.enemy.numberShipsDestroyed ?? 0,
+                   isYourTurn: !appState.enemysTurn,
+                   balance: ProgressStore.shared.points,
+                   isPad: true,
+                   yoursOnTrailing: g.orientation == .landscape && appState.ownBoardOnRight,
+                   isArranging: battle == nil,
+                   // Уровень — только у одиночной игры, в центре панели.
+                   level: appState.difficultyLevel)
+            .frame(height: PadTableGeometry.topPanelHeight)
     }
 
     // MARK: Поле с названием
@@ -315,26 +274,21 @@ struct PadTableScreen: View {
                 .frame(height: PadTableGeometry.titleHeight)
             board(side, g.metrics)
         }
-        // До старта в режиме правки поле противника приглушено — это
-        // непрозрачность всего элемента как состояние (правило 8).
-        .opacity(side == .foe && editor?.wrappedValue.isEditing == true ? 0.5 : 1)
+        // До старта поле противника приглушено — это непрозрачность всего
+        // элемента как состояние (правило 8).
+        .opacity(side == .foe && battle == nil ? 0.5 : 1)
     }
 
+    /// Над полем противника — имя соперника; у компьютера имени нет, поэтому
+    /// «Поле противника». Уровень сюда больше не ставится (4.5 после раунда 7).
     private func title(_ side: Side) -> some View {
-        HStack(spacing: LevelChip.gap(.regular)) {
-            Text(side == .foe ? "Opponent's board" : "Your fleet")
-                .font(.system(size: BattleMetrics.pad.caption, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.inkPrimary)
-                .lineLimit(1)
-                .shadow(color: .inkTitleShadow,
-                        radius: NavMetrics.titleShadowRadius,
-                        y: NavMetrics.titleShadowOffsetY)
-            // Уровень — в строке заголовка поля противника, по тем же
-            // правилам, что на iPhone (4.5).
-            if side == .foe {
-                LevelChip(level: appState.difficultyLevel, size: .regular)
-            }
-        }
+        Text(side == .foe ? "Opponent's board" : "Your fleet")
+            .font(.system(size: BattleMetrics.pad.caption, weight: .semibold, design: .rounded))
+            .foregroundStyle(Color.inkPrimary)
+            .lineLimit(1)
+            .shadow(color: .inkTitleShadow,
+                    radius: NavMetrics.titleShadowRadius,
+                    y: NavMetrics.titleShadowOffsetY)
     }
 
     @ViewBuilder
@@ -351,55 +305,40 @@ struct PadTableScreen: View {
         }
     }
 
-    // MARK: Подсказка
+    // MARK: Кнопки фазы — на месте квадрата подсказки
 
+    /// До старта «Изменить» и «Начать» (в правке — «Перемешать» и «Готово»),
+    /// в бою — подсказка. Вертикально столбиком, «Начать» внизу; горизонтально
+    /// в ряд, «Начать» у кромки экрана.
     @ViewBuilder
-    private func hint(tall: Bool) -> some View {
+    private func phaseTiles(stacked: Bool) -> some View {
         if let battle {
-            PadHintButton(cost: battle.hintCost, isEnabled: battle.canUseHint,
-                          isTall: tall) { battle.requestHint() }
-        }
-    }
-
-    // MARK: Ряд кнопок до старта
-
-    /// «Меню» слева, кнопки по центру нижней линии, справа зеркальный отступ
-    /// той же ширины — равное расстояние для левой и правой руки (тур 9).
-    private func placementRow(_ g: PadTableGeometry) -> some View {
-        HStack(spacing: 0) {
-            PadMenuButton(orientation: .portrait, action: onMenu)
-                .frame(width: Geometry.Inset.railWidth)
-            Spacer(minLength: PadTableGeometry.blockGap)
-            placementButtons
-                .frame(maxWidth: PadTableMetrics.buttonsWidth)
-            Spacer(minLength: PadTableGeometry.blockGap)
-            Color.clear
-                .frame(width: Geometry.Inset.railWidth)
-        }
-        .frame(height: PadTableGeometry.bottomRowHeight)
-    }
-
-    @ViewBuilder
-    private var placementButtons: some View {
-        if let editor, case .placement(_, let onStart) = phase {
+            PadHintButton(cost: battle.hintCost, isEnabled: battle.canUseHint) {
+                battle.requestHint()
+            }
+        } else if let editor, case .placement(_, let onStart) = phase {
             let e = editor.wrappedValue
-            HStack(spacing: PadTableMetrics.buttonsGap) {
-                if e.isEditing {
-                    Button {
+            let layout = stacked
+                ? AnyLayout(VStackLayout(spacing: PadTileMetrics.pairGap))
+                : AnyLayout(HStackLayout(spacing: PadTileMetrics.pairGap))
+            layout {
+                Button {
+                    if e.isEditing {
                         editor.wrappedValue.shuffle()
-                    } label: {
-                        Label("Shuffle", systemImage: "shuffle")
-                    }
-                    .secondaryButton(enabled: e.actionsEnabled)
-                } else {
-                    Button {
+                    } else {
                         editor.wrappedValue.beginEditing()
-                    } label: {
-                        Label("Change", systemImage: "hand.draw")
                     }
-                    .secondaryButton(enabled: e.actionsEnabled)
+                } label: {
+                    PadTileLabel(title: e.isEditing ? "Shuffle" : "Change",
+                                 icon: e.isEditing ? "shuffle" : "hand.draw")
                 }
+                .buttonStyle(SecondaryButtonStyle(isEnabled: e.actionsEnabled,
+                                                  radius: PadTileMetrics.radius,
+                                                  fillsFrame: true))
+                .disabled(!e.actionsEnabled)
+                .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
 
+                let canPress = e.canFinish && e.actionsEnabled
                 Button {
                     if e.isEditing {
                         editor.wrappedValue.finishEditing()
@@ -408,8 +347,13 @@ struct PadTableScreen: View {
                     }
                 } label: {
                     Text(e.isEditing ? "Done" : "Start")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                 }
-                .primaryButton(enabled: e.canFinish && e.actionsEnabled)
+                .buttonStyle(PrimaryButtonStyle(isEnabled: canPress,
+                                                radius: PadTileMetrics.radius,
+                                                fillsFrame: true))
+                .disabled(!canPress)
+                .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
             }
         }
     }
@@ -423,12 +367,6 @@ struct PadTableScreen: View {
                 .transition(.opacity)
         }
     }
-}
-
-/// Числа ряда кнопок из кадра `screen8Ipad`.
-enum PadTableMetrics {
-    static let buttonsWidth: CGFloat = 470
-    static let buttonsGap: CGFloat = 14
 }
 
 // MARK: - Превью
@@ -483,6 +421,11 @@ private struct PadTableDemo: View {
 }
 
 #Preview("Стол · до старта · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
+    PadTableDemo(placement: true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Стол · до старта · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
     PadTableDemo(placement: true)
         .preferredColorScheme(.dark)
 }

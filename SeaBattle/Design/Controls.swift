@@ -81,15 +81,19 @@ enum ControlMetrics {
 /// (спека 2.6 в этом месте была исправлена дизайном).
 struct PrimaryButtonStyle: ButtonStyle {
     var isEnabled = true
+    var radius: CGFloat = ControlMetrics.Button.radius
+    /// Кнопка занимает всё предложенное место по обеим осям — квадрат 104 на
+    /// нижней линии iPad (спека 3). Обычная кнопка растёт только в ширину.
+    var fillsFrame = false
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: ControlMetrics.Button.radius,
-                                     style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         return configuration.label
             .font(ControlMetrics.Button.font)
             .foregroundStyle(Color.inkPrimary)
             .shadow(color: .buttonTextShadow, radius: 1, y: 1)
-            .frame(maxWidth: .infinity, minHeight: ControlMetrics.Button.minHeight)
+            .frame(maxWidth: .infinity, minHeight: ControlMetrics.Button.minHeight,
+                   maxHeight: fillsFrame ? .infinity : nil)
             .background {
                 shape.fill(LinearGradient.buttonBrass)
                     .background(Material.glassPanel, in: shape)
@@ -274,16 +278,19 @@ struct ChoiceRow: View {
 /// главной кнопки, а видов кнопок в игре ровно два.
 struct SecondaryButtonStyle: ButtonStyle {
     var isEnabled = true
+    var radius: CGFloat = Geometry.SecondaryButton.radius
+    /// См. `PrimaryButtonStyle.fillsFrame`.
+    var fillsFrame = false
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Geometry.SecondaryButton.radius,
-                                     style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         return configuration.label
             .font(TypeScale.secondaryButton)
             .foregroundStyle(Color.inkPrimary)
-            .padding(.horizontal, Geometry.SecondaryButton.padding)
+            .padding(.horizontal, fillsFrame ? 0 : Geometry.SecondaryButton.padding)
             // В ряду кнопки делят ширину поровну (2.15).
-            .frame(maxWidth: .infinity, minHeight: Geometry.SecondaryButton.height)
+            .frame(maxWidth: .infinity, minHeight: Geometry.SecondaryButton.height,
+                   maxHeight: fillsFrame ? .infinity : nil)
             .background { shape.fill(LinearGradient.glassPanelFill) }
             .overlay { shape.strokeBorder(Color.glassStroke, lineWidth: 1) }
             .clipShape(shape)

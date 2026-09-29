@@ -316,7 +316,7 @@ struct ResultsScreen: View {
             .accessibilityIdentifier("resultMenu")
         }
         .padding(.horizontal, Geometry.Nav.stackInset)
-        .padding(.bottom, Geometry.Nav.stackBottom)
+        .padBottomFrame()
     }
 }
 

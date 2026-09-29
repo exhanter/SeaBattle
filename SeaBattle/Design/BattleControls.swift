@@ -100,6 +100,12 @@ struct ScorePanel: View {
     /// Блок своего флота справа — на горизонтальном iPad, когда своё поле
     /// стоит справа (4.11): блоки счёта переезжают вместе с полями.
     var yoursOnTrailing = false
+    /// iPad, стол до старта (4.4 после раунда 7): та же панель той же высоты,
+    /// в центре капсула «Расстановка» на стекле, без латуни.
+    var isArranging = false
+    /// iPad: уровень компьютера капсулой во второй строке центра, слева от
+    /// баланса (4.5 после раунда 7). В других режимах — `nil`, только баланс.
+    var level: AppState.DifficultyLevel?
 
     private var m: BattleMetrics { isPad ? .pad : .forSize(size) }
 
@@ -145,16 +151,32 @@ struct ScorePanel: View {
 
     private var center: some View {
         VStack(spacing: m.sideGap) {
-            Text(isYourTurn ? "Your turn" : "Opponent's turn")
+            Text(isArranging ? "Arrangement" : isYourTurn ? "Your turn" : "Opponent's turn")
                 .font(.system(size: m.statusText, weight: .bold))
                 .foregroundStyle(Color.inkPrimary)
                 .lineLimit(1)
                 .padding(.vertical, m.statusPaddingV)
                 .padding(.horizontal, m.statusPaddingH)
                 .background {
-                    Capsule(style: .continuous).fill(Color.roleYouSoft)
-                        .overlay { Capsule(style: .continuous).strokeBorder(Color.roleYou, lineWidth: 1) }
+                    Capsule(style: .continuous)
+                        .fill(isArranging ? Color.glassFill : Color.roleYouSoft)
+                        .overlay {
+                            Capsule(style: .continuous)
+                                .strokeBorder(isArranging ? Color.glassStroke : Color.roleYou,
+                                              lineWidth: 1)
+                        }
                 }
+            HStack(spacing: 10) {
+                if isPad, let level {
+                    LevelChip(level: level, size: .regular)
+                }
+                balanceView
+            }
+        }
+    }
+
+    private var balanceView: some View {
+        Group {
             // На iPhone у баланса только значок и число: слово «баллов» не
             // вмещается (2.5). На iPad — со словом (лог дизайна, «Баланс баллов»).
             HStack(spacing: isPad ? 5 : 4) {

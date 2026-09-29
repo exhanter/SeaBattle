@@ -223,7 +223,12 @@ struct LevelChip: View {
                 .font(.system(size: metrics.titleSize, weight: .semibold))
         }
         .foregroundStyle(Color.inkPrimary)
-        .padding(.vertical, metrics.verticalPadding)
+        .lineLimit(1)
+        .fixedSize()
+        // Высоту задаёт рамка, а не вертикальные поля: 22 − 2 × 7 оставляли
+        // тексту 8 pt, и в тесном месте (центр панели счёта на iPad) название
+        // обрезалось до «Med…». Поля 7 / 9 из спеки — это высота строки
+        // вокруг текста, при высоте 22 они получаются сами.
         .padding(.horizontal, metrics.horizontalPadding)
         .frame(height: metrics.height)
         .background {

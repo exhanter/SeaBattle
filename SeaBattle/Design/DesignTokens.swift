@@ -225,10 +225,10 @@ enum Geometry {
         static let iPhoneCoords: CGFloat = 30    // 393 pt, обвязка B2
         static let iPhoneSmall: CGFloat = 30     // 375 pt
         static let iPhoneSmallCoords: CGFloat = 28
-        static let iPadPortrait: CGFloat = 42
-        static let iPadLandscape: CGFloat = 44
-        static let iPadPlacement: CGFloat = 46
-        static let iPadTable: CGFloat = 40       // стол на два поля
+        static let iPadPortrait: CGFloat = 42    // потолок; один до старта и в бою
+        static let iPadLandscape: CGFloat = 42   // потолок; один до старта и в бою, как в вертикали
+        // iPad: клетка = min(потолок, сколько помещается). На mini вертикально ≈ 37.
+        // Считается один раз на ориентацию и не меняется при смене фазы.
         static let gapPhone: CGFloat = 3
         static let gapPad: CGFloat = 4
     }
@@ -245,11 +245,10 @@ enum Geometry {
     enum Inset {
         static let phoneSide: CGFloat = 12
         static let padFrame: CGFloat = 24        // одна рамка от всех четырёх краёв
-        static let boardGapPad: CGFloat = 34     // между полями в горизонтали
-        static let railWidth: CGFloat = 104      // вертикальный iPad
+        // между полями в горизонтали константы нет: три равных отступа, (ширина − 2 × поле) / 3
+        static let padTile: CGFloat = 104        // iPad: каждая кнопка нижней линии — квадрат
         static let feedWidthPortrait: CGFloat = 128
         static let feedWidthLandscape: CGFloat = 124
-        static let hintHeightLandscape: CGFloat = 68  // по высоте нижней панели
     }
 
     enum Hit {
@@ -266,7 +265,30 @@ enum Geometry {
         static let titleInset: CGFloat = 20      // ScreenTitle: поля
         static let titleTop: CGFloat = 68
         static let titleGap: CGFloat = 6
-        static let padColumn: CGFloat = 520      // iPad: колонка экрана уровня
+        static let padColumn: CGFloat = 520      // iPad: колонка экрана уровня, меню и корней табов
+        static let padDialog: CGFloat = 400      // iPad: максимальная ширина ModalDialog
+    }
+
+    /// Меню на iPad (спека 4.2, макеты 22a / 22b)
+    enum PadMenu {
+        static let artOverlap: CGFloat = 40      // арт уходит под плитки
+        static let artOpaqueUntil: Double = 0.55 // маска: непрозрачна до 55 % высоты арта
+        static let titlePortrait: CGFloat = 60
+        static let titleLandscape: CGFloat = 56
+        static let titleAboveTilesPortrait: CGFloat = 110
+        static let titleAboveTilesLandscape: CGFloat = 100
+        static let tileRadius: CGFloat = 24
+        static let tilePadding: CGFloat = 18
+        static let tileIcon: CGFloat = 36
+        static let tileName: CGFloat = 18
+        static let tileSub: CGFloat = 13
+        static let wideTileHeight: CGFloat = 112 // «Одиночная игра», вертикально
+        static let gridTileHeight: CGFloat = 140 // сетка 2 × 2, вертикально
+        static let rowTileHeight: CGFloat = 176  // пять в ряд, горизонтально
+        static let gapPortrait: CGFloat = 12
+        static let gapLandscape: CGFloat = 14
+        static let aboveBottomRow: CGFloat = 16
+        static let continueWidth: CGFloat = 554
     }
 
     /// Два размера iPhone. Компактный — ширина экрана < 390 pt. Спека 3.3.

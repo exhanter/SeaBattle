@@ -146,7 +146,30 @@ struct BottomStack<Content: View>: View {
             NavRow(onMenu: onMenu)
         }
         .padding(.horizontal, Geometry.Nav.stackInset)
-        .padding(.bottom, Geometry.Nav.stackBottom)
+        .padBottomFrame()
+    }
+}
+
+extension View {
+    /// Низ нижнего ряда. iPhone — 10 pt над безопасной зоной; iPad — на рамке
+    /// 24 pt от края экрана (спека 3 после раунда 7), а не от безопасной зоны.
+    func padBottomFrame() -> some View {
+        modifier(BottomFrameModifier())
+    }
+}
+
+private struct BottomFrameModifier: ViewModifier {
+    @Environment(\.usesPadLayout) private var usesPadLayout
+
+    func body(content: Content) -> some View {
+        if usesPadLayout {
+            content
+                .padding(.bottom, Geometry.Inset.padFrame)
+                .ignoresSafeArea(edges: .bottom)
+        } else {
+            content
+                .padding(.bottom, Geometry.Nav.stackBottom)
+        }
     }
 }
 

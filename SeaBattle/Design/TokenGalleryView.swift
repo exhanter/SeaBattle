@@ -234,7 +234,6 @@ struct TokenGalleryView: View {
         (Geometry.Cell.iPhone, "iPhone 393"),
         (Geometry.Cell.iPadPortrait, "iPad вертикально"),
         (Geometry.Cell.iPadLandscape, "iPad горизонтально"),
-        (Geometry.Cell.iPadPlacement, "iPad, расстановка"),
     ]
 
     private static let durations: [(String, String)] = [

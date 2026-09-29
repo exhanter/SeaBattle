@@ -295,8 +295,8 @@ private struct BoardCellGallery: View {
     private let sizes: [(CGFloat, String)] = [
         (Geometry.Cell.iPhoneSmallCoords, "28 · SE с координатами"),
         (Geometry.Cell.iPhone, "32 · iPhone 393"),
-        (Geometry.Cell.iPadPortrait, "42 · iPad вертикально"),
-        (Geometry.Cell.iPadPlacement, "46 · iPad, расстановка"),
+        (Geometry.Cell.iPadPortrait, "42 · iPad"),
+        (37, "37 · iPad mini — клетка от места"),
     ]
 
     var body: some View {

@@ -53,9 +53,9 @@ struct BoardCellTests {
         // Клетка рисуется одним кодом на всех устройствах, поэтому проверяем,
         // что радиус нигде не вырождается: ни в квадрат, ни в круг.
         for size in [Geometry.Cell.iPhoneSmallCoords, Geometry.Cell.iPhoneSmall,
-                     Geometry.Cell.iPhone, Geometry.Cell.iPadTable,
+                     Geometry.Cell.iPhone,
                      Geometry.Cell.iPadPortrait, Geometry.Cell.iPadLandscape,
-                     Geometry.Cell.iPadPlacement] {
+                     PadTableGeometry.minCell] {
             let radius = Geometry.cellRadius(for: size)
             #expect(radius >= 4)
             #expect(radius < size / 2)

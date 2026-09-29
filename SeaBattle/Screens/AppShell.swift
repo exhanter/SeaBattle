@@ -289,34 +289,43 @@ struct AppShell: View {
         }
     }
 
-    /// iPad (спека 3): вертикально — рельс, прижатый к низу слева,
-    /// горизонтально — панель по центру низа. Обе в рамке 24 pt от краёв
-    /// экрана, а не от безопасной зоны (тур 11.2).
+    /// iPad (спека 3 после раунда 7): таб-бара нет. Меню — свой экран
+    /// (22a / 22b), корни «Статистика» и «Настройки» — колонка 520 по центру,
+    /// внизу квадраты по углам на рамке 24.
+    @ViewBuilder
     private func padShell(_ size: CGSize) -> some View {
-        let orientation = PadOrientation.of(size)
-        let frame = Geometry.Inset.padFrame
-        let rail = Geometry.Inset.railWidth
-        return ZStack(alignment: orientation == .portrait ? .bottomLeading : .bottom) {
-            Group {
-                if tab == .play {
-                    // Меню колонкой, как экран уровня; колонка сужается, чтобы
-                    // не заходить под рельс на iPad mini.
-                    tabContent
-                        .frame(maxWidth: min(Geometry.Nav.padColumn,
-                                             size.width - 2 * (frame + rail + Geometry.Nav.stackGap)))
-                        .frame(maxWidth: .infinity)
-                } else {
-                    tabContent
-                        .padding(.leading, orientation == .portrait ? frame + rail : 0)
-                }
+        if tab == .play {
+            PadMenuScreen(isPremium: premiumManager.isPremium,
+                          canContinue: continueTarget.isAvailable,
+                          continueLevel: continueLevel,
+                          onMode: open(_:),
+                          onContinue: continueGame,
+                          onTab: selectTab)
+        } else {
+            let frame = Geometry.Inset.padFrame
+            ZStack(alignment: .bottom) {
+                tabContent
+                    .frame(maxWidth: Geometry.Nav.padColumn)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, Geometry.Inset.padTile + Geometry.Nav.stackGap)
+                PadCornerTabs(current: tab, onSelect: selectTab)
+                    .padding(.horizontal, frame)
+                    .padding(.bottom, frame)
+                    .ignoresSafeArea(edges: .bottom)
             }
-            .padding(.bottom, orientation == .landscape
-                        ? PadNavMetrics.barHeight + Geometry.Nav.stackGap : 0)
-
-            PadTabNavigation(selection: $tab, orientation: orientation)
-                .padding(frame)
-                .ignoresSafeArea(edges: .bottom)
         }
+    }
+
+    private func selectTab(_ newTab: ShellTab) {
+        if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        withAnimation(Motion.quick) { tab = newTab }
+    }
+
+    /// Подпись под «Продолжить партию» на iPad — уровень партии, которая идёт
+    /// прямо сейчас. У сохранённой партии уровень лежит в файле, читать его на
+    /// каждой перерисовке меню незачем — там подписи нет.
+    private var continueLevel: AppState.DifficultyLevel? {
+        continueTarget == .resume ? appState.difficultyLevel : nil
     }
 
     // MARK: Экраны партии

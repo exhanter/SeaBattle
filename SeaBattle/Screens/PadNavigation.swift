@@ -1,16 +1,16 @@
 //
 //  PadNavigation.swift
-//  Sea Battle — навигация iPad (R2.6, шаг 10 порядка сборки)
+//  Sea Battle — навигация iPad (R2.6, раунд 7)
 //
-//  Спека 3: вертикально — боковой рельс вместо таб-бара, укорочен до
-//  содержимого и прижат к низу слева, 104 pt; горизонтально — панель
-//  навигации по центру низа с подписями. Кадры `screen11Port` и
-//  `screen11Land` (тур 11.2): одна рамка 24 pt от всех четырёх краёв.
+//  Спека 3 после раунда 7: **на iPad нет таб-бара, рельса и панели
+//  навигации.** Все кнопки нижней линии — отдельные квадраты 104 × 104 на
+//  рамке 24 pt: значок 26 над подписью, стекло G2, радиус 22, деревянный кант
+//  2 pt сверху. Квадраты расставляются по месту, а не собираются в панель.
 //
-//  Правило 3.1 то же, что на iPhone: табы — только на корнях трёх табов. В
-//  партии (стол, уровень, итоги) навигация сжимается до одного «Меню».
-//  В кадрах боя тура 11 в рельсе стоят и табы — спека позднее, по ней
-//  (вопрос В21 в `docs/DESIGN_QUESTIONS.md`).
+//  - Корни табов: в меню слева внизу «Статистика», справа «Настройки». На
+//    корне таба его собственный угол занимает «Играть» — каждый угол всегда
+//    ведёт в одно место, кроме текущего экрана. Выбранного состояния нет.
+//  - В партии — один квадрат «Меню» (правило 3.1, как на iPhone).
 //
 
 import SwiftUI
@@ -18,7 +18,7 @@ import SwiftUI
 // MARK: - Какая раскладка
 
 extension EnvironmentValues {
-    /// Раскладка iPad: рельс или нижняя панель, стол на два поля, колонки.
+    /// Раскладка iPad: квадраты вместо таб-бара, стол на два поля, колонки.
     /// Ставится корнем приложения по устройству, а не по ширине: на iPhone
     /// Pro Max в горизонтали ширина тоже большая, а раскладка iPad там не нужна.
     @Entry var usesPadLayout = false
@@ -35,167 +35,120 @@ enum PadOrientation: Equatable, Sendable {
     }
 }
 
-/// Числа навигации из кадров `screen11Port` (`railItem`) и `screen11Land`
-/// (`navItem`). В пакете токенов есть только ширина рельса и рамка.
-enum PadNavMetrics {
-    // Рельс
-    static let railRadius: CGFloat = Geometry.Radius.panelLarge
-    static let railPaddingTop: CGFloat = 20
-    static let railPaddingBottom: CGFloat = 22
-    static let railGap: CGFloat = 22
-    static let railIcon: CGFloat = 26
-    static let railLabel: CGFloat = 10.5
-    static let railLabelGap: CGFloat = 6
-    // Нижняя панель
-    static let barHeight: CGFloat = Geometry.Inset.hintHeightLandscape
-    static let barRadius: CGFloat = 24
-    static let barPadding: CGFloat = 22
-    static let barGap: CGFloat = 22
-    static let barIcon: CGFloat = 25
-    static let barLabel: CGFloat = 14
-    static let barLabelGap: CGFloat = 8
-    // «Меню» в партии
-    static let menuLabel: CGFloat = 14.5
-    static let menuIconRow: CGFloat = 22
+// MARK: - Квадрат
+
+/// Числа квадрата — кадр `tile21` (тур 21) и спека 3.
+enum PadTileMetrics {
+    static let side = Geometry.Inset.padTile
+    static let radius: CGFloat = 22
+    static let icon: CGFloat = 26
+    static let label: CGFloat = 14
+    static let gap: CGFloat = 7
+    /// Зазор между соседними квадратами («Изменить» и «Начать»).
+    static let pairGap: CGFloat = 12
 }
 
-// MARK: - Табы
-
-/// Навигация на корнях трёх табов: рельс вертикально, панель горизонтально.
-struct PadTabNavigation: View {
-    @Binding var selection: ShellTab
-    let orientation: PadOrientation
+/// Значок над подписью — содержимое любого квадрата.
+struct PadTileLabel: View {
+    let title: LocalizedStringKey
+    var icon: String?
 
     var body: some View {
-        if orientation == .portrait {
-            VStack(spacing: PadNavMetrics.railGap) {
-                ForEach(ShellTab.allCases, id: \.self) { tab in
-                    item(tab, row: false)
-                }
+        VStack(spacing: PadTileMetrics.gap) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: symbolFontSize(inBox: PadTileMetrics.icon)))
+                    .frame(height: PadTileMetrics.icon)
             }
-            .padding(.top, PadNavMetrics.railPaddingTop)
-            .padding(.bottom, PadNavMetrics.railPaddingBottom)
-            .frame(width: Geometry.Inset.railWidth)
-            .glassPanel(.g2, radius: PadNavMetrics.railRadius, wood: .trailing)
-        } else {
-            HStack(spacing: PadNavMetrics.barGap) {
-                ForEach(ShellTab.allCases, id: \.self) { tab in
-                    item(tab, row: true)
-                }
-            }
-            .padding(.horizontal, PadNavMetrics.barPadding)
-            .frame(height: PadNavMetrics.barHeight)
-            .glassPanel(.g2, radius: PadNavMetrics.barRadius, wood: .top)
+            Text(title)
+                .font(.system(size: PadTileMetrics.label, weight: .semibold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
         }
-    }
-
-    private func item(_ tab: ShellTab, row: Bool) -> some View {
-        let isSelected = tab == selection
-        let layout = row
-            ? AnyLayout(HStackLayout(spacing: PadNavMetrics.barLabelGap))
-            : AnyLayout(VStackLayout(spacing: PadNavMetrics.railLabelGap))
-        let icon = row ? PadNavMetrics.barIcon : PadNavMetrics.railIcon
-        return Button {
-            withAnimation(Motion.quick) { selection = tab }
-        } label: {
-            layout {
-                Image(systemName: tab.icon)
-                    .font(.system(size: symbolFontSize(inBox: icon)))
-                    .frame(height: icon)
-                    .foregroundStyle(Color.inkPrimary)
-                Text(tab.title)
-                    .font(.system(size: row ? PadNavMetrics.barLabel : PadNavMetrics.railLabel,
-                                  weight: isSelected ? .bold : .medium, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(isSelected ? Color.roleYou : Color.inkPrimary)
-            }
-            .frame(minWidth: Geometry.Hit.minTarget, minHeight: Geometry.Hit.minTarget)
-            .opacity(isSelected ? 1 : TabBarMetrics.inactiveOpacity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("tab_\(tab.rawValue)")
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .foregroundStyle(Color.inkPrimary)
+        .padding(.horizontal, 6)
     }
 }
 
-// MARK: - «Меню» в партии
-
-/// Выход из партии на iPad — то, чем на iPhone служит `NavRow`. Вертикально
-/// это ячейка рельса шириной 104 pt у левого нижнего угла, горизонтально —
-/// панель по центру низа. Высоту задаёт вызывающий: в бою вертикально это
-/// квадрат (пара к квадрату подсказки), на расстановке — высота ряда кнопок.
-struct PadMenuButton: View {
-    let orientation: PadOrientation
+/// Навигационный квадрат: стекло G2, кант сверху — он смотрит в море.
+struct PadNavTile: View {
+    let title: LocalizedStringKey
+    let icon: String
+    var identifier: String?
     var action: () -> Void = {}
 
     var body: some View {
         Button(action: action) {
-            Group {
-                if orientation == .portrait {
-                    VStack(spacing: 5) {
-                        icon(PadNavMetrics.railIcon)
-                        label(PadNavMetrics.railLabel, weight: .medium)
-                    }
-                    .frame(width: Geometry.Inset.railWidth)
-                    .frame(maxHeight: .infinity)
-                } else {
-                    HStack(spacing: 9) {
-                        icon(PadNavMetrics.menuIconRow)
-                        label(PadNavMetrics.menuLabel, weight: .bold)
-                    }
-                    .padding(.horizontal, PadNavMetrics.barPadding + 8)
-                    .frame(maxHeight: .infinity)
-                }
-            }
-            .contentShape(Rectangle())
+            PadTileLabel(title: title, icon: icon)
+                .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2,
-                    radius: orientation == .portrait ? PadNavMetrics.railRadius : PadNavMetrics.barRadius,
-                    wood: orientation == .portrait ? .trailing : .top)
-        .accessibilityIdentifier("navMenuButton")
+        .glassPanel(.g2, radius: PadTileMetrics.radius, wood: .top)
+        .accessibilityIdentifier(identifier ?? "")
+    }
+}
+
+extension PadNavTile {
+    /// «Меню» — выход из партии; то, чем на iPhone служит `NavRow`.
+    static func menu(_ action: @escaping () -> Void) -> PadNavTile {
+        PadNavTile(title: "Menu", icon: "line.3.horizontal",
+                   identifier: "navMenuButton", action: action)
     }
 
-    private func icon(_ box: CGFloat) -> some View {
-        Image(systemName: "line.3.horizontal")
-            .font(.system(size: symbolFontSize(inBox: box), weight: .semibold))
-            .frame(height: box)
-            .foregroundStyle(Color.inkPrimary)
+    static func tab(_ tab: ShellTab, _ action: @escaping () -> Void) -> PadNavTile {
+        PadNavTile(title: tab.title, icon: tab.icon,
+                   identifier: "tab_\(tab.rawValue)", action: action)
     }
+}
 
-    private func label(_ size: CGFloat, weight: Font.Weight) -> some View {
-        Text("Menu")
-            .font(.system(size: size, weight: weight, design: .rounded))
-            .foregroundStyle(Color.inkPrimary)
+// MARK: - Углы корней табов
+
+/// Какой таб стоит в каком углу. Чистая функция, под тестом: правило «свой
+/// угол занимает „Играть“» легко перепутать местами.
+enum PadCorners {
+    static func tabs(on current: ShellTab) -> (leading: ShellTab, trailing: ShellTab) {
+        (leading: current == .statistics ? .play : .statistics,
+         trailing: current == .settings ? .play : .settings)
+    }
+}
+
+/// Два квадрата корней табов в нижних углах, на рамке 24 pt. Середину ряда
+/// занимает вызывающий («Продолжить партию» в меню) или она пустая.
+struct PadCornerTabs: View {
+    let current: ShellTab
+    var onSelect: (ShellTab) -> Void = { _ in }
+
+    var body: some View {
+        let corners = PadCorners.tabs(on: current)
+        HStack(alignment: .bottom) {
+            PadNavTile.tab(corners.leading) { onSelect(corners.leading) }
+            Spacer(minLength: 0)
+            PadNavTile.tab(corners.trailing) { onSelect(corners.trailing) }
+        }
     }
 }
 
 // MARK: - Превью
 
-private struct PadNavigationDemo: View {
-    @State private var tab: ShellTab = .play
-    let orientation: PadOrientation
-
-    var body: some View {
-        ZStack {
-            SeaBackground()
-            VStack(spacing: 40) {
-                PadTabNavigation(selection: $tab, orientation: orientation)
-                PadMenuButton(orientation: orientation)
-                    .frame(height: orientation == .portrait ? Geometry.Inset.railWidth
-                                                            : PadNavMetrics.barHeight)
+#Preview("iPad · квадраты") {
+    ZStack {
+        SeaBackground()
+        VStack(spacing: 40) {
+            PadCornerTabs(current: .play)
+            PadCornerTabs(current: .statistics)
+            HStack(spacing: PadTileMetrics.pairGap) {
+                PadNavTile.menu {}
+                Button(action: {}) { PadTileLabel(title: "Change", icon: "hand.draw") }
+                    .buttonStyle(SecondaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
+                    .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+                Button(action: {}) { Text("Start") }
+                    .buttonStyle(PrimaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
+                    .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
             }
         }
+        .padding(24)
     }
-}
-
-#Preview("iPad · рельс") {
-    PadNavigationDemo(orientation: .portrait)
-        .preferredColorScheme(.dark)
-}
-
-#Preview("iPad · нижняя панель") {
-    PadNavigationDemo(orientation: .landscape)
-        .preferredColorScheme(.light)
+    .preferredColorScheme(.dark)
 }

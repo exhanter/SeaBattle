@@ -106,26 +106,20 @@ enum GlassHighlight: Equatable, Sendable {
 }
 
 /// Деревянный кант 2 pt на кромке, которая смотрит в море: у верхней панели это
-/// низ, у нижней — верх. Левых цветных кантов нет нигде (спека, правило 2).
+/// низ, у нижней — верх. Левых и правых кантов нет нигде (спека, правило 2).
 enum WoodEdge: Sendable {
     case none
     /// Кант по верхней кромке — для нижних панелей.
     case top
     /// Кант по нижней кромке — для верхних панелей.
     case bottom
-    /// Кант по правой кромке — рельс вертикального iPad: он прижат к левому
-    /// краю, и в море смотрит его правая сторона (кадр `screen11Port`).
-    case trailing
 
     var alignment: Alignment {
         switch self {
         case .top, .none: .top
         case .bottom: .bottom
-        case .trailing: .trailing
         }
     }
-
-    var isVertical: Bool { self == .trailing }
 }
 
 // MARK: - Чем рисовать стекло
@@ -229,11 +223,7 @@ struct GlassPanelModifier: ViewModifier {
             shape
                 .fill(.clear)
                 .overlay(alignment: wood.alignment) {
-                    if wood.isVertical {
-                        Color.wood.frame(width: Geometry.woodEdge)
-                    } else {
-                        Color.wood.frame(height: Geometry.woodEdge)
-                    }
+                    Color.wood.frame(height: Geometry.woodEdge)
                 }
                 .clipShape(shape)
         }

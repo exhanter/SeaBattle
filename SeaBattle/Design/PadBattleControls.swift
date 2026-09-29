@@ -11,47 +11,39 @@ import SwiftUI
 
 // MARK: - Подсказка
 
-/// Подсказка на iPad — плашка, а не капсула произвольной высоты (тур 11.1):
-/// вертикально квадрат со стороной в ширину рельса (104 pt), горизонтально —
-/// ровно по высоте нижней панели (68 pt) и в одних с ней линиях.
+/// Подсказка на iPad — квадрат 104 × 104 на нижней линии в обеих ориентациях,
+/// у дальней кромки поля противника (спека 2.9 после раунда 7): все кнопки
+/// нижней линии iPad — квадраты одного размера.
 struct PadHintButton: View {
     let cost: Int
     let isEnabled: Bool
-    /// Вертикальный iPad: квадрат 104 × 104, значок над подписью.
-    let isTall: Bool
     var action: () -> Void = {}
 
-    private var m: BattleMetrics { .pad }
-    private var radius: CGFloat { isTall ? Geometry.Radius.panelLarge : m.hintRadius }
-
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: PadTileMetrics.radius, style: .continuous)
         Button(action: action) {
-            let layout = isTall
-                ? AnyLayout(VStackLayout(spacing: 8))
-                : AnyLayout(HStackLayout(spacing: m.hintGap))
-            layout {
+            VStack(spacing: 8) {
                 Image(systemName: "lightbulb.max")
-                    .font(.system(size: symbolFontSize(inBox: m.hintIcon)))
-                    .frame(height: m.hintIcon)
+                    .font(.system(size: symbolFontSize(inBox: 24)))
+                    .frame(height: 24)
                     .foregroundStyle(Color.inkPrimary)
-                VStack(alignment: isTall ? .center : .leading, spacing: 1) {
+                VStack(spacing: 1) {
                     Text("Hint")
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.inkPrimary)
                     Text(verbatim: "−\(cost)")
-                        .font(.system(size: m.hintText, weight: .bold, design: .monospaced))
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color.roleYou)
                 }
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
             }
-            .padding(.horizontal, isTall ? 8 : m.hintPadding)
-            .frame(width: isTall ? Geometry.Inset.railWidth : nil,
-                   height: isTall ? Geometry.Inset.railWidth : Geometry.Inset.hintHeightLandscape)
+            .padding(.horizontal, 8)
+            .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: radius)
+        .glassPanel(.g2, radius: PadTileMetrics.radius)
         .overlay { shape.strokeBorder(Color.roleYou, lineWidth: 1).allowsHitTesting(false) }
         .opacity(isEnabled ? 1 : ControlMetrics.Button.disabledOpacity)
         .disabled(!isEnabled)
@@ -168,8 +160,8 @@ struct ShotColumn: View {
                                  .init(id: 3, coordinate: .init(row: 4, column: 6), outcome: .hit)],
                        width: Geometry.Inset.feedWidthPortrait, alphabet: .cyrillic)
             ShotColumn(entries: [], width: Geometry.Inset.feedWidthLandscape)
-            PadHintButton(cost: 10, isEnabled: true, isTall: true)
-            PadHintButton(cost: 3, isEnabled: false, isTall: false)
+            PadHintButton(cost: 10, isEnabled: true)
+            PadHintButton(cost: 3, isEnabled: false)
         }
     }
     .preferredColorScheme(.dark)
