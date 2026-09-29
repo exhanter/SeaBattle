@@ -42,6 +42,8 @@ struct BattleMetrics: Equatable, Sendable {
     let hintGap: CGFloat
     let hintIcon: CGFloat
     let hintText: CGFloat
+    // Точки флота
+    var dotGap: CGFloat = 3
 
     static let regular = BattleMetrics(
         scoreRadius: 22, scorePaddingV: 11, scorePaddingH: 15, scoreInset: 12,
@@ -59,13 +61,25 @@ struct BattleMetrics: Equatable, Sendable {
         switchRadius: 16, segmentRadius: 12, segmentText: 12.5,
         hintRadius: 16, hintPadding: 11, hintGap: 6, hintIcon: 19, hintText: 11)
 
+    /// iPad, обе ориентации — кадр `score11` (тур 11.2). Номера хода в
+    /// центральном блоке нет (правило 9), баланс — со словом «баллов».
+    /// Числа переключателя и подсказки не используются: на iPad их нет,
+    /// подсказка — отдельная плашка `PadHintButton`.
+    static let pad = BattleMetrics(
+        scoreRadius: 22, scorePaddingV: 12, scorePaddingH: 18, scoreInset: 0,
+        sideLabel: 12, sideNumber: 22, sideGap: 6, dot: 8,
+        statusText: 13, statusPaddingV: 6, statusPaddingH: 14, balanceText: 12,
+        caption: 20,
+        switchRadius: 18, segmentRadius: 14, segmentText: 13,
+        hintRadius: 22, hintPadding: 22, hintGap: 12, hintIcon: 24, hintText: 11,
+        dotGap: 4)
+
     static func forSize(_ size: Geometry.SizeClass) -> BattleMetrics {
         size.isCompact ? .compact : .regular
     }
 
     /// Точек во флоте — по кораблю на точку.
     static let fleetDots = FleetLayout.shipCount
-    static let dotGap: CGFloat = 3
 }
 
 // MARK: - Панель счёта
@@ -81,15 +95,28 @@ struct ScorePanel: View {
     let isYourTurn: Bool
     let balance: Int
     var size: Geometry.SizeClass = .regular
+    /// iPad: свои числа (`BattleMetrics.pad`) и слово «баллов» у баланса.
+    var isPad = false
+    /// Блок своего флота справа — на горизонтальном iPad, когда своё поле
+    /// стоит справа (4.11): блоки счёта переезжают вместе с полями.
+    var yoursOnTrailing = false
 
-    private var m: BattleMetrics { .forSize(size) }
+    private var m: BattleMetrics { isPad ? .pad : .forSize(size) }
 
     var body: some View {
-        HStack(spacing: 14) {
-            side("Your fleet", color: .roleYou, sunk: yourLosses, alignment: .leading)
+        HStack(spacing: isPad ? 18 : 14) {
+            if yoursOnTrailing {
+                side("Opponent", color: .roleFoe, sunk: foeLosses, alignment: .leading)
+            } else {
+                side("Your fleet", color: .roleYou, sunk: yourLosses, alignment: .leading)
+            }
             center
                 .fixedSize()
-            side("Opponent", color: .roleFoe, sunk: foeLosses, alignment: .trailing)
+            if yoursOnTrailing {
+                side("Your fleet", color: .roleYou, sunk: yourLosses, alignment: .trailing)
+            } else {
+                side("Opponent", color: .roleFoe, sunk: foeLosses, alignment: .trailing)
+            }
         }
         .padding(.vertical, m.scorePaddingV)
         .padding(.horizontal, m.scorePaddingH)
@@ -111,7 +138,7 @@ struct ScorePanel: View {
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .lineLimit(1)
-            FleetDots(sunk: sunk, color: color, dot: m.dot)
+            FleetDots(sunk: sunk, color: color, dot: m.dot, gap: m.dotGap)
         }
         .frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .trailing)
     }
@@ -129,13 +156,19 @@ struct ScorePanel: View {
                         .overlay { Capsule(style: .continuous).strokeBorder(Color.roleYou, lineWidth: 1) }
                 }
             // На iPhone у баланса только значок и число: слово «баллов» не
-            // вмещается (2.5).
-            HStack(spacing: 4) {
+            // вмещается (2.5). На iPad — со словом (лог дизайна, «Баланс баллов»).
+            HStack(spacing: isPad ? 5 : 4) {
                 Image(systemName: PointsSymbol.name)
                     .font(.system(size: symbolFontSize(inBox: m.balanceText + 3)))
-                Text(verbatim: "\(balance)")
-                    .font(.system(size: m.balanceText, weight: .bold, design: .rounded))
-                    .monospacedDigit()
+                Group {
+                    if isPad {
+                        Text("\(balance) points")
+                    } else {
+                        Text(verbatim: "\(balance)")
+                    }
+                }
+                .font(.system(size: m.balanceText, weight: .bold, design: .rounded))
+                .monospacedDigit()
             }
             .foregroundStyle(Color.inkPrimary)
             .accessibilityElement(children: .ignore)
@@ -149,9 +182,10 @@ struct FleetDots: View {
     let sunk: Int
     let color: Color
     let dot: CGFloat
+    var gap: CGFloat = 3
 
     var body: some View {
-        HStack(spacing: BattleMetrics.dotGap) {
+        HStack(spacing: gap) {
             ForEach(0..<BattleMetrics.fleetDots, id: \.self) { index in
                 Circle()
                     .strokeBorder(color, lineWidth: 1)
@@ -340,20 +374,23 @@ struct ShotChip: View {
     let entry: ShotFeedEntry
     let isLast: Bool
     var alphabet: BoardAlphabet = .current
+    /// iPad: капсула столбика `ShotColumn` — кегли 14 / 13, поля 6 / 12
+    /// (кадр `shotColumn`).
+    var isLarge = false
 
     var body: some View {
         let color: Color = entry.outcome.isDamage ? .roleYou : .inkSecondary
-        HStack(alignment: .firstTextBaseline, spacing: 5) {
+        HStack(alignment: .firstTextBaseline, spacing: isLarge ? 7 : 5) {
             Text(verbatim: Self.label(entry.coordinate, alphabet: alphabet))
-                .font(.system(size: 12.5, weight: .medium, design: .monospaced))
+                .font(.system(size: isLarge ? 14 : 12.5, weight: .medium, design: .monospaced))
                 .foregroundStyle(Color.inkPrimary)
             Text(Self.outcomeTitle(entry.outcome))
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: isLarge ? 13 : 12, weight: .semibold))
                 .foregroundStyle(color)
         }
         .lineLimit(1)
-        .padding(.vertical, 4)
-        .padding(.horizontal, 10)
+        .padding(.vertical, isLarge ? 6 : 4)
+        .padding(.horizontal, isLarge ? 12 : 10)
         .background {
             Capsule(style: .continuous)
                 .fill(isLast ? Color.roleYouSoft : Color.clear)

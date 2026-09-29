@@ -74,6 +74,7 @@ struct BattleScreen: View {
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
     @State private var askLeave = false
     /// Итоги на экране. Ставится после паузы `Motion.toResults`, а не сразу
     /// с итогом: последний выстрел должен успеть доиграть на поле.
@@ -87,6 +88,37 @@ struct BattleScreen: View {
     }
 
     var body: some View {
+        Group {
+            if usesPadLayout {
+                // iPad: оба поля сразу, без переключателя (R2.6).
+                PadTableScreen(phase: .battle(battle), onMenu: menuTapped)
+            } else {
+                phone
+            }
+        }
+        // Бой → итоги (14c): пауза на поле, поля в размытие. Первая
+        // половина — пауза, чтобы всплеск последнего выстрела доиграл
+        // резким; прозрачность до нуля, чтобы под итогами было одно море,
+        // как в кадре.
+        .blur(radius: isOver ? ResultMetrics.fieldsBlur : 0)
+        .opacity(isOver ? 0 : 1)
+        .allowsHitTesting(!isOver)
+        .animation(fieldsOut, value: isOver)
+        .overlay { resultOverlay }
+        .task(id: battle.result) { await presentResults() }
+        .modalDialog(isPresented: askLeave) {
+            ModalDialog.leaveMatch(.offline,
+                                   onStay: { askLeave = false },
+                                   onLeave: {
+                                       askLeave = false
+                                       onLeave()
+                                   })
+        }
+        .animation(Motion.quick, value: battle.shownField)
+    }
+
+    /// iPhone: одно поле на экране, переключатель полей внизу.
+    private var phone: some View {
         GeometryReader { proxy in
             let size = Geometry.SizeClass.forWidth(proxy.size.width)
             let metrics = BoardMetrics(cell: size.cell)
@@ -125,26 +157,7 @@ struct BattleScreen: View {
 
                 actions(field, size: size)
             }
-            // Бой → итоги (14c): пауза на поле, поля в размытие. Первая
-            // половина — пауза, чтобы всплеск последнего выстрела доиграл
-            // резким; прозрачность до нуля, чтобы под итогами было одно море,
-            // как в кадре.
-            .blur(radius: isOver ? ResultMetrics.fieldsBlur : 0)
-            .opacity(isOver ? 0 : 1)
-            .allowsHitTesting(!isOver)
-            .animation(fieldsOut, value: isOver)
-            .overlay { resultOverlay }
-            .task(id: battle.result) { await presentResults() }
-            .modalDialog(isPresented: askLeave) {
-                ModalDialog.leaveMatch(.offline,
-                                       onStay: { askLeave = false },
-                                       onLeave: {
-                                           askLeave = false
-                                           onLeave()
-                                       })
-            }
         }
-        .animation(Motion.quick, value: battle.shownField)
     }
 
     // MARK: Подпись поля
@@ -170,66 +183,7 @@ struct BattleScreen: View {
     // MARK: Поле
 
     private func board(_ field: Side, _ m: BoardMetrics) -> some View {
-        let data = field == .foe ? battle.enemy : battle.player
-        // Флот противника скрыт тем же способом, каким он скрыт от ИИ: из
-        // `opponentView()` нетронутый корабль приходит водой.
-        let core = field == .foe ? data.coreBoard.opponentView() : data.coreBoard
-        let cells = Board.allCoordinates.map { BoardCellState.forDisplay(core[$0], on: field) }
-        // Свечение рамки — на поле, по которому сейчас стреляют (2.4).
-        let isActive = appState.gameIsActive
-            && (field == .foe ? !appState.enemysTurn : appState.enemysTurn)
-
-        return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
-                         alphabet: alphabet,
-                         event: battle.event(on: field),
-                         onTap: field == .foe
-                            ? { column, row in battle.tap(Coordinate(row: row + 1, column: column + 1)) }
-                            : nil)
-            .overlay(alignment: .topLeading) {
-                if field == .foe {
-                    marks(m)
-                        .frame(width: m.gridSide, height: m.gridSide, alignment: .topLeading)
-                        .offset(x: m.inset, y: m.inset)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(width: m.totalSize.width, height: m.totalSize.height)
-            .accessibilityIdentifier(field == .foe ? "foeBoard" : "yourBoard")
-    }
-
-    /// Прицел и открытые подсказкой клетки — поверх сетки, как корабли на
-    /// расстановке: у `BoardCell` таких состояний нет, это не правила.
-    private func marks(_ m: BoardMetrics) -> some View {
-        let radius = Geometry.cellRadius(for: m.cell)
-        let unshot = Set(Board.allCoordinates.filter { battle.enemy.coreBoard[$0].isUnshot })
-        return ZStack(alignment: .topLeading) {
-            ForEach(Array(battle.hintCells.filter { unshot.contains($0) }), id: \.self) { cell in
-                let origin = m.cellOrigin(cell)
-                Image(systemName: "target")
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color.roleYou)
-                    .frame(width: m.cell * BattleScreenMetrics.hintMark,
-                           height: m.cell * BattleScreenMetrics.hintMark)
-                    .frame(width: m.cell, height: m.cell)
-                    .offset(x: origin.x, y: origin.y)
-            }
-            if let aim = battle.aim {
-                let origin = m.cellOrigin(aim)
-                let inset = AimMetrics.insetIntoCell
-                RoundedRectangle(cornerRadius: max(0, radius - inset), style: .continuous)
-                    .strokeBorder(Color.roleYou, lineWidth: AimMetrics.stroke(for: m.cell))
-                    .padding(inset)
-                    .shadow(color: .roleYouSoft, radius: m.cell * AimMetrics.glowRatio)
-                    .frame(width: m.cell, height: m.cell)
-                    .offset(x: origin.x, y: origin.y)
-                    // Появляется за `Motion.aim`, гаснет за 60 мс и в
-                    // анимации выстрела не участвует.
-                    .transition(.asymmetric(
-                        insertion: .opacity.animation(.easeOut(duration: Motion.aim)),
-                        removal: .opacity.animation(.easeOut(duration: AimMetrics.fadeOut))))
-            }
-        }
+        BattleBoard(battle: battle, field: field, metrics: m, alphabet: alphabet)
     }
 
     // MARK: Низ
@@ -274,6 +228,8 @@ struct BattleScreen: View {
             ResultsScreen(result: result,
                           onPlayAgain: onPlayAgain,
                           onMenu: onMenuAfterResult)
+                // iPad: колонкой 520 pt по центру, как экран уровня (4.3).
+                .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
         }
     }
 
@@ -290,6 +246,85 @@ struct BattleScreen: View {
         showsResults = true
         if appState.soundOn {
             AppState.playSound(sound: result.didWin ? "victory_sound.wav" : "defeat_sound.wav")
+        }
+    }
+}
+
+// MARK: - Боевое поле
+
+/// Одно поле боя: клетки из доски (флот противника скрыт), рамка хода,
+/// событие клетки, касание по полю противника, прицел и метки подсказки.
+/// Одно на бой iPhone и на стол iPad — у стола оба поля видны сразу.
+struct BattleBoard: View {
+    let battle: BattleController
+    let field: Side
+    let metrics: BoardMetrics
+    let alphabet: BoardAlphabet
+
+    @Environment(AppState.self) private var appState
+
+    private var m: BoardMetrics { metrics }
+
+    var body: some View {
+        let data = field == .foe ? battle.enemy : battle.player
+        // Флот противника скрыт тем же способом, каким он скрыт от ИИ: из
+        // `opponentView()` нетронутый корабль приходит водой.
+        let core = field == .foe ? data.coreBoard.opponentView() : data.coreBoard
+        let cells = Board.allCoordinates.map { BoardCellState.forDisplay(core[$0], on: field) }
+        // Свечение рамки — на поле, по которому сейчас стреляют (2.4).
+        let isActive = appState.gameIsActive
+            && (field == .foe ? !appState.enemysTurn : appState.enemysTurn)
+
+        return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
+                         alphabet: alphabet,
+                         event: battle.event(on: field),
+                         onTap: field == .foe
+                            ? { column, row in battle.tap(Coordinate(row: row + 1, column: column + 1)) }
+                            : nil)
+            .overlay(alignment: .topLeading) {
+                if field == .foe {
+                    marks
+                        .frame(width: m.gridSide, height: m.gridSide, alignment: .topLeading)
+                        .offset(x: m.inset, y: m.inset)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(width: m.totalSize.width, height: m.totalSize.height)
+            .accessibilityIdentifier(field == .foe ? "foeBoard" : "yourBoard")
+    }
+
+    /// Прицел и открытые подсказкой клетки — поверх сетки, как корабли на
+    /// расстановке: у `BoardCell` таких состояний нет, это не правила.
+    private var marks: some View {
+        let radius = Geometry.cellRadius(for: m.cell)
+        let unshot = Set(Board.allCoordinates.filter { battle.enemy.coreBoard[$0].isUnshot })
+        return ZStack(alignment: .topLeading) {
+            ForEach(Array(battle.hintCells.filter { unshot.contains($0) }), id: \.self) { cell in
+                let origin = m.cellOrigin(cell)
+                Image(systemName: "target")
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundStyle(Color.roleYou)
+                    .frame(width: m.cell * BattleScreenMetrics.hintMark,
+                           height: m.cell * BattleScreenMetrics.hintMark)
+                    .frame(width: m.cell, height: m.cell)
+                    .offset(x: origin.x, y: origin.y)
+            }
+            if let aim = battle.aim {
+                let origin = m.cellOrigin(aim)
+                let inset = AimMetrics.insetIntoCell
+                RoundedRectangle(cornerRadius: max(0, radius - inset), style: .continuous)
+                    .strokeBorder(Color.roleYou, lineWidth: AimMetrics.stroke(for: m.cell))
+                    .padding(inset)
+                    .shadow(color: .roleYouSoft, radius: m.cell * AimMetrics.glowRatio)
+                    .frame(width: m.cell, height: m.cell)
+                    .offset(x: origin.x, y: origin.y)
+                    // Появляется за `Motion.aim`, гаснет за 60 мс и в
+                    // анимации выстрела не участвует.
+                    .transition(.asymmetric(
+                        insertion: .opacity.animation(.easeOut(duration: Motion.aim)),
+                        removal: .opacity.animation(.easeOut(duration: AimMetrics.fadeOut))))
+            }
         }
     }
 }
@@ -346,6 +381,7 @@ private struct BattleDemo: View {
 private struct FinishDemo: View {
     @State private var appState = AppState()
     @State private var battle = BattleController(pacing: .instant)
+    var pad = false
 
     var body: some View {
         ZStack {
@@ -354,6 +390,7 @@ private struct FinishDemo: View {
             BattleScreen(battle: battle)
         }
         .environment(appState)
+        .environment(\.usesPadLayout, pad)
         .task {
             appState.soundOn = false
             appState.confirmShot = false
@@ -374,6 +411,12 @@ private struct FinishDemo: View {
 
 #Preview("Бой → итоги") {
     FinishDemo()
+        .preferredColorScheme(.dark)
+}
+
+/// Живой переход на столе iPad; сами итоги в колонке — превью «Итоги · iPad».
+#Preview("Бой → итоги · iPad", traits: .fixedLayout(width: 1194, height: 834)) {
+    FinishDemo(pad: true)
         .preferredColorScheme(.dark)
 }
 

@@ -141,6 +141,7 @@ struct AppShell: View {
     @Environment(AppState.self) private var appState
     @Environment(PremiumManager.self) private var premiumManager
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.usesPadLayout) private var usesPadLayout
 
     /// Бой живёт в оболочке, а не в экране: партия и ход компьютера не должны
     /// теряться от того, что игрок вышел в меню посмотреть статистику. Поля
@@ -257,26 +258,64 @@ struct AppShell: View {
                 .ignoresSafeArea()
 
             GeometryReader { proxy in
-                VStack(spacing: 0) {
-                    switch tab {
-                    case .play:
-                        MenuScreen(isPremium: premiumManager.isPremium,
-                                   canContinue: continueTarget.isAvailable,
-                                   onMode: open(_:),
-                                   onContinue: continueGame)
-                    case .statistics:
-                        // ПЕРЕХОДНОЕ: свой экран приходит в R4.1. Старый рисует
-                        // собственный фон, поэтому моря под ним не видно.
-                        StatsView()
-                    case .settings:
-                        // ПЕРЕХОДНОЕ: свой экран приходит в R4.2.
-                        SettingsView()
+                if usesPadLayout {
+                    padShell(proxy.size)
+                } else {
+                    VStack(spacing: 0) {
+                        tabContent
+                        SeaTabBar(selection: $tab,
+                                  size: .forWidth(proxy.size.width))
                     }
-
-                    SeaTabBar(selection: $tab,
-                              size: .forWidth(proxy.size.width))
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch tab {
+        case .play:
+            MenuScreen(isPremium: premiumManager.isPremium,
+                       canContinue: continueTarget.isAvailable,
+                       onMode: open(_:),
+                       onContinue: continueGame)
+        case .statistics:
+            // ПЕРЕХОДНОЕ: свой экран приходит в R4.1. Старый рисует
+            // собственный фон, поэтому моря под ним не видно.
+            StatsView()
+        case .settings:
+            // ПЕРЕХОДНОЕ: свой экран приходит в R4.2.
+            SettingsView()
+        }
+    }
+
+    /// iPad (спека 3): вертикально — рельс, прижатый к низу слева,
+    /// горизонтально — панель по центру низа. Обе в рамке 24 pt от краёв
+    /// экрана, а не от безопасной зоны (тур 11.2).
+    private func padShell(_ size: CGSize) -> some View {
+        let orientation = PadOrientation.of(size)
+        let frame = Geometry.Inset.padFrame
+        let rail = Geometry.Inset.railWidth
+        return ZStack(alignment: orientation == .portrait ? .bottomLeading : .bottom) {
+            Group {
+                if tab == .play {
+                    // Меню колонкой, как экран уровня; колонка сужается, чтобы
+                    // не заходить под рельс на iPad mini.
+                    tabContent
+                        .frame(maxWidth: min(Geometry.Nav.padColumn,
+                                             size.width - 2 * (frame + rail + Geometry.Nav.stackGap)))
+                        .frame(maxWidth: .infinity)
+                } else {
+                    tabContent
+                        .padding(.leading, orientation == .portrait ? frame + rail : 0)
+                }
+            }
+            .padding(.bottom, orientation == .landscape
+                        ? PadNavMetrics.barHeight + Geometry.Nav.stackGap : 0)
+
+            PadTabNavigation(selection: $tab, orientation: orientation)
+                .padding(frame)
+                .ignoresSafeArea(edges: .bottom)
         }
     }
 
@@ -297,6 +336,8 @@ struct AppShell: View {
                         onBack: { self.route = nil },
                         // До начала боя «Меню» выходит без вопроса (спека 3.1).
                         onMenu: { self.route = nil })
+                // iPad: колонка 520 pt по центру (4.3).
+                .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
 
         case .arrangement(let cameFromLevel):
             ArrangementScreen(editor: $fleet,

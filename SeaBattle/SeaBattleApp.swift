@@ -13,22 +13,17 @@ struct SeaBattleApp: App {
     @State private var premiumManager = PremiumManager()
     var body: some Scene {
         WindowGroup {
-            Group {
-                if UIDevice.current.userInterfaceIdiom == .pad {
-                    // iPad переезжает на новую оболочку в R2.6; до тех пор —
-                    // старое меню.
-                    iPadStartMenuView()
-                } else {
-                    AppShell()
+            // С R2.6 новая оболочка и на iPad: раскладку iPad (рельс, стол
+            // на два поля, колонки) она включает по этому флагу.
+            AppShell()
+                .environment(\.usesPadLayout, UIDevice.current.userInterfaceIdiom == .pad)
+                .environment(appState)
+                .environment(premiumManager)
+                .environment(\.locale, Locale(identifier: appState.language))
+                .task {
+                    premiumManager.start()
+                    CloudSyncManager.shared.start()
                 }
-            }
-            .environment(appState)
-            .environment(premiumManager)
-            .environment(\.locale, Locale(identifier: appState.language))
-            .task {
-                premiumManager.start()
-                CloudSyncManager.shared.start()
-            }
         }
     }
 }

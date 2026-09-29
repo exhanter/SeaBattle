@@ -390,3 +390,17 @@ private struct ResultsDemo: View {
         balance: 240))
         .preferredColorScheme(.light)
 }
+
+/// iPad: колонка 520 pt по центру — так итоги кладёт на стол `BattleScreen`.
+#Preview("Итоги · iPad", traits: .fixedLayout(width: 1194, height: 834)) {
+    ZStack {
+        SeaBackground()
+            .ignoresSafeArea()
+        ResultsScreen(result: MatchResult(
+            didWin: true, level: .hard, yourLosses: 2, foeLosses: 10,
+            tally: ResultsDemo.tally(hits: 20, misses: 43, streak: 4, hints: 1, cost: 6),
+            balance: 126))
+            .frame(maxWidth: Geometry.Nav.padColumn)
+    }
+    .preferredColorScheme(.dark)
+}

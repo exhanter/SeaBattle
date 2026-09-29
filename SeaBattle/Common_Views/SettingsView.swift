@@ -11,6 +11,7 @@ struct SettingsView: View {
     
     @Environment(AppState.self) private var appState
     @Environment(PremiumManager.self) private var premiumManager
+    @Environment(\.usesPadLayout) private var usesPadLayout
     @State private var showPaywall = false
     @State private var showStats = false
 
@@ -112,6 +113,21 @@ struct SettingsView: View {
                     Toggle("Confirm each shot", isOn: $appState.confirmShot)
                         .padding(.horizontal)
                         .padding(.bottom)
+
+                    // R2.6, ПЕРЕХОДНОЕ: строка группы «Вид» из спеки 4.11,
+                    // только на iPad. Своё место получит в R4.2.
+                    if usesPadLayout {
+                        Text("Your board in landscape")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                        Picker("Your board in landscape", selection: $appState.ownBoardOnRight) {
+                            Text("Left").tag(false)
+                            Text("Right").tag(true)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
+                        .padding(.bottom)
+                    }
 
                     Button {
                         if appState.soundOn {

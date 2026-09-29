@@ -39,9 +39,20 @@ struct ArrangementScreen: View {
     var onBack: () -> Void = {}
     var onMenu: () -> Void = {}
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
 
     var body: some View {
+        if usesPadLayout {
+            // iPad: отдельного экрана расстановки нет — стол на два поля,
+            // правка на нём же (4.4). До боя «Меню» выходит без вопроса.
+            PadTableScreen(phase: .placement(editor: $editor, onStart: onStart),
+                           onMenu: onMenu)
+        } else {
+            phone
+        }
+    }
+
+    private var phone: some View {
         GeometryReader { proxy in
             let metrics = BoardMetrics(cell: Geometry.SizeClass.forWidth(proxy.size.width).cell)
 
@@ -87,58 +98,7 @@ struct ArrangementScreen: View {
     // MARK: Поле
 
     private func board(_ m: BoardMetrics) -> some View {
-        BoardView(cells: [BoardCellState](repeating: .water, count: 100),
-                  role: .you, metrics: m)
-            // Корабли лежат **поверх** сетки, а не внутри неё: их надо тянуть
-            // целиком, а сетка — это сто отдельных клеток.
-            .overlay(alignment: .topLeading) {
-                ships(m)
-                    .frame(width: m.gridSide, height: m.gridSide, alignment: .topLeading)
-                    .offset(x: m.inset, y: m.inset)
-            }
-            .frame(width: m.totalSize.width, height: m.totalSize.height)
-    }
-
-    private func ships(_ m: BoardMetrics) -> some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(editor.ships) { ship in
-                shipView(ship, m)
-            }
-        }
-    }
-
-    private func shipView(_ ship: ShipPlacement, _ m: BoardMetrics) -> some View {
-        let isDragged = editor.draggingID == ship.id
-        let isDenied = editor.conflicts.contains(ship.id)
-        let origin = m.cellOrigin(ship.origin)
-        let size = m.shipSize(length: ship.length, orientation: ship.orientation)
-
-        return ShipCells(ship: ship, metrics: m,
-                         isDenied: isDenied,
-                         isJiggling: editor.isEditing && !isDragged && !reduceMotion)
-            .frame(width: size.width, height: size.height)
-            .opacity(isDragged ? ArrangementMetrics.draggedOpacity : 1)
-            .offset(x: origin.x, y: origin.y)
-            .gesture(dragGesture(ship, m), isEnabled: editor.isEditing)
-            .onTapGesture { editor.rotate(ship.id) }
-            .accessibilityElement()
-            .accessibilityLabel(Text("\(ship.length)-cell ship"))
-            .accessibilityValue(isDenied ? Text("cannot be placed here") : Text(""))
-    }
-
-    /// Смещение считается в **клетках**, а не в точках: между клетками корабль
-    /// стоять не может, и плавное движение только обманывало бы. За какую
-    /// клетку взяли, значения не имеет — корабль смещается на столько же
-    /// клеток, на сколько ушёл палец, поэтому взятая клетка сама остаётся под
-    /// ним.
-    private func dragGesture(_ ship: ShipPlacement, _ m: BoardMetrics) -> some Gesture {
-        DragGesture(minimumDistance: 4)
-            .onChanged { value in
-                if editor.draggingID != ship.id { editor.beginDragging(ship.id) }
-                editor.dragBy(columns: Int((value.translation.width / m.step).rounded()),
-                              rows: Int((value.translation.height / m.step).rounded()))
-            }
-            .onEnded { _ in editor.endDragging() }
+        EditableFleetBoard(editor: $editor, metrics: m)
     }
 
     // MARK: Строка ошибки
@@ -187,6 +147,73 @@ struct ArrangementScreen: View {
             }
             .primaryButton(enabled: editor.canFinish && editor.actionsEnabled)
         }
+    }
+}
+
+// MARK: - Поле с кораблями для правки
+
+/// Своё поле с флотом из `FleetEditor`: дрожание, перетаскивание, поворот
+/// касанием, розовый запрет. Одно на расстановку iPhone и на стол iPad
+/// (4.4): правила жеста одни, копий быть не должно.
+struct EditableFleetBoard: View {
+    @Binding var editor: FleetEditor
+    let metrics: BoardMetrics
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        BoardView(cells: [BoardCellState](repeating: .water, count: 100),
+                  role: .you, metrics: metrics)
+            // Корабли лежат **поверх** сетки, а не внутри неё: их надо тянуть
+            // целиком, а сетка — это сто отдельных клеток.
+            .overlay(alignment: .topLeading) {
+                ships
+                    .frame(width: metrics.gridSide, height: metrics.gridSide, alignment: .topLeading)
+                    .offset(x: metrics.inset, y: metrics.inset)
+            }
+            .frame(width: metrics.totalSize.width, height: metrics.totalSize.height)
+    }
+
+    private var ships: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(editor.ships) { ship in
+                shipView(ship)
+            }
+        }
+    }
+
+    private func shipView(_ ship: ShipPlacement) -> some View {
+        let isDragged = editor.draggingID == ship.id
+        let isDenied = editor.conflicts.contains(ship.id)
+        let origin = metrics.cellOrigin(ship.origin)
+        let size = metrics.shipSize(length: ship.length, orientation: ship.orientation)
+
+        return ShipCells(ship: ship, metrics: metrics,
+                         isDenied: isDenied,
+                         isJiggling: editor.isEditing && !isDragged && !reduceMotion)
+            .frame(width: size.width, height: size.height)
+            .opacity(isDragged ? ArrangementMetrics.draggedOpacity : 1)
+            .offset(x: origin.x, y: origin.y)
+            .gesture(dragGesture(ship), isEnabled: editor.isEditing)
+            .onTapGesture { editor.rotate(ship.id) }
+            .accessibilityElement()
+            .accessibilityLabel(Text("\(ship.length)-cell ship"))
+            .accessibilityValue(isDenied ? Text("cannot be placed here") : Text(""))
+    }
+
+    /// Смещение считается в **клетках**, а не в точках: между клетками корабль
+    /// стоять не может, и плавное движение только обманывало бы. За какую
+    /// клетку взяли, значения не имеет — корабль смещается на столько же
+    /// клеток, на сколько ушёл палец, поэтому взятая клетка сама остаётся под
+    /// ним.
+    private func dragGesture(_ ship: ShipPlacement) -> some Gesture {
+        DragGesture(minimumDistance: 4)
+            .onChanged { value in
+                if editor.draggingID != ship.id { editor.beginDragging(ship.id) }
+                editor.dragBy(columns: Int((value.translation.width / metrics.step).rounded()),
+                              rows: Int((value.translation.height / metrics.step).rounded()))
+            }
+            .onEnded { _ in editor.endDragging() }
     }
 }
 

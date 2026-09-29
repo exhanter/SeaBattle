@@ -135,6 +135,16 @@ class AppState {
         }
     }
     private static let confirmShotKey = "confirmShot"
+    /// «Своё поле в горизонтальной ориентации» (spec 4.11, iPad only): which
+    /// side of the landscape table holds your own board. **Left by default** —
+    /// the opponent's board sits under the right hand. The feed, the hint and
+    /// the score blocks move with the boards; role colours never change.
+    var ownBoardOnRight: Bool {
+        didSet {
+            UserDefaults.standard.set(ownBoardOnRight, forKey: Self.ownBoardOnRightKey)
+        }
+    }
+    private static let ownBoardOnRightKey = "ownBoardOnRight"
     /// Transient presentation flags (set from the menu, presented at the root so
     /// the covers survive layout changes — notably on iPad).
     var showHotSeat = false
@@ -239,6 +249,7 @@ class AppState {
         // has the app installed.
         self.askLevelBeforeMatch = defaults.object(forKey: Self.askLevelKey) as? Bool ?? true
         self.confirmShot = defaults.bool(forKey: Self.confirmShotKey)
+        self.ownBoardOnRight = defaults.bool(forKey: Self.ownBoardOnRightKey)
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier

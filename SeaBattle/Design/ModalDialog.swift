@@ -107,6 +107,9 @@ private struct ModalPresenter<Dialog: View>: View {
             }
             if isPresented {
                 dialog
+                    // iPad: не шире колонки уровня и итогов (4.3, 4.9) —
+                    // «24 pt от краёв» рассчитано на ширину iPhone.
+                    .frame(maxWidth: Geometry.Nav.padColumn)
                     .padding(.horizontal, ModalMetrics.screenInset)
                     .transition(windowTransition)
             }
