@@ -193,4 +193,55 @@ struct BattleTests {
         #expect(BattleMetrics.compact.hintIcon == 19)
         #expect(BattleMetrics.fleetDots == 10)
     }
+
+    // MARK: Раунд 5
+
+    @Test("Поле стоит на одной высоте на обоих экранах и не лезет под панель")
+    func theBoardSitsAtOneHeight() {
+        // Своё поле и поле противника считают верх одной функцией с одними
+        // входами — ленту она учитывает всегда, поэтому поле не прыгает.
+        let board: CGFloat = 22 + 10 + BoardMetrics(cell: 32).totalSize.height
+        let feed = ShotFeed.height + Geometry.Nav.stackGap
+        let top = BattleScreenMetrics.boardTop(available: 560, board: board, feed: feed)
+        #expect(top + board + feed <= 560)
+        #expect(top >= BattleScreenMetrics.minGap)
+        // На тесном экране зазор не уходит ниже минимума.
+        #expect(BattleScreenMetrics.boardTop(available: 300, board: board, feed: feed)
+                == BattleScreenMetrics.minGap)
+    }
+
+    @Test("Прицел: 7 % клетки, не тоньше 1,5 pt (2.18)")
+    func theAimFollowsTheCell() {
+        let atPhone: CGFloat = 32 * 0.07
+        #expect(AimMetrics.stroke(for: 32) == atPhone)
+        #expect(AimMetrics.stroke(for: 16) == 1.5)
+        #expect(AimMetrics.fadeOut == 0.060)
+        #expect(Motion.aim == 0.120)
+    }
+
+    @Test("Окно выхода: у сетевой партии выход — это сдача")
+    func theLeaveDialogNamesTheSurrender() {
+        #expect(LeaveMatchKind.offline.confirm == "Leave")
+        #expect(LeaveMatchKind.network.confirm == "Surrender and leave")
+        #expect(ModalMetrics.screenInset == 24)
+        #expect(ModalMetrics.radius == 26)
+        #expect(ModalMetrics.windowStartScale == 0.96)
+    }
+
+    @Test("Затемнение под окном есть в каталоге")
+    func theScrimTokenExists() {
+        #expect(UIColor(named: ColorToken.overlayScrim.rawValue, in: .main, compatibleWith: nil) != nil)
+    }
+
+    @Test("Подсказка доступна без Pro: её доступность от Pro не зависит")
+    func hintsDoNotNeedPro() {
+        // У контроллера нет входа «куплен ли Pro» вовсе — это и есть правило.
+        let (_, battle) = match()
+        let before = ProgressStore.shared.points
+        ProgressStore.shared.addPoints(battle.hintCost)
+        #expect(battle.canUseHint)
+        #expect(battle.requestHint())
+        #expect(battle.hintCells.count == 1)
+        #expect(ProgressStore.shared.points == before)
+    }
 }

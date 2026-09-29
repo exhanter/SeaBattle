@@ -147,6 +147,9 @@ extension Color {
     // чтобы не читалась как кнопка. Тень текста — Ink/TitleShadow.
     static let warnIcon = Color("Warn/Icon") // #FF7A2F
     static let warnText = Color("Warn/Text") // dark #FFC2A6 · light #FFFFFF
+
+    /// Затемнение под модальным окном G3 («Выйти из партии?» и подобные).
+    static let overlayScrim = Color("Overlay/Scrim") // dark rgba(2,10,20,.55) · light rgba(4,26,40,.40)
 }
 
 extension RadialGradient {

@@ -151,6 +151,9 @@ enum ColorToken: String, CaseIterable, Sendable {
     case warnIcon = "Warn/Icon"
     case warnText = "Warn/Text"
 
+    // Затемнение под модальным окном G3 (раунд 5, спека 2.17)
+    case overlayScrim = "Overlay/Scrim"
+
     var color: Color { Color(rawValue) }
 
     /// Первая часть пути: Sea · Role · Chrome · Glass · Ink · Cell · Board ·

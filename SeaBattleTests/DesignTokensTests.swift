@@ -118,14 +118,14 @@ struct DesignTokensTests {
         #expect(Set(grouped) == Set(ColorToken.allCases))
         #expect(ColorToken.groups.map(\.name)
                 == ["Sea", "Role", "Chrome", "Glass", "Ink", "Cell", "Board",
-                    "Button", "Warn"])
+                    "Button", "Warn", "Overlay"])
     }
 
-    @Test("Перечисление описывает весь каталог: 80 токенов")
+    @Test("Перечисление описывает весь каталог: 81 токен")
     func theEnumCoversTheWholeCatalogue() {
         // Каталог приходит из пакета дизайна готовым, а перечисление ведём мы,
         // поэтому число зафиксировано: пришёл новый пакет — сверить и поправить.
-        #expect(ColorToken.allCases.count == 80)
+        #expect(ColorToken.allCases.count == 81)
     }
 
     @Test("Заливка G2 в тёмной теме ровная, в светлой — с перепадом")

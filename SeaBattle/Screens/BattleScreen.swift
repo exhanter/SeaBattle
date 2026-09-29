@@ -25,12 +25,39 @@ enum BattleScreenMetrics {
     static let captionHeight: CGFloat = 22
     /// Под панелью счёта — от безопасной зоны.
     static let scoreTop: CGFloat = 4
-    /// Минимальные зазоры вокруг поля; остальное место делится поровну.
+    /// Минимальный зазор над полем.
     static let minGap: CGFloat = 10
-    /// Латунный контур прицела («выстрел назван, ждём ответ», спека 5).
-    static let aimStroke: CGFloat = 2
     /// Метка подсказки — доля клетки.
     static let hintMark: CGFloat = 0.6
+
+    /// Верх поля от верха области между панелью счёта и низом экрана.
+    ///
+    /// **Одна высота на оба поля** (2.8 после раунда 5): поле считается так,
+    /// будто лента под ним есть всегда, и стоит посередине оставшегося места.
+    /// На поле противника ленты нет, а поле остаётся там же — при
+    /// переключении оно не прыгает. Пустого блока под несуществующую ленту
+    /// при этом нет: место просто не занято.
+    static func boardTop(available: CGFloat, board: CGFloat, feed: CGFloat) -> CGFloat {
+        max(minGap, ((available - board - feed) / 2).rounded())
+    }
+}
+
+// MARK: - Прицел
+
+/// Спека 2.18, макет 18b: обводка `Role/You` толщиной 7 % клетки (не меньше
+/// 1,5 pt), внутрь на 1 pt, по радиусу клетки; мягкое свечение `Role/YouSoft`
+/// радиусом 50 % клетки.
+enum AimMetrics {
+    static let strokeRatio: CGFloat = 0.07
+    static let minStroke: CGFloat = 1.5
+    static let insetIntoCell: CGFloat = 1
+    static let glowRatio: CGFloat = 0.5
+    /// Гаснет за 60 мс в момент выстрела (правило 4).
+    static let fadeOut: Double = 0.060
+
+    static func stroke(for cell: CGFloat) -> CGFloat {
+        max(minStroke, cell * strokeRatio)
+    }
 }
 
 // MARK: - Экран
@@ -38,7 +65,6 @@ enum BattleScreenMetrics {
 struct BattleScreen: View {
 
     let battle: BattleController
-    let isPremium: Bool
     /// Выйти в меню. Вопрос «Выйти из партии?» задаёт сам экран.
     var onLeave: () -> Void = {}
     /// ПЕРЕХОДНОЕ до R2.5: кнопки старого окна итогов.
@@ -67,32 +93,40 @@ struct BattleScreen: View {
                            size: size)
                     .padding(.top, BattleScreenMetrics.scoreTop)
 
-                Spacer(minLength: BattleScreenMetrics.minGap)
-
-                caption(field, size: size)
-                    .padding(.bottom, BattleScreenMetrics.captionGap)
-                board(field, metrics)
-
-                Spacer(minLength: BattleScreenMetrics.minGap)
-
-                // Слот ленты занят на обоих полях: иначе поле прыгало бы по
-                // вертикали при каждом переключении. На поле противника ленты
-                // в кадре `screen16Battle` нет — место просто пустое.
-                Group {
-                    if field == .you {
-                        ShotFeed(title: "Shots at you this round", entries: battle.incoming,
-                                 alphabet: alphabet)
-                    } else {
-                        Color.clear.frame(height: ShotFeed.height)
+                GeometryReader { area in
+                    let feed = ShotFeed.height + Geometry.Nav.stackGap
+                    let boardBlock = BattleScreenMetrics.captionHeight
+                        + BattleScreenMetrics.captionGap + metrics.totalSize.height
+                    let top = BattleScreenMetrics.boardTop(available: area.size.height,
+                                                          board: boardBlock, feed: feed)
+                    VStack(spacing: 0) {
+                        caption(field, size: size)
+                            .padding(.bottom, BattleScreenMetrics.captionGap)
+                        board(field, metrics)
+                        Spacer(minLength: 0)
+                        // Лента только на своём поле (2.8).
+                        if field == .you {
+                            ShotFeed(title: "Shots at you this round",
+                                     entries: battle.incoming, alphabet: alphabet)
+                                .padding(.horizontal, Geometry.Nav.stackInset)
+                                .padding(.bottom, Geometry.Nav.stackGap)
+                        }
                     }
+                    .padding(.top, top)
+                    .frame(width: area.size.width, height: area.size.height)
                 }
-                .padding(.horizontal, Geometry.Nav.stackInset)
-                .padding(.bottom, Geometry.Nav.stackGap)
 
                 actions(field, size: size)
             }
             .overlay { resultOverlay }
-            .overlay { leaveDialog }
+            .modalDialog(isPresented: askLeave) {
+                ModalDialog.leaveMatch(.offline,
+                                       onStay: { askLeave = false },
+                                       onLeave: {
+                                           askLeave = false
+                                           onLeave()
+                                       })
+            }
         }
         .animation(Motion.quick, value: battle.shownField)
     }
@@ -165,14 +199,20 @@ struct BattleScreen: View {
             }
             if let aim = battle.aim {
                 let origin = m.cellOrigin(aim)
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(Color.roleYou, lineWidth: BattleScreenMetrics.aimStroke)
+                let inset = AimMetrics.insetIntoCell
+                RoundedRectangle(cornerRadius: max(0, radius - inset), style: .continuous)
+                    .strokeBorder(Color.roleYou, lineWidth: AimMetrics.stroke(for: m.cell))
+                    .padding(inset)
+                    .shadow(color: .roleYouSoft, radius: m.cell * AimMetrics.glowRatio)
                     .frame(width: m.cell, height: m.cell)
                     .offset(x: origin.x, y: origin.y)
-                    .transition(.opacity)
+                    // Появляется за `Motion.aim`, гаснет за 60 мс и в
+                    // анимации выстрела не участвует.
+                    .transition(.asymmetric(
+                        insertion: .opacity.animation(.easeOut(duration: Motion.aim)),
+                        removal: .opacity.animation(.easeOut(duration: AimMetrics.fadeOut))))
             }
         }
-        .animation(.easeOut(duration: Motion.aim), value: battle.aim)
     }
 
     // MARK: Низ
@@ -181,9 +221,10 @@ struct BattleScreen: View {
         BottomStack(onMenu: { menuTapped() }) {
             HStack(spacing: Geometry.Nav.stackGap) {
                 FieldSwitch(selection: field, size: size) { battle.show($0) }
-                // Подсказка только у поля противника (2.9). ПЕРЕХОДНОЕ: пока
-                // она по-прежнему часть Pro, как с фазы 6.
-                if field == .foe && isPremium {
+                // Подсказка только у поля противника (2.9) и **без Pro**:
+                // Pro открывает режимы, а не ход партии (решение заказчика
+                // 29.09, спека 4.12).
+                if field == .foe {
                     BattleHintButton(cost: battle.hintCost,
                                      isEnabled: battle.canUseHint,
                                      size: size) { battle.requestHint() }
@@ -197,31 +238,9 @@ struct BattleScreen: View {
     /// партии выходит сразу.
     private func menuTapped() {
         if appState.gameIsActive {
-            withAnimation(Motion.quick) { askLeave = true }
+            askLeave = true
         } else {
             onLeave()
-        }
-    }
-
-    // MARK: Окно «Выйти из партии?»
-
-    @ViewBuilder
-    private var leaveDialog: some View {
-        if askLeave {
-            ZStack {
-                // Перехват касаний: пока окно открыто, стрелять нельзя.
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {}
-                LeaveMatchDialog(
-                    onStay: { withAnimation(Motion.quick) { askLeave = false } },
-                    onLeave: {
-                        askLeave = false
-                        onLeave()
-                    })
-                    .padding(.horizontal, Geometry.Nav.titleInset)
-            }
-            .transition(.opacity)
         }
     }
 
@@ -238,52 +257,6 @@ struct BattleScreen: View {
     }
 }
 
-// MARK: - Окно выхода
-
-/// Окно G3 «Выйти из партии?» (спека 3.1): главная кнопка «Остаться»,
-/// второстепенная «Выйти». Главная — остаться: случайное касание «Меню» не
-/// должно стоить партии.
-struct LeaveMatchDialog: View {
-    var onStay: () -> Void = {}
-    var onLeave: () -> Void = {}
-
-    var body: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 6) {
-                Text("Leave the match?")
-                    .font(TypeScale.headline)
-                    .foregroundStyle(Color.inkPrimary)
-                Text("The game is saved. Continue it from the menu.")
-                    .font(TypeScale.footnote)
-                    .foregroundStyle(Color.inkSecondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            VStack(spacing: Geometry.Nav.stackGap) {
-                Button {
-                    onStay()
-                } label: {
-                    Text("Stay")
-                }
-                .primaryButton()
-                .accessibilityIdentifier("leaveStay")
-
-                Button {
-                    onLeave()
-                } label: {
-                    Text("Leave")
-                }
-                .secondaryButton()
-                .accessibilityIdentifier("leaveConfirm")
-            }
-        }
-        .padding(20)
-        .glassPanel(.g3, radius: Geometry.Radius.panelLarge)
-        .accessibilityElement(children: .contain)
-        .accessibilityAddTraits(.isModal)
-    }
-}
-
 // MARK: - Превью
 
 private struct BattleDemo: View {
@@ -296,7 +269,7 @@ private struct BattleDemo: View {
         ZStack {
             SeaBackground()
                 .ignoresSafeArea()
-            BattleScreen(battle: battle, isPremium: true)
+            BattleScreen(battle: battle)
         }
         .environment(appState)
         .onAppear {
@@ -334,13 +307,4 @@ private struct BattleDemo: View {
 #Preview("Бой · светлая") {
     BattleDemo(field: .foe, enemysTurn: false)
         .preferredColorScheme(.light)
-}
-
-#Preview("Окно выхода") {
-    ZStack {
-        SeaBackground()
-        LeaveMatchDialog()
-            .padding(.horizontal, 20)
-    }
-    .preferredColorScheme(.dark)
 }

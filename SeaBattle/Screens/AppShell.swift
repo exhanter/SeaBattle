@@ -177,7 +177,6 @@ struct AppShell: View {
                     SeaBackground()
                         .ignoresSafeArea()
                     BattleScreen(battle: battle,
-                                 isPremium: premiumManager.isPremium,
                                  onLeave: leaveBattle,
                                  onPlayAgain: playAgain,
                                  onMenuAfterResult: closeFinishedMatch)
