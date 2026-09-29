@@ -51,9 +51,13 @@ final class GameEngine {
             finish(loser: target)
         }
 
-        // `target` is the board that was fired AT, so shooting the opponent's
-        // board hands the turn to the computer, and vice versa.
-        appState.enemysTurn = target.side == .foe
+        // `target` is the board that was fired AT. A miss (or a repeat shot)
+        // hands the turn to whoever owns that board; a hit keeps it with the
+        // shooter. Until R2.3 the flag ignored the result and a hit on the
+        // computer's board passed the turn anyway — the pre-R0.4 code had kept
+        // it by returning early, and the port lost that.
+        let shooterIsComputer = target.side == .you
+        appState.enemysTurn = result.keepsTurn ? shooterIsComputer : !shooterIsComputer
         return result
     }
 

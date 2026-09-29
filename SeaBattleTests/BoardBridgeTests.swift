@@ -181,12 +181,29 @@ struct VsComputerMatchTests {
 
         let hit = engine.checkShipOnFire(row: shipCell.0, column: shipCell.1, target: enemy)
         #expect(hit.isHit)
-        // Firing AT the opponent's board never hands the turn to the computer.
-        #expect(appState.enemysTurn)
+        // A hit on the opponent's board keeps the turn with the player. Until
+        // R2.3 this line expected the opposite, and the game really did hand
+        // the turn over after every hit.
+        #expect(!appState.enemysTurn)
 
         let empty = Board.allCoordinates.first { enemy.coreBoard[$0] == .water }!
         let miss = engine.checkShipOnFire(row: empty.row, column: empty.column, target: enemy)
         #expect(miss == .miss)
+        #expect(appState.enemysTurn)
+    }
+
+    @Test("The computer keeps the turn while it hits and loses it on a miss")
+    func computerTurnFollowsTheResult() {
+        let (appState, player, _, engine) = configuredGame()
+        appState.enemysTurn = true
+        let shipCell = player.ships[0].coordinates[0]
+
+        engine.checkShipOnFire(row: shipCell.0, column: shipCell.1, target: player)
+        #expect(appState.enemysTurn)
+
+        let empty = Board.allCoordinates.first { player.coreBoard[$0] == .water }!
+        engine.checkShipOnFire(row: empty.row, column: empty.column, target: player)
+        #expect(!appState.enemysTurn)
     }
 
     @Test("A repeat shot leaves the board untouched")

@@ -107,6 +107,12 @@ struct SettingsView: View {
                         .padding(.horizontal)
                         .padding(.bottom)
 
+                    // R2.3, ПЕРЕХОДНОЕ по той же причине: без строки
+                    // подтверждение выстрела нечем включить до R4.2.
+                    Toggle("Confirm each shot", isOn: $appState.confirmShot)
+                        .padding(.horizontal)
+                        .padding(.bottom)
+
                     Button {
                         if appState.soundOn {
                             AppState.playSound(sound: "click_sound.wav")

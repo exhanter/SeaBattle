@@ -125,6 +125,16 @@ class AppState {
         }
     }
     private static let askLevelKey = "askLevelBeforeMatch"
+    /// «Спрашивать подтверждение выстрела» (spec 4.5, 4.11): the first tap on
+    /// the opponent's board aims, the second one fires. **Off by default**, so
+    /// a quick game stays one tap per shot. Persisted here for the same reason
+    /// as `askLevelBeforeMatch`.
+    var confirmShot: Bool {
+        didSet {
+            UserDefaults.standard.set(confirmShot, forKey: Self.confirmShotKey)
+        }
+    }
+    private static let confirmShotKey = "confirmShot"
     /// Transient presentation flags (set from the menu, presented at the root so
     /// the covers survive layout changes — notably on iPad).
     var showHotSeat = false
@@ -228,6 +238,7 @@ class AppState {
         // `bool(forKey:)` would read it as `false` for everybody who already
         // has the app installed.
         self.askLevelBeforeMatch = defaults.object(forKey: Self.askLevelKey) as? Bool ?? true
+        self.confirmShot = defaults.bool(forKey: Self.confirmShotKey)
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier

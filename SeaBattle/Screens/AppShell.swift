@@ -10,10 +10,10 @@
 //  В бою табы заменяются на переключатель полей и действия фазы, поэтому
 //  таб-бар живёт не в приложении целиком, а только в этой оболочке.
 //
-//  ПЕРЕХОДНОЕ. Новые экраны боя, статистики и настроек приходят позже
-//  (R2.2–R2.3, R4.1–R4.2). До тех пор оболочка отдаёт управление старым
-//  экранам: они работают, просто выглядят по-старому. Всё, что помечено
-//  `ПЕРЕХОДНОЕ`, уходит вместе с ними в R4.6.
+//  ПЕРЕХОДНОЕ. Новые экраны статистики и настроек приходят позже
+//  (R4.1–R4.2). До тех пор оболочка отдаёт управление старым экранам: они
+//  работают, просто выглядят по-старому. Всё, что помечено `ПЕРЕХОДНОЕ`,
+//  уходит вместе с ними в R4.6.
 //
 
 import SwiftUI
@@ -142,10 +142,12 @@ struct AppShell: View {
     @Environment(PremiumManager.self) private var premiumManager
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Поля живут в оболочке, а не в экране боя: партия не должна теряться от
-    /// того, что игрок вышел в меню посмотреть статистику.
-    @State private var player = PlayerData(name: "Player")
-    @State private var enemy = PlayerData(name: "Enemy")
+    /// Бой живёт в оболочке, а не в экране: партия и ход компьютера не должны
+    /// теряться от того, что игрок вышел в меню посмотреть статистику. Поля
+    /// партии — `battle.player` и `battle.enemy`.
+    @State private var battle = BattleController()
+    private var player: PlayerData { battle.player }
+    private var enemy: PlayerData { battle.enemy }
 
     @State private var tab: ShellTab = .play
     @State private var askWhichGameToContinue = false
@@ -171,8 +173,15 @@ struct AppShell: View {
         @Bindable var appState = appState
         return Group {
             if appState.selectedTab != .menu {
-                // ПЕРЕХОДНОЕ: старый бой со своим фоном и деревянными панелями.
-                LegacyBattleShell(player: player, enemy: enemy)
+                ZStack {
+                    SeaBackground()
+                        .ignoresSafeArea()
+                    BattleScreen(battle: battle,
+                                 isPremium: premiumManager.isPremium,
+                                 onLeave: leaveBattle,
+                                 onPlayAgain: playAgain,
+                                 onMenuAfterResult: closeFinishedMatch)
+                }
             } else if let route {
                 ZStack {
                     SeaBackground()
@@ -183,6 +192,7 @@ struct AppShell: View {
                 shell
             }
         }
+        .onAppear { battle.configure(appState: appState) }
         .onChange(of: scenePhase) { _, phase in
             // Сохранение в стабильной точке — при уходе из приложения посреди
             // партии и не на ходу компьютера.
@@ -371,17 +381,43 @@ struct AppShell: View {
         }
         appState.gameIsActive = true
         appState.manualShipArrangement = false
+        battle.beginMatch()
         route = nil
-        // ПЕРЕХОДНОЕ: бой пока старый (R2.3). Свой экран расстановки заменил
-        // старый, поэтому идём сразу на поле противника, а не на `.playerView`.
         appState.selectedTab = .enemyView
+    }
+
+    /// «Выйти» в окне «Выйти из партии?». Партия остаётся в памяти и в меню
+    /// появляется «Продолжить партию» (3.1); на диск она пишется здесь же,
+    /// если сейчас стабильная точка, — иначе её сохранит ход компьютера,
+    /// когда доиграет.
+    private func leaveBattle() {
+        if appState.gameIsActive && !appState.enemysTurn {
+            GameStore.save(GameSnapshot(appState: appState, player: player, enemy: enemy))
+        }
+        battle.leave()
+        appState.selectedTab = .menu
+    }
+
+    /// ПЕРЕХОДНОЕ до R2.5: «Ещё партия» в старом окне итогов — новая
+    /// расстановка на том же уровне.
+    private func playAgain() {
+        closeFinishedMatch()
+        openArrangement(cameFromLevel: false)
+    }
+
+    private func closeFinishedMatch() {
+        battle.beginMatch()
+        appState.resetData(player: player, enemy: enemy)
     }
 
     private func continueGame() {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
         switch continueTarget {
         case .none: break
-        case .resume: appState.selectedTab = .enemyView
+        case .resume:
+            // Компьютер мог ещё доигрывать ход, пока игрок был в меню, — тогда
+            // возвращаемся на своё поле, туда он и стреляет.
+            appState.selectedTab = appState.enemysTurn ? .playerView : .enemyView
         case .vsComputer: continueVsComputer()
         case .hotSeat: appState.showHotSeat = true
         case .ask: askWhichGameToContinue = true
@@ -391,59 +427,11 @@ struct AppShell: View {
     private func continueVsComputer() {
         guard let snapshot = GameStore.load() else { return }
         snapshot.apply(to: appState, player: player, enemy: enemy)
+        battle.beginMatch()
         if appState.musicOn {
             AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
         }
         appState.selectedTab = .enemyView
-    }
-}
-
-// MARK: - ПЕРЕХОДНОЕ: старый бой
-
-/// Старые экраны боя вместе с их деревянными панелями — ровно то, что раньше
-/// рисовал `ContentView` вне меню. Поля приходят снаружи, из оболочки, поэтому
-/// выход в меню партию не роняет. Уходит целиком в R2.3.
-private struct LegacyBattleShell: View {
-    @Environment(AppState.self) private var appState
-    let player: PlayerData
-    let enemy: PlayerData
-
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                switch appState.selectedTab {
-                case .playerView:
-                    PlayerFieldView(player: player, enemy: enemy)
-                case .enemyView:
-                    EnemyFieldView(player: player, enemy: enemy)
-                case .about:
-                    AboutView()
-                case .menu, .iPadBattleView:
-                    EmptyView()
-                }
-
-                VStack(spacing: 0) {
-                    ZStack {
-                        Image("wood")
-                            .resizable()
-                            .renderingMode(.original)
-                            .frame(height: geometry.size.height * 0.10)
-                        if appState.selectedTab == .playerView
-                            || appState.selectedTab == .enemyView {
-                            GameScoreView(
-                                numberOfPlayersShipsDestroyed: player.numberShipsDestroyed,
-                                numberOfEnemyShipsDestroyed: enemy.numberShipsDestroyed)
-                                .padding(.horizontal, geometry.size.width * 0.04)
-                        }
-                    }
-                    Spacer()
-                    CustomTabView(relativeFontSize: geometry.size.width * 0.13,
-                                  height: geometry.size.height * 0.11)
-                }
-                .ignoresSafeArea()
-                .statusBar(hidden: true)
-            }
-        }
     }
 }
 
