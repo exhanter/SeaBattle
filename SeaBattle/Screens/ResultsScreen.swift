@@ -12,11 +12,8 @@
 //  этим управляет `BattleScreen`), затем здесь карточки поднимаются
 //  (`resultsFill`) и баллы досчитываются счётчиком (`pointsCounter`).
 //
-//  Два отступления от кадра:
-//  - в подзаголовке нет времени партии («· 8:20»): заказчик убрал время из
-//    боя как не несущее смысла (29.09), и на итогах оно было бы единственным
-//    (вопрос В20);
-//  - строк за достижения нет: достижений в игре пока нет (R4.1).
+//  Времени партии в подзаголовке нет — правило 9 спеки: времени в игре нет
+//  нигде. Строк за достижения нет: достижений в игре пока нет (R4.1).
 //
 
 import SwiftUI
@@ -35,8 +32,9 @@ enum ResultMetrics {
     static let frameRadius: CGFloat = 24
     static let framePadding = EdgeInsets(top: 20, leading: 18, bottom: 16, trailing: 18)
     static let frameGap: CGFloat = 14
-    /// Свечение рамки, CSS `0 0 30`.
-    static let frameGlow: CGFloat = 15
+    /// Свечение рамки 0 0 24 по спеке 4.9 (раунд 6). В коде кадра осталось
+    /// `0 0 30` — спека позднее и главнее.
+    static let frameGlow: CGFloat = 12
     static let word: CGFloat = 34
     static let wordTracking: CGFloat = -0.34      // −.01 em
     static let subtitle: CGFloat = 13
@@ -66,11 +64,6 @@ enum ResultMetrics {
     static let metricValue: CGFloat = 19
     static let metricLabel: CGFloat = 11.5
     static let metricLabelGap: CGFloat = 3
-
-    /// Значок баллов на итогах и в кошельке (`circle.hexagongrid` в кадрах
-    /// тура 10–13). В панели счёта боя стоит `star.circle` — расхождение
-    /// макетов, вопрос В19.
-    static let pointsSymbol = "circle.hexagongrid"
 
     // Движение
     /// На сколько поднимается карточка при появлении.
@@ -180,7 +173,7 @@ struct ResultsScreen: View {
     private var pointsCard: some View {
         VStack(alignment: .leading, spacing: ResultMetrics.cardInnerGap) {
             HStack(spacing: ResultMetrics.pointsHeaderGap) {
-                Image(systemName: ResultMetrics.pointsSymbol)
+                Image(systemName: PointsSymbol.name)
                     .font(.system(size: symbolFontSize(inBox: ResultMetrics.pointsIcon)))
                     .frame(width: ResultMetrics.pointsIcon, height: ResultMetrics.pointsIcon)
                     .foregroundStyle(Color.roleYou)
@@ -203,7 +196,7 @@ struct ResultsScreen: View {
             }
 
             HStack(spacing: ResultMetrics.totalGap) {
-                Image(systemName: ResultMetrics.pointsSymbol)
+                Image(systemName: PointsSymbol.name)
                     .font(.system(size: symbolFontSize(inBox: ResultMetrics.totalIcon)))
                     .frame(width: ResultMetrics.totalIcon, height: ResultMetrics.totalIcon)
                 Text("Balance now: \(result.balance) points")
@@ -302,10 +295,16 @@ struct ResultsScreen: View {
     /// Колонка у нижнего края с числами `BottomStack`, но без `NavRow`: в
     /// кадре итогов «В меню» — второстепенная кнопка, и две строки «Меню»
     /// друг под другом были бы одним действием дважды.
+    /// Вынесено из кнопки: тернарный оператор внутри `Text` в `Button`
+    /// ломает инструментирование превью (сборка при этом проходит).
+    private var playAgainTitle: LocalizedStringKey {
+        result.didWin ? "Play again" : "Rematch"
+    }
+
     private var actions: some View {
         VStack(spacing: Geometry.Nav.stackGap) {
             Button(action: onPlayAgain) {
-                Text(result.didWin ? "Play again" : "Rematch")
+                Text(playAgainTitle)
             }
             .primaryButton()
             .accessibilityIdentifier("resultPlayAgain")

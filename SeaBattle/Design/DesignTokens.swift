@@ -31,6 +31,7 @@ extension Color {
     static let roleYou     = Color("Role/You")      // #D19A3C — латунь
     static let roleFoe     = Color("Role/Foe")      // #3C7FBF — лазурь
     static let roleYouSoft = Color("Role/YouSoft")  // rgba(209,154,60,.22) — подложка ленты
+    static let roleFoeSoft = Color("Role/FoeSoft")  // rgba(60,127,191,.24) — свечение рамки поражения
 
     // Хром
     static let wood     = Color("Chrome/Wood")     // #6B4A2F — кант 2 pt (ровный) и верх мата

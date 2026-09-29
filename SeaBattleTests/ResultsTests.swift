@@ -173,6 +173,10 @@ struct ResultsTests {
         #expect(GlassHighlight.outcome(.you).stroke == .roleYou)
         #expect(GlassHighlight.outcome(.foe).stroke == .roleFoe)
         #expect(GlassHighlight.outcome(.foe).isLit)
+        // Пара мягких цветов ролей и свечение 0 0 24 (спека 4.9, раунд 6).
+        #expect(GlassHighlight.outcome(.you).glow == .roleYouSoft)
+        #expect(GlassHighlight.outcome(.foe).glow == .roleFoeSoft)
+        #expect(GlassHighlight.outcome(.foe).glowRadius == 12)
         #expect(!GlassHighlight.outcome(.you).isSelected)
         #expect(GlassHighlight.none.stroke == nil)
         #expect(GlassHighlight.selected.stroke == .roleYou)

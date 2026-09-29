@@ -131,7 +131,7 @@ struct ScorePanel: View {
             // На iPhone у баланса только значок и число: слово «баллов» не
             // вмещается (2.5).
             HStack(spacing: 4) {
-                Image(systemName: "star.circle")
+                Image(systemName: PointsSymbol.name)
                     .font(.system(size: symbolFontSize(inBox: m.balanceText + 3)))
                 Text(verbatim: "\(balance)")
                     .font(.system(size: m.balanceText, weight: .bold, design: .rounded))

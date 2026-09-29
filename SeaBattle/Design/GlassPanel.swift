@@ -87,15 +87,13 @@ enum GlassHighlight: Equatable, Sendable {
         }
     }
 
-    /// Свечение поражения в макете — `rgba(60,127,191,.24)`, а токена
-    /// «холодное мягкое» в пакете нет (есть только тёплый `Role/YouSoft`).
-    /// До ответа дизайна (В18) — `Board/FillFoe`, ближайший холодный токен:
-    /// он тише макета, а не громче.
+    /// Пара мягких цветов ролей: победа светится `Role/YouSoft`, поражение —
+    /// `Role/FoeSoft` (раунд 6, В18).
     var glow: Color {
         switch self {
         case .none: .clear
         case .selected, .outcome(.you): .roleYouSoft
-        case .outcome(.foe): .boardFillFoe
+        case .outcome(.foe): .roleFoeSoft
         }
     }
 

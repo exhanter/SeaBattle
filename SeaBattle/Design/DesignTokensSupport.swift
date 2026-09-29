@@ -35,6 +35,8 @@ enum ColorToken: String, CaseIterable, Sendable {
     case roleYou     = "Role/You"
     case roleFoe     = "Role/Foe"
     case roleYouSoft = "Role/YouSoft"
+    /// Свечение рамки поражения на итогах — пара к `YouSoft` (раунд 6).
+    case roleFoeSoft = "Role/FoeSoft"
 
     // Хром. `WoodDeep` — низ градиента мата вокруг фотографии и больше нигде:
     // кант панелей 2 pt остаётся ровным `Chrome/Wood`.
@@ -218,4 +220,13 @@ extension Geometry {
     static func cellRadius(for size: CGFloat) -> CGFloat {
         max(4, (size * cellRadiusRatio).rounded())
     }
+}
+
+// MARK: - Значок баллов
+
+/// Один значок баллов на всю игру — панель счёта, итоги, кошелёк (спека 2.5,
+/// раунд 6, В19). Одной константой, потому что в макетах их было два и они
+/// уже однажды разошлись: шестигранники при 16–19 pt сливаются в пятно.
+enum PointsSymbol {
+    static let name = "star.circle"
 }
