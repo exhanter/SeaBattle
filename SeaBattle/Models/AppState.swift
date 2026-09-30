@@ -148,8 +148,6 @@ class AppState {
     /// Transient presentation flags (set from the menu, presented at the root so
     /// the covers survive layout changes — notably on iPad).
     var showHotSeat = false
-    var showNearby = false
-    var showOnline = false
     var showPaywall = false
     /// What the user was trying to do when a premium paywall opened, so the
     /// action can be completed automatically once they subscribe.

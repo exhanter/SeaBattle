@@ -87,6 +87,54 @@ protocol NetworkTransport: AnyObject {
     func disconnect()
 }
 
+/// A transport that exists before the opponent does (spec 4.4): the match is
+/// created while the invite code is still being searched for, so the fleet
+/// can be placed in advance. Until `attach(_:connected:)` everything sent is
+/// dropped — nobody is listening yet, and the handshake is repeated on the
+/// connection anyway (`hello` makes the other side resend `ready`).
+@MainActor
+final class DeferredTransport: NetworkTransport {
+    var onReceive: ((NetworkMessage) -> Void)?
+    var onConnectionChange: ((Bool) -> Void)?
+    /// The match closed the transport before or after the opponent came — the
+    /// search behind it has to stop too.
+    var onDisconnect: (() -> Void)?
+    private(set) var inner: (any NetworkTransport)?
+    private(set) var isClosed = false
+
+    var isAttached: Bool { inner != nil }
+
+    /// The opponent is found. `connected` — the link is already up, so no
+    /// separate "connected" callback is coming from the real transport.
+    func attach(_ transport: any NetworkTransport, connected: Bool) {
+        guard inner == nil, !isClosed else {
+            transport.disconnect()
+            return
+        }
+        inner = transport
+        // Through `self`, not captured closures: the match may set its
+        // callbacks after the attach.
+        transport.onReceive = { [weak self] message in self?.onReceive?(message) }
+        transport.onConnectionChange = { [weak self] up in self?.onConnectionChange?(up) }
+        if connected { onConnectionChange?(true) }
+    }
+
+    func send(_ message: NetworkMessage) {
+        inner?.send(message)
+    }
+
+    func reconnect() {
+        inner?.reconnect()
+    }
+
+    func disconnect() {
+        guard !isClosed else { return }
+        isClosed = true
+        inner?.disconnect()
+        onDisconnect?()
+    }
+}
+
 /// In-process transport that wires two matches directly together, for tests
 /// and previews (no radios involved). The link can be cut and restored, and
 /// messages sent while it is down are lost — exactly what a dropped

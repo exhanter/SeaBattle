@@ -55,8 +55,7 @@ struct iPadStartMenuView: View {
                     try? await Task.sleep(for: .seconds(0.4))
                     switch intent {
                     case .hotSeat: appState.showHotSeat = true
-                    case .nearby: appState.showNearby = true
-                    case .online: appState.showOnline = true
+                    case .nearby, .online: break
                     case .expert: break
                     }
                 }

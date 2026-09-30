@@ -60,12 +60,12 @@ struct ContentView: View {
     }
 
     private func launchNearby() {
-        if premiumManager.isPremium { appState.showNearby = true }
+        if premiumManager.isPremium { return } // ПЕРЕХОДНОЕ: старый экран, R4.6
         else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
     }
 
     private func launchOnline() {
-        if premiumManager.isPremium { appState.showOnline = true }
+        if premiumManager.isPremium { return } // ПЕРЕХОДНОЕ: старый экран, R4.6
         else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
     }
 
@@ -230,8 +230,7 @@ struct ContentView: View {
                         try? await Task.sleep(for: .seconds(0.4)) // let the paywall dismiss first
                         switch intent {
                         case .hotSeat: appState.showHotSeat = true
-                        case .nearby: appState.showNearby = true
-                        case .online: appState.showOnline = true
+                        case .nearby, .online: break
                         case .expert: break
                         }
                     }

@@ -64,6 +64,8 @@ struct NetScreen: View {
     @Bindable var match: NetMatch
     /// Партия закрыта — в меню.
     var onExit: () -> Void = {}
+    /// Флот расставляют заранее по своему коду — строка возврата к коду.
+    var onBackToCode: (() -> Void)?
 
     @Environment(\.locale) private var locale
     @Environment(\.usesPadLayout) private var usesPadLayout
@@ -111,6 +113,12 @@ struct NetScreen: View {
 
     // MARK: Расстановка
 
+    /// Флот расставляют заранее, пока соперника ещё нет (4.4): «Начать»
+    /// заблокирована и говорит, чего ждёт.
+    private var startTitle: LocalizedStringKey {
+        match.hasOpponent ? "Start" : "Waiting for an opponent"
+    }
+
     @ViewBuilder
     private var arrangement: some View {
         if usesPadLayout {
@@ -118,13 +126,18 @@ struct NetScreen: View {
                            onMenu: menuTapped,
                            duelPlacement: PadDuelPlacement(ownTitle: "Your fleet",
                                                            foeName: match.opponentName,
-                                                           startTitle: "Start"))
+                                                           startTitle: startTitle),
+                           startEnabled: match.hasOpponent)
         } else {
-            // Возврата нет: соперник уже подключён, выход — только «Меню».
+            // Возврат — только к коду, пока соперника нет; когда он
+            // подключился, выход — только «Меню».
             ArrangementScreen(editor: $match.editor,
-                              backTitle: nil,
+                              backTitle: onBackToCode != nil && !match.hasOpponent ? "Code" : nil,
+                              startTitle: startTitle,
                               onStart: match.finishArrangement,
-                              onMenu: menuTapped)
+                              onBack: { onBackToCode?() },
+                              onMenu: menuTapped,
+                              startEnabled: match.hasOpponent)
         }
     }
 

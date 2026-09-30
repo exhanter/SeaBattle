@@ -17,7 +17,6 @@
 //
 
 import SwiftUI
-import GameKit
 
 // MARK: - Табы
 
@@ -149,6 +148,8 @@ enum ShellRoute: Equatable, Sendable {
     case duel
     /// Рядом без сети (R3.3): поиск устройств, затем партия.
     case nearby
+    /// По сети (R3.3b): выбор, поиск, код, «Нет соединения» — до партии.
+    case online
     /// Сетевая партия — рядом или по сети, один экран на оба транспорта.
     case network
 }
@@ -192,6 +193,9 @@ struct AppShell: View {
     /// Поиск устройств рядом. Транспорт переходит в партию, когда соперник
     /// подключился.
     @State private var nearbyTransport: MultipeerTransport?
+    /// Вход в «По сети». Живёт и во время партии приглашающего, пока соперник
+    /// не пришёл: код ещё ищется, а флот уже расставляют.
+    @State private var online: OnlineLobby?
     /// Сетевая партия. Продолжить её из меню нельзя: выход из неё — сдача
     /// или конец связи, поэтому она живёт ровно столько, сколько экран.
     @State private var net: NetMatch?
@@ -264,11 +268,6 @@ struct AppShell: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        // ПЕРЕХОДНОЕ: вход в Game Center и подбор соперника — старым экраном
-        // до R3.3b; сама партия уже новая.
-        .fullScreenCover(isPresented: $appState.showOnline) {
-            OnlineGameView(onMatch: startOnline)
-        }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
         .onChange(of: premiumManager.isPremium) { _, isPremium in
             // Докончить то, из-за чего открывался пейволл.
@@ -287,7 +286,7 @@ struct AppShell: View {
                     switch intent {
                     case .hotSeat: openHotSeat()
                     case .nearby: openNearby()
-                    case .online: appState.showOnline = true
+                    case .online: openOnline()
                     case .expert: break
                     }
                 }
@@ -464,13 +463,33 @@ struct AppShell: View {
                     .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
             }
 
+        case .online:
+            if let online {
+                OnlineScreen(lobby: online,
+                             hasArrangedAhead: net != nil,
+                             onArrangeAhead: arrangeAhead,
+                             onNearby: {
+                                 closeOnline()
+                                 openNearby()
+                             },
+                             onSinglePlayer: {
+                                 closeOnline()
+                                 openSinglePlayer()
+                             },
+                             onBack: closeOnline)
+                    // iPad: колонка 520 pt по центру, как «Рядом».
+                    .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+            }
+
         case .network:
             if let net {
-                NetScreen(match: net) {
-                    self.net = nil
-                    self.nearbyTransport = nil
-                    self.route = nil
-                }
+                NetScreen(match: net,
+                          onExit: {
+                              self.net = nil
+                              self.nearbyTransport = nil
+                              closeOnline()
+                          },
+                          onBackToCode: isArrangingAhead ? { self.route = .online } : nil)
             }
         }
     }
@@ -505,11 +524,55 @@ struct AppShell: View {
         route = nil
     }
 
-    private func startOnline(_ match: GKMatch) {
-        appState.showOnline = false
-        let gc = GameCenterManager.shared
-        startNetwork(GameKitTransport(match: match), key: .online,
-                     accountID: gc.localPlayerID, name: gc.localDisplayName)
+    private func openOnline() {
+        let lobby = OnlineLobby(service: GameCenterService())
+        lobby.onFound = { transport in self.onlineFound(transport) }
+        // Код истёк, пока приглашающий расставлял флот: назад к коду, флот
+        // остаётся в партии.
+        lobby.onInviteEnded = {
+            if self.route == .network { self.route = .online }
+        }
+        online = lobby
+        route = .online
+    }
+
+    /// Партия приглашающего создана заранее на отложенном транспорте, и
+    /// соперник ещё не пришёл.
+    private var isArrangingAhead: Bool {
+        guard let online, let host = online.hostTransport else { return false }
+        return net != nil && !host.isAttached
+    }
+
+    /// Соперник найден. Если флот уже расставлялся заранее, партия есть —
+    /// транспорт под ней только что подключился, остаётся показать её.
+    private func onlineFound(_ transport: any NetworkTransport) {
+        if net != nil {
+            route = .network
+            return
+        }
+        guard let online else {
+            transport.disconnect()
+            return
+        }
+        startNetwork(transport, key: .online, accountID: online.service.playerID,
+                     name: online.service.playerName)
+    }
+
+    /// «Расставить флот заранее»: партия на транспорте кода, соперника пока нет.
+    private func arrangeAhead() {
+        guard let online, let host = online.hostTransport else { return }
+        if net == nil {
+            startNetwork(host, key: .online, accountID: online.service.playerID,
+                         name: online.service.playerName)
+        } else {
+            route = .network
+        }
+    }
+
+    private func closeOnline() {
+        online?.leave()
+        online = nil
+        route = nil
     }
 
     private func startNetwork(_ transport: any NetworkTransport, key: StatKey,
@@ -541,7 +604,7 @@ struct AppShell: View {
         case .computer: openSinglePlayer()
         case .hotSeat: openHotSeat()
         case .nearby: openNearby()
-        case .online: appState.showOnline = true
+        case .online: openOnline()
         case .paper: openPaperArrangement()
         }
     }

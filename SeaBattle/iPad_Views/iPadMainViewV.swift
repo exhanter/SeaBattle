@@ -56,12 +56,12 @@ struct iPadMainViewV: View {
     }
 
     private func launchNearby() {
-        if premiumManager.isPremium { appState.showNearby = true }
+        if premiumManager.isPremium { return } // ПЕРЕХОДНОЕ: старый экран, R4.6
         else { appState.pendingPremiumIntent = .nearby; appState.showPaywall = true }
     }
 
     private func launchOnline() {
-        if premiumManager.isPremium { appState.showOnline = true }
+        if premiumManager.isPremium { return } // ПЕРЕХОДНОЕ: старый экран, R4.6
         else { appState.pendingPremiumIntent = .online; appState.showPaywall = true }
     }
 

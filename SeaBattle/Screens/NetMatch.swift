@@ -120,6 +120,10 @@ final class NetMatch {
 
     var opponentName: String { game.opponent?.name ?? "" }
 
+    /// Соперник поздоровался. До этого флот можно расставлять, но не
+    /// объявлять готовым (4.4).
+    var hasOpponent: Bool { game.opponent != nil }
+
     /// Поле в роли экрана.
     func board(_ field: Side) -> Board {
         field == .you ? game.own : game.tracking

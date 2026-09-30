@@ -47,6 +47,9 @@ struct ArrangementScreen: View {
     var onMenu: () -> Void = {}
     /// Расстановка перед игрой на бумаге: на iPad стол сразу с координатами.
     var isPaper = false
+    /// Сетевая партия до подключения соперника (4.4): расстановку править
+    /// можно, главная кнопка заблокирована. На «Готово» в правке не влияет.
+    var startEnabled = true
 
     @Environment(\.usesPadLayout) private var usesPadLayout
 
@@ -55,7 +58,7 @@ struct ArrangementScreen: View {
             // iPad: отдельного экрана расстановки нет — стол на два поля,
             // правка на нём же (4.4). До боя «Меню» выходит без вопроса.
             PadTableScreen(phase: .placement(editor: $editor, onStart: onStart),
-                           onMenu: onMenu, isPaper: isPaper)
+                           onMenu: onMenu, isPaper: isPaper, startEnabled: startEnabled)
         } else {
             phone
         }
@@ -154,7 +157,8 @@ struct ArrangementScreen: View {
             } label: {
                 Text(editor.isEditing ? "Done" : startTitle)
             }
-            .primaryButton(enabled: editor.canFinish && editor.actionsEnabled)
+            .primaryButton(enabled: editor.canFinish && editor.actionsEnabled
+                               && (editor.isEditing || startEnabled))
         }
     }
 }

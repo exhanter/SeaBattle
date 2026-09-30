@@ -114,7 +114,6 @@
 		CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */; };
 		CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */; };
 		CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */; };
-		CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */; };
 		CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */; };
 		CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */; };
 		CA4F06353061DB140083DE5C /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06343061DB140083DE5C /* AudioService.swift */; };
@@ -129,6 +128,8 @@
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
+		CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */; };
+		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
 		CADF48B3306DA80100974A1B /* NetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B2306DA80100974A1B /* NetGame.swift */; };
 		CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B4306DA87100974A1B /* NetMatch.swift */; };
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
@@ -266,7 +267,6 @@
 		CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerTransport.swift; sourceTree = "<group>"; };
 		CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterManager.swift; sourceTree = "<group>"; };
 		CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameKitTransport.swift; sourceTree = "<group>"; };
-		CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineGameView.swift; sourceTree = "<group>"; };
 		CA17D8C8302E7D0B007A33B0 /* SeaBattle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SeaBattle.entitlements; sourceTree = "<group>"; };
 		CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
 		CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatStore.swift; sourceTree = "<group>"; };
@@ -282,6 +282,8 @@
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
+		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
+		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
 		CADF48B2306DA80100974A1B /* NetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetGame.swift; sourceTree = "<group>"; };
 		CADF48B4306DA87100974A1B /* NetMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetMatch.swift; sourceTree = "<group>"; };
 		CADF48B8306DAA4500974A1B /* NetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetScreen.swift; sourceTree = "<group>"; };
@@ -378,7 +380,6 @@
 				CA17D7D2302D2805007A33B0 /* HintButton.swift */,
 				CA17D7D4302D2843007A33B0 /* StatsView.swift */,
 				CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */,
-				CA17D8C6302E797E007A33B0 /* OnlineGameView.swift */,
 			);
 			path = Common_Views;
 			sourceTree = "<group>";
@@ -522,6 +523,8 @@
 				CADF48B4306DA87100974A1B /* NetMatch.swift */,
 				CADF48B8306DAA4500974A1B /* NetScreen.swift */,
 				CADF48BA306DAA7A00974A1B /* NearbyScreen.swift */,
+				CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */,
+				CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -805,7 +808,6 @@
 				CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */,
 				2CE731A22D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift in Sources */,
 				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
-				CA17D8C7302E797E007A33B0 /* OnlineGameView.swift in Sources */,
 				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */,
 				CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */,
@@ -840,8 +842,10 @@
 				CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */,
 				2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */,
 				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
+				CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */,
 				2C6A847F2B6E99BA0001A20C /* EnemyFieldView.swift in Sources */,
 				CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */,
+				CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */,
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
 				2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */,
 				2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */,

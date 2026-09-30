@@ -173,6 +173,9 @@ struct PadTableScreen: View {
     /// Стол до старта вдвоём на устройстве: подписи называют игроков, уровня
     /// и баланса в панели нет.
     var duelPlacement: PadDuelPlacement?
+    /// Сетевая партия до подключения соперника (4.4): расстановку править
+    /// можно, «Начать» заблокирована. На правку не влияет.
+    var startEnabled = true
 
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
@@ -577,7 +580,7 @@ struct PadTableScreen: View {
 
     private func startTile(_ editor: Binding<FleetEditor>, onStart: @escaping () -> Void) -> some View {
         let e = editor.wrappedValue
-        let canPress = e.canFinish && e.actionsEnabled
+        let canPress = e.canFinish && e.actionsEnabled && (e.isEditing || startEnabled)
         return Button {
             if e.isEditing {
                 editor.wrappedValue.finishEditing()
