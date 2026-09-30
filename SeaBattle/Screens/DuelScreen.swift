@@ -58,6 +58,7 @@ struct DuelScreen: View {
 
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
     @State private var askLeave = false
 
     private var game: DuelGame { match.game }
@@ -123,22 +124,44 @@ struct DuelScreen: View {
 
     // MARK: Расстановка
 
+    @ViewBuilder
     private func arrangement(_ player: Int) -> some View {
         let name = match.player(player).name
         let next = match.player(1 - player).name
-        return ArrangementScreen(editor: $match.editor,
-                                 // Второй игрок к флоту первого не возвращается.
-                                 backTitle: player == 0 ? "Two players" : nil,
-                                 title: "Fleet: \(name)",
-                                 startTitle: player == 0 ? "\(next) places the fleet" : "Start the battle",
-                                 onStart: match.finishArrangement,
-                                 onBack: onBackToSetup,
-                                 onMenu: menuTapped)
+        let startTitle: LocalizedStringKey = player == 0 ? "\(next) places the fleet" : "Start the battle"
+        if usesPadLayout {
+            // iPad: стол до старта, напротив — пустое поле соперника (4.4).
+            // Возврата нет: «Меню» у первого игрока ведёт к настройке.
+            PadTableScreen(phase: .placement(editor: $match.editor, onStart: match.finishArrangement),
+                           onMenu: menuTapped,
+                           duelPlacement: PadDuelPlacement(ownTitle: "Fleet: \(name)",
+                                                           foeName: next,
+                                                           startTitle: startTitle))
+        } else {
+            ArrangementScreen(editor: $match.editor,
+                              // Второй игрок к флоту первого не возвращается.
+                              backTitle: player == 0 ? "Two players" : nil,
+                              title: "Fleet: \(name)",
+                              startTitle: startTitle,
+                              onStart: match.finishArrangement,
+                              onBack: onBackToSetup,
+                              onMenu: menuTapped)
+        }
     }
 
     // MARK: Бой
 
+    @ViewBuilder
     private var battle: some View {
+        if usesPadLayout {
+            // iPad: оба поля сразу, переключателя нет (4.4).
+            PadTableScreen(phase: .duel(match), onMenu: menuTapped)
+        } else {
+            phoneBattle
+        }
+    }
+
+    private var phoneBattle: some View {
         GeometryReader { proxy in
             let size = Geometry.SizeClass.forWidth(proxy.size.width)
             let metrics = BoardMetrics(cell: size.cell)
@@ -266,6 +289,9 @@ struct DuelHandoffLayer: View {
     @State private var firstEntry: String?
     @State private var problem: CodeProblem?
 
+    @Environment(AppState.self) private var appState
+    @Environment(\.usesPadLayout) private var usesPadLayout
+
     enum CodeProblem { case wrong, mismatch }
 
     private var game: DuelGame { match.game }
@@ -276,68 +302,108 @@ struct DuelHandoffLayer: View {
     var body: some View {
         ZStack {
             background
+            if usesPadLayout { pad } else { phone }
+        }
+        .accessibilityIdentifier("duelHandoff")
+    }
 
-            VStack(spacing: 0) {
-                VStack(spacing: HandoffMetrics.gap) {
-                    AvatarDot(glyph: player.glyph, colorIndex: player.colorIndex,
-                              size: HandoffMetrics.avatar)
-                    heading
-                    if game.codeStep != .none {
-                        code
-                        keypad
-                    }
-                }
+    /// iPhone (`screen4Handoff`): колонка от верха, «Меню» строкой внизу.
+    private var phone: some View {
+        VStack(spacing: 0) {
+            column
                 .padding(.top, HandoffMetrics.top)
                 .padding(.horizontal, HandoffMetrics.footnoteInset)
 
-                Spacer(minLength: HandoffMetrics.gap)
+            Spacer(minLength: HandoffMetrics.gap)
 
-                if game.codeStep != .none {
-                    Text(footnote)
-                        .font(.system(size: HandoffMetrics.footnote))
-                        .lineSpacing(HandoffMetrics.footnote * 0.5)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Color.inkTertiary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, HandoffMetrics.footnoteInset)
-                        .padding(.bottom, Geometry.Nav.stackGap)
-                }
+            if game.codeStep != .none {
+                footnoteText
+                    .padding(.horizontal, HandoffMetrics.footnoteInset)
+                    .padding(.bottom, Geometry.Nav.stackGap)
+            }
 
-                BottomStack(onMenu: onMenu) {
-                    if game.codeStep == .none {
-                        Button { match.open() } label: {
-                            Text("Open the boards")
-                        }
-                        .primaryButton()
-                        .accessibilityIdentifier("duelOpen")
-                    }
-                }
+            BottomStack(onMenu: onMenu) {
+                if game.codeStep == .none { openButton }
             }
         }
-        .accessibilityIdentifier("duelHandoff")
+    }
+
+    /// iPad: кадра нет. Та же колонка шириной 520 по центру экрана, сноска и
+    /// «Открыть поля» — сразу под ней; «Меню» — квадрат в том же углу, что и
+    /// на столе под слоем (при своём поле справа — в правом).
+    private var pad: some View {
+        let mirrored = appState.ownBoardOnRight
+        return ZStack(alignment: mirrored ? .bottomTrailing : .bottomLeading) {
+            VStack(spacing: HandoffMetrics.gap) {
+                column
+                if game.codeStep != .none {
+                    footnoteText
+                } else {
+                    openButton
+                        .padding(.top, HandoffMetrics.gap)
+                }
+            }
+            .padding(.horizontal, HandoffMetrics.footnoteInset)
+            .frame(maxWidth: Geometry.Nav.padColumn)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            PadNavTile.menu(onMenu)
+                .padding(.horizontal, Geometry.Inset.padFrame)
+                .padBottomFrame()
+        }
+    }
+
+    /// Аватар, имя, код и клавиатура — общая часть обеих раскладок.
+    private var column: some View {
+        VStack(spacing: HandoffMetrics.gap) {
+            AvatarDot(glyph: player.glyph, colorIndex: player.colorIndex,
+                      size: HandoffMetrics.avatar)
+                .background { glow }
+            heading
+            if game.codeStep != .none {
+                code
+                keypad
+            }
+        }
+    }
+
+    private var footnoteText: some View {
+        Text(footnote)
+            .font(.system(size: HandoffMetrics.footnote))
+            .lineSpacing(HandoffMetrics.footnote * 0.5)
+            .multilineTextAlignment(.center)
+            .foregroundStyle(Color.inkTertiary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var openButton: some View {
+        Button { match.open() } label: {
+            Text("Open the boards")
+        }
+        .primaryButton()
+        .accessibilityIdentifier("duelOpen")
     }
 
     // MARK: Фон
 
     private var background: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .top) {
-                LinearGradient.sea
-                Color.glassSolid
-                // Цвет игрока — содержимое, а не токен (см. `PlayerAvatar`).
-                Circle()
-                    .fill(RadialGradient(colors: [color.opacity(HandoffMetrics.glowShare), .clear],
-                                         center: .center, startRadius: 0,
-                                         endRadius: HandoffMetrics.glowSide / 2))
-                    .frame(width: HandoffMetrics.glowSide, height: HandoffMetrics.glowSide)
-                    .offset(y: proxy.safeAreaInsets.top + HandoffMetrics.top
-                               + HandoffMetrics.avatar / 2 - HandoffMetrics.glowSide / 2)
-            }
-            .frame(width: proxy.size.width, height: proxy.size.height + proxy.safeAreaInsets.top
-                                                    + proxy.safeAreaInsets.bottom)
-            .offset(y: -proxy.safeAreaInsets.top)
+        ZStack {
+            LinearGradient.sea
+            Color.glassSolid
         }
         .ignoresSafeArea()
+    }
+
+    /// Свечение цвета игрока — круг 420 с центром в центре аватара. Висит на
+    /// аватаре, а не на фоне: так оно идёт за ним в обеих раскладках.
+    /// Цвет игрока — содержимое, а не токен (см. `PlayerAvatar`).
+    private var glow: some View {
+        Circle()
+            .fill(RadialGradient(colors: [color.opacity(HandoffMetrics.glowShare), .clear],
+                                 center: .center, startRadius: 0,
+                                 endRadius: HandoffMetrics.glowSide / 2))
+            .frame(width: HandoffMetrics.glowSide, height: HandoffMetrics.glowSide)
+            .allowsHitTesting(false)
     }
 
     // MARK: Кому и какой ход
@@ -371,7 +437,8 @@ struct DuelHandoffLayer: View {
         }
         // Устройство не меняло рук — «передайте» было бы неправдой.
         guard target != game.holder else { return stage }
-        return Text("\(Text("Pass the phone")) · \(stage)")
+        let pass = usesPadLayout ? Text("Pass the iPad") : Text("Pass the phone")
+        return Text("\(pass) · \(stage)")
     }
 
     // MARK: Код
@@ -384,9 +451,11 @@ struct DuelHandoffLayer: View {
     }
 
     private var footnote: LocalizedStringKey {
-        game.codeStep == .create
-            ? "Only you should know it: it is asked every time the phone comes back to you."
-            : "Without the code the boards stay closed — you can only leave the match."
+        switch (game.codeStep == .create, usesPadLayout) {
+        case (true, false): "Only you should know it: it is asked every time the phone comes back to you."
+        case (true, true): "Only you should know it: it is asked every time the iPad comes back to you."
+        case (false, _): "Without the code the boards stay closed — you can only leave the match."
+        }
     }
 
     private var code: some View {
@@ -516,10 +585,14 @@ private struct DuelDemo: View {
     @State private var appState = AppState()
     @State private var match: DuelMatch
     var field: Side = .foe
+    var pad = false
+    var ownOnRight = false
 
-    init(_ match: DuelMatch, field: Side = .foe) {
+    init(_ match: DuelMatch, field: Side = .foe, pad: Bool = false, ownOnRight: Bool = false) {
         _match = State(initialValue: match)
         self.field = field
+        self.pad = pad
+        self.ownOnRight = ownOnRight
     }
 
     var body: some View {
@@ -529,8 +602,37 @@ private struct DuelDemo: View {
             DuelScreen(match: match)
         }
         .environment(appState)
-        .onAppear { match.show(field) }
+        .environment(\.usesPadLayout, pad)
+        .onAppear {
+            appState.ownBoardOnRight = ownOnRight
+            match.show(field)
+        }
     }
+}
+
+#Preview("Вдвоём · iPad · бой · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
+    DuelDemo(duelDemoMatch(), pad: true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Вдвоём · iPad · бой · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
+    DuelDemo(duelDemoMatch(), pad: true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Вдвоём · iPad · передача с кодом", traits: .fixedLayout(width: 1194, height: 834)) {
+    DuelDemo(duelDemoMatch(locks: true, handoff: true), pad: true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Вдвоём · iPad · передача без кода", traits: .fixedLayout(width: 834, height: 1194)) {
+    DuelDemo(duelDemoMatch(handoff: true), pad: true, ownOnRight: true)
+        .preferredColorScheme(.light)
+}
+
+#Preview("Вдвоём · iPad · расстановка", traits: .fixedLayout(width: 1194, height: 834)) {
+    DuelDemo(duelDemoMatch(battle: false), pad: true)
+        .preferredColorScheme(.dark)
 }
 
 #Preview("Вдвоём · поле противника") {

@@ -105,6 +105,37 @@
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
+		A584E62AB77D1A8B2AADC8D3 /* BoardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF01B98AC6CBF414DF89FE8 /* BoardCell.swift */; };
+		9773F3093B5E225E9BA64CC7 /* CellEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D9FA82B19E6FFB57AD9CA6 /* CellEvent.swift */; };
+		FA9587FC6C8A65C22385A0A5 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91677BE5F7153BFBEA9113FA /* BoardView.swift */; };
+		8FE2AEAE158D7E7A5B3A9C08 /* NavigationChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6290C681AF214807B1A1773F /* NavigationChrome.swift */; };
+		73C8AF701C7D494795D0B59E /* ModalDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C469ED86C6479DBD43A26BC7 /* ModalDialog.swift */; };
+		8256EE09EAE88F2DBC4B27A2 /* Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A7DBDAFD87CBA7914BF2E3 /* Controls.swift */; };
+		0BF4D4054E80269B496B7186 /* MetaControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786E8DE3A667010BF4FE7307 /* MetaControls.swift */; };
+		C32516C8E768387BD6B914F2 /* CellEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8250F9102C5266A199230D /* CellEffects.swift */; };
+		D96588F346224ACA66AB3676 /* PadBattleControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5AA3A20D930F074DBD8821 /* PadBattleControls.swift */; };
+		68EE947935FA92485B267979 /* BattleControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9724CBA94C4AB8786693B8 /* BattleControls.swift */; };
+		AFCFA8BBA9DB513781141E88 /* DuelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BCA3BF873763F07AEFF3861 /* DuelStore.swift */; };
+		9D2FFFCF44473522C70F1D11 /* PaperStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7647A9463C4A0CE0DB9BBF54 /* PaperStore.swift */; };
+		4EEEB8052B418CF0C4F9A718 /* PadNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A8332488FDFA780709339 /* PadNavigation.swift */; };
+		A4A84B7FC333B8EEB4CE7B4A /* PaperMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CDFF313625664B3DDBE723 /* PaperMatch.swift */; };
+		210BB8FAACCB9CEA1937FD8E /* PadMenuScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1BB35DEA80B3E79862EFF88 /* PadMenuScreen.swift */; };
+		1A9FA89038BC7E25578D6340 /* PaperGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AD49102F323EA4F55A48E1 /* PaperGame.swift */; };
+		06779077B87248DDCAD15641 /* LevelScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF192BF6D393AA1F62C6346 /* LevelScreen.swift */; };
+		922DB781A628F1BB69AB7777 /* MenuScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B5EB15EE20130BDCA7E793 /* MenuScreen.swift */; };
+		2B46482AE52D9791C681887E /* BattleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F2D5E52D96EE8EC8A7BD6D /* BattleController.swift */; };
+		52F66E84CCD4A8DD51A0040C /* PaperScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7454EAC8EAC4D486BA6A30D6 /* PaperScreen.swift */; };
+		83A972A6B11E12CE0C2AB4A0 /* BattleScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6706CEC1CE3B54D2471BAF0 /* BattleScreen.swift */; };
+		7D1924F01014B1CFCBFB72E7 /* FleetEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E35744A7F28459B8312912 /* FleetEditor.swift */; };
+		288F1D73B8350925B60CC7A0 /* ArrangementScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9D2DABD6826E32CD5CA684 /* ArrangementScreen.swift */; };
+		2B7940ED380293E06C5620B3 /* DuelSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF286DAABB44AEFC15FF609 /* DuelSetupScreen.swift */; };
+		726963E0ADFB564E2EEFC336 /* MatchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015980D65C9656859F2DC400 /* MatchResult.swift */; };
+		836A6A73EAF5A113B7C5DAFB /* DuelGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6436ADD27E15B25398A202 /* DuelGame.swift */; };
+		8D349A8C2F2C4F4C9743565E /* PadTableScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCFFBCEC5E6074D89591013 /* PadTableScreen.swift */; };
+		2C2A961F615A3D905AF983A0 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46408B524E733F0AEBE41ACD /* AppShell.swift */; };
+		CECFA2E0D5E595C15AFECC9C /* DuelMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F9AE6E7E8530E90B5A21D3 /* DuelMatch.swift */; };
+		DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D010F06F87A6B505F978D212 /* ResultsScreen.swift */; };
+		E6B6658BCC70C76953BDC2F7 /* DuelScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F62178B1A661E5C2BEF863 /* DuelScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,6 +259,37 @@
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
+		DEF01B98AC6CBF414DF89FE8 /* BoardCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardCell.swift; sourceTree = "<group>"; };
+		41D9FA82B19E6FFB57AD9CA6 /* CellEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellEvent.swift; sourceTree = "<group>"; };
+		91677BE5F7153BFBEA9113FA /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		6290C681AF214807B1A1773F /* NavigationChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationChrome.swift; sourceTree = "<group>"; };
+		C469ED86C6479DBD43A26BC7 /* ModalDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalDialog.swift; sourceTree = "<group>"; };
+		E9A7DBDAFD87CBA7914BF2E3 /* Controls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controls.swift; sourceTree = "<group>"; };
+		786E8DE3A667010BF4FE7307 /* MetaControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaControls.swift; sourceTree = "<group>"; };
+		5A8250F9102C5266A199230D /* CellEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellEffects.swift; sourceTree = "<group>"; };
+		6D5AA3A20D930F074DBD8821 /* PadBattleControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadBattleControls.swift; sourceTree = "<group>"; };
+		4A9724CBA94C4AB8786693B8 /* BattleControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleControls.swift; sourceTree = "<group>"; };
+		0BCA3BF873763F07AEFF3861 /* DuelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelStore.swift; sourceTree = "<group>"; };
+		7647A9463C4A0CE0DB9BBF54 /* PaperStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperStore.swift; sourceTree = "<group>"; };
+		5E3A8332488FDFA780709339 /* PadNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadNavigation.swift; sourceTree = "<group>"; };
+		57CDFF313625664B3DDBE723 /* PaperMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperMatch.swift; sourceTree = "<group>"; };
+		F1BB35DEA80B3E79862EFF88 /* PadMenuScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadMenuScreen.swift; sourceTree = "<group>"; };
+		F2AD49102F323EA4F55A48E1 /* PaperGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperGame.swift; sourceTree = "<group>"; };
+		CAF192BF6D393AA1F62C6346 /* LevelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelScreen.swift; sourceTree = "<group>"; };
+		19B5EB15EE20130BDCA7E793 /* MenuScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuScreen.swift; sourceTree = "<group>"; };
+		72F2D5E52D96EE8EC8A7BD6D /* BattleController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleController.swift; sourceTree = "<group>"; };
+		7454EAC8EAC4D486BA6A30D6 /* PaperScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperScreen.swift; sourceTree = "<group>"; };
+		D6706CEC1CE3B54D2471BAF0 /* BattleScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleScreen.swift; sourceTree = "<group>"; };
+		A3E35744A7F28459B8312912 /* FleetEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FleetEditor.swift; sourceTree = "<group>"; };
+		CE9D2DABD6826E32CD5CA684 /* ArrangementScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangementScreen.swift; sourceTree = "<group>"; };
+		BBF286DAABB44AEFC15FF609 /* DuelSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelSetupScreen.swift; sourceTree = "<group>"; };
+		015980D65C9656859F2DC400 /* MatchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchResult.swift; sourceTree = "<group>"; };
+		4F6436ADD27E15B25398A202 /* DuelGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelGame.swift; sourceTree = "<group>"; };
+		3FCFFBCEC5E6074D89591013 /* PadTableScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadTableScreen.swift; sourceTree = "<group>"; };
+		46408B524E733F0AEBE41ACD /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
+		11F9AE6E7E8530E90B5A21D3 /* DuelMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelMatch.swift; sourceTree = "<group>"; };
+		D010F06F87A6B505F978D212 /* ResultsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsScreen.swift; sourceTree = "<group>"; };
+		24F62178B1A661E5C2BEF863 /* DuelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -264,6 +326,8 @@
 		2C13873D2D538F7F0000A18B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				0BCA3BF873763F07AEFF3861 /* DuelStore.swift */,
+				7647A9463C4A0CE0DB9BBF54 /* PaperStore.swift */,
 				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
 				2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */,
 				2C6A84842B723C660001A20C /* PlayerData.swift */,
@@ -361,6 +425,7 @@
 				2CE3E3EE2CB41AA0003AF40E /* Sound */,
 				2C275E712D522396008E29A9 /* Localizable.xcstrings */,
 				CA68863E3062FF3400859D7B /* Design */,
+				53A0845D4B8953C5E1E8A0CE /* Screens */,
 			);
 			path = SeaBattle;
 			sourceTree = "<group>";
@@ -451,6 +516,16 @@
 		CA68863E3062FF3400859D7B /* Design */ = {
 			isa = PBXGroup;
 			children = (
+				DEF01B98AC6CBF414DF89FE8 /* BoardCell.swift */,
+				41D9FA82B19E6FFB57AD9CA6 /* CellEvent.swift */,
+				91677BE5F7153BFBEA9113FA /* BoardView.swift */,
+				6290C681AF214807B1A1773F /* NavigationChrome.swift */,
+				C469ED86C6479DBD43A26BC7 /* ModalDialog.swift */,
+				E9A7DBDAFD87CBA7914BF2E3 /* Controls.swift */,
+				786E8DE3A667010BF4FE7307 /* MetaControls.swift */,
+				5A8250F9102C5266A199230D /* CellEffects.swift */,
+				6D5AA3A20D930F074DBD8821 /* PadBattleControls.swift */,
+				4A9724CBA94C4AB8786693B8 /* BattleControls.swift */,
 				CA68863F3062FF3400859D7B /* DesignTokens.swift */,
 				CA6886413062FF6700859D7B /* TokenGalleryView.swift */,
 				CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */,
@@ -458,6 +533,32 @@
 				CAA32FD03064042800469335 /* GlassPanel.swift */,
 			);
 			path = Design;
+			sourceTree = "<group>";
+		};
+		53A0845D4B8953C5E1E8A0CE /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				5E3A8332488FDFA780709339 /* PadNavigation.swift */,
+				57CDFF313625664B3DDBE723 /* PaperMatch.swift */,
+				F1BB35DEA80B3E79862EFF88 /* PadMenuScreen.swift */,
+				F2AD49102F323EA4F55A48E1 /* PaperGame.swift */,
+				CAF192BF6D393AA1F62C6346 /* LevelScreen.swift */,
+				19B5EB15EE20130BDCA7E793 /* MenuScreen.swift */,
+				72F2D5E52D96EE8EC8A7BD6D /* BattleController.swift */,
+				7454EAC8EAC4D486BA6A30D6 /* PaperScreen.swift */,
+				D6706CEC1CE3B54D2471BAF0 /* BattleScreen.swift */,
+				A3E35744A7F28459B8312912 /* FleetEditor.swift */,
+				CE9D2DABD6826E32CD5CA684 /* ArrangementScreen.swift */,
+				BBF286DAABB44AEFC15FF609 /* DuelSetupScreen.swift */,
+				015980D65C9656859F2DC400 /* MatchResult.swift */,
+				4F6436ADD27E15B25398A202 /* DuelGame.swift */,
+				3FCFFBCEC5E6074D89591013 /* PadTableScreen.swift */,
+				46408B524E733F0AEBE41ACD /* AppShell.swift */,
+				11F9AE6E7E8530E90B5A21D3 /* DuelMatch.swift */,
+				D010F06F87A6B505F978D212 /* ResultsScreen.swift */,
+				24F62178B1A661E5C2BEF863 /* DuelScreen.swift */,
+			);
+			path = Screens;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -628,6 +729,37 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A584E62AB77D1A8B2AADC8D3 /* BoardCell.swift in Sources */,
+				9773F3093B5E225E9BA64CC7 /* CellEvent.swift in Sources */,
+				FA9587FC6C8A65C22385A0A5 /* BoardView.swift in Sources */,
+				8FE2AEAE158D7E7A5B3A9C08 /* NavigationChrome.swift in Sources */,
+				73C8AF701C7D494795D0B59E /* ModalDialog.swift in Sources */,
+				8256EE09EAE88F2DBC4B27A2 /* Controls.swift in Sources */,
+				0BF4D4054E80269B496B7186 /* MetaControls.swift in Sources */,
+				C32516C8E768387BD6B914F2 /* CellEffects.swift in Sources */,
+				D96588F346224ACA66AB3676 /* PadBattleControls.swift in Sources */,
+				68EE947935FA92485B267979 /* BattleControls.swift in Sources */,
+				AFCFA8BBA9DB513781141E88 /* DuelStore.swift in Sources */,
+				9D2FFFCF44473522C70F1D11 /* PaperStore.swift in Sources */,
+				4EEEB8052B418CF0C4F9A718 /* PadNavigation.swift in Sources */,
+				A4A84B7FC333B8EEB4CE7B4A /* PaperMatch.swift in Sources */,
+				210BB8FAACCB9CEA1937FD8E /* PadMenuScreen.swift in Sources */,
+				1A9FA89038BC7E25578D6340 /* PaperGame.swift in Sources */,
+				06779077B87248DDCAD15641 /* LevelScreen.swift in Sources */,
+				922DB781A628F1BB69AB7777 /* MenuScreen.swift in Sources */,
+				2B46482AE52D9791C681887E /* BattleController.swift in Sources */,
+				52F66E84CCD4A8DD51A0040C /* PaperScreen.swift in Sources */,
+				83A972A6B11E12CE0C2AB4A0 /* BattleScreen.swift in Sources */,
+				7D1924F01014B1CFCBFB72E7 /* FleetEditor.swift in Sources */,
+				288F1D73B8350925B60CC7A0 /* ArrangementScreen.swift in Sources */,
+				2B7940ED380293E06C5620B3 /* DuelSetupScreen.swift in Sources */,
+				726963E0ADFB564E2EEFC336 /* MatchResult.swift in Sources */,
+				836A6A73EAF5A113B7C5DAFB /* DuelGame.swift in Sources */,
+				8D349A8C2F2C4F4C9743565E /* PadTableScreen.swift in Sources */,
+				2C2A961F615A3D905AF983A0 /* AppShell.swift in Sources */,
+				CECFA2E0D5E595C15AFECC9C /* DuelMatch.swift in Sources */,
+				DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */,
+				E6B6658BCC70C76953BDC2F7 /* DuelScreen.swift in Sources */,
 				2C6A84732B6E99620001A20C /* ContentView.swift in Sources */,
 				CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */,
 				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,

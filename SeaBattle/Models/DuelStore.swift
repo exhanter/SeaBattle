@@ -7,8 +7,8 @@
 //  handoff, like the paper game: there is no computer turn to wait for, so
 //  every point between moves is a stable one.
 //
-//  TRANSITIONAL (ПЕРЕХОДНОЕ): the old hot-seat screens still used on iPad keep
-//  their own `HotSeatStore` until R3.2b moves the iPad onto `DuelGame` too.
+//  Since R3.2b both iPhone and iPad play on `DuelGame`. The old `HotSeatStore`
+//  file is no longer read; it goes away with the old screens in R4.6.
 //
 
 import Foundation

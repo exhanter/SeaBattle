@@ -200,10 +200,7 @@ struct AppShell: View {
         return PaperStore.hasSavedGame
     }
 
-    /// ПЕРЕХОДНОЕ до R3.2b: на iPad вдвоём играют на старых экранах со своим
-    /// сохранением, на iPhone — на `DuelGame`.
     private var hasHotSeatGame: Bool {
-        if usesPadLayout { return HotSeatStore.hasSession }
         if let duel { return !duel.game.isOver }
         return DuelStore.hasSavedGame
     }
@@ -256,7 +253,6 @@ struct AppShell: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .fullScreenCover(isPresented: $appState.showHotSeat) { HotSeatContainerView() }
         .fullScreenCover(isPresented: $appState.showNearby) { NearbyGameView() }
         .fullScreenCover(isPresented: $appState.showOnline) { OnlineGameView() }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
@@ -420,6 +416,8 @@ struct AppShell: View {
                             recent: recentPlayers,
                             onStart: startDuel,
                             onBack: { self.route = nil })
+                // iPad: колонка 520 pt по центру, как экран уровня.
+                .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
 
         case .duel:
             if let duel {
@@ -469,13 +467,8 @@ struct AppShell: View {
 
     // MARK: Вдвоём на устройстве
 
-    /// ПЕРЕХОДНОЕ до R3.2b: iPad пока открывает старые экраны.
     private func openHotSeat() {
-        if usesPadLayout {
-            appState.showHotSeat = true
-        } else {
-            route = .duelSetup
-        }
+        route = .duelSetup
     }
 
     /// «Играли раньше» — последние сыгравшие первыми.
@@ -508,10 +501,6 @@ struct AppShell: View {
     }
 
     private func continueHotSeat() {
-        if usesPadLayout {
-            appState.showHotSeat = true
-            return
-        }
         if duel?.game.isOver ?? true {
             guard let game = DuelStore.load() else { return }
             let match = DuelMatch(game: game)

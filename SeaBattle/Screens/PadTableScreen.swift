@@ -6,7 +6,8 @@
 //  (игра на бумаге). Отдельного экрана расстановки нет: партия открывается
 //  сразу двумя полями — своё с авторасставленным флотом и пустое поле
 //  противника (приглушено). «Изменить» правит флот на том же столе;
-//  «Начать» — бой на том же столе. Игра на бумаге — третья фаза того же стола.
+//  «Начать» — бой на том же столе. Игра на бумаге — третья фаза того же стола,
+//  вдвоём на устройстве — четвёртая (подсказки нет, квадрат пуст).
 //
 //  **Поля не двигаются никогда.** Клетка одна до старта и в бою, верх — одна и
 //  та же панель счёта той же высоты (до старта в центре «Расстановка»). Всё,
@@ -133,6 +134,19 @@ struct PadTableGeometry: Equatable, Sendable {
     var axisWidth: CGFloat { metrics.digitsWidth + metrics.axisGap }
 }
 
+// MARK: - Подписи расстановки вдвоём
+
+/// Стол до старта вдвоём на устройстве (4.7): чей флот, чьё поле напротив и
+/// кого называет главная кнопка.
+struct PadDuelPlacement {
+    /// «Флот: Аня».
+    let ownTitle: LocalizedStringKey
+    /// Имя соперника — над его пустым полем, как в бою.
+    let foeName: String
+    /// «Борис расставляет флот» / «Начать бой».
+    let startTitle: LocalizedStringKey
+}
+
 // MARK: - Экран
 
 struct PadTableScreen: View {
@@ -143,6 +157,9 @@ struct PadTableScreen: View {
         case battle(BattleController)
         /// Игра на бумаге (4.6, 23d / 23e).
         case paper(PaperMatch)
+        /// Вдвоём на устройстве (4.7): оба поля глазами держателя. Слой
+        /// передачи рисует `DuelScreen` поверх всего стола.
+        case duel(DuelMatch)
     }
 
     let phase: Phase
@@ -150,6 +167,9 @@ struct PadTableScreen: View {
     /// Стол игры на бумаге и до старта: поля с координатами и клеткой 40, как
     /// в партии, — иначе по «Начать» они прыгнули бы; уровня в панели нет.
     var isPaper = false
+    /// Стол до старта вдвоём на устройстве: подписи называют игроков, уровня
+    /// и баланса в панели нет.
+    var duelPlacement: PadDuelPlacement?
 
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
@@ -173,8 +193,15 @@ struct PadTableScreen: View {
         return nil
     }
 
-    private var isPlaying: Bool { battle != nil || paper != nil }
+    private var duel: DuelMatch? {
+        if case .duel(let match) = phase { return match }
+        return nil
+    }
+
+    private var isPlaying: Bool { battle != nil || paper != nil || duel != nil }
     private var isPaperTable: Bool { isPaper || paper != nil }
+    /// Режим с подсказками и баллами — только против компьютера.
+    private var isComputerTable: Bool { !isPaperTable && duel == nil && duelPlacement == nil }
 
     var body: some View {
         GeometryReader { proxy in
@@ -200,6 +227,7 @@ struct PadTableScreen: View {
         .animation(.easeInOut(duration: ArrangementMetrics.warningFade),
                    value: editor?.wrappedValue.conflictKind)
         .animation(Motion.quick, value: paper?.game.aim)
+        .animation(Motion.quick, value: duel?.aim)
     }
 
     // MARK: Вертикально (21a, 23d)
@@ -213,8 +241,8 @@ struct PadTableScreen: View {
             ZStack(alignment: .bottomTrailing) {
                 block(.you, g)
                     .frame(maxWidth: .infinity)
-                if let battle {
-                    ShotColumn(entries: battle.incoming,
+                if let incoming {
+                    ShotColumn(entries: incoming,
                                width: Geometry.Inset.feedWidthPortrait,
                                alphabet: alphabet)
                 }
@@ -321,11 +349,17 @@ struct PadTableScreen: View {
 
     @ViewBuilder
     private var feed: some View {
-        if let battle {
-            ShotColumn(entries: battle.incoming,
+        if let incoming {
+            ShotColumn(entries: incoming,
                        width: Geometry.Inset.feedWidthLandscape,
                        alphabet: alphabet)
         }
+    }
+
+    /// Лента «По вам» — в бою против компьютера и вдвоём (выстрелы соперника
+    /// за его последний ход); на бумаге её нет.
+    private var incoming: [ShotFeedEntry]? {
+        battle?.incoming ?? duel?.incoming
     }
 
     // MARK: Верхняя панель
@@ -339,6 +373,17 @@ struct PadTableScreen: View {
             if let paper {
                 PaperScorePanel(match: paper, alphabet: alphabet,
                                 isPad: true, yoursOnTrailing: trailing)
+            } else if let duel {
+                // Как на iPhone: «Ход: Аня», латунь у своего хода, баланса нет.
+                ScorePanel(yourLosses: duel.board(.you).sunkShipCount,
+                           foeLosses: duel.game.boards[duel.opponent].sunkShipCount,
+                           isYourTurn: duel.isViewersTurn,
+                           balance: 0,
+                           isPad: true,
+                           yoursOnTrailing: trailing,
+                           status: Text("Turn: \(duel.player(duel.game.attacker).name)"),
+                           statusIsWarm: duel.isViewersTurn,
+                           showsBalance: false)
             } else {
                 ScorePanel(yourLosses: battle?.player.numberShipsDestroyed ?? 0,
                            foeLosses: battle?.enemy.numberShipsDestroyed ?? 0,
@@ -348,8 +393,8 @@ struct PadTableScreen: View {
                            yoursOnTrailing: trailing,
                            isArranging: battle == nil,
                            // Уровень — только у одиночной игры, в центре панели.
-                           level: isPaperTable ? nil : appState.difficultyLevel,
-                           showsBalance: !isPaperTable)
+                           level: isComputerTable ? appState.difficultyLevel : nil,
+                           showsBalance: isComputerTable)
             }
         }
         .frame(height: PadTableGeometry.topPanelHeight)
@@ -375,13 +420,26 @@ struct PadTableScreen: View {
     /// «Поле противника», на бумаге — «Противник» (23d). Уровень сюда больше
     /// не ставится (4.5 после раунда 7).
     private func title(_ side: Side) -> some View {
-        Text(side == .you ? "Your fleet" : isPaperTable ? "Opponent" : "Opponent's board")
+        titleText(side)
             .font(.system(size: BattleMetrics.pad.caption, weight: .semibold, design: .rounded))
             .foregroundStyle(Color.inkPrimary)
             .lineLimit(1)
             .shadow(color: .inkTitleShadow,
                     radius: NavMetrics.titleShadowRadius,
                     y: NavMetrics.titleShadowOffsetY)
+    }
+
+    /// Вдвоём своё поле — «Ваш флот» в бою и «Флот: Аня» на расстановке
+    /// (устройство переходит из рук в руки), над чужим — имя соперника.
+    private func titleText(_ side: Side) -> Text {
+        if let duel {
+            return side == .you ? Text("Your fleet") : Text(verbatim: duel.player(duel.opponent).name)
+        }
+        if let duelPlacement {
+            return side == .you ? Text(duelPlacement.ownTitle) : Text(verbatim: duelPlacement.foeName)
+        }
+        if side == .you { return Text("Your fleet") }
+        return isPaperTable ? Text("Opponent") : Text("Opponent's board")
     }
 
     private func board(_ side: Side, _ g: PadTableGeometry) -> some View {
@@ -400,6 +458,8 @@ struct PadTableScreen: View {
                        centersGrid: g.orientation == .portrait)
         } else if let battle {
             BattleBoard(battle: battle, field: side, metrics: m, alphabet: alphabet)
+        } else if let duel {
+            DuelBoard(match: duel, field: side, metrics: m, alphabet: alphabet)
         } else if side == .you, let editor {
             EditableFleetBoard(editor: editor, metrics: m)
         } else {
@@ -413,7 +473,8 @@ struct PadTableScreen: View {
     // MARK: Кнопки фазы — на месте квадрата подсказки
 
     /// До старта «Изменить» и «Начать» (в правке — «Перемешать» и «Готово»),
-    /// в бою — подсказка, на бумаге — три ответа. Вертикально столбиком
+    /// в бою — подсказка, на бумаге — три ответа, вдвоём — ничего (подсказок
+    /// в режиме нет). Вертикально столбиком
     /// («Начать» и «Мимо» внизу), горизонтально в ряд («Начать» и «Мимо» у
     /// кромки экрана).
     @ViewBuilder
@@ -475,8 +536,14 @@ struct PadTableScreen: View {
                 onStart()
             }
         } label: {
-            Text(e.isEditing ? "Done" : "Start")
+            // Вдвоём кнопка называет следующего — «Борис расставляет флот»
+            // (4.7), поэтому надпись переносится в квадрате.
+            Text(e.isEditing ? "Done" : duelPlacement?.startTitle ?? "Start")
                 .font(.system(size: 16, weight: .bold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 8)
         }
         .buttonStyle(PrimaryButtonStyle(isEnabled: canPress,
                                         radius: PadTileMetrics.radius,
