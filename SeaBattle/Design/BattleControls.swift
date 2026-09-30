@@ -110,6 +110,17 @@ struct ScorePanel: View {
     /// что сказать: «Скажите: Д7» (4.6). Правило 3: режимы отличаются
     /// содержимым шапки, а не её устройством.
     var status: Text?
+    /// Тон капсулы статуса; `nil` — как в бою (латунь, до старта — стекло).
+    /// Игра на бумаге: «Кто начинает?» и «Ход соперника» — на стекле (23a).
+    var statusIsWarm: Bool?
+    /// Баланс показывается только там, где есть подсказки (раунд 8): в игре
+    /// на бумаге его нет.
+    var showsBalance = true
+    /// iPad, игра на бумаге: под полями места нет, и результат хода соперника
+    /// встаёт капсулой в центр панели вместо статуса (4.6, 23d / 23e).
+    var result: FeedOutcome?
+
+    private var warmStatus: Bool { statusIsWarm ?? !isArranging }
 
     private var m: BattleMetrics { isPad ? .pad : .forSize(size) }
 
@@ -153,7 +164,16 @@ struct ScorePanel: View {
         .frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .trailing)
     }
 
+    @ViewBuilder
     private var center: some View {
+        if let result {
+            PaperResultCapsule(call: result, text: PaperMetrics.padCapsuleText)
+        } else {
+            statusBlock
+        }
+    }
+
+    private var statusBlock: some View {
         VStack(spacing: m.sideGap) {
             (status ?? Text(isArranging ? "Arrangement" : isYourTurn ? "Your turn" : "Opponent's turn"))
                 .font(.system(size: m.statusText, weight: .bold))
@@ -163,18 +183,20 @@ struct ScorePanel: View {
                 .padding(.horizontal, m.statusPaddingH)
                 .background {
                     Capsule(style: .continuous)
-                        .fill(isArranging ? Color.glassFill : Color.roleYouSoft)
+                        .fill(warmStatus ? Color.roleYouSoft : Color.glassFill)
                         .overlay {
                             Capsule(style: .continuous)
-                                .strokeBorder(isArranging ? Color.glassStroke : Color.roleYou,
+                                .strokeBorder(warmStatus ? Color.roleYou : Color.glassStroke,
                                               lineWidth: 1)
                         }
                 }
-            HStack(spacing: 10) {
-                if isPad, let level {
-                    LevelChip(level: level, size: .regular)
+            if showsBalance || (isPad && level != nil) {
+                HStack(spacing: 10) {
+                    if isPad, let level {
+                        LevelChip(level: level, size: .regular)
+                    }
+                    if showsBalance { balanceView }
                 }
-                balanceView
             }
         }
     }

@@ -281,6 +281,9 @@ struct SecondaryButtonStyle: ButtonStyle {
     var radius: CGFloat = Geometry.SecondaryButton.radius
     /// См. `PrimaryButtonStyle.fillsFrame`.
     var fillsFrame = false
+    /// Высота по спеке 2.15 — 44. Ответы игры на бумаге выше (56 / 52, кадр
+    /// `answerBtn`, решение заказчика 30.09 по В29 — до шлифовки дизайна).
+    var minHeight: CGFloat = Geometry.SecondaryButton.height
 
     func makeBody(configuration: Configuration) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
@@ -289,7 +292,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundStyle(Color.inkPrimary)
             .padding(.horizontal, fillsFrame ? 0 : Geometry.SecondaryButton.padding)
             // В ряду кнопки делят ширину поровну (2.15).
-            .frame(maxWidth: .infinity, minHeight: Geometry.SecondaryButton.height,
+            .frame(maxWidth: .infinity, minHeight: minHeight,
                    maxHeight: fillsFrame ? .infinity : nil)
             .background { shape.fill(LinearGradient.glassPanelFill) }
             .overlay { shape.strokeBorder(Color.glassStroke, lineWidth: 1) }

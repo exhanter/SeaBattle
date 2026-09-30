@@ -136,6 +136,36 @@ struct PaperGameTests {
         #expect(g.turn == .you)
     }
 
+    // MARK: Капсула и метка (раунд 8)
+
+    @Test("Капсула — только результат хода соперника и держится до следующего касания")
+    func theCapsuleShowsTheOpponentsCall() {
+        var g = game()
+        call(&g, c(9, 9), .hit)
+        #expect(g.opponentCall == nil)          // ваш ответ капсулу не даёт
+        call(&g, c(9, 10), .miss)
+        g.opponentShot(at: c(1, 1))
+        #expect(g.opponentCall == .hit)
+        g.opponentShot(at: c(10, 10))
+        #expect(g.opponentCall == .miss)        // ход ваш, капсула ещё стоит
+        g.aim(at: c(7, 7))
+        #expect(g.opponentCall == nil)          // назвали клетку — её место заняли ответы
+    }
+
+    @Test("Метка стоит на последнем попадании соперника и гаснет при промахе")
+    func theMarkFollowsTheOpponentsHits() {
+        var g = game()
+        g.opponentShot(at: c(1, 1))
+        #expect(g.foeMark == c(1, 1))
+        g.opponentShot(at: c(1, 2))
+        #expect(g.foeMark == c(1, 2))           // переехала
+        g.opponentShot(at: c(10, 10))
+        #expect(g.foeMark == nil)               // промах — погасла
+        let refused = g.opponentShot(at: c(5, 4))
+        #expect(refused == nil)                 // ход уже ваш, выстрел не принят
+        #expect(g.foeMark == nil)
+    }
+
     // MARK: Откат
 
     @Test("Отмена — ровно один ход, прицел возвращается на место")

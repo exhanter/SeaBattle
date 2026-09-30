@@ -4,8 +4,8 @@
 //
 //  Спека 3 после раунда 7: **на iPad нет таб-бара, рельса и панели
 //  навигации.** Все кнопки нижней линии — отдельные квадраты 104 × 104 на
-//  рамке 24 pt: значок 26 над подписью, стекло G2, радиус 22, деревянный кант
-//  2 pt сверху. Квадраты расставляются по месту, а не собираются в панель.
+//  рамке 24 pt: значок 26 над подписью, стекло G2, радиус 22, без деревянного
+//  канта (раунд 8). Квадраты расставляются по месту, а не собираются в панель.
 //
 //  - Корни табов: в меню слева внизу «Статистика», справа «Настройки». На
 //    корне таба его собственный угол занимает «Играть» — каждый угол всегда
@@ -52,6 +52,8 @@ enum PadTileMetrics {
 struct PadTileLabel: View {
     let title: LocalizedStringKey
     var icon: String?
+    /// Цвет значка. Ответы игры на бумаге красят значок в цвет результата.
+    var iconTint: Color = .inkPrimary
 
     var body: some View {
         VStack(spacing: PadTileMetrics.gap) {
@@ -59,6 +61,7 @@ struct PadTileLabel: View {
                 Image(systemName: icon)
                     .font(.system(size: symbolFontSize(inBox: PadTileMetrics.icon)))
                     .frame(height: PadTileMetrics.icon)
+                    .foregroundStyle(iconTint)
             }
             Text(title)
                 .font(.system(size: PadTileMetrics.label, weight: .semibold, design: .rounded))
@@ -71,7 +74,8 @@ struct PadTileLabel: View {
     }
 }
 
-/// Навигационный квадрат: стекло G2, кант сверху — он смотрит в море.
+/// Навигационный квадрат: стекло G2 **без деревянного канта** (раунд 8 — у
+/// квадратов 104 канта нет нигде).
 struct PadNavTile: View {
     let title: LocalizedStringKey
     let icon: String
@@ -85,7 +89,7 @@ struct PadNavTile: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: PadTileMetrics.radius, wood: .top)
+        .glassPanel(.g2, radius: PadTileMetrics.radius)
         .accessibilityIdentifier(identifier ?? "")
     }
 }

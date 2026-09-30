@@ -172,4 +172,24 @@ struct PadLayoutTests {
         // На iPhone зазор точек прежний.
         #expect(BattleMetrics.regular.dotGap == 3)
     }
+
+    // MARK: Игра на бумаге (раунд 8)
+
+    @Test("Стол игры на бумаге: клетка 40 в обеих ориентациях, координаты влезают")
+    func thePaperTableUsesCellForty() {
+        for size in [CGSize(width: 834, height: 1194), CGSize(width: 1194, height: 834)] {
+            let g = PadTableGeometry(size: size, safeTop: 24, safeBottom: 20, coordinates: true)
+            #expect(g.cell == PadTableGeometry.paperCell)
+            #expect(g.metrics.showsCoordinates)
+            // Цифры висят в отступе слева от сетки — он шире столбика цифр.
+            if g.orientation == .landscape { #expect(g.sideMargin > g.axisWidth) }
+        }
+    }
+
+    @Test("Без координат стол прежний: клетка 42")
+    func theBattleTableKeepsItsCell() {
+        let g = PadTableGeometry(size: CGSize(width: 1194, height: 834), coordinates: false)
+        #expect(g.cell == 42)
+        #expect(g.axisWidth == 0)
+    }
 }

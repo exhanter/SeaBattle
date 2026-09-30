@@ -38,6 +38,8 @@ struct ArrangementScreen: View {
     var onStart: () -> Void = {}
     var onBack: () -> Void = {}
     var onMenu: () -> Void = {}
+    /// Расстановка перед игрой на бумаге: на iPad стол сразу с координатами.
+    var isPaper = false
 
     @Environment(\.usesPadLayout) private var usesPadLayout
 
@@ -46,7 +48,7 @@ struct ArrangementScreen: View {
             // iPad: отдельного экрана расстановки нет — стол на два поля,
             // правка на нём же (4.4). До боя «Меню» выходит без вопроса.
             PadTableScreen(phase: .placement(editor: $editor, onStart: onStart),
-                           onMenu: onMenu)
+                           onMenu: onMenu, isPaper: isPaper)
         } else {
             phone
         }
@@ -169,7 +171,10 @@ struct EditableFleetBoard: View {
             .overlay(alignment: .topLeading) {
                 ships
                     .frame(width: metrics.gridSide, height: metrics.gridSide, alignment: .topLeading)
-                    .offset(x: metrics.inset, y: metrics.inset)
+                    // С координатами (стол игры на бумаге) сетка сдвинута
+                    // на столбик цифр и строку букв.
+                    .offset(x: metrics.digitsWidth + metrics.axisGap + metrics.inset,
+                            y: metrics.lettersHeight + metrics.axisGap + metrics.inset)
             }
             .frame(width: metrics.totalSize.width, height: metrics.totalSize.height)
     }

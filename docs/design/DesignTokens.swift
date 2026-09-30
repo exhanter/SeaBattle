@@ -37,6 +37,7 @@ extension Color {
     static let wood     = Color("Chrome/Wood")     // #6B4A2F — кант 2 pt (ровный) и верх мата
     static let woodDeep = Color("Chrome/WoodDeep") // #4D3521 — низ градиента мата; больше нигде
     static let fire = Color("Chrome/Fire")   // #FF7A2F — огонь как состояние, не как хром
+    static let fireSoft = Color("Chrome/FireSoft") // rgba(255,122,47,.24) — свечение капсулы «Убит» (0 0 26)
 
     // Стекло. G2 — всегда градиент Fill → Fill2 под 135°; в тёмной теме точки равны,
     // поэтому заливка выглядит ровной. Геометрия одна, разные только значения.
@@ -134,6 +135,9 @@ extension Color {
     static let boardFillFoe   = Color("Board/FillFoe")   // rgba(60,127,191,.12)
     static let boardStrokeYou = Color("Board/StrokeYou") // rgba(209,154,60,.45) — 1 pt
     static let boardStrokeFoe = Color("Board/StrokeFoe") // rgba(60,127,191,.45) — 1 pt
+    // Метка последнего попадания соперника на своём поле (игра на бумаге, макет 23a).
+    static let boardMarkFoe     = Color("Board/MarkFoe")     // #8CC4F5 — рамка 9 % клетки (не меньше 2,5 pt), наружу на 3 pt
+    static let boardMarkFoeGlow = Color("Board/MarkFoeGlow") // rgba(90,160,230,.80) — свечение 50 % клетки снаружи, 6 pt внутри
 
     // Главная кнопка (PrimaryButton). Кант — Role/You, ореол — Role/YouSoft,
     // надпись — Ink/Primary. Одна на обе темы.

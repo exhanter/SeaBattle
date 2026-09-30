@@ -43,6 +43,8 @@ enum ColorToken: String, CaseIterable, Sendable {
     case wood     = "Chrome/Wood"
     case woodDeep = "Chrome/WoodDeep"
     case fire     = "Chrome/Fire"
+    /// Свечение капсулы «Убит» в игре на бумаге (раунд 8).
+    case fireSoft = "Chrome/FireSoft"
 
     // Стекло G2 — все панели. Заливка всегда градиент `Fill → Fill2` под 135°;
     // в тёмной теме точки равны, поэтому выглядит ровной.
@@ -137,6 +139,9 @@ enum ColorToken: String, CaseIterable, Sendable {
     case boardFillFoe   = "Board/FillFoe"
     case boardStrokeYou = "Board/StrokeYou"
     case boardStrokeFoe = "Board/StrokeFoe"
+    /// Метка последнего попадания соперника на своём поле (игра на бумаге, раунд 8).
+    case boardMarkFoe     = "Board/MarkFoe"
+    case boardMarkFoeGlow = "Board/MarkFoeGlow"
 
     // Главная кнопка: кант — Role/You, ореол — Role/YouSoft, надпись — Ink/Primary.
     // Латунь подложки **разная по темам** (раунд 4): прежняя полупрозрачная не

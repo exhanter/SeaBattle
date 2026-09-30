@@ -162,7 +162,6 @@ struct AppShell: View {
 
     @State private var tab: ShellTab = .play
     @State private var askWhichGameToContinue = false
-    @State private var modeNotBuiltYet: MenuMode?
 
     /// Экран партии до боя, открытый поверх таба «Играть»: уровень или
     /// расстановка. Бой открывается по `AppState.selectedTab`, итоги — слой
@@ -240,14 +239,6 @@ struct AppShell: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
-        }
-        .alert("Not in this build yet", isPresented: .init(
-            get: { modeNotBuiltYet != nil },
-            set: { if !$0 { modeNotBuiltYet = nil } })) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            // ПЕРЕХОДНОЕ: снимается, когда режим получит свой экран (R3.1).
-            Text("This mode is still being built.")
         }
         .fullScreenCover(isPresented: $appState.showHotSeat) { HotSeatContainerView() }
         .fullScreenCover(isPresented: $appState.showNearby) { NearbyGameView() }
@@ -391,7 +382,8 @@ struct AppShell: View {
                               backTitle: "Play",
                               onStart: startPaper,
                               onBack: { self.route = nil },
-                              onMenu: { self.route = nil })
+                              onMenu: { self.route = nil },
+                              isPaper: true)
 
         case .paper:
             if let paper {
@@ -425,10 +417,7 @@ struct AppShell: View {
         case .hotSeat: appState.showHotSeat = true
         case .nearby: appState.showNearby = true
         case .online: appState.showOnline = true
-        case .paper:
-            // ПЕРЕХОДНОЕ до R3.1b: на iPad игра на бумаге встанет на стол
-            // третьей фазой, отдельного экрана там не будет.
-            if usesPadLayout { modeNotBuiltYet = item } else { openPaperArrangement() }
+        case .paper: openPaperArrangement()
         }
     }
 

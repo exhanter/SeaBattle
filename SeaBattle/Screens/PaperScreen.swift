@@ -2,21 +2,19 @@
 //  PaperScreen.swift
 //  Sea Battle — игра на бумаге, iPhone (R3.1, шаг 11 порядка сборки)
 //
-//  Спека 4.6, кадры `screen4PaperAsk` / `screen4PaperSunk` /
-//  `screen4PaperAnswer` / `screenSmallPaper` (тур 4). Кадры старше системы
-//  компонентов, поэтому раскладка — как у боя (правило 3: одна раскладка на
-//  все режимы, различается содержимое шапки):
+//  Спека 4.6 после раунда 8, кадры 23a–23c (`screen23Phone`, `screen23Small`).
+//  Раскладка боя (правило 3):
 //
-//  - верх — `ScorePanel`, в центре вместо «Ваш ход» — «Скажите: Д7»;
-//  - центр — поле с координатами (B2), под ним одно место на три вещи: ряд
-//    ответов «Мимо / Ранен / Убит», капсулу результата или подсказку, что
-//    делать. Место одной высоты, поэтому поле стоит на одном уровне на всех
-//    тактах (4.6);
+//  - верх — `ScorePanel` **без баланса** (подсказок здесь нет): «Кто начинает?»
+//    до первого хода, «Скажите: Д7», пока выстрел назван, иначе чей ход;
+//  - центр — подпись и поле B2, **сетка по центру экрана**, цифры висят в левом
+//    отступе; под полем одно место 72 pt: ответы, капсула результата хода
+//    соперника (только под своим полем) или подсказка, что делать. Поле стоит
+//    на одном уровне на всех тактах;
 //  - низ — переключатель полей и «Отменить», последней строкой `NavRow`.
 //
-//  «Отменить» стоит в ряду переключателя, на месте подсказки боя: подсказки в
-//  этом режиме нет, а отдельная строка не помещается на 375 × 667 (в кадре
-//  375 ради этого поднят в нижний стек даже ряд ответов). Вопрос В26.
+//  Поле, капсула, ответы и «Отменить» — общие со столом iPad (`PadTableScreen`,
+//  фаза `.paper`), там они стоят по-своему.
 //
 
 import SwiftUI
@@ -24,13 +22,38 @@ import SwiftUI
 // MARK: - Числа
 
 enum PaperMetrics {
-    /// Капсула результата — кадр `resultCapsule`: 27 pt, поля 11 / 34.
+    /// Капсула результата — кадр `paperCapsule`: 27 pt (24 на 375 и в панели
+    /// iPad), поля 0,4 и 1,26 кегля.
     static let capsuleText: CGFloat = 27
-    static let capsulePaddingV: CGFloat = 11
-    static let capsulePaddingH: CGFloat = 34
-    /// Свечение латунной капсулы (0 0 26 в кадре).
+    static let compactCapsuleText: CGFloat = 24
+    static let padCapsuleText: CGFloat = 24
+    static let capsulePaddingV: CGFloat = 0.4
+    static let capsulePaddingH: CGFloat = 1.26
+    /// Свечение капсулы: 0 0 26.
     static let capsuleGlow: CGFloat = 13
-    static let promptText: CGFloat = 13
+    /// Подсказка под полем — 13,5 (12,5 на 375), межстрочный 1,4, не шире 320.
+    static let promptText: CGFloat = 13.5
+    static let compactPromptText: CGFloat = 12.5
+    static let promptWidth: CGFloat = 320
+    /// Место под полем — одно на ответы, капсулу и подсказку.
+    static let slotHeight: CGFloat = 72
+    /// Кнопки ответа — кадр `answerBtn`: 56 / 52, кегль 14,5 / 13,5, значок
+    /// 21 / 19, зазор 8 / 6 (В29: как в кадре, до шлифовки дизайна).
+    static func answerHeight(_ size: Geometry.SizeClass) -> CGFloat { size.isCompact ? 52 : 56 }
+    static func answerText(_ size: Geometry.SizeClass) -> CGFloat { size.isCompact ? 13.5 : 14.5 }
+    static func answerIcon(_ size: Geometry.SizeClass) -> CGFloat { size.isCompact ? 19 : 21 }
+    static func answerGap(_ size: Geometry.SizeClass) -> CGFloat { size.isCompact ? 6 : 8 }
+
+    /// Метка попадания соперника: 9 % клетки, не тоньше 2,5, наружу на 3 pt,
+    /// свечение половиной клетки снаружи и 6 pt внутри.
+    static let markRatio: CGFloat = 0.09
+    static let markMinStroke: CGFloat = 2.5
+    static let markOutset: CGFloat = 3
+    static let markInnerGlow: CGFloat = 6
+
+    static func markStroke(for cell: CGFloat) -> CGFloat {
+        max(markMinStroke, cell * markRatio)
+    }
 }
 
 // MARK: - Экран
@@ -43,6 +66,7 @@ struct PaperScreen: View {
     var onMenuAfterResult: () -> Void = {}
 
     @Environment(\.locale) private var locale
+    @Environment(\.usesPadLayout) private var usesPadLayout
     @State private var askLeave = false
 
     private var game: PaperGame { match.game }
@@ -52,48 +76,12 @@ struct PaperScreen: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            let size = Geometry.SizeClass.forWidth(proxy.size.width)
-            let metrics = BoardMetrics(cell: size.cellCoords, coordinates: true)
-            let field = match.shownField
-
-            VStack(spacing: 0) {
-                ScorePanel(yourLosses: game.own.sunkShipCount,
-                           foeLosses: game.foe.sunkShipCount,
-                           isYourTurn: isYourTurn,
-                           balance: ProgressStore.shared.points,
-                           size: size,
-                           status: status)
-                    .padding(.top, BattleScreenMetrics.scoreTop)
-
-                GeometryReader { area in
-                    // На 375 подпись поля уходит в шапку (кадр `screenSmallPaper`):
-                    // иначе поле с координатами и низ не помещаются на 667.
-                    let showsCaption = !size.isCompact
-                    let slotBlock = ShotFeed.height + Geometry.Nav.stackGap
-                    let captionBlock = showsCaption
-                        ? BattleScreenMetrics.captionHeight + BattleScreenMetrics.captionGap : 0
-                    let top = BattleScreenMetrics.boardTop(available: area.size.height,
-                                                          board: captionBlock + metrics.totalSize.height,
-                                                          feed: slotBlock)
-                    VStack(spacing: 0) {
-                        if showsCaption {
-                            caption(field, size: size)
-                                .padding(.bottom, BattleScreenMetrics.captionGap)
-                        }
-                        PaperBoard(match: match, field: field, metrics: metrics,
-                                   alphabet: alphabet)
-                        Spacer(minLength: 0)
-                        slot(field)
-                            .frame(height: ShotFeed.height)
-                            .padding(.horizontal, Geometry.Nav.stackInset)
-                            .padding(.bottom, Geometry.Nav.stackGap)
-                    }
-                    .padding(.top, top)
-                    .frame(width: area.size.width, height: area.size.height)
-                }
-
-                actions(field, size: size)
+        Group {
+            if usesPadLayout {
+                // iPad: третья фаза стола на два поля (23d, 23e).
+                PadTableScreen(phase: .paper(match), onMenu: menuTapped)
+            } else {
+                phone
             }
         }
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
@@ -109,25 +97,43 @@ struct PaperScreen: View {
         .animation(Motion.quick, value: game.aim)
     }
 
-    // MARK: Шапка
+    private var phone: some View {
+        GeometryReader { proxy in
+            let size = Geometry.SizeClass.forWidth(proxy.size.width)
+            let metrics = BoardMetrics(cell: size.cellCoords, coordinates: true)
+            let field = match.shownField
 
-    /// Чей такт. До первого хода первым может быть любой — тогда такт
-    /// определяет показанное поле.
-    private var isYourTurn: Bool {
-        switch game.turn {
-        case .you: true
-        case .foe: false
-        case nil: match.shownField == .foe
+            VStack(spacing: 0) {
+                PaperScorePanel(match: match, alphabet: alphabet, size: size)
+                    .padding(.top, BattleScreenMetrics.scoreTop)
+
+                GeometryReader { area in
+                    let slot = PaperMetrics.slotHeight + Geometry.Nav.stackGap
+                    let caption = BattleScreenMetrics.captionHeight + BattleScreenMetrics.captionGap
+                    let top = BattleScreenMetrics.boardTop(available: area.size.height,
+                                                          board: caption + metrics.totalSize.height,
+                                                          feed: slot)
+                    VStack(spacing: 0) {
+                        fieldCaption(field, size: size)
+                            .padding(.bottom, BattleScreenMetrics.captionGap)
+                        PaperBoard(match: match, field: field, metrics: metrics,
+                                   alphabet: alphabet)
+                        Spacer(minLength: 0)
+                        place(field, size: size)
+                            .frame(height: PaperMetrics.slotHeight)
+                            .padding(.horizontal, Geometry.Nav.stackInset)
+                            .padding(.bottom, Geometry.Nav.stackGap)
+                    }
+                    .padding(.top, top)
+                    .frame(width: area.size.width, height: area.size.height)
+                }
+
+                actions(field, size: size)
+            }
         }
     }
 
-    /// «Скажите: Д7», пока выстрел назван и ждёт ответа (4.6).
-    private var status: Text? {
-        guard let aim = game.aim else { return nil }
-        return Text("Say: \(ShotChip.label(aim, alphabet: alphabet))")
-    }
-
-    private func caption(_ field: Side, size: Geometry.SizeClass) -> some View {
+    private func fieldCaption(_ field: Side, size: Geometry.SizeClass) -> some View {
         Text(field == .foe ? "Opponent's board" : "Your fleet")
             .font(.system(size: BattleMetrics.forSize(size).caption,
                           weight: .semibold, design: .rounded))
@@ -140,30 +146,28 @@ struct PaperScreen: View {
 
     // MARK: Место под полем
 
+    /// Ответы — сразу, как только назвали клетку; капсула — только под своим
+    /// полем (результат хода соперника); иначе подсказка, что делать (23a).
     @ViewBuilder
-    private func slot(_ field: Side) -> some View {
+    private func place(_ field: Side, size: Geometry.SizeClass) -> some View {
         if field == .foe, game.aim != nil {
-            PaperAnswerRow { match.answer($0) }
+            PaperAnswerRow(size: size) { match.answer($0) }
                 .transition(.opacity)
-        } else if let last = game.last, last.field == field {
-            PaperResultCapsule(call: last.call)
+        } else if field == .you, let call = game.opponentCall {
+            PaperResultCapsule(call: call,
+                               text: size.isCompact ? PaperMetrics.compactCapsuleText
+                                                    : PaperMetrics.capsuleText)
                 .id(game.moves)
                 .transition(.opacity)
         } else {
-            Text(prompt(field))
-                .font(.system(size: PaperMetrics.promptText, weight: .semibold))
+            Text(PaperPrompt.text(for: field, in: game))
+                .font(.system(size: size.isCompact ? PaperMetrics.compactPromptText
+                                                   : PaperMetrics.promptText))
+                .lineSpacing(3)
                 .foregroundStyle(Color.inkSecondary)
                 .multilineTextAlignment(.center)
+                .frame(maxWidth: PaperMetrics.promptWidth)
                 .transition(.opacity)
-        }
-    }
-
-    private func prompt(_ field: Side) -> LocalizedStringKey {
-        switch field {
-        case .foe:
-            game.acceptsYourShot ? "Tap the cell you call out" : "Your opponent is shooting"
-        case .you:
-            game.acceptsOpponentShot ? "Tap the cell your opponent calls" : "Your turn to shoot"
         }
     }
 
@@ -190,28 +194,95 @@ struct PaperScreen: View {
     }
 }
 
+// MARK: - Шапка
+
+/// `ScorePanel` игры на бумаге: без баланса; «Кто начинает?» и «Ход
+/// соперника» на стекле, свой ход и «Скажите: Д7» — на латуни (23a).
+struct PaperScorePanel: View {
+    let match: PaperMatch
+    let alphabet: BoardAlphabet
+    var size: Geometry.SizeClass = .regular
+    var isPad = false
+    var yoursOnTrailing = false
+
+    private var game: PaperGame { match.game }
+
+    var body: some View {
+        ScorePanel(yourLosses: game.own.sunkShipCount,
+                   foeLosses: game.foe.sunkShipCount,
+                   isYourTurn: game.turn != .foe,
+                   balance: 0,
+                   size: size,
+                   isPad: isPad,
+                   yoursOnTrailing: yoursOnTrailing,
+                   status: status,
+                   statusIsWarm: game.aim != nil || game.turn == .you,
+                   showsBalance: false,
+                   // iPad: результат хода соперника — в центре панели (23d, 23e).
+                   result: isPad ? game.opponentCall : nil)
+    }
+
+    private var status: Text {
+        if let aim = game.aim {
+            return Text("Say: \(ShotChip.label(aim, alphabet: alphabet))")
+        }
+        switch game.turn {
+        case nil: return Text("Who starts?")
+        case .you: return Text("Your turn")
+        case .foe: return Text("Opponent's turn")
+        }
+    }
+}
+
+// MARK: - Подсказка под полем
+
+enum PaperPrompt {
+    static func text(for field: Side, in game: PaperGame) -> LocalizedStringKey {
+        switch (field, game.turn) {
+        case (.foe, nil):
+            "You call first — tap a cell here. Your opponent first — open “My board”"
+        case (.foe, .you):
+            "Tap the cell you call out"
+        case (.foe, .foe):
+            "Your opponent is shooting"
+        case (.you, .you):
+            "Your turn to shoot"
+        case (.you, _):
+            "Tap the cell your opponent calls"
+        }
+    }
+}
+
 // MARK: - Поле
 
 /// Поле игры на бумаге: B2, прицел и подсветка буквы и цифры названной
-/// клетки. Касание своего поля — выстрел соперника, чужого — ваш.
+/// клетки, метка последнего попадания соперника. **Сетка по центру**: справа
+/// оставлен отступ шириной столбика цифр, и цифры висят в левом отступе
+/// (раунд 8). Касание своего поля — выстрел соперника, чужого — ваш.
 struct PaperBoard: View {
     let match: PaperMatch
     let field: Side
     let metrics: BoardMetrics
     let alphabet: BoardAlphabet
+    /// Горизонтальный стол iPad: там сетки стоят на равных отступах, и
+    /// уравновешивать цифры справа не нужно.
+    var centersGrid = true
 
     private var game: PaperGame { match.game }
 
     var body: some View {
+        let m = metrics
         let board = field == .foe ? game.foe : game.own
         let cells = Board.allCoordinates.map { BoardCellState.forDisplay(board[$0], on: field) }
         let accepts = field == .foe ? game.acceptsYourShot : game.acceptsOpponentShot
-        // Буква и цифра горят у названной клетки, а после хода — у той, куда
-        // стреляли последний раз (кадры 4.6).
-        let marked = field == .foe ? (game.aim ?? lastShot) : lastShot
+        // Буква и цифра горят у названной клетки, а на своём поле — у клетки,
+        // которую назвал соперник последней.
+        let marked = field == .foe ? game.aim : lastShot
         let isActive = accepts && (game.turn != nil || match.shownField == field)
+        let gridOrigin = CGPoint(x: m.digitsWidth + m.axisGap + m.inset,
+                                 y: m.lettersHeight + m.axisGap + m.inset)
 
-        return BoardView(cells: cells, role: field, metrics: metrics, isActive: isActive,
+        return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
                          aim: marked.map { (column: $0.column - 1, row: $0.row - 1) },
                          alphabet: alphabet,
                          event: match.event(on: field),
@@ -220,16 +291,20 @@ struct PaperBoard: View {
                              if field == .foe { match.tapFoe(cell) } else { match.tapOwn(cell) }
                          } : nil)
             .overlay(alignment: .topLeading) {
-                if field == .foe, let aim = game.aim {
-                    AimMark(at: aim, metrics: metrics)
-                        .frame(width: metrics.gridSide, height: metrics.gridSide,
-                               alignment: .topLeading)
-                        .offset(x: metrics.digitsWidth + metrics.axisGap + metrics.inset,
-                                y: metrics.lettersHeight + metrics.axisGap + metrics.inset)
-                        .allowsHitTesting(false)
+                ZStack(alignment: .topLeading) {
+                    if field == .foe, let aim = game.aim {
+                        AimMark(at: aim, metrics: m)
+                    }
+                    if field == .you, let mark = game.foeMark {
+                        FoeMark(at: mark, metrics: m)
+                    }
                 }
+                .frame(width: m.gridSide, height: m.gridSide, alignment: .topLeading)
+                .offset(x: gridOrigin.x, y: gridOrigin.y)
+                .allowsHitTesting(false)
             }
-            .frame(width: metrics.totalSize.width, height: metrics.totalSize.height)
+            .frame(width: m.totalSize.width, height: m.totalSize.height)
+            .padding(.trailing, centersGrid ? m.digitsWidth + m.axisGap : 0)
             .accessibilityIdentifier(field == .foe ? "paperFoeBoard" : "paperOwnBoard")
     }
 
@@ -239,29 +314,74 @@ struct PaperBoard: View {
     }
 }
 
+/// Метка последнего попадания соперника (4.6, раунд 8): рамка прицела 2.18 в
+/// цвете соперника, наружу на 3 pt, радиус клетки + 3, со свечением снаружи и
+/// внутри.
+struct FoeMark: View {
+    let coordinate: Coordinate
+    let metrics: BoardMetrics
+
+    init(at coordinate: Coordinate, metrics: BoardMetrics) {
+        self.coordinate = coordinate
+        self.metrics = metrics
+    }
+
+    var body: some View {
+        let m = metrics
+        let origin = m.cellOrigin(coordinate)
+        let outset = PaperMetrics.markOutset
+        let side = m.cell + outset * 2
+        let shape = RoundedRectangle(cornerRadius: Geometry.cellRadius(for: m.cell) + outset,
+                                     style: .continuous)
+        shape
+            .strokeBorder(Color.boardMarkFoe, lineWidth: PaperMetrics.markStroke(for: m.cell))
+            .background {
+                // Свечение внутрь — размытая кромка, обрезанная формой.
+                shape
+                    .strokeBorder(Color.boardMarkFoeGlow, lineWidth: PaperMetrics.markInnerGlow)
+                    .blur(radius: PaperMetrics.markInnerGlow / 2)
+                    .clipShape(shape)
+            }
+            .shadow(color: .boardMarkFoeGlow, radius: m.cell / 4)
+            .frame(width: side, height: side)
+            .offset(x: origin.x - outset, y: origin.y - outset)
+            .transition(.opacity)
+            .accessibilityHidden(true)
+    }
+}
+
 // MARK: - Ответы и результат
 
-/// «Мимо / Ранен / Убит» — `SecondaryButton` в ряд, ширина поровну (2.15).
-/// Значки в цвете результата, как в кадре: вода, латунь, огонь.
+/// «Мимо / Ранен / Убит» — стекло `SecondaryButton` в ряд, ширина поровну
+/// (2.15), высота и кегль — по кадру `answerBtn` (В29). Значки в цвете
+/// результата: вода, латунь, огонь.
 struct PaperAnswerRow: View {
+    var size: Geometry.SizeClass = .regular
     var onAnswer: (PaperAnswer) -> Void
 
     var body: some View {
-        HStack(spacing: Geometry.Nav.stackGap) {
+        HStack(spacing: PaperMetrics.answerGap(size)) {
             ForEach(PaperAnswer.allCases, id: \.self) { answer in
                 Button { onAnswer(answer) } label: {
-                    Label {
-                        Text(Self.title(answer))
-                    } icon: {
-                        Image(systemName: Self.icon(answer))
-                            .foregroundStyle(Self.tint(answer))
+                    HStack(spacing: 8) {
+                        Image(systemName: PaperAnswerLabel.icon(answer))
+                            .font(.system(size: symbolFontSize(inBox: PaperMetrics.answerIcon(size))))
+                            .frame(height: PaperMetrics.answerIcon(size))
+                            .foregroundStyle(PaperAnswerLabel.tint(answer))
+                        Text(PaperAnswerLabel.title(answer))
+                            .font(.system(size: PaperMetrics.answerText(size),
+                                          weight: .semibold, design: .rounded))
                     }
                 }
-                .secondaryButton()
+                .buttonStyle(SecondaryButtonStyle(minHeight: PaperMetrics.answerHeight(size)))
                 .accessibilityIdentifier("paperAnswer_\(answer.rawValue)")
             }
         }
     }
+}
+
+/// Подпись, значок и цвет ответа — одни на ряд iPhone и квадраты iPad.
+enum PaperAnswerLabel {
 
     static func title(_ answer: PaperAnswer) -> LocalizedStringKey {
         switch answer {
@@ -288,29 +408,29 @@ struct PaperAnswerRow: View {
     }
 }
 
-/// Капсула результата — одна на оба такта (4.6): на вашем выстреле — что
-/// ответил соперник, на его ходе — что сказать вслух. «Ранен» латунная,
-/// «Убит» огненная; слов «Скажите вслух» на ней нет.
+/// Капсула результата хода соперника — что сказать вслух (4.6). «Ранен»
+/// латунная со свечением `Role/YouSoft`, «Убит» огненная со свечением
+/// `Chrome/FireSoft`, «Мимо» белая без свечения; заливка — стекло.
 struct PaperResultCapsule: View {
     let call: FeedOutcome
+    var text: CGFloat = PaperMetrics.capsuleText
 
     var body: some View {
-        let color = Self.color(call)
         Text(Self.word(call))
-            .font(.system(size: PaperMetrics.capsuleText, weight: .bold, design: .rounded))
-            .foregroundStyle(color)
+            .font(.system(size: text, weight: .bold, design: .rounded))
+            .foregroundStyle(Self.color(call))
             .lineLimit(1)
             .minimumScaleFactor(0.6)
-            .padding(.vertical, PaperMetrics.capsulePaddingV)
-            .padding(.horizontal, PaperMetrics.capsulePaddingH)
+            .padding(.vertical, (text * PaperMetrics.capsulePaddingV).rounded())
+            .padding(.horizontal, (text * PaperMetrics.capsulePaddingH).rounded())
             .background {
                 Capsule(style: .continuous)
                     .fill(Color.glassFill)
-                    .overlay { Capsule(style: .continuous).strokeBorder(color, lineWidth: 1) }
+                    .overlay {
+                        Capsule(style: .continuous).strokeBorder(Self.stroke(call), lineWidth: 1)
+                    }
             }
-            // Свечение только у латуни: у огня мягкого токена нет, а
-            // `.opacity()` от цвета запрещён (правило 8). Вопрос В27.
-            .shadow(color: call == .hit ? .roleYouSoft : .clear, radius: PaperMetrics.capsuleGlow)
+            .shadow(color: Self.glow(call), radius: PaperMetrics.capsuleGlow)
             .accessibilityIdentifier("paperResult")
     }
 
@@ -331,24 +451,42 @@ struct PaperResultCapsule: View {
         case .repeatHit, .repeatMiss: .inkSecondary
         }
     }
+
+    static func stroke(_ call: FeedOutcome) -> Color {
+        switch call {
+        case .hit: .roleYou
+        case .sunk: .fire
+        case .miss, .repeatHit, .repeatMiss: .glassStroke
+        }
+    }
+
+    static func glow(_ call: FeedOutcome) -> Color {
+        switch call {
+        case .hit: .roleYouSoft
+        case .sunk: .fireSoft
+        case .miss, .repeatHit, .repeatMiss: .clear
+        }
+    }
 }
 
 /// «Отменить последний ход» — ровно один ход (4.6). В ряду переключателя
-/// полей, на месте подсказки боя и той же высоты.
+/// полей, на месте подсказки боя и той же высоты (кадр `undoBtn`).
 struct PaperUndoButton: View {
     let isEnabled: Bool
     var size: Geometry.SizeClass = .regular
     var action: () -> Void = {}
 
     var body: some View {
+        let compact = size.isCompact
         Button(action: action) {
-            HStack(spacing: Geometry.SecondaryButton.gap) {
+            HStack(spacing: 7) {
                 Image(systemName: "arrow.uturn.backward")
-                    .font(.system(size: symbolFontSize(inBox: Geometry.SecondaryButton.icon)))
-                    .frame(height: Geometry.SecondaryButton.icon)
+                    .font(.system(size: symbolFontSize(inBox: compact ? 18 : 20)))
+                    .frame(height: compact ? 18 : 20)
                 Text("Undo")
+                    .font(.system(size: compact ? 12 : 12.5, weight: .semibold, design: .rounded))
             }
-            .padding(.horizontal, size.isCompact ? 12 : Geometry.SecondaryButton.padding)
+            .padding(.horizontal, compact ? 11 : 14)
         }
         .buttonStyle(SecondaryButtonStyle(isEnabled: isEnabled,
                                           radius: BattleMetrics.forSize(size).hintRadius,
@@ -362,16 +500,16 @@ struct PaperUndoButton: View {
 
 // MARK: - Превью
 
-private struct PaperDemo: View {
-    @State private var appState = AppState()
-    @State private var match: PaperMatch = {
-        var game = PaperGame(fleet: FleetLayout.canonicalLayout(), revealsRing: true)
-        // Середина партии: промахи, потопленный трёхпалубный, раненый.
-        for (cell, answer) in [((1, 1), PaperAnswer.miss)] {
-            game.aim(at: Coordinate(row: cell.0, column: cell.1))
-            game.answer(answer)
-        }
-        game.opponentShot(at: Coordinate(row: 5, column: 5))
+/// Такты кадров 23a: до первого хода, клетка названа, соперник попал.
+enum PaperDemoPhase { case first, aim, theirs }
+
+@MainActor
+func paperDemoMatch(_ phase: PaperDemoPhase) -> PaperMatch {
+    var game = PaperGame(fleet: FleetLayout.canonicalLayout(), revealsRing: true)
+    if phase != .first {
+        game.aim(at: Coordinate(row: 1, column: 1))
+        game.answer(.miss)
+        game.opponentShot(at: Coordinate(row: 9, column: 9))
         for cell in [(2, 4), (2, 5)] {
             game.aim(at: Coordinate(row: cell.0, column: cell.1))
             game.answer(.hit)
@@ -379,8 +517,24 @@ private struct PaperDemo: View {
         game.aim(at: Coordinate(row: 2, column: 6))
         game.answer(.sunk)
         game.aim(at: Coordinate(row: 7, column: 5))
-        return PaperMatch(game: game, pacing: .instant, persists: false)
-    }()
+    }
+    if phase == .theirs {
+        game.answer(.miss)
+        game.opponentShot(at: Coordinate(row: 3, column: 5))
+    }
+    let match = PaperMatch(game: game, pacing: .instant, persists: false)
+    match.soundOn = false
+    if phase == .theirs { match.show(.you) }
+    return match
+}
+
+private struct PaperDemo: View {
+    @State private var appState = AppState()
+    @State private var match: PaperMatch
+
+    init(_ phase: PaperDemoPhase) {
+        _match = State(initialValue: paperDemoMatch(phase))
+    }
 
     var body: some View {
         ZStack {
@@ -389,21 +543,30 @@ private struct PaperDemo: View {
             PaperScreen(match: match)
         }
         .environment(appState)
-        .onAppear { match.soundOn = false }
     }
 }
 
-#Preview("Бумага · ваш выстрел") {
-    PaperDemo()
+#Preview("Бумага · клетка названа") {
+    PaperDemo(.aim)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Бумага · кто начинает") {
+    PaperDemo(.first)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Бумага · ход соперника") {
+    PaperDemo(.theirs)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Бумага · светлая") {
-    PaperDemo()
+    PaperDemo(.theirs)
         .preferredColorScheme(.light)
 }
 
 #Preview("Бумага · 375", traits: .fixedLayout(width: 375, height: 667)) {
-    PaperDemo()
+    PaperDemo(.aim)
         .preferredColorScheme(.dark)
 }

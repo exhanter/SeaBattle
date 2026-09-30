@@ -100,6 +100,20 @@ struct PaperGame: Codable, Equatable, Sendable {
     /// Можно ли сейчас записать выстрел соперника (такт 2).
     var acceptsOpponentShot: Bool { !isOver && state.turn != .you }
 
+    /// Результат хода соперника — что сказать вслух (4.6). Капсула держится
+    /// до следующего касания: назвали свою клетку — её место занимают ответы.
+    var opponentCall: FeedOutcome? {
+        guard let last = state.last, last.field == .you, state.aim == nil else { return nil }
+        return last.call
+    }
+
+    /// Метка последнего попадания соперника на своём поле (4.6, раунд 8): стоит,
+    /// пока он думает над следующим выстрелом, при промахе гаснет.
+    var foeMark: Coordinate? {
+        guard let last = state.last, last.field == .you, last.call.isDamage else { return nil }
+        return last.coordinate
+    }
+
     /// Откат есть после каждого хода, кроме последнего в партии: партия
     /// кончилась — итоги уже записаны.
     var canUndo: Bool { undoState != nil && !isOver }

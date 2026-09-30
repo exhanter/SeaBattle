@@ -44,7 +44,7 @@ struct DesignTokensTests {
         // сюда входят: свой корабль всегда песочный, поэтому и пламя на нём одно.
         let expectedFlat: Set<String> = [
             "Role/You", "Role/Foe", "Role/YouSoft", "Role/FoeSoft",
-            "Chrome/Wood", "Chrome/WoodDeep", "Chrome/Fire",
+            "Chrome/Wood", "Chrome/WoodDeep", "Chrome/Fire", "Chrome/FireSoft",
             "Ink/Primary", "Ink/Secondary", "Ink/Tertiary", "Ink/OnBrass",
             "Cell/HullSandLight", "Cell/HullSand", "Cell/HullSandDark",
             "Cell/HullDeniedLight", "Cell/HullDenied", "Cell/HullDeniedDark",
@@ -61,6 +61,7 @@ struct DesignTokensTests {
             "Button/Sheen", "Button/Shade", "Button/Shadow", "Button/TextShadow",
             "Warn/Icon",
             "Board/FillYou", "Board/FillFoe", "Board/StrokeYou", "Board/StrokeFoe",
+            "Board/MarkFoe", "Board/MarkFoeGlow",
         ]
         #expect(Set(flat) == expectedFlat,
                 "тема различается не у тех токенов: лишние \(Set(flat).subtracting(expectedFlat)), недостающие \(expectedFlat.subtracting(Set(flat)))")
@@ -121,11 +122,11 @@ struct DesignTokensTests {
                     "Button", "Warn", "Overlay"])
     }
 
-    @Test("Перечисление описывает весь каталог: 82 токена")
+    @Test("Перечисление описывает весь каталог: 85 токенов")
     func theEnumCoversTheWholeCatalogue() {
         // Каталог приходит из пакета дизайна готовым, а перечисление ведём мы,
         // поэтому число зафиксировано: пришёл новый пакет — сверить и поправить.
-        #expect(ColorToken.allCases.count == 82)
+        #expect(ColorToken.allCases.count == 85)
     }
 
     @Test("Заливка G2 в тёмной теме ровная, в светлой — с перепадом")
