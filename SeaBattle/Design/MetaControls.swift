@@ -14,9 +14,10 @@ import SwiftUI
 /// Значок и цвет аватара — это **содержимое**, которое выбирает игрок, а не
 /// хром интерфейса, поэтому списки живут здесь, а не в ассет-каталоге: они
 /// одинаковы в обеих темах и подписаны в макете как данные (10 значков и
-/// 16 цветов, блок 4c).
+/// 16 цветов, блок 4c). Первый в макете — `anchor`, такого символа в SF
+/// Symbols нет (пустой кружок), заменён штурвалом `helm` (вопрос В30).
 enum PlayerAvatar {
-    static let glyphs = ["anchor", "sailboat.fill", "ferry.fill", "water.waves",
+    static let glyphs = ["helm", "sailboat.fill", "ferry.fill", "water.waves",
                          "fish.fill", "shield.fill", "bolt.fill", "star.fill",
                          "crown.fill", "flag.fill"]
 
@@ -30,6 +31,41 @@ enum PlayerAvatar {
     ]
 
     static let buttonSide: CGFloat = 46
+
+    static func color(_ index: Int) -> Color {
+        colors.indices.contains(index) ? colors[index] : .roleYou
+    }
+}
+
+// MARK: - Аватар
+
+/// Круг аватара (`avatarDot` в макетах): кольцо 2 pt в цвете игрока, внутри
+/// мягкая заливка тем же цветом сверху и значок. Цвет игрока — содержимое, а
+/// не токен (см. `PlayerAvatar`), поэтому доля заливки задаётся здесь:
+/// правило 8 про альфу в ассете касается токенов хрома.
+struct AvatarDot: View {
+    let glyph: String
+    let colorIndex: Int
+    var size: CGFloat = 40
+
+    /// Заливка `#…44` макета — 27 %; значок — 45 % стороны круга.
+    static let fillShare: Double = 0x44 / 255
+    static let glyphShare: CGFloat = 0.45
+
+    var body: some View {
+        let color = PlayerAvatar.color(colorIndex)
+        Image(systemName: glyph)
+            .font(.system(size: symbolFontSize(inBox: size * Self.glyphShare), weight: .semibold))
+            .foregroundStyle(Color.inkPrimary)
+            .frame(width: size, height: size)
+            .background {
+                Circle().fill(RadialGradient(colors: [color.opacity(Self.fillShare), .clear],
+                                             center: UnitPoint(x: 0.5, y: 0.25),
+                                             startRadius: 0, endRadius: size * 0.7))
+            }
+            .overlay { Circle().strokeBorder(color, lineWidth: 2) }
+            .accessibilityHidden(true)
+    }
 }
 
 extension Color {
@@ -188,6 +224,9 @@ struct PlayerCard: View {
     @Binding var glyph: String
     @Binding var colorIndex: Int
     var recent: [RecentPlayer] = []
+    /// Подсказка в пустом поле имени: в игре вдвоём — «Игрок 1» / «Игрок 2»,
+    /// под этим именем игрок и пойдёт в партию, если ничего не наберёт.
+    var placeholder: LocalizedStringKey = "Name"
     var onPickRecent: ((RecentPlayer) -> Void)?
 
     @State private var showsGlyphs = false
@@ -196,7 +235,7 @@ struct PlayerCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                TextField("Имя", text: $name)
+                TextField(placeholder, text: $name)
                     .font(TypeScale.body)
                     .foregroundStyle(Color.inkPrimary)
                     .textFieldStyle(.plain)
@@ -204,28 +243,30 @@ struct PlayerCard: View {
                     .frame(height: PlayerAvatar.buttonSide)
                     .glassPanel(.g2, radius: Geometry.Radius.segment)
 
-                avatarButton { showsGlyphs = true } label: {
-                    Image(systemName: glyph)
-                        .font(.system(size: 20))
-                        .foregroundStyle(PlayerAvatar.colors[safe: colorIndex] ?? .roleYou)
+                avatarButton(isOpen: showsGlyphs) { showsGlyphs = true } label: {
+                    AvatarDot(glyph: glyph, colorIndex: colorIndex, size: 32)
                 }
+                .accessibilityLabel(Text("Icon"))
                 .popover(isPresented: $showsGlyphs, arrowEdge: .top) {
                     glyphPicker
                 }
 
-                avatarButton { showsColors = true } label: {
+                avatarButton(isOpen: showsColors) { showsColors = true } label: {
                     Circle()
-                        .fill(PlayerAvatar.colors[safe: colorIndex] ?? .roleYou)
-                        .frame(width: 22, height: 22)
+                        .fill(PlayerAvatar.color(colorIndex))
+                        .frame(width: 24, height: 24)
                 }
+                .accessibilityLabel(Text("Colour"))
                 .popover(isPresented: $showsColors, arrowEdge: .top) {
                     colorPicker
                 }
             }
 
             if !recent.isEmpty {
-                Text("Играли раньше")
-                    .font(TypeScale.footnote)
+                Text("Played before")
+                    .font(.system(size: 10, weight: .bold))
+                    .tracking(1)
+                    .textCase(.uppercase)
                     .foregroundStyle(Color.inkSecondary)
                 HStack(spacing: 8) {
                     ForEach(recent) { player in
@@ -236,7 +277,9 @@ struct PlayerCard: View {
         }
     }
 
-    private func avatarButton<Label: View>(_ action: @escaping () -> Void,
+    /// Кнопка с открытым окошком обведена цветом игрока (кадр `screen4TwoSetup`).
+    private func avatarButton<Label: View>(isOpen: Bool,
+                                           _ action: @escaping () -> Void,
                                            @ViewBuilder label: () -> Label) -> some View {
         Button(action: action) {
             label()
@@ -245,6 +288,12 @@ struct PlayerCard: View {
         }
         .buttonStyle(.plain)
         .glassPanel(.g2, radius: Geometry.Radius.segment)
+        .overlay {
+            if isOpen {
+                RoundedRectangle(cornerRadius: Geometry.Radius.segment, style: .continuous)
+                    .strokeBorder(PlayerAvatar.color(colorIndex), lineWidth: 1)
+            }
+        }
     }
 
     /// Окошки — уровень G3: они лежат над карточкой, а карточка сама на стекле.
@@ -271,7 +320,7 @@ struct PlayerCard: View {
     }
 
     private var colorPicker: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.fixed(40), spacing: 6), count: 4),
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(36), spacing: 6), count: 8),
                   spacing: 6) {
             ForEach(PlayerAvatar.colors.indices, id: \.self) { index in
                 Circle()
@@ -280,9 +329,10 @@ struct PlayerCard: View {
                     .overlay {
                         if index == colorIndex {
                             Circle().strokeBorder(Color.inkPrimary, lineWidth: 2)
+                                .padding(-3)
                         }
                     }
-                    .frame(width: 40, height: 40)
+                    .frame(width: 36, height: 36)
                     .contentShape(Rectangle())
                     .onTapGesture { colorIndex = index; showsColors = false }
             }
@@ -301,26 +351,21 @@ struct PlayerCard: View {
             onPickRecent?(player)
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: player.glyph)
-                    .font(.system(size: 13))
-                    .foregroundStyle(PlayerAvatar.colors[safe: player.colorIndex] ?? .roleYou)
+                AvatarDot(glyph: player.glyph, colorIndex: player.colorIndex, size: 22)
                 Text(player.name)
                     .font(TypeScale.footnote)
                     .foregroundStyle(Color.inkPrimary)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .contentShape(Rectangle())
+            // Кадр `prevChip`: аватар 22 почти у кромки, текст с полем 10.
+            .padding(.leading, 3)
+            .padding(.trailing, 10)
+            .padding(.vertical, 3)
+            .frame(minHeight: 28)
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: Geometry.Radius.chip)
-    }
-}
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
+        .glassPanel(.g2, radius: 14)
     }
 }
 

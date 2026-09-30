@@ -142,6 +142,10 @@ enum ShellRoute: Equatable, Sendable {
     /// Уровня у неё нет, поэтому возврат с расстановки — в меню.
     case paperArrangement
     case paper
+    /// Вдвоём на устройстве (R3.2): настройка, затем вся партия одним
+    /// контейнером — расстановки, слой передачи и бой (4.7).
+    case duelSetup
+    case duel
 }
 
 // MARK: - Оболочка
@@ -176,11 +180,15 @@ struct AppShell: View {
     /// Игра на бумаге. Живёт в оболочке, как бой: выход в меню её не
     /// закрывает, «Продолжить партию» возвращает в неё же.
     @State private var paper: PaperMatch?
+    /// Вдвоём на устройстве: набранное на настройке переживает уход на
+    /// расстановку и возврат; партия живёт в оболочке, как бой.
+    @State private var duelSetup = DuelSetup()
+    @State private var duel: DuelMatch?
 
     private var continueTarget: ContinueTarget {
         .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
                  hasVsComputer: GameStore.hasSavedGame,
-                 hasHotSeat: HotSeatStore.hasSession,
+                 hasHotSeat: hasHotSeatGame,
                  hasPaper: hasPaperGame)
     }
 
@@ -190,6 +198,14 @@ struct AppShell: View {
     private var hasPaperGame: Bool {
         if let paper { return !paper.game.isOver }
         return PaperStore.hasSavedGame
+    }
+
+    /// ПЕРЕХОДНОЕ до R3.2b: на iPad вдвоём играют на старых экранах со своим
+    /// сохранением, на iPhone — на `DuelGame`.
+    private var hasHotSeatGame: Bool {
+        if usesPadLayout { return HotSeatStore.hasSession }
+        if let duel { return !duel.game.isOver }
+        return DuelStore.hasSavedGame
     }
 
     var body: some View {
@@ -231,8 +247,8 @@ struct AppShell: View {
                 if appState.gameIsActive || GameStore.hasSavedGame {
                     Button("Play vs computer") { continueComputerGame() }
                 }
-                if HotSeatStore.hasSession {
-                    Button("Two players") { appState.showHotSeat = true }
+                if hasHotSeatGame {
+                    Button("Two players") { continueHotSeat() }
                 }
                 if hasPaperGame {
                     Button("Paper game") { continuePaper() }
@@ -259,7 +275,7 @@ struct AppShell: View {
                 Task { @MainActor in
                     try? await Task.sleep(for: .seconds(0.4)) // дать пейволлу закрыться
                     switch intent {
-                    case .hotSeat: appState.showHotSeat = true
+                    case .hotSeat: openHotSeat()
                     case .nearby: appState.showNearby = true
                     case .online: appState.showOnline = true
                     case .expert: break
@@ -398,6 +414,36 @@ struct AppShell: View {
                                 self.route = nil
                             })
             }
+
+        case .duelSetup:
+            DuelSetupScreen(setup: $duelSetup,
+                            recent: recentPlayers,
+                            onStart: startDuel,
+                            onBack: { self.route = nil })
+
+        case .duel:
+            if let duel {
+                DuelScreen(match: duel,
+                           onBackToSetup: {
+                               // Партия ещё не начата — к настройке, без сохранения.
+                               DuelStore.clear()
+                               self.duel = nil
+                               self.route = .duelSetup
+                           },
+                           onLeave: {
+                               // Кто возьмёт устройство в меню, неизвестно:
+                               // партия закрывается слоем сразу.
+                               duel.relock()
+                               self.route = nil
+                           },
+                           onPlayAgain: { duel.playAgain() },
+                           onMenuAfterResult: {
+                               // «В меню» после итогов кончает серию (4.9).
+                               DuelStore.clear()
+                               self.duel = nil
+                               self.route = nil
+                           })
+            }
         }
     }
 
@@ -414,11 +460,67 @@ struct AppShell: View {
 
         switch item.mode {
         case .computer: openSinglePlayer()
-        case .hotSeat: appState.showHotSeat = true
+        case .hotSeat: openHotSeat()
         case .nearby: appState.showNearby = true
         case .online: appState.showOnline = true
         case .paper: openPaperArrangement()
         }
+    }
+
+    // MARK: Вдвоём на устройстве
+
+    /// ПЕРЕХОДНОЕ до R3.2b: iPad пока открывает старые экраны.
+    private func openHotSeat() {
+        if usesPadLayout {
+            appState.showHotSeat = true
+        } else {
+            route = .duelSetup
+        }
+    }
+
+    /// «Играли раньше» — последние сыгравшие первыми.
+    private var recentPlayers: [RecentPlayer] {
+        ProfileStore.shared.profiles.reversed().map {
+            RecentPlayer(name: $0.name, glyph: $0.avatar, colorIndex: $0.colorIndex ?? 0)
+        }
+    }
+
+    /// Главная кнопка настройки. Набранные имена запоминаются для «Играли
+    /// раньше»; «Игрок 1» и «Игрок 2» — нет. Новая серия перезаписывает
+    /// прежнюю незакрытую, как и сохранение против компьютера.
+    private func startDuel() {
+        for player in duelSetup.players {
+            let name = player.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { continue }
+            ProfileStore.shared.upsert(name: name, avatar: player.glyph, colorIndex: player.colorIndex)
+        }
+        let match = DuelMatch(game: DuelGame(setup: duelSetup,
+                                             revealsRing: appState.autoRevealAroundSunk))
+        configure(match)
+        DuelStore.save(match.game)
+        duel = match
+        route = .duel
+    }
+
+    private func configure(_ match: DuelMatch) {
+        match.soundOn = appState.soundOn
+        match.confirmShot = appState.confirmShot
+    }
+
+    private func continueHotSeat() {
+        if usesPadLayout {
+            appState.showHotSeat = true
+            return
+        }
+        if duel?.game.isOver ?? true {
+            guard let game = DuelStore.load() else { return }
+            let match = DuelMatch(game: game)
+            configure(match)
+            duel = match
+        }
+        // Поля открывает только слой: кто взял устройство в меню, неизвестно.
+        duel?.relock()
+        route = .duel
     }
 
     // MARK: Игра на бумаге
@@ -540,7 +642,7 @@ struct AppShell: View {
         case .none: break
         case .resume: resumeBattle()
         case .vsComputer: continueVsComputer()
-        case .hotSeat: appState.showHotSeat = true
+        case .hotSeat: continueHotSeat()
         case .paper: continuePaper()
         case .ask: askWhichGameToContinue = true
         }

@@ -20,7 +20,7 @@ final class ProfileStore {
 
     private static let defaultsKey = "playerProfiles"
     private static let modifiedKey = "playerProfiles.modified"
-    private static let salt = "SeaBattle.pin.v1."
+    private nonisolated static let salt = "SeaBattle.pin.v1."
 
     private(set) var profiles: [PlayerProfile]
     private(set) var lastModified: Date
@@ -52,26 +52,32 @@ final class ProfileStore {
     var canAddMore: Bool { profiles.count < Self.maxProfiles }
 
     /// Salted SHA-256 hash of a PIN, as a hex string. Used by HotSeatGame to
-    /// compare session PINs without keeping the plaintext.
-    static func hash(pin: String) -> String {
+    /// compare session PINs without keeping the plaintext. Nonisolated: the
+    /// hot-seat rules (`DuelGame`) are a plain value type off the main actor.
+    nonisolated static func hash(pin: String) -> String {
         let digest = SHA256.hash(data: Data((salt + pin).utf8))
         return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     /// Creates or updates a saved player by name (case-insensitive). RETURNS the
-    /// stored profile, or nil if the name is blank or the roster is full.
+    /// stored profile, or nil if the name is blank. A full roster forgets the
+    /// player who played longest ago rather than refusing the new one.
     @discardableResult
-    func upsert(name: String, avatar: String) -> PlayerProfile? {
+    func upsert(name: String, avatar: String, colorIndex: Int? = nil) -> PlayerProfile? {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return nil }
         if let index = profiles.firstIndex(where: { $0.name.caseInsensitiveCompare(trimmed) == .orderedSame }) {
             profiles[index].name = trimmed
             profiles[index].avatar = avatar
+            if let colorIndex { profiles[index].colorIndex = colorIndex }
+            // Last played goes last: "Played before" shows the newest first.
+            profiles.append(profiles.remove(at: index))
             persist()
-            return profiles[index]
+            return profiles.last
         }
-        guard canAddMore else { return nil }
-        let profile = PlayerProfile(name: trimmed, avatar: avatar)
+        // A full roster forgets the player who played longest ago.
+        if !canAddMore { profiles.removeFirst() }
+        let profile = PlayerProfile(name: trimmed, avatar: avatar, colorIndex: colorIndex)
         profiles.append(profile)
         persist()
         return profile

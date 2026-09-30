@@ -64,6 +64,9 @@ enum ResultMetrics {
     static let metricValue: CGFloat = 19
     static let metricLabel: CGFloat = 11.5
     static let metricLabelGap: CGFloat = 3
+    /// Вдвоём на устройстве: аватар победителя над словом и в счёте серии.
+    static let duelAvatar: CGFloat = 44
+    static let seriesAvatar: CGFloat = 32
 
     // Движение
     /// На сколько поднимается карточка при появлении.
@@ -89,7 +92,12 @@ struct ResultsScreen: View {
             ScrollView {
                 VStack(spacing: ResultMetrics.cardGap) {
                     outcomeCard
-                    pointsCard
+                    // Вдвоём баллов нет — вместо чека счёт серии (4.9).
+                    if let duel = result.duel {
+                        seriesCard(duel)
+                    } else {
+                        pointsCard
+                    }
                     summaryCard
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
@@ -121,9 +129,12 @@ struct ResultsScreen: View {
 
     // MARK: Результат и счёт по флотам
 
-    /// «Режим · уровень» (4.9); у игры на бумаге уровня нет — только режим.
+    /// «Режим · уровень» (4.9); у игры на бумаге уровня нет — только режим,
+    /// вдвоём — имя победителя и режим.
     private var subtitle: Text {
-        if let level = result.level {
+        if let duel = result.duel {
+            Text("\(duel.winnerPlayer.name) · \(Text("Two players on one device"))")
+        } else if let level = result.level {
             Text("\(Text("Single player")) · \(Text(LevelChoice.title(for: level)))")
         } else {
             Text("Paper game")
@@ -132,6 +143,10 @@ struct ResultsScreen: View {
 
     private var outcomeCard: some View {
         VStack(spacing: ResultMetrics.frameGap) {
+            if let duel = result.duel {
+                AvatarDot(glyph: duel.winnerPlayer.glyph, colorIndex: duel.winnerPlayer.colorIndex,
+                          size: ResultMetrics.duelAvatar)
+            }
             Text(result.didWin ? "Victory" : "Defeat")
                 .font(.system(size: ResultMetrics.word, weight: .bold, design: .rounded))
                 .tracking(ResultMetrics.wordTracking)
@@ -222,6 +237,51 @@ struct ResultsScreen: View {
         .accessibilityIdentifier("resultPoints")
     }
 
+    // MARK: Счёт серии
+
+    /// Вдвоём на устройстве (R3.2): счёт серии вместо начисления — баллов в
+    /// режиме нет, а серия живёт, пока играют «Ещё партию» (4.9).
+    private func seriesCard(_ duel: DuelSummary) -> some View {
+        VStack(alignment: .leading, spacing: ResultMetrics.cardInnerGap) {
+            Text("This series")
+                .font(.system(size: ResultMetrics.capLabel, weight: .bold))
+                .tracking(ResultMetrics.capTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(Color.inkSecondary)
+
+            HStack(spacing: ResultMetrics.scoreColumnsGap) {
+                seriesColumn(duel, 0)
+                Rectangle()
+                    .fill(Color.glassStroke)
+                    .frame(width: 1)
+                seriesColumn(duel, 1)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(ResultMetrics.cardPadding)
+        .glassPanel(.g2, radius: ResultMetrics.cardRadius)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("resultSeries")
+    }
+
+    private func seriesColumn(_ duel: DuelSummary, _ index: Int) -> some View {
+        let player = duel.players[index]
+        return HStack(spacing: 10) {
+            AvatarDot(glyph: player.glyph, colorIndex: player.colorIndex,
+                      size: ResultMetrics.seriesAvatar)
+            Text(player.name)
+                .font(.system(size: ResultMetrics.rowText, weight: .semibold))
+                .foregroundStyle(Color.inkPrimary)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            Text(verbatim: "\(duel.series[index])")
+                .font(.system(size: ResultMetrics.scoreValue, weight: .bold, design: .rounded)
+                        .monospacedDigit())
+                .foregroundStyle(PlayerAvatar.color(player.colorIndex))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private func pointRow(_ line: PointLine) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Group {
@@ -260,7 +320,12 @@ struct ResultsScreen: View {
             }
             HStack(spacing: ResultMetrics.metricsGap) {
                 metric("best streak", value: Text(verbatim: "\(tally.bestStreak)"))
-                metric("hints", value: Text(verbatim: "\(tally.hintsUsed)"))
+                // Вдвоём подсказок нет — на их месте число ходов партии.
+                if let duel = result.duel {
+                    metric("turns", value: Text(verbatim: "\(duel.turns)"))
+                } else {
+                    metric("hints", value: Text(verbatim: "\(tally.hintsUsed)"))
+                }
             }
             .padding(.top, ResultMetrics.rowsTop)
             .overlay(alignment: .top) { divider }

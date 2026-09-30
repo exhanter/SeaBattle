@@ -44,7 +44,8 @@ enum FeedOutcome: Codable, Equatable, Sendable {
     var isDamage: Bool { self == .hit || self == .sunk }
 }
 
-struct ShotFeedEntry: Identifiable, Equatable, Sendable {
+/// `Codable` — ради игры вдвоём: лента «По вам» лежит в её сохранении.
+struct ShotFeedEntry: Identifiable, Codable, Equatable, Sendable {
     /// Порядковый номер в партии: капсулы с одной клеткой (повторный выстрел)
     /// не должны сливаться в одну.
     let id: Int

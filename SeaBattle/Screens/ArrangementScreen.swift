@@ -33,8 +33,15 @@ struct ArrangementScreen: View {
 
     @Binding var editor: FleetEditor
     /// Куда ведёт строка возврата: на экран уровня, если он показывался, иначе
-    /// в меню (спека 3.1). Подпись меняется вместе с этим.
-    let backTitle: LocalizedStringKey
+    /// в меню (спека 3.1). Подпись меняется вместе с этим. `nil` — строки
+    /// возврата нет: второй игрок вдвоём на устройстве не может вернуться к
+    /// флоту первого.
+    let backTitle: LocalizedStringKey?
+    /// Название вне правки. Вдвоём на устройстве — с именем того, чей флот
+    /// («Флот: Аня»): устройство переходит из рук в руки.
+    var title: LocalizedStringKey = "Your fleet"
+    /// Главная кнопка вне правки. Вдвоём она называет следующего (4.7).
+    var startTitle: LocalizedStringKey = "Start"
     var onStart: () -> Void = {}
     var onBack: () -> Void = {}
     var onMenu: () -> Void = {}
@@ -88,7 +95,7 @@ struct ArrangementScreen: View {
         // один на все экраны, панели с деревянным кантом из кадров туров 6–8
         // отменены. Ни название, ни подсказка **не меняются при ошибке** — о
         // ней говорит `WarningLine` под полем, рядом с розовым кораблём.
-        ScreenTitle(title: editor.isEditing ? "Change the layout" : "Your fleet",
+        ScreenTitle(title: editor.isEditing ? "Change the layout" : title,
                     back: backTitle,
                     subtitle: editor.isEditing
                         ? "Drag a ship to move it · tap to turn it"
@@ -145,7 +152,7 @@ struct ArrangementScreen: View {
                     onStart()
                 }
             } label: {
-                Text(editor.isEditing ? "Done" : "Start")
+                Text(editor.isEditing ? "Done" : startTitle)
             }
             .primaryButton(enabled: editor.canFinish && editor.actionsEnabled)
         }

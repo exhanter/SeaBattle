@@ -22,6 +22,9 @@ struct PlayerProfile: Codable, Identifiable, Hashable, Sendable {
     let id: UUID
     var name: String
     var avatar: String
+    /// Avatar colour (index into `PlayerAvatar.colors`), since R3.2. `nil` on
+    /// profiles saved before — shown in the first colour.
+    var colorIndex: Int?
     /// Legacy field; no longer persisted for hot-seat (PIN is session-only).
     var pinHash: String?
     var stats: PlayerStats
@@ -29,23 +32,26 @@ struct PlayerProfile: Codable, Identifiable, Hashable, Sendable {
     init(id: UUID = UUID(),
          name: String,
          avatar: String = HotSeatAvatars.symbols[0],
+         colorIndex: Int? = nil,
          pinHash: String? = nil,
          stats: PlayerStats = PlayerStats()) {
         self.id = id
         self.name = name
         self.avatar = avatar
+        self.colorIndex = colorIndex
         self.pinHash = pinHash
         self.stats = stats
     }
 
     // Lenient decoding so profiles saved before `avatar` existed still load.
-    private enum CodingKeys: String, CodingKey { case id, name, avatar, pinHash, stats }
+    private enum CodingKeys: String, CodingKey { case id, name, avatar, colorIndex, pinHash, stats }
 
     init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try c.decode(String.self, forKey: .name)
         avatar = try c.decodeIfPresent(String.self, forKey: .avatar) ?? HotSeatAvatars.symbols[0]
+        colorIndex = try c.decodeIfPresent(Int.self, forKey: .colorIndex)
         pinHash = try c.decodeIfPresent(String.self, forKey: .pinHash)
         stats = try c.decodeIfPresent(PlayerStats.self, forKey: .stats) ?? PlayerStats()
     }

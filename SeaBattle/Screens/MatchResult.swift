@@ -76,6 +76,22 @@ enum PointLine: Equatable, Sendable {
     }
 }
 
+// MARK: - Серия вдвоём
+
+/// Итог партии вдвоём на устройстве (R3.2): у неё нет баллов, а есть счёт
+/// серии (4.9). Победитель — тот, кто держит устройство на итогах, поэтому
+/// экран читается с его стороны: «вы потеряли / вы потопили».
+struct DuelSummary: Equatable, Sendable {
+    let players: [DuelPlayer]
+    let winner: Int
+    /// Победы в серии, уже с этой партией.
+    let series: [Int]
+    /// Номер последнего хода — сколько раз передавали устройство, плюс один.
+    let turns: Int
+
+    var winnerPlayer: DuelPlayer { players[winner] }
+}
+
 // MARK: - Итог
 
 struct MatchResult: Equatable, Sendable {
@@ -91,6 +107,8 @@ struct MatchResult: Equatable, Sendable {
     let tally: MatchTally
     /// Баланс **после** партии: победа уже начислена, подсказки уже списаны.
     let balance: Int
+    /// Партия вдвоём на устройстве: счёт серии вместо начисления баллов.
+    let duel: DuelSummary?
 
     /// Уровень компьютера; у других режимов его нет.
     var level: AppState.DifficultyLevel? { key.difficulty }
@@ -106,7 +124,8 @@ struct MatchResult: Equatable, Sendable {
     init(didWin: Bool, key: StatKey,
          yourLosses: Int, foeLosses: Int,
          fleetSize: Int = FleetLayout.shipCount,
-         tally: MatchTally, balance: Int) {
+         tally: MatchTally, balance: Int,
+         duel: DuelSummary? = nil) {
         self.didWin = didWin
         self.key = key
         self.yourLosses = yourLosses
@@ -114,6 +133,7 @@ struct MatchResult: Equatable, Sendable {
         self.fleetSize = fleetSize
         self.tally = tally
         self.balance = balance
+        self.duel = duel
     }
 
     /// Строки чека по порядку. **При поражении строки за исход нет** (4.9):
