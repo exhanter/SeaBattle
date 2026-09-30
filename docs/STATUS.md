@@ -15,6 +15,13 @@
 Раунд 10 (В30–В36) закрыт так. У заказчика открыт один мелкий вопрос — цена подсказки
 (раздел про R2.3)
 
+> **30.09, поздно вечером: репозиторий переехал в `~/Developer/SeaBattle`** из
+> `~/Documents/MyApps/SeaBattle`. `~/Documents` синхронизируется с iCloud Drive (на файлах
+> метка `com.apple.fileprovider.fpfs`) — главный подозреваемый в том, что Xcode дважды не
+> записал `project.pbxproj` и спрашивал «файл изменён другим приложением». Если окно
+> появится снова: когда `pbxproj` правили мы скриптом — брать версию с диска (Revert),
+> в любом случае потом `git diff --stat SeaBattle.xcodeproj/project.pbxproj`.
+
 > **30.09: проект не собирался из git** — 31 файл после R1.2 жил только в памяти Xcode,
 > `project.pbxproj` на диске их не знал. Починено в `29adbaf`. Подробности и правило —
 > в разделе «Где что лежит» ниже, у абзаца про новые файлы.
@@ -65,7 +72,7 @@ Air» на 26.5 было доступно и годно), место на дис
 ```
 # 1) собрать: mcp__xcode-tools__BuildProject с buildForTesting: true
 # 2) прогнать (весь юнит-таргет ≈ 2,5 минуты):
-dd=~/Library/Developer/Xcode/DerivedData/SeaBattle-earpscbrqmtuxsedamkyhfwybwod
+dd=$(ls -d ~/Library/Developer/Xcode/DerivedData/SeaBattle-* | head -1)   # имя папки меняется с путём проекта
 xcodebuild test-without-building \
   -xctestrun "$dd/Build/Products/SeaBattle_SeaBattle_iphonesimulator27.0-arm64.xctestrun" \
   -destination 'id=<udid симулятора>' \
