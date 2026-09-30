@@ -160,6 +160,9 @@ struct PadTableScreen: View {
         /// Вдвоём на устройстве (4.7): оба поля глазами держателя. Слой
         /// передачи рисует `DuelScreen` поверх всего стола.
         case duel(DuelMatch)
+        /// Сетевая партия (4.8): после «Начать» — ожидание соперника и бой.
+        /// При обрыве связи на месте панели баннер, поля погашены.
+        case network(NetMatch)
     }
 
     let phase: Phase
@@ -198,10 +201,21 @@ struct PadTableScreen: View {
         return nil
     }
 
-    private var isPlaying: Bool { battle != nil || paper != nil || duel != nil }
+    private var net: NetMatch? {
+        if case .network(let match) = phase { return match }
+        return nil
+    }
+
+    /// Сетевая партия, пока соперник расставляет флот, — ещё до старта.
+    private var isPlaying: Bool {
+        battle != nil || paper != nil || duel != nil || (net.map { $0.game.stage != .arranging } ?? false)
+    }
     private var isPaperTable: Bool { isPaper || paper != nil }
-    /// Режим с подсказками и баллами — только против компьютера.
-    private var isComputerTable: Bool { !isPaperTable && duel == nil && duelPlacement == nil }
+    /// Режим с уровнем в панели — только против компьютера.
+    private var isComputerTable: Bool {
+        !isPaperTable && duel == nil && duelPlacement == nil && net == nil
+    }
+    private var isLost: Bool { net?.link.isLost ?? false }
 
     var body: some View {
         GeometryReader { proxy in
@@ -340,9 +354,14 @@ struct PadTableScreen: View {
                     .frame(width: g.boardSide, height: 1)
                     .overlay(alignment: .bottom) { feed }
             } else {
-                phaseTiles(stacked: false)
-                    .frame(width: g.boardSide,
-                           alignment: farEdge == .leading ? .leading : .trailing)
+                // Колонка держит ширину и без кнопок (вдвоём, ожидание хода по
+                // сети): пустая схлопывалась, и лента своего поля справа
+                // уезжала под поле противника.
+                Color.clear
+                    .frame(width: g.boardSide, height: 1)
+                    .overlay(alignment: farEdge == .leading ? .bottomLeading : .bottomTrailing) {
+                        phaseTiles(stacked: false)
+                    }
             }
         }
     }
@@ -359,7 +378,7 @@ struct PadTableScreen: View {
     /// Лента «По вам» — в бою против компьютера и вдвоём (выстрелы соперника
     /// за его последний ход); на бумаге её нет.
     private var incoming: [ShotFeedEntry]? {
-        battle?.incoming ?? duel?.incoming
+        battle?.incoming ?? duel?.incoming ?? net?.incoming
     }
 
     // MARK: Верхняя панель
@@ -373,6 +392,12 @@ struct PadTableScreen: View {
             if let paper {
                 PaperScorePanel(match: paper, alphabet: alphabet,
                                 isPad: true, yoursOnTrailing: trailing)
+            } else if let net {
+                if net.link.isLost {
+                    NetLostBanner(match: net, isPad: true)
+                } else {
+                    NetScorePanel(match: net, isPad: true, yoursOnTrailing: trailing)
+                }
             } else if let duel {
                 // Как на iPhone: «Ход: Аня», латунь у своего хода, баланса нет.
                 ScorePanel(yourLosses: duel.board(.you).sunkShipCount,
@@ -412,8 +437,8 @@ struct PadTableScreen: View {
             board(side, g)
         }
         // До старта поле противника приглушено — это непрозрачность всего
-        // элемента как состояние (правило 8).
-        .opacity(side == .foe && !isPlaying ? 0.5 : 1)
+        // элемента как состояние (правило 8). Оборванная связь гасит оба.
+        .opacity(isLost ? NetMetrics.lostDim : side == .foe && !isPlaying ? 0.5 : 1)
     }
 
     /// Над полем противника — имя соперника; у компьютера имени нет, поэтому
@@ -434,6 +459,9 @@ struct PadTableScreen: View {
     private func titleText(_ side: Side) -> Text {
         if let duel {
             return side == .you ? Text("Your fleet") : Text(verbatim: duel.player(duel.opponent).name)
+        }
+        if let net, side == .foe, !net.opponentName.isEmpty {
+            return Text(verbatim: net.opponentName)
         }
         if let duelPlacement {
             return side == .you ? Text(duelPlacement.ownTitle) : Text(verbatim: duelPlacement.foeName)
@@ -460,6 +488,8 @@ struct PadTableScreen: View {
             BattleBoard(battle: battle, field: side, metrics: m, alphabet: alphabet)
         } else if let duel {
             DuelBoard(match: duel, field: side, metrics: m, alphabet: alphabet)
+        } else if let net {
+            NetBoard(match: net, field: side, metrics: m, alphabet: alphabet)
         } else if side == .you, let editor {
             EditableFleetBoard(editor: editor, metrics: m)
         } else {
@@ -485,6 +515,8 @@ struct PadTableScreen: View {
             PadHintButton(cost: battle.hintCost, isEnabled: battle.canUseHint) {
                 battle.requestHint()
             }
+        } else if let net {
+            netTiles(net)
         } else if let editor, case .placement(_, let onStart) = phase {
             let layout = stacked
                 ? AnyLayout(VStackLayout(spacing: PadTileMetrics.pairGap))
@@ -499,6 +531,23 @@ struct PadTableScreen: View {
                     changeTile(editor)
                     startTile(editor, onStart: onStart)
                 }
+            }
+        }
+    }
+
+    /// Сеть: при обрыве — «Повторить сейчас», на своём ходу — подсказка (не
+    /// против своего аккаунта), в ожидании — ничего.
+    @ViewBuilder
+    private func netTiles(_ net: NetMatch) -> some View {
+        if net.link.isLost {
+            Button { net.retryNow() } label: {
+                PadTileLabel(title: "Retry now", icon: "arrow.clockwise")
+            }
+            .buttonStyle(SecondaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
+            .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+        } else if net.isMyTurn && net.offersHint {
+            PadHintButton(cost: net.hintCost, isEnabled: net.canUseHint) {
+                net.requestHint()
             }
         }
     }

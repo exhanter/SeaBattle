@@ -212,12 +212,8 @@ struct ContentView: View {
             .fullScreenCover(isPresented: $appState.showHotSeat) {
                 HotSeatContainerView()
             }
-            .fullScreenCover(isPresented: $appState.showNearby) {
-                NearbyGameView()
-            }
-            .fullScreenCover(isPresented: $appState.showOnline) {
-                OnlineGameView()
-            }
+            // Сетевые режимы — только в новой оболочке (R3.3); этот экран
+            // больше не открывается и уходит в R4.6.
             .sheet(isPresented: $appState.showPaywall) {
                 PaywallView()
             }

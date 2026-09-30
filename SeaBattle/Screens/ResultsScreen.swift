@@ -129,15 +129,19 @@ struct ResultsScreen: View {
 
     // MARK: Результат и счёт по флотам
 
-    /// «Режим · уровень» (4.9); у игры на бумаге уровня нет — только режим,
-    /// вдвоём — имя победителя и режим.
+    /// «Режим · уровень» (4.9); у игры на бумаге и сетевых режимов уровня нет —
+    /// только режим, вдвоём — имя победителя и режим.
     private var subtitle: Text {
         if let duel = result.duel {
             Text("\(duel.winnerPlayer.name) · \(Text("Two players on one device"))")
         } else if let level = result.level {
             Text("\(Text("Single player")) · \(Text(LevelChoice.title(for: level)))")
         } else {
-            Text("Paper game")
+            switch result.key {
+            case .nearby: Text("Nearby, no internet")
+            case .online: Text("Online")
+            default: Text("Paper game")
+            }
         }
     }
 

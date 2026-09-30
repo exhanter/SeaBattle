@@ -2,8 +2,13 @@
 //  OnlineGameView.swift
 //  SeaBattle
 //
-//  Phase 5 (online): authenticate with Game Center, present the real-time
-//  matchmaker, then run the match through the shared NetworkGame + NetworkBattleView.
+//  Phase 5 (online): authenticate with Game Center and present the real-time
+//  matchmaker. Since R3.3 the match itself runs in the new battle
+//  (`NetMatch` on the shell route `.network`): this view only hands the found
+//  `GKMatch` over.
+//
+//  ПЕРЕХОДНОЕ: поиск с радаром, приглашение по коду и «Нет соединения»
+//  заменят этот экран в R3.3b.
 //
 
 import SwiftUI
@@ -12,51 +17,50 @@ import GameKit
 private let onlineAccent = Color(red: 248/255, green: 255/255, blue: 0/255)
 
 struct OnlineGameView: View {
-    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+
+    /// Соперник найден — партию дальше ведёт оболочка.
+    var onMatch: (GKMatch) -> Void = { _ in }
 
     @State private var gc = GameCenterManager.shared
     @State private var showMatchmaker = false
-    @State private var transport: GameKitTransport?
-    @State private var game: NetworkGame?
 
     var body: some View {
-        Group {
-            if let game {
-                NetworkBattleView(game: game, onExit: leave)
-            } else {
-                HotSeatChrome(title: "Play online", onClose: leave) { _ in
-                    VStack(spacing: 16) {
-                        ProgressView().tint(.white)
-                        Text(gc.isAuthenticated ? "Finding an opponent…" : "Signing in to Game Center…")
-                            .foregroundColor(.white.opacity(0.85))
-                    }
-                } bottomBar: { size in
-                    Button { leave() } label: {
-                        Text("Cancel")
-                            .font(.custom("Dorsa", size: size.width * 0.13))
-                            .foregroundColor(onlineAccent)
-                            .shadow(color: .white, radius: 1)
-                    }
-                }
+        HotSeatChrome(title: "Play online", onClose: leave) { _ in
+            VStack(spacing: 16) {
+                ProgressView().tint(.white)
+                Text(gc.isAuthenticated ? "Finding an opponent…" : "Signing in to Game Center…")
+                    .foregroundColor(.white.opacity(0.85))
+            }
+        } bottomBar: { size in
+            Button { leave() } label: {
+                Text("Cancel")
+                    .font(.custom("Dorsa", size: size.width * 0.13))
+                    .foregroundColor(onlineAccent)
+                    .shadow(color: .white, radius: 1)
             }
         }
         .statusBar(hidden: true)
         .persistentSystemOverlays(.hidden)
-        .onAppear { gc.authenticate() }
+        .onAppear {
+            gc.authenticate()
+            if gc.isAuthenticated { showMatchmaker = true }
+        }
         .onChange(of: gc.isAuthenticated) { _, ok in
-            if ok && game == nil { showMatchmaker = true }
+            if ok { showMatchmaker = true }
         }
         .sheet(isPresented: authBinding) {
             if let vc = gc.authViewController { GameCenterVCPresenter(viewController: vc) }
         }
         .fullScreenCover(isPresented: $showMatchmaker) {
-            MatchmakerView(onMatch: startMatch, onDismiss: {
+            MatchmakerView(onMatch: { match in
                 showMatchmaker = false
-                if game == nil { leave() }
+                onMatch(match)
+            }, onDismiss: {
+                showMatchmaker = false
+                leave()
             })
         }
-        .onDisappear { appState.manualShipArrangement = false }
     }
 
     private var authBinding: Binding<Bool> {
@@ -64,24 +68,7 @@ struct OnlineGameView: View {
                 set: { if !$0 { gc.authViewController = nil } })
     }
 
-    private func startMatch(_ match: GKMatch) {
-        showMatchmaker = false
-        let t = GameKitTransport(match: match)
-        transport = t
-        let localID = gc.localPlayerID
-        let remoteID = match.players.first?.gamePlayerID ?? ""
-        let isHost = localID < remoteID // deterministic first mover, same on both sides
-        let avatar = ProfileStore.shared.profiles.first?.avatar ?? HotSeatAvatars.symbols[0]
-        let g = NetworkGame(transport: t, statKey: .online, name: gc.localDisplayName,
-                            avatar: avatar, accountID: localID, isHost: isHost)
-        g.soundOn = appState.soundOn
-        g.start()
-        game = g
-    }
-
     private func leave() {
-        transport?.disconnect()
-        appState.manualShipArrangement = false
         dismiss()
     }
 }

@@ -17,6 +17,7 @@
 //
 
 import SwiftUI
+import GameKit
 
 // MARK: - Табы
 
@@ -146,6 +147,10 @@ enum ShellRoute: Equatable, Sendable {
     /// контейнером — расстановки, слой передачи и бой (4.7).
     case duelSetup
     case duel
+    /// Рядом без сети (R3.3): поиск устройств, затем партия.
+    case nearby
+    /// Сетевая партия — рядом или по сети, один экран на оба транспорта.
+    case network
 }
 
 // MARK: - Оболочка
@@ -184,6 +189,12 @@ struct AppShell: View {
     /// расстановку и возврат; партия живёт в оболочке, как бой.
     @State private var duelSetup = DuelSetup()
     @State private var duel: DuelMatch?
+    /// Поиск устройств рядом. Транспорт переходит в партию, когда соперник
+    /// подключился.
+    @State private var nearbyTransport: MultipeerTransport?
+    /// Сетевая партия. Продолжить её из меню нельзя: выход из неё — сдача
+    /// или конец связи, поэтому она живёт ровно столько, сколько экран.
+    @State private var net: NetMatch?
 
     private var continueTarget: ContinueTarget {
         .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
@@ -253,8 +264,11 @@ struct AppShell: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .fullScreenCover(isPresented: $appState.showNearby) { NearbyGameView() }
-        .fullScreenCover(isPresented: $appState.showOnline) { OnlineGameView() }
+        // ПЕРЕХОДНОЕ: вход в Game Center и подбор соперника — старым экраном
+        // до R3.3b; сама партия уже новая.
+        .fullScreenCover(isPresented: $appState.showOnline) {
+            OnlineGameView(onMatch: startOnline)
+        }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
         .onChange(of: premiumManager.isPremium) { _, isPremium in
             // Докончить то, из-за чего открывался пейволл.
@@ -272,7 +286,7 @@ struct AppShell: View {
                     try? await Task.sleep(for: .seconds(0.4)) // дать пейволлу закрыться
                     switch intent {
                     case .hotSeat: openHotSeat()
-                    case .nearby: appState.showNearby = true
+                    case .nearby: openNearby()
                     case .online: appState.showOnline = true
                     case .expert: break
                     }
@@ -442,7 +456,74 @@ struct AppShell: View {
                                self.route = nil
                            })
             }
+
+        case .nearby:
+            if let nearbyTransport {
+                NearbyScreen(transport: nearbyTransport, onBack: closeNearby)
+                    // iPad: колонка 520 pt по центру, как экран уровня.
+                    .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+            }
+
+        case .network:
+            if let net {
+                NetScreen(match: net) {
+                    self.net = nil
+                    self.nearbyTransport = nil
+                    self.route = nil
+                }
+            }
         }
+    }
+
+    // MARK: Сетевые режимы
+
+    /// Как игрок назван у соперника. Своего профиля до онбординга (R4.4)
+    /// нет — берётся первый из «Играли раньше», иначе «Игрок».
+    private var localPlayer: (name: String, glyph: String, colorIndex: Int) {
+        let profile = ProfileStore.shared.profiles.first
+        let name = profile?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return (name.isEmpty ? String(localized: "Player") : name,
+                profile?.avatar ?? "sailboat.fill",
+                profile?.colorIndex ?? 0)
+    }
+
+    private func openNearby() {
+        let transport = MultipeerTransport(displayName: localPlayer.name,
+                                           model: usesPadLayout ? "iPad" : "iPhone")
+        transport.onConnectionChange = { connected in
+            guard connected, self.net == nil else { return }
+            self.startNetwork(transport, key: .nearby, accountID: AccountID.current(),
+                              name: self.localPlayer.name)
+        }
+        nearbyTransport = transport
+        route = .nearby
+    }
+
+    private func closeNearby() {
+        nearbyTransport?.disconnect()
+        nearbyTransport = nil
+        route = nil
+    }
+
+    private func startOnline(_ match: GKMatch) {
+        appState.showOnline = false
+        let gc = GameCenterManager.shared
+        startNetwork(GameKitTransport(match: match), key: .online,
+                     accountID: gc.localPlayerID, name: gc.localDisplayName)
+    }
+
+    private func startNetwork(_ transport: any NetworkTransport, key: StatKey,
+                              accountID: String, name: String) {
+        let me = localPlayer
+        let match = NetMatch(transport: transport, statKey: key,
+                             me: NetMatch.hello(name: name, glyph: me.glyph,
+                                                colorIndex: me.colorIndex, accountID: accountID),
+                             revealsRing: appState.autoRevealAroundSunk)
+        match.soundOn = appState.soundOn
+        match.confirmShot = appState.confirmShot
+        match.start()
+        net = match
+        route = .network
     }
 
     // MARK: Что делают строки меню
@@ -459,7 +540,7 @@ struct AppShell: View {
         switch item.mode {
         case .computer: openSinglePlayer()
         case .hotSeat: openHotSeat()
-        case .nearby: appState.showNearby = true
+        case .nearby: openNearby()
         case .online: appState.showOnline = true
         case .paper: openPaperArrangement()
         }

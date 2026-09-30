@@ -182,24 +182,27 @@ struct StatisticsTests {
         let before = store.stats
 
         let (a, b) = LoopbackTransport.pair()
-        let host = NetworkGame(transport: a, statKey: .nearby, name: "H", avatar: "h",
-                               accountID: "host", isHost: true)
-        let guest = NetworkGame(transport: b, statKey: .nearby, name: "G", avatar: "g",
-                                accountID: "guest", isHost: false)
-        host.soundOn = false
-        guest.soundOn = false
-        host.start()
-        guest.start()
-        host.confirmReady()
-        guest.confirmReady()
-        #expect(host.isSameAccount == false)
-
-        // Hulls only, so the host keeps the turn all the way through.
-        for cell in guest.own.ships.flatMap(\.coordinates) {
-            host.fire(row: cell.0, column: cell.1)
+        let host = NetMatch(transport: a, statKey: .nearby,
+                            me: NetMatch.hello(name: "H", glyph: "h", colorIndex: 0, accountID: "host"),
+                            pacing: .instant)
+        let guest = NetMatch(transport: b, statKey: .nearby,
+                             me: NetMatch.hello(name: "G", glyph: "g", colorIndex: 1, accountID: "guest"),
+                             pacing: .instant)
+        for match in [host, guest] {
+            match.soundOn = false
+            match.editor = FleetEditor(ships: FleetLayout.canonicalLayout())
+            match.start()
+            match.finishArrangement()
         }
-        #expect(host.iWon == true)
-        #expect(guest.iWon == false)
+        #expect(host.game.isSameAccount == false)
+
+        // Hulls only, so the shooter keeps the turn all the way through.
+        let (shooter, target) = host.isMyTurn ? (host, guest) : (guest, host)
+        for cell in target.game.own.ships.flatMap(\.cells) {
+            shooter.tap(cell)
+        }
+        #expect(shooter.game.winner == .you)
+        #expect(target.game.winner == .foe)
 
         // Both peers ran in this process, so the local store saw both results:
         // one nearby win and one nearby loss, and nothing anywhere else.

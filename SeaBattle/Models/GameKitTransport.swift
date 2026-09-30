@@ -3,7 +3,7 @@
 //  SeaBattle
 //
 //  Phase 5 (online): real-time transport over a GKMatch. Drop-in NetworkTransport
-//  for the same NetworkGame core used by the offline (Multipeer) mode — the
+//  for the same NetMatch core used by the offline (Multipeer) mode — the
 //  authoritative-own-board message flow maps directly onto GKMatch's live
 //  send/receive. Delegate callbacks are hopped to the main actor.
 //
@@ -29,6 +29,10 @@ final class GameKitTransport: NSObject, NetworkTransport {
         guard let data = try? JSONEncoder().encode(message), !match.players.isEmpty else { return }
         try? match.sendData(toAllPlayers: data, with: .reliable)
     }
+
+    /// ПЕРЕХОДНОЕ: переподключение по Game Center — в R3.3b. Пока обрыв
+    /// онлайн-партии просто ждёт срок и закрывает её без победы.
+    func reconnect() {}
 
     func disconnect() {
         match.disconnect()

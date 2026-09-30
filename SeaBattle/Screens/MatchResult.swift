@@ -47,6 +47,15 @@ struct MatchTally: Codable, Equatable, Sendable {
         }
     }
 
+    /// Сетевая партия (R3.3): исход приходит ответом соперника, а не
+    /// выстрелом по своей доске.
+    mutating func record(outcome: FeedOutcome) {
+        switch outcome {
+        case .miss, .repeatHit, .repeatMiss: record(Board.ShotResult.miss)
+        case .hit, .sunk: record(Board.ShotResult.hit(shipID: nil))
+        }
+    }
+
     mutating func recordHint(cost: Int) {
         hintsUsed += 1
         hintPointsSpent += cost
@@ -109,6 +118,9 @@ struct MatchResult: Equatable, Sendable {
     let balance: Int
     /// Партия вдвоём на устройстве: счёт серии вместо начисления баллов.
     let duel: DuelSummary?
+    /// Сетевая партия со своим же аккаунтом (свой iPhone против своего iPad)
+    /// баллов не приносит — строки за победу в чеке нет (R3.3).
+    let awardsPoints: Bool
 
     /// Уровень компьютера; у других режимов его нет.
     var level: AppState.DifficultyLevel? { key.difficulty }
@@ -125,7 +137,8 @@ struct MatchResult: Equatable, Sendable {
          yourLosses: Int, foeLosses: Int,
          fleetSize: Int = FleetLayout.shipCount,
          tally: MatchTally, balance: Int,
-         duel: DuelSummary? = nil) {
+         duel: DuelSummary? = nil,
+         awardsPoints: Bool = true) {
         self.didWin = didWin
         self.key = key
         self.yourLosses = yourLosses
@@ -134,13 +147,14 @@ struct MatchResult: Equatable, Sendable {
         self.tally = tally
         self.balance = balance
         self.duel = duel
+        self.awardsPoints = awardsPoints
     }
 
     /// Строки чека по порядку. **При поражении строки за исход нет** (4.9):
     /// не «Поражение 0», а ничего — нулевая строка читается как штраф.
     var lines: [PointLine] {
         var lines: [PointLine] = []
-        let reward = key.pointsForWin
+        let reward = awardsPoints ? key.pointsForWin : 0
         if didWin && reward > 0 {
             lines.append(.victory(points: reward))
         }

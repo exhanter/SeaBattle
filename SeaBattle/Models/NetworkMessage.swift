@@ -2,41 +2,74 @@
 //  NetworkMessage.swift
 //  SeaBattle
 //
-//  Phase 5: the transport-agnostic wire protocol for networked play. Each peer
-//  is AUTHORITATIVE over its OWN board: you never send your ship positions —
-//  you only answer incoming shots with a result. This makes ship positions
+//  The transport-agnostic wire protocol for networked play. Each peer is
+//  AUTHORITATIVE over its OWN board: you never send your ship positions — you
+//  only answer incoming shots with a result. This makes ship positions
 //  un-snoopable and needs no server. The same messages travel over any
-//  transport (MultipeerConnectivity for offline/nearby, GameKit for online).
+//  transport (MultipeerConnectivity for nearby play, GameKit for online).
+//
+//  Version 2 (R3.3) makes every message safe to send twice. A connection can
+//  drop between a shot and its answer, and after reconnecting both sides
+//  resend what is still pending (`NetGame.resync()`): a shot carries its
+//  number, and the defender answers a shot it has already resolved with the
+//  same answer instead of firing again. A repeated shot is legal in the rules
+//  (spec 4.5), so without the number a resent shot would be a second shot.
 //
 
 import Foundation
 
-/// Handshake info exchanged once when a match connects.
-struct HelloPayload: Codable, Sendable {
+/// Handshake, sent by both sides on every (re)connection.
+struct NetHello: Codable, Equatable, Sendable {
     var name: String
-    var avatar: String
-    /// Stable per-account id (e.g. CloudKit user record id / Game Center
-    /// gamePlayerID). Used to detect a same-account match (no points then).
+    var glyph: String
+    var colorIndex: Int
+    /// Stable per-account id (CloudKit user record / Game Center player id).
+    /// Used to detect a same-account match (no points, no statistics then).
     var accountID: String
-    var isHost: Bool
+    /// Random per match. Decides roles and the first shooter without a
+    /// separate message: both sides compute the same thing from two nonces.
+    var nonce: UInt64
+    var version: Int
 }
 
-/// The defender's answer to an incoming shot.
-struct ResultPayload: Codable, Sendable {
+/// A shot at the opponent's board. `seq` counts the shooter's shots in the
+/// round from zero.
+struct NetShot: Codable, Equatable, Sendable {
+    var round: Int
+    var seq: Int
     var at: Coordinate
-    var outcome: ShotOutcome        // missed / hit / sunk
-    var sunkShip: [Coordinate]?     // the whole ship's cells, revealed on a sink
-    var defenderLost: Bool          // the defender's last ship just went down
 }
 
-enum NetworkMessage: Codable, Sendable {
-    case hello(HelloPayload)
-    case ready                       // my fleet is placed
-    case fire(Coordinate)            // I shoot this cell of your board
-    case result(ResultPayload)       // your answer to my shot
-    case hintUsed                    // I spent a hint → you get compensation points
-    case hintReveal(Coordinate)      // defender reveals one of its ship cells to the hinter
-    case rematch
+/// The defender's answer to a shot.
+struct NetAnswer: Codable, Equatable, Sendable {
+    var round: Int
+    var seq: Int
+    var at: Coordinate
+    var outcome: FeedOutcome
+    /// The whole ship's cells, revealed on a sink.
+    var sunkShip: [Coordinate]?
+    /// The defender's last ship just went down.
+    var defenderLost: Bool
+}
+
+enum NetworkMessage: Codable, Equatable, Sendable {
+    case hello(NetHello)
+    /// The answer to `hello`. Without it the first hello can be lost: it is
+    /// sent the moment the link comes up, possibly before the other side has
+    /// started listening. Not answered itself, so the two never loop.
+    case welcome(NetHello)
+    /// My fleet is placed for this round.
+    case ready(round: Int)
+    case shot(NetShot)
+    case answer(NetAnswer)
+    /// I spent points on a hint: reveal one of your ship cells, and receive
+    /// the points as compensation.
+    case hintRequest(round: Int, id: Int)
+    /// `nil` — nothing left to reveal.
+    case hintReveal(round: Int, id: Int, at: Coordinate?)
+    /// I want another match; `round` is the round I have moved on to.
+    case rematch(round: Int)
+    /// I left on purpose. During the battle that is a surrender (spec 4.8).
     case quit
 }
 
@@ -47,18 +80,54 @@ protocol NetworkTransport: AnyObject {
     var onReceive: ((NetworkMessage) -> Void)? { get set }
     var onConnectionChange: ((Bool) -> Void)? { get set }
     func send(_ message: NetworkMessage)
+    /// One reconnection attempt after the link dropped. Transports that
+    /// cannot reconnect do nothing — the match then closes after its grace
+    /// period (spec 4.8).
+    func reconnect()
+    func disconnect()
 }
 
-/// In-process transport that wires two `NetworkGame`s directly together, for
-/// tests and previews (no radios involved).
+/// In-process transport that wires two matches directly together, for tests
+/// and previews (no radios involved). The link can be cut and restored, and
+/// messages sent while it is down are lost — exactly what a dropped
+/// connection does.
 @MainActor
 final class LoopbackTransport: NetworkTransport {
     var onReceive: ((NetworkMessage) -> Void)?
     var onConnectionChange: ((Bool) -> Void)?
     weak var peer: LoopbackTransport?
+    private(set) var isLinked = true
+    /// Everything this side sent, delivered or not — for tests.
+    private(set) var sent: [NetworkMessage] = []
 
     func send(_ message: NetworkMessage) {
+        sent.append(message)
+        guard isLinked, peer?.isLinked == true else { return }
         peer?.onReceive?(message)
+    }
+
+    func reconnect() {}
+
+    func disconnect() {
+        cut()
+    }
+
+    /// Drops the link on both sides.
+    func cut() {
+        guard isLinked else { return }
+        isLinked = false
+        peer?.isLinked = false
+        onConnectionChange?(false)
+        peer?.onConnectionChange?(false)
+    }
+
+    /// Restores the link on both sides.
+    func restore() {
+        guard !isLinked else { return }
+        isLinked = true
+        peer?.isLinked = true
+        onConnectionChange?(true)
+        peer?.onConnectionChange?(true)
     }
 
     /// Connects two loopback transports back-to-back.
