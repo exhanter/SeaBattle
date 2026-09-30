@@ -80,7 +80,9 @@ enum PointLine: Equatable, Sendable {
 
 struct MatchResult: Equatable, Sendable {
     let didWin: Bool
-    let level: AppState.DifficultyLevel
+    /// Графа партии: режим, а у компьютера и уровень. От неё ставка за победу
+    /// и подзаголовок «режим · уровень» (4.9).
+    let key: StatKey
     /// Сколько кораблей потеряли вы — тёплое на экране.
     let yourLosses: Int
     /// Сколько потопили вы — холодное.
@@ -90,12 +92,23 @@ struct MatchResult: Equatable, Sendable {
     /// Баланс **после** партии: победа уже начислена, подсказки уже списаны.
     let balance: Int
 
+    /// Уровень компьютера; у других режимов его нет.
+    var level: AppState.DifficultyLevel? { key.difficulty }
+
     init(didWin: Bool, level: AppState.DifficultyLevel,
          yourLosses: Int, foeLosses: Int,
          fleetSize: Int = FleetLayout.shipCount,
          tally: MatchTally, balance: Int) {
+        self.init(didWin: didWin, key: .computer(level), yourLosses: yourLosses,
+                  foeLosses: foeLosses, fleetSize: fleetSize, tally: tally, balance: balance)
+    }
+
+    init(didWin: Bool, key: StatKey,
+         yourLosses: Int, foeLosses: Int,
+         fleetSize: Int = FleetLayout.shipCount,
+         tally: MatchTally, balance: Int) {
         self.didWin = didWin
-        self.level = level
+        self.key = key
         self.yourLosses = yourLosses
         self.foeLosses = foeLosses
         self.fleetSize = fleetSize
@@ -107,7 +120,7 @@ struct MatchResult: Equatable, Sendable {
     /// не «Поражение 0», а ничего — нулевая строка читается как штраф.
     var lines: [PointLine] {
         var lines: [PointLine] = []
-        let reward = StatKey.computer(level).pointsForWin
+        let reward = key.pointsForWin
         if didWin && reward > 0 {
             lines.append(.victory(points: reward))
         }

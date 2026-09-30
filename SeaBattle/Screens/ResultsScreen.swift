@@ -121,6 +121,15 @@ struct ResultsScreen: View {
 
     // MARK: Результат и счёт по флотам
 
+    /// «Режим · уровень» (4.9); у игры на бумаге уровня нет — только режим.
+    private var subtitle: Text {
+        if let level = result.level {
+            Text("\(Text("Single player")) · \(Text(LevelChoice.title(for: level)))")
+        } else {
+            Text("Paper game")
+        }
+    }
+
     private var outcomeCard: some View {
         VStack(spacing: ResultMetrics.frameGap) {
             Text(result.didWin ? "Victory" : "Defeat")
@@ -129,7 +138,7 @@ struct ResultsScreen: View {
                 .foregroundStyle(Color.inkPrimary)
                 .accessibilityAddTraits(.isHeader)
 
-            Text("\(Text("Single player")) · \(Text(LevelChoice.title(for: result.level)))")
+            subtitle
                 .font(.system(size: ResultMetrics.subtitle))
                 .foregroundStyle(Color.inkSecondary)
 
@@ -336,6 +345,78 @@ private struct PointsCounter: View, Animatable {
         Text("\(MatchResult.signed(Int(value.rounded()))) points")
             .font(.system(size: ResultMetrics.pointsValue, weight: .bold, design: .rounded)
                     .monospacedDigit())
+    }
+}
+
+// MARK: - Переход к итогам
+
+extension View {
+    /// Бой → итоги (14c) поверх экрана партии: пауза на поле, поля в
+    /// размытие, итоги слоем сверху. Одно на бой против компьютера и игру на
+    /// бумаге — у обеих партий переход одинаковый.
+    func matchResults(_ result: MatchResult?,
+                      onPlayAgain: @escaping () -> Void,
+                      onMenu: @escaping () -> Void) -> some View {
+        modifier(MatchResultsModifier(result: result, onPlayAgain: onPlayAgain, onMenu: onMenu))
+    }
+}
+
+private struct MatchResultsModifier: ViewModifier {
+    let result: MatchResult?
+    let onPlayAgain: () -> Void
+    let onMenu: () -> Void
+
+    @Environment(AppState.self) private var appState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
+    /// Итоги на экране. Ставится после паузы `Motion.toResults`, а не сразу
+    /// с итогом: последний выстрел должен успеть доиграть на поле.
+    @State private var showsResults = false
+
+    /// Партия кончилась — поля уходят в размытие под итоги.
+    private var isOver: Bool { result != nil }
+
+    func body(content: Content) -> some View {
+        content
+            // Первая половина — пауза, чтобы всплеск последнего выстрела
+            // доиграл резким; прозрачность до нуля, чтобы под итогами было
+            // одно море, как в кадре.
+            .blur(radius: isOver ? ResultMetrics.fieldsBlur : 0)
+            .opacity(isOver ? 0 : 1)
+            .allowsHitTesting(!isOver)
+            .animation(fieldsOut, value: isOver)
+            .overlay { overlay }
+            .task(id: result) { await present() }
+    }
+
+    private var fieldsOut: Animation {
+        let half = Motion.scaled(Motion.toResults, reduceMotion: reduceMotion) / 2
+        return .easeInOut(duration: half).delay(half)
+    }
+
+    @ViewBuilder
+    private var overlay: some View {
+        if showsResults, let result {
+            ResultsScreen(result: result, onPlayAgain: onPlayAgain, onMenu: onMenu)
+                // iPad: колонкой 520 pt по центру, как экран уровня (4.3).
+                .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+        }
+    }
+
+    /// Итог пришёл — выждать переход и показать экран; ушёл (новая партия) —
+    /// убрать. `task(id:)` обрывает ожидание, если итог сменился раньше.
+    private func present() async {
+        guard let result else {
+            showsResults = false
+            return
+        }
+        try? await Task.sleep(for: .seconds(Motion.scaled(Motion.toResults,
+                                                          reduceMotion: reduceMotion)))
+        guard !Task.isCancelled else { return }
+        showsResults = true
+        if appState.soundOn {
+            AppState.playSound(sound: result.didWin ? "victory_sound.wav" : "defeat_sound.wav")
+        }
     }
 }
 

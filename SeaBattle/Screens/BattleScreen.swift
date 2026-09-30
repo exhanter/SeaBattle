@@ -73,15 +73,8 @@ struct BattleScreen: View {
 
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.usesPadLayout) private var usesPadLayout
     @State private var askLeave = false
-    /// Итоги на экране. Ставится после паузы `Motion.toResults`, а не сразу
-    /// с итогом: последний выстрел должен успеть доиграть на поле.
-    @State private var showsResults = false
-
-    /// Партия кончилась — поля уходят в размытие под итоги.
-    private var isOver: Bool { battle.result != nil }
 
     private var alphabet: BoardAlphabet {
         .forLanguage(locale.language.languageCode?.identifier)
@@ -96,16 +89,7 @@ struct BattleScreen: View {
                 phone
             }
         }
-        // Бой → итоги (14c): пауза на поле, поля в размытие. Первая
-        // половина — пауза, чтобы всплеск последнего выстрела доиграл
-        // резким; прозрачность до нуля, чтобы под итогами было одно море,
-        // как в кадре.
-        .blur(radius: isOver ? ResultMetrics.fieldsBlur : 0)
-        .opacity(isOver ? 0 : 1)
-        .allowsHitTesting(!isOver)
-        .animation(fieldsOut, value: isOver)
-        .overlay { resultOverlay }
-        .task(id: battle.result) { await presentResults() }
+        .matchResults(battle.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,
                                    onStay: { askLeave = false },
@@ -214,40 +198,6 @@ struct BattleScreen: View {
             onLeave()
         }
     }
-
-    // MARK: Итоги
-
-    private var fieldsOut: Animation {
-        let half = Motion.scaled(Motion.toResults, reduceMotion: reduceMotion) / 2
-        return .easeInOut(duration: half).delay(half)
-    }
-
-    @ViewBuilder
-    private var resultOverlay: some View {
-        if showsResults, let result = battle.result {
-            ResultsScreen(result: result,
-                          onPlayAgain: onPlayAgain,
-                          onMenu: onMenuAfterResult)
-                // iPad: колонкой 520 pt по центру, как экран уровня (4.3).
-                .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
-        }
-    }
-
-    /// Итог пришёл — выждать переход и показать экран; ушёл (новая партия) —
-    /// убрать. `task(id:)` обрывает ожидание, если итог сменился раньше.
-    private func presentResults() async {
-        guard let result = battle.result else {
-            showsResults = false
-            return
-        }
-        try? await Task.sleep(for: .seconds(Motion.scaled(Motion.toResults,
-                                                          reduceMotion: reduceMotion)))
-        guard !Task.isCancelled else { return }
-        showsResults = true
-        if appState.soundOn {
-            AppState.playSound(sound: result.didWin ? "victory_sound.wav" : "defeat_sound.wav")
-        }
-    }
 }
 
 // MARK: - Боевое поле
@@ -296,7 +246,6 @@ struct BattleBoard: View {
     /// Прицел и открытые подсказкой клетки — поверх сетки, как корабли на
     /// расстановке: у `BoardCell` таких состояний нет, это не правила.
     private var marks: some View {
-        let radius = Geometry.cellRadius(for: m.cell)
         let unshot = Set(Board.allCoordinates.filter { battle.enemy.coreBoard[$0].isUnshot })
         return ZStack(alignment: .topLeading) {
             ForEach(Array(battle.hintCells.filter { unshot.contains($0) }), id: \.self) { cell in
@@ -311,21 +260,39 @@ struct BattleBoard: View {
                     .offset(x: origin.x, y: origin.y)
             }
             if let aim = battle.aim {
-                let origin = m.cellOrigin(aim)
-                let inset = AimMetrics.insetIntoCell
-                RoundedRectangle(cornerRadius: max(0, radius - inset), style: .continuous)
-                    .strokeBorder(Color.roleYou, lineWidth: AimMetrics.stroke(for: m.cell))
-                    .padding(inset)
-                    .shadow(color: .roleYouSoft, radius: m.cell * AimMetrics.glowRatio)
-                    .frame(width: m.cell, height: m.cell)
-                    .offset(x: origin.x, y: origin.y)
-                    // Появляется за `Motion.aim`, гаснет за 60 мс и в
-                    // анимации выстрела не участвует.
-                    .transition(.asymmetric(
-                        insertion: .opacity.animation(.easeOut(duration: Motion.aim)),
-                        removal: .opacity.animation(.easeOut(duration: AimMetrics.fadeOut))))
+                AimMark(at: aim, metrics: m)
             }
         }
+    }
+}
+
+/// Прицел на клетке (2.18) — слоем поверх сетки. Один на бой и игру на бумаге,
+/// где он значит «выстрел назван, ждём ответ».
+struct AimMark: View {
+    let coordinate: Coordinate
+    let metrics: BoardMetrics
+
+    init(at coordinate: Coordinate, metrics: BoardMetrics) {
+        self.coordinate = coordinate
+        self.metrics = metrics
+    }
+
+    var body: some View {
+        let m = metrics
+        let origin = m.cellOrigin(coordinate)
+        let inset = AimMetrics.insetIntoCell
+        RoundedRectangle(cornerRadius: max(0, Geometry.cellRadius(for: m.cell) - inset),
+                         style: .continuous)
+            .strokeBorder(Color.roleYou, lineWidth: AimMetrics.stroke(for: m.cell))
+            .padding(inset)
+            .shadow(color: .roleYouSoft, radius: m.cell * AimMetrics.glowRatio)
+            .frame(width: m.cell, height: m.cell)
+            .offset(x: origin.x, y: origin.y)
+            // Появляется за `Motion.aim`, гаснет за 60 мс и в анимации
+            // выстрела не участвует.
+            .transition(.asymmetric(
+                insertion: .opacity.animation(.easeOut(duration: Motion.aim)),
+                removal: .opacity.animation(.easeOut(duration: AimMetrics.fadeOut))))
     }
 }
 

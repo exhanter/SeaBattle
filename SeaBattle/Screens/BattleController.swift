@@ -20,7 +20,8 @@ import Observation
 // MARK: - Лента выстрелов
 
 /// Чем кончился один выстрел — так, как его пишет лента (спека 2.8, 4.5).
-enum FeedOutcome: Equatable, Sendable {
+/// `Codable` — ради игры на бумаге: там исход лежит в сохранении (`PaperOutcome`).
+enum FeedOutcome: Codable, Equatable, Sendable {
     case miss
     case hit
     case sunk

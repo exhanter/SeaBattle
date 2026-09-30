@@ -106,6 +106,10 @@ struct ScorePanel: View {
     /// iPad: уровень компьютера капсулой во второй строке центра, слева от
     /// баланса (4.5 после раунда 7). В других режимах — `nil`, только баланс.
     var level: AppState.DifficultyLevel?
+    /// Статус вместо «Ваш ход» / «Ход соперника» — игра на бумаге пишет здесь,
+    /// что сказать: «Скажите: Д7» (4.6). Правило 3: режимы отличаются
+    /// содержимым шапки, а не её устройством.
+    var status: Text?
 
     private var m: BattleMetrics { isPad ? .pad : .forSize(size) }
 
@@ -151,7 +155,7 @@ struct ScorePanel: View {
 
     private var center: some View {
         VStack(spacing: m.sideGap) {
-            Text(isArranging ? "Arrangement" : isYourTurn ? "Your turn" : "Opponent's turn")
+            (status ?? Text(isArranging ? "Arrangement" : isYourTurn ? "Your turn" : "Opponent's turn"))
                 .font(.system(size: m.statusText, weight: .bold))
                 .foregroundStyle(Color.inkPrimary)
                 .lineLimit(1)

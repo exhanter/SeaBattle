@@ -53,6 +53,14 @@ struct CellEvent: Equatable, Sendable {
     init?(id: Int, field: Side, target: Coordinate, result: Board.ShotResult,
           before: Board, after: Board, start: Date = .now) {
         guard let outcome = FeedOutcome(result) else { return nil }
+        self.init(id: id, field: field, target: target, outcome: outcome,
+                  before: before, after: after, start: start)
+    }
+
+    /// Из исхода, а не из выстрела по ядру: в игре на бумаге ответ соперника
+    /// ставится на доску вручную, и `ShotResult` у него нет (R3.1).
+    init(id: Int, field: Side, target: Coordinate, outcome: FeedOutcome,
+         before: Board, after: Board, start: Date = .now) {
         self.id = id
         self.field = field
         self.target = target

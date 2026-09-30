@@ -105,19 +105,25 @@ enum ContinueTarget: Equatable, Sendable {
     case resume
     case vsComputer
     case hotSeat
-    /// Есть и то и другое: спросить, что продолжаем.
+    /// Игра на бумаге (R3.1) — в памяти или в своём сохранении.
+    case paper
+    /// Незакрытых партий больше одной: спросить, что продолжаем.
     case ask
 
     static func resolve(isPlaying: Bool,
                         hasVsComputer: Bool,
-                        hasHotSeat: Bool) -> ContinueTarget {
-        // Партия в памяти свежее любого сохранения, поэтому идёт первой.
-        if isPlaying { return .resume }
-        return switch (hasVsComputer, hasHotSeat) {
-        case (true, true): .ask
-        case (true, false): .vsComputer
-        case (false, true): .hotSeat
-        case (false, false): .none
+                        hasHotSeat: Bool,
+                        hasPaper: Bool = false) -> ContinueTarget {
+        // Партия против компьютера в памяти свежее её же сохранения, поэтому
+        // идёт первой; игра на бумаге — отдельная партия, и молча выбрать
+        // одну из двух значит спрятать другую.
+        if isPlaying { return hasPaper ? .ask : .resume }
+        return switch (hasVsComputer, hasHotSeat, hasPaper) {
+        case (false, false, false): .none
+        case (true, false, false): .vsComputer
+        case (false, true, false): .hotSeat
+        case (false, false, true): .paper
+        default: .ask
         }
     }
 
@@ -132,6 +138,10 @@ enum ShellRoute: Equatable, Sendable {
     /// если он показывался, иначе в меню, и подпись меняется вместе с этим
     /// (спека 3.1).
     case arrangement(cameFromLevel: Bool)
+    /// Игра на бумаге (R3.1): расстановка своего флота, затем сама партия.
+    /// Уровня у неё нет, поэтому возврат с расстановки — в меню.
+    case paperArrangement
+    case paper
 }
 
 // MARK: - Оболочка
@@ -164,11 +174,23 @@ struct AppShell: View {
     /// Расстановка. Тоже в оболочке: уход в меню и возврат не должны
     /// перемешивать флот, который игрок только что выставил руками.
     @State private var fleet = FleetEditor()
+    /// Игра на бумаге. Живёт в оболочке, как бой: выход в меню её не
+    /// закрывает, «Продолжить партию» возвращает в неё же.
+    @State private var paper: PaperMatch?
 
     private var continueTarget: ContinueTarget {
         .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
                  hasVsComputer: GameStore.hasSavedGame,
-                 hasHotSeat: HotSeatStore.hasSession)
+                 hasHotSeat: HotSeatStore.hasSession,
+                 hasPaper: hasPaperGame)
+    }
+
+    /// Партия на бумаге сохраняется после каждого хода, поэтому идущая в
+    /// памяти всегда лежит и на диске; память проверяется первой только ради
+    /// того, чтобы не читать файл на каждой перерисовке меню.
+    private var hasPaperGame: Bool {
+        if let paper { return !paper.game.isOver }
+        return PaperStore.hasSavedGame
     }
 
     var body: some View {
@@ -206,8 +228,17 @@ struct AppShell: View {
         }
         .confirmationDialog("Continue game", isPresented: $askWhichGameToContinue,
                             titleVisibility: .visible) {
-            Button("Play vs computer") { continueVsComputer() }
-            Button("Two players") { appState.showHotSeat = true }
+            if continueTarget == .ask {
+                if appState.gameIsActive || GameStore.hasSavedGame {
+                    Button("Play vs computer") { continueComputerGame() }
+                }
+                if HotSeatStore.hasSession {
+                    Button("Two players") { appState.showHotSeat = true }
+                }
+                if hasPaperGame {
+                    Button("Paper game") { continuePaper() }
+                }
+            }
             Button("Cancel", role: .cancel) {}
         }
         .alert("Not in this build yet", isPresented: .init(
@@ -354,6 +385,27 @@ struct AppShell: View {
                               onStart: startBattle,
                               onBack: { self.route = cameFromLevel ? .level : nil },
                               onMenu: { self.route = nil })
+
+        case .paperArrangement:
+            ArrangementScreen(editor: $fleet,
+                              backTitle: "Play",
+                              onStart: startPaper,
+                              onBack: { self.route = nil },
+                              onMenu: { self.route = nil })
+
+        case .paper:
+            if let paper {
+                PaperScreen(match: paper,
+                            onLeave: { self.route = nil },
+                            onPlayAgain: {
+                                self.paper = nil
+                                openPaperArrangement()
+                            },
+                            onMenuAfterResult: {
+                                self.paper = nil
+                                self.route = nil
+                            })
+            }
         }
     }
 
@@ -373,8 +425,41 @@ struct AppShell: View {
         case .hotSeat: appState.showHotSeat = true
         case .nearby: appState.showNearby = true
         case .online: appState.showOnline = true
-        case .paper: modeNotBuiltYet = item   // ПЕРЕХОДНОЕ до R3.1
+        case .paper:
+            // ПЕРЕХОДНОЕ до R3.1b: на iPad игра на бумаге встанет на стол
+            // третьей фазой, отдельного экрана там не будет.
+            if usesPadLayout { modeNotBuiltYet = item } else { openPaperArrangement() }
         }
+    }
+
+    // MARK: Игра на бумаге
+
+    /// Новая партия на бумаге — с расстановки своего флота. Прежняя
+    /// незакрытая перезаписывается, как и сохранение против компьютера.
+    private func openPaperArrangement() {
+        fleet = FleetEditor()
+        route = .paperArrangement
+    }
+
+    /// «Старт» на расстановке: партия начинается с этим флотом и сразу
+    /// сохраняется — «Продолжить» должна найти её даже без единого хода.
+    private func startPaper() {
+        let game = PaperGame(fleet: fleet.ships, revealsRing: appState.autoRevealAroundSunk)
+        let match = PaperMatch(game: game)
+        match.soundOn = appState.soundOn
+        PaperStore.save(game)
+        paper = match
+        route = .paper
+    }
+
+    private func continuePaper() {
+        if paper?.game.isOver ?? true {
+            guard let game = PaperStore.load() else { return }
+            let match = PaperMatch(game: game)
+            match.soundOn = appState.soundOn
+            paper = match
+        }
+        route = .paper
     }
 
     /// Шаг выбора уровня показывается по умолчанию; тумблер в настройках его
@@ -464,13 +549,27 @@ struct AppShell: View {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
         switch continueTarget {
         case .none: break
-        case .resume:
-            // Компьютер мог ещё доигрывать ход, пока игрок был в меню, — тогда
-            // возвращаемся на своё поле, туда он и стреляет.
-            appState.selectedTab = appState.enemysTurn ? .playerView : .enemyView
+        case .resume: resumeBattle()
         case .vsComputer: continueVsComputer()
         case .hotSeat: appState.showHotSeat = true
+        case .paper: continuePaper()
         case .ask: askWhichGameToContinue = true
+        }
+    }
+
+    /// Компьютер мог ещё доигрывать ход, пока игрок был в меню, — тогда
+    /// возвращаемся на своё поле, туда он и стреляет.
+    private func resumeBattle() {
+        appState.selectedTab = appState.enemysTurn ? .playerView : .enemyView
+    }
+
+    /// «Против компьютера» в вопросе, что продолжаем: партия в памяти, если
+    /// она есть, иначе сохранение.
+    private func continueComputerGame() {
+        if appState.gameIsActive && !appState.gameIsOver {
+            resumeBattle()
+        } else {
+            continueVsComputer()
         }
     }
 
