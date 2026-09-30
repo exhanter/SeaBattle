@@ -437,7 +437,7 @@ struct DuelHandoffLayer: View {
         }
         // Устройство не меняло рук — «передайте» было бы неправдой.
         guard target != game.holder else { return stage }
-        let pass = usesPadLayout ? Text("Pass the iPad") : Text("Pass the phone")
+        let pass = usesPadLayout ? Text("Pass the device") : Text("Pass the phone")
         return Text("\(pass) · \(stage)")
     }
 
@@ -453,7 +453,7 @@ struct DuelHandoffLayer: View {
     private var footnote: LocalizedStringKey {
         switch (game.codeStep == .create, usesPadLayout) {
         case (true, false): "Only you should know it: it is asked every time the phone comes back to you."
-        case (true, true): "Only you should know it: it is asked every time the iPad comes back to you."
+        case (true, true): "Only you should know it: it is asked every time the device comes back to you."
         case (false, _): "Without the code the boards stay closed — you can only leave the match."
         }
     }

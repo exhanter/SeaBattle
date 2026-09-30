@@ -140,7 +140,7 @@ struct PadMenuScreen: View {
 
     @ViewBuilder
     private func tiles(_ g: PadMenuGeometry) -> some View {
-        let modes = MenuMode.all
+        let modes = MenuMode.all(pad: true)
         if g.orientation == .portrait, let first = modes.first {
             // «Одиночная игра» — самый частый режим — широкой плиткой, под ней
             // сетка 2 × 2.

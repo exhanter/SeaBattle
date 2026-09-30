@@ -39,11 +39,15 @@ struct DuelSetupScreen: View {
     var onStart: () -> Void = {}
     var onBack: () -> Void = {}
 
+    @Environment(\.usesPadLayout) private var usesPadLayout
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Two players on one device",
                         back: "Play",
-                        subtitle: "Two players, one phone in turns",
+                        // На iPad «телефон» неверен — «устройство» (решение заказчика 30.09).
+                        subtitle: usesPadLayout ? "Two players, one device in turns"
+                                                : "Two players, one phone in turns",
                         onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
@@ -122,7 +126,8 @@ struct DuelSetupScreen: View {
                         .font(.system(size: DuelSetupMetrics.optionTitle, weight: .semibold,
                                       design: .rounded))
                         .foregroundStyle(Color.inkPrimary)
-                    Text("Four digits when passing the phone")
+                    (usesPadLayout ? Text("Four digits when passing the device")
+                                   : Text("Four digits when passing the phone"))
                         .font(.system(size: DuelSetupMetrics.optionSubtitle))
                         .foregroundStyle(Color.inkSecondary)
                 }

@@ -37,7 +37,10 @@ struct MenuMode: Identifiable {
     func isLocked(isPremium: Bool) -> Bool { !isFree && !isPremium }
 
     /// Порядок как в `GameMode`: одиночная · бумага · вдвоём · рядом · по сети.
-    static var all: [MenuMode] {
+    static var all: [MenuMode] { all(pad: false) }
+
+    /// На iPad «телефон» неверен — там «устройство» (решение заказчика 30.09).
+    static func all(pad: Bool) -> [MenuMode] {
         GameMode.allCases.map { mode in
             switch mode {
             case .computer:
@@ -51,7 +54,7 @@ struct MenuMode: Identifiable {
             case .hotSeat:
                 MenuMode(mode: mode, icon: "person.2",
                          title: "Two players on one device",
-                         subtitle: "Pass the phone around")
+                         subtitle: pad ? "Pass the device around" : "Pass the phone around")
             case .nearby:
                 MenuMode(mode: mode, icon: "wifi",
                          title: "Nearby, no internet",
