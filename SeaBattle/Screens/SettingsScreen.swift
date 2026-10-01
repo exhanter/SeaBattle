@@ -24,6 +24,12 @@
 
 import SwiftUI
 
+/// Страницы внутри таба «Настройки». Таб-бар на них остаётся, как у кошелька.
+enum SettingsPage: Hashable, Sendable {
+    /// «Pro активен» (кадр `screen12ProActive`) — строка «Pro», когда он куплен.
+    case pro
+}
+
 enum SettingsMetrics {
     static let bodyTop: CGFloat = 8
     static let groupGap: CGFloat = 16

@@ -14,7 +14,21 @@
 
   ],
   "products" : [
-
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : true,
+      "internalID" : "5C3E9A71",
+      "localizations" : [
+        {
+          "description" : "Pro forever: three modes with people and the Expert level",
+          "displayName" : "Pro forever",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nl.brapps.SeaBattle.premium.lifetime",
+      "referenceName" : "Pro Lifetime",
+      "type" : "NonConsumable"
+    }
   ],
   "settings" : {
     "_askToBuyEnabled" : false,
@@ -84,6 +98,45 @@
           "productID" : "nl.brapps.SeaBattle.premium.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Premium Yearly",
+          "subscriptionGroupID" : "AA245C4E",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "0.99",
+              "displayPrice" : "0.99",
+              "internalID" : "B7D20E44",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "0.99",
+          "familyShareable" : true,
+          "groupNumber" : 2,
+          "internalID" : "9F61C3A2",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "",
+              "displayName" : "",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "nl.brapps.SeaBattle.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium Monthly",
           "subscriptionGroupID" : "AA245C4E",
           "type" : "RecurringSubscription",
           "winbackOffers" : [

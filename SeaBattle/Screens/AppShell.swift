@@ -205,6 +205,10 @@ struct AppShell: View {
     @State private var linkCode: InviteCode?
     /// Окно «Pro — на iOS 26» вместо пейволла на iOS 18 (решение 01.10).
     @State private var proUnavailable = false
+    /// Короткий лист Pro про режим, на который нажали (спека 4.12).
+    @State private var lockedIntent: AppState.PremiumIntent?
+    /// Страница внутри таба «Настройки» («Pro активен»).
+    @State private var settingsPage: SettingsPage?
     /// «О приложении» из настроек.
     @State private var showAbout = false
     /// Сетевая партия. Продолжить её из меню нельзя: выход из неё — сдача
@@ -279,7 +283,35 @@ struct AppShell: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .sheet(isPresented: $appState.showPaywall) { PaywallView() }
+        .proLockedSheet(intent: lockedIntent, onDismiss: closeLockedSheet) { intent in
+            ProLockedSheet(intent: intent,
+                           offers: premiumManager.offers,
+                           hasLoaded: premiumManager.hasLoadedProducts,
+                           onBuy: { await premiumManager.purchase($0) },
+                           onMore: {
+                               // Намерение остаётся: купив на полном экране,
+                               // человек всё равно попадёт в свой режим.
+                               lockedIntent = nil
+                               appState.showPaywall = true
+                           })
+        }
+        .fullScreenCover(isPresented: $appState.showPaywall) {
+            ZStack {
+                SeaBackground()
+                    .ignoresSafeArea()
+                ProPaywallScreen(offers: premiumManager.offers,
+                                 hasLoaded: premiumManager.hasLoadedProducts,
+                                 onBuy: { await premiumManager.purchase($0) },
+                                 onRestore: restorePro,
+                                 onClose: { appState.showPaywall = false })
+                    .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+            }
+            .task {
+                if !premiumManager.hasLoadedProducts || premiumManager.offers.isEmpty {
+                    await premiumManager.loadProducts()
+                }
+            }
+        }
         // ПЕРЕХОДНОЕ: старый экран «Об игре» — правила, авторы картинок и
         // звуков (их лицензии требуют упоминания) и контакты. Своего кадра у
         // «О приложении» нет; уйдёт со старыми представлениями в R4.6.
@@ -290,7 +322,12 @@ struct AppShell: View {
         .modifier(GameActivityLinks(onCode: openFromLink))
         .onChange(of: premiumManager.isPremium) { _, isPremium in
             // Докончить то, из-за чего открывался пейволл.
-            guard isPremium, let intent = appState.pendingPremiumIntent else { return }
+            guard isPremium else { return }
+            // Лист и полный экран закрываются сами, как только Pro появился —
+            // в том числе после покупки на другом устройстве.
+            lockedIntent = nil
+            appState.showPaywall = false
+            guard let intent = appState.pendingPremiumIntent else { return }
             appState.pendingPremiumIntent = nil
             switch intent {
             case .expert:
@@ -312,7 +349,10 @@ struct AppShell: View {
             }
         }
         // Таб-бар iPhone меняет таб напрямую, мимо `selectTab`.
-        .onChange(of: tab) { statsPage = nil }
+        .onChange(of: tab) {
+            statsPage = nil
+            settingsPage = nil
+        }
         .onChange(of: appState.showPaywall) { _, shown in
             if !shown && !premiumManager.isPremium { appState.pendingPremiumIntent = nil }
         }
@@ -352,12 +392,22 @@ struct AppShell: View {
         case .statistics:
             statistics
         case .settings:
-            SettingsScreen(isPremium: premiumManager.isPremium,
-                           levelLocked: appState.gameIsActive && !appState.gameIsOver,
-                           onLevelLocked: { openPro(intent: .expert) },
-                           // На iOS 18 строки Pro нет (решение 8).
-                           onPro: PremiumManager.isOffered ? { openPro(intent: nil) } : nil,
-                           onAbout: { showAbout = true })
+            switch settingsPage {
+            case nil:
+                SettingsScreen(isPremium: premiumManager.isPremium,
+                               levelLocked: appState.gameIsActive && !appState.gameIsOver,
+                               onLevelLocked: { openPro(intent: .expert) },
+                               // На iOS 18 строки Pro нет (решение 8). С Pro строка
+                               // ведёт на «Pro активен», без него — на полный экран.
+                               onPro: PremiumManager.isOffered ? {
+                                   if premiumManager.isPremium { settingsPage = .pro } else { openPro(intent: nil) }
+                               } : nil,
+                               onAbout: { showAbout = true })
+            case .pro:
+                ProActiveScreen(entitlement: premiumManager.entitlement,
+                                onBack: { settingsPage = nil },
+                                onRestore: restorePro)
+            }
         }
     }
 
@@ -411,7 +461,8 @@ struct AppShell: View {
             ZStack(alignment: .bottom) {
                 tabContent
                     // Настройки — в две колонки, им 520 мало (4.11).
-                    .frame(maxWidth: tab == .settings ? SettingsMetrics.padWidth : Geometry.Nav.padColumn)
+                    .frame(maxWidth: tab == .settings && settingsPage == nil
+                           ? SettingsMetrics.padWidth : Geometry.Nav.padColumn)
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, hidesTabs ? 0 : Geometry.Inset.padTile + Geometry.Nav.stackGap)
                 if !hidesTabs {
@@ -429,6 +480,7 @@ struct AppShell: View {
         withAnimation(Motion.quick) { tab = newTab }
         // Нажатие на таб возвращает на его корень, как в системных табах.
         statsPage = nil
+        settingsPage = nil
     }
 
     /// Подпись под «Продолжить партию» на iPad — уровень партии, которая идёт
@@ -447,14 +499,7 @@ struct AppShell: View {
             LevelScreen(selected: levelSelection,
                         isPremium: premiumManager.isPremium,
                         onSelect: { levelSelection = $0 },
-                        onLocked: {
-                            guard PremiumManager.isOffered else {
-                                proUnavailable = true
-                                return
-                            }
-                            appState.pendingPremiumIntent = .expert
-                            appState.showPaywall = true
-                        },
+                        onLocked: { openPro(intent: .expert) },
                         onStart: startAfterLevel,
                         onBack: { self.route = nil },
                         // До начала боя «Меню» выходит без вопроса (спека 3.1).
@@ -656,8 +701,7 @@ struct AppShell: View {
         }
         linkCode = code
         guard premiumManager.isPremium else {
-            appState.pendingPremiumIntent = .online
-            appState.showPaywall = true
+            openPro(intent: .online)
             return
         }
         let inMenu = route == nil && appState.selectedTab == .menu
@@ -686,26 +730,39 @@ struct AppShell: View {
 
     // MARK: Что делают строки меню
 
-    /// Пейволл, а на iOS 18 — окно «Pro — на iOS 26» (решение 8).
+    /// Pro (спека 4.12): с режимом — короткий лист про него, без режима
+    /// (строка «Pro» в настройках) — полный экран. На iOS 18 — окно «Pro — на
+    /// iOS 26» (решение 8).
     private func openPro(intent: AppState.PremiumIntent?) {
         guard PremiumManager.isOffered else {
             proUnavailable = true
             return
         }
         appState.pendingPremiumIntent = intent
-        appState.showPaywall = true
+        if let intent {
+            lockedIntent = intent
+        } else {
+            appState.showPaywall = true
+        }
+    }
+
+    /// Лист закрыт мимо покупки: режим после неё открывать уже незачем.
+    private func closeLockedSheet() {
+        lockedIntent = nil
+        if !premiumManager.isPremium { appState.pendingPremiumIntent = nil }
+    }
+
+    /// «Восстановить покупку»; вернуть — нашёлся ли Pro.
+    private func restorePro() async -> Bool {
+        await premiumManager.restore()
+        return premiumManager.isPremium
     }
 
     private func open(_ item: MenuMode) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
 
         if item.isLocked(isPremium: premiumManager.isPremium) {
-            guard PremiumManager.isOffered else {
-                proUnavailable = true
-                return
-            }
-            appState.pendingPremiumIntent = intent(for: item.mode)
-            appState.showPaywall = true
+            openPro(intent: intent(for: item.mode))
             return
         }
 

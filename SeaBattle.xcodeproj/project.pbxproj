@@ -137,6 +137,7 @@
 		CAD720E5306E73AE00F6E49F /* StatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E4306E73AE00F6E49F /* StatsScreen.swift */; };
 		CAD720E7306E73D900F6E49F /* WalletScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E6306E73D900F6E49F /* WalletScreen.swift */; };
 		CAD720EB306E81E900F6E49F /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720EA306E81E900F6E49F /* SettingsScreen.swift */; };
+		CAD720EF306E934E00F6E49F /* ProScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720EE306E934E00F6E49F /* ProScreens.swift */; };
 		CADF48B3306DA80100974A1B /* NetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B2306DA80100974A1B /* NetGame.swift */; };
 		CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B4306DA87100974A1B /* NetMatch.swift */; };
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
@@ -297,6 +298,7 @@
 		CAD720E4306E73AE00F6E49F /* StatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsScreen.swift; sourceTree = "<group>"; };
 		CAD720E6306E73D900F6E49F /* WalletScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletScreen.swift; sourceTree = "<group>"; };
 		CAD720EA306E81E900F6E49F /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		CAD720EE306E934E00F6E49F /* ProScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProScreens.swift; sourceTree = "<group>"; };
 		CADF48B2306DA80100974A1B /* NetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetGame.swift; sourceTree = "<group>"; };
 		CADF48B4306DA87100974A1B /* NetMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetMatch.swift; sourceTree = "<group>"; };
 		CADF48B8306DAA4500974A1B /* NetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetScreen.swift; sourceTree = "<group>"; };
@@ -543,6 +545,7 @@
 				CAD720E4306E73AE00F6E49F /* StatsScreen.swift */,
 				CAD720E6306E73D900F6E49F /* WalletScreen.swift */,
 				CAD720EA306E81E900F6E49F /* SettingsScreen.swift */,
+				CAD720EE306E934E00F6E49F /* ProScreens.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -842,6 +845,7 @@
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				CA4F06373061DB170083DE5C /* Log.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
+				CAD720EF306E934E00F6E49F /* ProScreens.swift in Sources */,
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
 				CA4F06353061DB140083DE5C /* AudioService.swift in Sources */,
 				CA4F063A3061E1E20083DE5C /* Side.swift in Sources */,
