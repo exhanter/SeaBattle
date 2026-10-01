@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "version": "2024-11-15"
+  },
+  "resources": {
+    "gameActivities": [
+      {
+        "archived": false,
+        "maximumPlayersCount": 2,
+        "minimumPlayersCount": 2,
+        "playStyle": null,
+        "properties": {},
+        "referenceName": "Sea Battle Versus",
+        "supportsPartyCode": true,
+        "vendorIdentifier": "nl.brapps.SeaBattle.versus"
+      }
+    ],
+    "gameActivityDefaultImages": {
+      "nl.brapps.SeaBattle.versus": {
+        "localID": "nl.brapps.SeaBattle.versus",
+        "url": "GameActivityImage-nl.brapps.SeaBattle.versus.jpg"
+      }
+    }
+  }
+}

@@ -130,6 +130,8 @@
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
 		CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */; };
 		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
+		CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
+		CAD720DF306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
 		CADF48B3306DA80100974A1B /* NetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B2306DA80100974A1B /* NetGame.swift */; };
 		CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B4306DA87100974A1B /* NetMatch.swift */; };
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
@@ -284,6 +286,7 @@
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
 		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
 		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
+		CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GameCenterResources.gamekit; sourceTree = "<group>"; };
 		CADF48B2306DA80100974A1B /* NetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetGame.swift; sourceTree = "<group>"; };
 		CADF48B4306DA87100974A1B /* NetMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetMatch.swift; sourceTree = "<group>"; };
 		CADF48B8306DAA4500974A1B /* NetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetScreen.swift; sourceTree = "<group>"; };
@@ -387,6 +390,7 @@
 		2C6A84642B6E99620001A20C = {
 			isa = PBXGroup;
 			children = (
+				CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */,
 				CA17D7CB302CB93A007A33B0 /* SeaBattle.storekit */,
 				2C6A846F2B6E99620001A20C /* SeaBattle */,
 				2C275E672D4CDC7C008E29A9 /* SeaBattleTests */,
@@ -693,6 +697,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA17D7CC302CB93A007A33B0 /* SeaBattle.storekit in Resources */,
+				CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -700,6 +705,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAD720DF306E427700F6E49F /* GameCenterResources.gamekit in Resources */,
 				2CA38D042CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav in Resources */,
 				2C6A84782B6E99640001A20C /* Preview Assets.xcassets in Resources */,
 				2C4AE0EB2C875FC90013DF12 /* Aldrich-Regular.ttf in Resources */,
