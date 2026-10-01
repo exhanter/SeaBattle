@@ -115,7 +115,7 @@ struct OnlineScreen: View {
         case .failed(let search):
             ScreenTitle(title: search == .random ? "Finding an opponent" : "Enter a code",
                         back: "Online", onBack: { lobby.cancel() })
-        case .checking, .signingIn, .noConnection, .signInFailed, .choosing:
+        case .checking, .signingIn, .noConnection, .signInFailed, .choosing, .invitesUnavailable:
             ScreenTitle(title: "Online", back: "Play", onBack: { leave() })
         }
     }
@@ -143,15 +143,19 @@ struct OnlineScreen: View {
                        note: "It usually takes less than half a minute.")
         case .joining(let code, let since):
             RadarBlock(title: "Joining the match", since: since,
-                       note: "Code \(code.display). The player who gave it must be on the code screen.")
+                       note: "Code \(code.text). The player who gave it must be on the code screen.")
         case .failed(let search):
             failedCard(search)
         case .hosting(let code, _):
-            InviteBlock(code: code, expired: false, arrangedAhead: hasArrangedAhead,
+            InviteBlock(code: code, expired: false, link: lobby.partyURL,
+                        arrangedAhead: hasArrangedAhead,
                         onArrangeAhead: onArrangeAhead)
         case .codeExpired(let code):
             InviteBlock(code: code, expired: true, arrangedAhead: hasArrangedAhead,
                         onArrangeAhead: onArrangeAhead)
+        case .invitesUnavailable:
+            OnlineNoticeCard(icon: "person.2.slash", title: "Invites are unavailable",
+                             message: "Game Center could not open a match with a code right now. Try again later, or play a random opponent.")
         case .entering:
             CodeEntryBlock(text: $lobby.typedCode, onSubmit: { lobby.join() })
         }
@@ -165,7 +169,7 @@ struct OnlineScreen: View {
                              message: "No one is looking for a match right now. Try again in a minute, or invite a friend with a code.")
         case .join(let code):
             OnlineNoticeCard(icon: "number", title: "No match with this code",
-                             message: "Nobody is waiting with the code \(code.display). Check the digits: a code lives for 10 minutes.")
+                             message: "Nobody is waiting with the code \(code.text). Check the digits: a code lives for 10 minutes.")
         }
     }
 
@@ -224,6 +228,9 @@ struct OnlineScreen: View {
                 Button { lobby.join() } label: { Text("Join") }
                     .primaryButton(enabled: lobby.enteredCode != nil)
                     .accessibilityIdentifier("onlineJoinButton")
+            case .invitesUnavailable:
+                Button { lobby.cancel() } label: { Text("Back to the choice") }
+                    .secondaryButton()
             case .checking, .signingIn, .choosing:
                 EmptyView()
             }
@@ -348,6 +355,8 @@ struct Radar: View {
 struct InviteBlock: View {
     let code: InviteCode
     let expired: Bool
+    /// Ссылка Game Center на партию: друг жмёт её и попадает прямо в игру.
+    var link: URL?
     let arrangedAhead: Bool
     var onArrangeAhead: () -> Void = {}
 
@@ -369,13 +378,13 @@ struct InviteBlock: View {
     private var card: some View {
         VStack(spacing: OnlineMetrics.cardGap) {
             OnlineOverline(text: "Match code")
-            Text(verbatim: code.display)
+            Text(verbatim: code.text)
                 .font(.system(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
                 .tracking(OnlineMetrics.code * 0.08)
                 .foregroundStyle(Color.inkPrimary)
                 .shadow(color: .roleYouSoft, radius: OnlineMetrics.codeGlow)
                 .opacity(expired ? 0.45 : 1)
-                .accessibilityLabel(Text(verbatim: code.display))
+                .accessibilityLabel(Text(verbatim: code.text))
                 .accessibilityIdentifier("onlineCode")
             Text(expired ? "The code has expired. Get a new one — the fleet stays as it is."
                          : "Your opponent enters the code in the same mode. The code lives for 10 minutes.")
@@ -387,16 +396,14 @@ struct InviteBlock: View {
             if !expired {
                 HStack(spacing: 8) {
                     Button {
-                        UIPasteboard.general.string = code.display
+                        UIPasteboard.general.string = code.text
                         copied = true
                     } label: {
                         Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
                     }
                     .secondaryButton()
-                    ShareLink(item: String(localized: "Let's play Sea Battle! Match code: \(code.display)")) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                    .secondaryButton()
+                    share
+                        .secondaryButton()
                 }
             }
         }
@@ -405,6 +412,22 @@ struct InviteBlock: View {
         .frame(maxWidth: .infinity)
         .glassPanel(.g2, radius: OnlineMetrics.cardRadius)
         .onChange(of: code) { copied = false }
+    }
+
+    /// Есть ссылка — делимся ею: по ней друг попадает прямо в партию, а код
+    /// остаётся в тексте для того, кто откроет игру сам.
+    @ViewBuilder
+    private var share: some View {
+        let message = String(localized: "Let's play Sea Battle! Match code: \(code.text)")
+        if let link {
+            ShareLink(item: link, message: Text(verbatim: message)) {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        } else {
+            ShareLink(item: message) {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        }
     }
 
     private var waiting: some View {
@@ -500,7 +523,7 @@ struct CodeEntryBlock: View {
         ScrollView {
             VStack(spacing: OnlineMetrics.cardGap) {
                 OnlineOverline(text: "Match code")
-                TextField(text: $text, prompt: Text(verbatim: "000 000").foregroundStyle(Color.inkTertiary)) {
+                TextField(text: $text, prompt: Text(verbatim: "000-000").foregroundStyle(Color.inkTertiary)) {
                     Text("Match code")
                 }
                 .font(.system(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
@@ -534,11 +557,11 @@ struct CodeEntryBlock: View {
         }
     }
 
-    /// Не больше шести цифр, пробел после третьей — как код показан у друга.
+    /// Не больше шести цифр, дефис после третьей — как код показан у друга.
     static func format(_ typed: String) -> String {
         let digits = String(typed.filter { $0.isASCII && $0.isNumber }.prefix(6))
         guard digits.count > 3 else { return digits }
-        return "\(digits.prefix(3)) \(digits.dropFirst(3))"
+        return "\(digits.prefix(3))-\(digits.dropFirst(3))"
     }
 }
 
@@ -697,7 +720,11 @@ final class PreviewOnlineService: OnlineService {
 
     func isOnline() async -> Bool { online }
     func signIn() async -> Bool { signedIn }
-    func findMatch(playerGroup: Int) async throws -> FoundMatch {
+    func openParty(_ code: InviteCode) throws -> URL? {
+        URL(string: "https://games.apple.com/party/\(code.text)")
+    }
+    func closeParty() {}
+    func findMatch(_ kind: MatchKind) async throws -> FoundMatch {
         try await Task.sleep(for: .seconds(3600))
         throw CancellationError()
     }
@@ -745,7 +772,7 @@ private struct OnlineDemo: View {
 #Preview("По сети · ввод кода") {
     OnlineDemo {
         $0.beginEntering()
-        $0.typedCode = "472 91"
+        $0.typedCode = "472-91"
     }
     .preferredColorScheme(.dark)
 }

@@ -57,6 +57,8 @@ struct SettingsView: View {
                         // the paywall and revert the selection.
                         if newValue == 3 && !premiumManager.isPremium {
                             appState.difficulty = oldValue == 3 ? 0 : oldValue
+                            // ПЕРЕХОДНОЕ (R4.2): на iOS 18 Pro не продаётся — только откат.
+                            guard PremiumManager.isOffered else { return }
                             appState.pendingPremiumIntent = .expert // switch to Expert after subscribing
                             showPaywall = true
                             return
@@ -145,7 +147,8 @@ struct SettingsView: View {
                         Label("Premium active", systemImage: "checkmark.seal.fill")
                             .foregroundColor(Color(red: 248/255, green: 255/255, blue: 0/255))
                             .padding()
-                    } else {
+                    } else if PremiumManager.isOffered {
+                        // ПЕРЕХОДНОЕ (R4.2): на iOS 18 Pro не продаётся.
                         Button {
                             if appState.soundOn {
                                 AppState.playSound(sound: "click_sound.wav")

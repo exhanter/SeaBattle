@@ -75,6 +75,50 @@ struct ModalDialog: View {
     }
 }
 
+/// То же окно с одной кнопкой: сообщить, а не спросить. Первое — «Pro на
+/// iOS 26» (R3.3c): спрашивать тут нечего, выбора у игрока нет.
+struct NoticeDialog: View {
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
+    var button: LocalizedStringKey = "OK"
+    var onDismiss: () -> Void = {}
+
+    var body: some View {
+        VStack(spacing: ModalMetrics.buttonsGap) {
+            VStack(spacing: ModalMetrics.titleGap) {
+                Text(title)
+                    .font(TypeScale.headline)
+                    .foregroundStyle(Color.inkPrimary)
+                    .multilineTextAlignment(.center)
+                Text(message)
+                    .font(TypeScale.footnote)
+                    .lineSpacing(ModalMetrics.messageLineSpacing)
+                    .foregroundStyle(Color.inkSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Button {
+                onDismiss()
+            } label: {
+                Text(button)
+            }
+            .primaryButton()
+            .accessibilityIdentifier("noticeDismiss")
+        }
+        .padding(ModalMetrics.padding)
+        .glassPanel(.g3, radius: ModalMetrics.radius)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+    }
+
+    /// На iOS 18 Pro не продаётся (решение заказчика 01.10).
+    static func proNeedsNewerSystem(onDismiss: @escaping () -> Void) -> NoticeDialog {
+        NoticeDialog(title: "Pro needs iOS 26",
+                     message: "Games with other people and the Expert level are part of Pro, which works on iOS 26 and later. Update the system in Settings → General → Software Update to open them.",
+                     onDismiss: onDismiss)
+    }
+}
+
 // MARK: - Показ поверх экрана
 
 extension View {
@@ -196,4 +240,14 @@ private struct ModalDemo: View {
 #Preview("Окно · сдача") {
     ModalDemo(kind: .network)
         .preferredColorScheme(.dark)
+}
+
+#Preview("Окно · Pro на iOS 26") {
+    ZStack {
+        SeaBackground()
+    }
+    .modalDialog(isPresented: true) {
+        NoticeDialog.proNeedsNewerSystem {}
+    }
+    .preferredColorScheme(.dark)
 }

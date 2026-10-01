@@ -196,6 +196,11 @@ struct AppShell: View {
     /// Вход в «По сети». Живёт и во время партии приглашающего, пока соперник
     /// не пришёл: код ещё ищется, а флот уже расставляют.
     @State private var online: OnlineLobby?
+    /// Код «вечеринки», пришедший по ссылке или из приложения «Игры», пока
+    /// игрок занят другой партией или покупает Pro: «По сети» откроется с ним.
+    @State private var linkCode: InviteCode?
+    /// Окно «Pro — на iOS 26» вместо пейволла на iOS 18 (решение 01.10).
+    @State private var proUnavailable = false
     /// Сетевая партия. Продолжить её из меню нельзя: выход из неё — сдача
     /// или конец связи, поэтому она живёт ровно столько, сколько экран.
     @State private var net: NetMatch?
@@ -269,6 +274,10 @@ struct AppShell: View {
             Button("Cancel", role: .cancel) {}
         }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
+        .modalDialog(isPresented: proUnavailable) {
+            NoticeDialog.proNeedsNewerSystem { proUnavailable = false }
+        }
+        .modifier(GameActivityLinks(onCode: openFromLink))
         .onChange(of: premiumManager.isPremium) { _, isPremium in
             // Докончить то, из-за чего открывался пейволл.
             guard isPremium, let intent = appState.pendingPremiumIntent else { return }
@@ -385,6 +394,10 @@ struct AppShell: View {
                         isPremium: premiumManager.isPremium,
                         onSelect: { levelSelection = $0 },
                         onLocked: {
+                            guard PremiumManager.isOffered else {
+                                proUnavailable = true
+                                return
+                            }
                             appState.pendingPremiumIntent = .expert
                             appState.showPaywall = true
                         },
@@ -524,8 +537,17 @@ struct AppShell: View {
         route = nil
     }
 
+    /// «По сети» — только iOS 26+: на iOS 18 Pro не продаётся, а купленный
+    /// на другом устройстве Pro сюда всё равно не пускает (Game Center party
+    /// codes есть только с iOS 26).
     private func openOnline() {
-        let lobby = OnlineLobby(service: GameCenterService())
+        guard #available(iOS 26.0, *) else {
+            proUnavailable = true
+            return
+        }
+        let code = linkCode
+        linkCode = nil
+        let lobby = OnlineLobby(service: GameCenterService(), joining: code)
         lobby.onFound = { transport in self.onlineFound(transport) }
         // Код истёк, пока приглашающий расставлял флот: назад к коду, флот
         // остаётся в партии.
@@ -569,6 +591,25 @@ struct AppShell: View {
         }
     }
 
+    /// Код пришёл по ссылке или из «Игр». Без Pro — сначала пейволл, «По сети»
+    /// откроется после покупки с этим же кодом. Посреди другой партии код
+    /// ждёт, пока игрок сам откроет «По сети», — партию не обрываем.
+    private func openFromLink(_ code: InviteCode) {
+        if let online {
+            online.joinFromLink(code)
+            route = .online
+            return
+        }
+        linkCode = code
+        guard premiumManager.isPremium else {
+            appState.pendingPremiumIntent = .online
+            appState.showPaywall = true
+            return
+        }
+        let inMenu = route == nil && appState.selectedTab == .menu
+        if inMenu { openOnline() }
+    }
+
     private func closeOnline() {
         online?.leave()
         online = nil
@@ -595,6 +636,10 @@ struct AppShell: View {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
 
         if item.isLocked(isPremium: premiumManager.isPremium) {
+            guard PremiumManager.isOffered else {
+                proUnavailable = true
+                return
+            }
             appState.pendingPremiumIntent = intent(for: item.mode)
             appState.showPaywall = true
             return
@@ -805,6 +850,34 @@ struct AppShell: View {
             AppState.playMusic(sound: "Battles_on_the_High_Seas.mp3")
         }
         appState.selectedTab = .enemyView
+    }
+}
+
+// MARK: - Ссылки на партию
+
+/// Принимает коды «вечеринок» извне (iOS 26+): при запуске и при каждом
+/// возвращении в приложение спрашивает Game Center, не ждёт ли активность,
+/// и отдаёт пришедший код оболочке.
+private struct GameActivityLinks: ViewModifier {
+    let onCode: (InviteCode) -> Void
+    @Environment(\.scenePhase) private var scenePhase
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            let router = GameActivityRouter.shared
+            content
+                .task { await router.checkPending() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await router.checkPending() } }
+                }
+                .onChange(of: router.pendingCode) { _, code in
+                    guard let code else { return }
+                    router.pendingCode = nil
+                    onCode(code)
+                }
+        } else {
+            content
+        }
     }
 }
 

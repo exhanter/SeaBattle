@@ -22,6 +22,18 @@ final class PremiumManager {
     /// still reports as entitled).
     private(set) var isPremium = false
 
+    /// Pro is sold only on iOS 26+ (the customer's decision, 01.10): its main
+    /// feature, online play, is built on Game Center party codes, which need
+    /// iOS 26. On iOS 18 no paywall opens — a locked row explains why instead.
+    /// A purchase made on another device is still honoured there, except for
+    /// online play itself.
+    static var isOffered: Bool {
+        if #available(iOS 26.0, *) { true } else { false }
+    }
+
+    /// Online play needs iOS 26 regardless of Pro.
+    static var supportsOnline: Bool { isOffered }
+
     /// The loaded subscription products (for the paywall).
     private(set) var products: [Product] = []
 

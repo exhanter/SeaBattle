@@ -2,10 +2,11 @@
 //  OnlineLobbyTests.swift
 //  SeaBattleTests
 //
-//  R3.3b — вход в «По сети». Game Center подменён сервисом, которым тест
-//  управляет руками: когда поиск отвечает, чем и отменён ли он. Проверяется
-//  то, что на устройстве не поймать: ответ отменённого поиска, пришедший
-//  позже, срок кода и флот, расставленный до прихода соперника.
+//  R3.3b / R3.3c — вход в «По сети». Game Center подменён сервисом, которым
+//  тест управляет руками: когда поиск отвечает, чем и отменён ли он, открыта
+//  ли «вечеринка». Проверяется то, что на устройстве не поймать: ответ
+//  отменённого поиска, пришедший позже, срок кода, флот, расставленный до
+//  прихода соперника, и код, пришедший по ссылке до входа в Game Center.
 //
 
 import Foundation
@@ -18,14 +19,21 @@ import Testing
 final class FakeOnlineService: OnlineService {
     var online = true
     var signedIn = true
+    /// Game Center не открывает «вечеринки» — активность не описана.
+    var partiesWork = true
     private(set) var signInCalls = 0
     private(set) var cancelCalls = 0
-    /// Группы всех поисков по порядку.
-    private(set) var groups: [Int] = []
+    /// Все поиски по порядку.
+    private(set) var searches: [MatchKind] = []
+    /// Открытая сейчас «вечеринка» и все, что открывались.
+    private(set) var openParty: InviteCode?
+    private(set) var openedParties: [InviteCode] = []
     /// Ответ поиска ждёт здесь: `FoundMatch` не `Sendable`, через продолжение
     /// его не передать, а оба конца и так на главном акторе.
     private var pending: CheckedContinuation<Void, any Error>?
     private var answer: FoundMatch?
+
+    struct NotConfigured: Error {}
 
     var playerID: String { "me" }
     var playerName: String { "Я" }
@@ -38,8 +46,19 @@ final class FakeOnlineService: OnlineService {
         return signedIn
     }
 
-    func findMatch(playerGroup: Int) async throws -> FoundMatch {
-        groups.append(playerGroup)
+    func openParty(_ code: InviteCode) throws -> URL? {
+        guard partiesWork else { throw NotConfigured() }
+        openParty = code
+        openedParties.append(code)
+        return URL(string: "https://example.com/\(code.text)")
+    }
+
+    func closeParty() {
+        openParty = nil
+    }
+
+    func findMatch(_ kind: MatchKind) async throws -> FoundMatch {
+        searches.append(kind)
         try await withCheckedThrowingContinuation { pending = $0 }
         defer { answer = nil }
         return answer!
@@ -82,36 +101,44 @@ struct InviteCodeTests {
     @Test("Набранный код читается с пробелом, дефисом и без них",
           arguments: ["472 913", "472-913", "472913", " 472 913 "])
     func typedVariants(_ typed: String) {
-        #expect(InviteCode(typed: typed)?.value == 472_913)
+        #expect(InviteCode(typed: typed)?.text == "472-913")
     }
 
-    @Test("Не шесть цифр или ноль впереди — не код",
-          arguments: ["47291", "4729130", "012 345", "", "abc def"])
-    func rejects(_ typed: String) {
+    @Test("Набрать можно только шесть цифр", arguments: ["47291", "4729130", "", "abc def"])
+    func typedRejects(_ typed: String) {
         #expect(InviteCode(typed: typed) == nil)
     }
 
-    @Test("Код показан двумя тройками")
-    func display() {
-        #expect(InviteCode(value: 472_913)?.display == "472 913")
+    @Test("Код Game Center из ссылки: буквенный — прописными, цифровой — как есть")
+    func partyCodes() {
+        #expect(InviteCode(partyCode: "2mp4-9cmf")?.text == "2MP4-9CMF")
+        #expect(InviteCode(partyCode: "472-913")?.text == "472-913")
+        #expect(InviteCode(partyCode: "12-34")?.text == "12-34")
     }
 
-    @Test("Случайный код — шесть цифр, отдельно от группы случайного соперника")
+    @Test("Не формат Game Center — не код: части разной длины, без дефиса, длиннее шести",
+          arguments: ["AB-CDE", "ABCD", "1234567-1234567", "A-B", "AB-CD-EF", "АБ-ВГ"])
+    func partyRejects(_ code: String) {
+        #expect(InviteCode(partyCode: code) == nil)
+    }
+
+    @Test("Свой код — шесть цифр через дефис, первая не ноль")
     func randomCodes() {
         var generator = SystemRandomNumberGenerator()
         for _ in 0..<200 {
             let code = InviteCode.random(using: &generator)
-            #expect(InviteCode.range.contains(code.playerGroup))
-            #expect(code.playerGroup != 0)
+            #expect(code.text.count == 7)
+            #expect(code.text.first != "0")
+            #expect(InviteCode(typed: code.text) == code)
         }
     }
 
-    @Test("Поле ввода держит шесть цифр и ставит пробел после третьей")
+    @Test("Поле ввода держит шесть цифр и ставит дефис после третьей")
     @MainActor
     func entryFormat() {
         #expect(CodeEntryBlock.format("47") == "47")
-        #expect(CodeEntryBlock.format("4729") == "472 9")
-        #expect(CodeEntryBlock.format("472 913 5") == "472 913")
+        #expect(CodeEntryBlock.format("4729") == "472-9")
+        #expect(CodeEntryBlock.format("472 913 5") == "472-913")
         #expect(CodeEntryBlock.format("4a7-2") == "472")
     }
 }
@@ -122,8 +149,9 @@ struct InviteCodeTests {
 @Suite("По сети · лобби")
 struct OnlineLobbyTests {
 
-    private func lobby(_ service: FakeOnlineService, pacing: OnlinePacing = .instant) async -> OnlineLobby {
-        let lobby = OnlineLobby(service: service, pacing: pacing)
+    private func lobby(_ service: FakeOnlineService, pacing: OnlinePacing = .instant,
+                       joining code: InviteCode? = nil) async -> OnlineLobby {
+        let lobby = OnlineLobby(service: service, pacing: pacing, joining: code)
         await lobby.enter()
         return lobby
     }
@@ -152,7 +180,7 @@ struct OnlineLobbyTests {
 
     // MARK: Случайный соперник
 
-    @Test("Случайный соперник ищется в группе 0 и отдаётся оболочке")
+    @Test("Случайный соперник — без «вечеринки», найденный отдаётся оболочке")
     func randomFound() async {
         let service = FakeOnlineService()
         let lobby = await lobby(service)
@@ -164,7 +192,8 @@ struct OnlineLobbyTests {
             return
         }
         await until { service.isSearching }
-        #expect(service.groups == [0])
+        #expect(service.searches == [.random])
+        #expect(service.openedParties.isEmpty)
         let transport = LoopbackTransport()
         service.resolve(transport)
         await until { found != nil }
@@ -208,7 +237,7 @@ struct OnlineLobbyTests {
 
     // MARK: Свой код
 
-    @Test("Свой код — группа поиска; обрыв поиска Game Center — ищем заново с тем же кодом")
+    @Test("Свой код открывает «вечеринку» со ссылкой; обрыв поиска — ищем заново в ней же")
     func hostRetriesWhileCodeLives() async {
         let service = FakeOnlineService()
         let lobby = await lobby(service, pacing: OnlinePacing(codeLifetime: .seconds(3600),
@@ -218,19 +247,37 @@ struct OnlineLobbyTests {
             Issue.record("Нет кода: \(lobby.stage)")
             return
         }
+        #expect(service.openParty == code)
+        #expect(lobby.partyURL?.absoluteString.hasSuffix(code.text) == true)
         await until { service.isSearching }
         service.fail()
-        await until { service.groups.count == 2 }
-        #expect(service.groups == [code.playerGroup, code.playerGroup])
+        await until { service.searches.count == 2 }
+        #expect(service.searches == [.party, .party])
+        #expect(service.openedParties == [code])
         guard case .hosting(let current, _) = lobby.stage else {
             Issue.record("Код пропал: \(lobby.stage)")
             return
         }
         #expect(current == code)
         lobby.cancel()
+        #expect(service.openParty == nil)
+        #expect(lobby.partyURL == nil)
     }
 
-    @Test("Код истёк — поиск отменён, оболочку вернули к коду; новый код — тот же транспорт")
+    @Test("Game Center не открыл «вечеринку» — «Приглашения недоступны», поиска нет")
+    func invitesUnavailable() async {
+        let service = FakeOnlineService()
+        service.partiesWork = false
+        let lobby = await lobby(service)
+        lobby.host()
+        #expect(lobby.stage == .invitesUnavailable)
+        #expect(lobby.hostTransport == nil)
+        lobby.join(InviteCode(typed: "472913")!)
+        #expect(lobby.stage == .invitesUnavailable)
+        #expect(service.searches.isEmpty)
+    }
+
+    @Test("Код истёк — поиск отменён, «вечеринка» закрыта, оболочку вернули к коду; новый код — тот же транспорт")
     func codeExpires() async {
         let service = FakeOnlineService()
         let lobby = await lobby(service)
@@ -245,6 +292,7 @@ struct OnlineLobbyTests {
         #expect(inviteEnded)
         #expect(service.cancelCalls >= 1)
         #expect(!service.isSearching)
+        #expect(service.openParty == nil)
 
         lobby.renewCode()
         guard case .hosting(let renewed, _) = lobby.stage else {
@@ -252,11 +300,11 @@ struct OnlineLobbyTests {
             return
         }
         #expect(lobby.hostTransport === transport)
-        await until { service.groups.last == renewed.playerGroup && service.isSearching }
+        #expect(service.openParty == renewed)
         lobby.cancel()
     }
 
-    @Test("Партию приглашающего закрыли на расстановке — поиск по коду останавливается")
+    @Test("Партию приглашающего закрыли на расстановке — поиск и «вечеринка» закрываются")
     func closingTheMatchStopsTheSearch() async {
         let service = FakeOnlineService()
         let lobby = await lobby(service, pacing: OnlinePacing(codeLifetime: .seconds(3600)))
@@ -266,6 +314,7 @@ struct OnlineLobbyTests {
         #expect(lobby.stage == .choosing)
         #expect(lobby.hostTransport == nil)
         #expect(!service.isSearching)
+        #expect(service.openParty == nil)
     }
 
     @Test("Флот расставлен заранее: соперник пришёл — «Начать» открылась, бой начинается")
@@ -315,7 +364,7 @@ struct OnlineLobbyTests {
 
     // MARK: Чужой код
 
-    @Test("Набранный код — группа поиска; не нашли — «Нет партии с этим кодом»")
+    @Test("Набранный код — «вечеринка» с ним; не нашли — «Нет партии с этим кодом», «вечеринка» закрыта")
     func joinFailure() async {
         let service = FakeOnlineService()
         let lobby = await lobby(service)
@@ -325,12 +374,66 @@ struct OnlineLobbyTests {
         lobby.join()
         #expect(lobby.stage == .entering)
 
-        lobby.typedCode = "472 913"
+        lobby.typedCode = "472-913"
         lobby.join()
+        let code = InviteCode(typed: "472913")!
         await until { service.isSearching }
-        #expect(service.groups == [472_913])
+        #expect(service.openParty == code)
+        #expect(service.searches == [.party])
         service.fail()
-        let code = InviteCode(value: 472_913)!
         await until { lobby.stage == .failed(.join(code)) }
+        #expect(service.openParty == nil)
+    }
+
+    // MARK: По ссылке
+
+    @Test("Код по ссылке до входа: после входа — сразу присоединяемся, без экрана выбора")
+    func linkBeforeSignIn() async {
+        let service = FakeOnlineService()
+        let code = InviteCode(partyCode: "2MP4-9CMF")!
+        let lobby = await lobby(service, joining: code)
+        guard case .joining(let joining, _) = lobby.stage else {
+            Issue.record("Не присоединились: \(lobby.stage)")
+            return
+        }
+        #expect(joining == code)
+        #expect(service.openParty == code)
+        lobby.cancel()
+    }
+
+    @Test("Код по ссылке, пока свой код на экране: своё приглашение закрывается, идём к другу")
+    func linkWhileHosting() async {
+        let service = FakeOnlineService()
+        let lobby = await lobby(service, pacing: OnlinePacing(codeLifetime: .seconds(3600)))
+        lobby.host()
+        await until { service.isSearching }
+        let code = InviteCode(partyCode: "123-456")!
+        lobby.joinFromLink(code)
+        guard case .joining(let joining, _) = lobby.stage else {
+            Issue.record("Не присоединились: \(lobby.stage)")
+            return
+        }
+        #expect(joining == code)
+        #expect(lobby.hostTransport == nil)
+        #expect(service.openParty == code)
+        lobby.cancel()
+    }
+
+    @Test("Код по ссылке на экране «Нет соединения» ждёт входа, а не теряется")
+    func linkWhileOffline() async {
+        let service = FakeOnlineService()
+        service.online = false
+        let lobby = await lobby(service)
+        let code = InviteCode(partyCode: "123-456")!
+        lobby.joinFromLink(code)
+        #expect(lobby.stage == .noConnection)
+        service.online = true
+        await lobby.enter()
+        guard case .joining(let joining, _) = lobby.stage else {
+            Issue.record("Не присоединились: \(lobby.stage)")
+            return
+        }
+        #expect(joining == code)
+        lobby.cancel()
     }
 }

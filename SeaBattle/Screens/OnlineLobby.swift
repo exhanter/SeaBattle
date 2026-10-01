@@ -1,21 +1,23 @@
 //
 //  OnlineLobby.swift
-//  Sea Battle — вход в «По сети» без SwiftUI (R3.3b)
+//  Sea Battle — вход в «По сети» без SwiftUI (R3.3b, R3.3c)
 //
 //  Спека 4.8, кадры `screen5NetSearch`, `screen5NetInvite`, `screen13NoNet`.
 //  Всё, что происходит до партии: есть ли интернет, вход в Game Center, три
 //  пути к сопернику и срок жизни кода. Сама партия — `NetMatch`, лобби отдаёт
 //  ей только транспорт.
 //
-//  **Код — цифры, а не слово** (решение R3.3): «МОРЕ-47» из кадра не наберёт
-//  игрок на другом языке. Шесть цифр — это `GKMatchRequest.playerGroup`:
-//  Game Center сводит только тех, кто ищет в одной группе. Случайный соперник
-//  ищется в группе 0, коды начинаются со 100 000, поэтому с кодом случайный
-//  соперник не придёт.
+//  **«По сети» — только iOS 26+** (решение заказчика 01.10): на iOS 18 Pro не
+//  продаётся, и этот экран не открывается. Поэтому код приглашения — код
+//  «вечеринки» Game Center (`GKGameActivity`): к нему прилагается ссылка, по
+//  которой друг попадает прямо в партию, а сама партия видна в приложении
+//  «Игры». Game Center принимает и коды из одних цифр — две равные части через
+//  дефис, — поэтому код по-прежнему шесть цифр («472-913»): его легко
+//  продиктовать и набрать на цифровой клавиатуре (решение R3.3 — не слово).
 //
-//  **Код живёт 10 минут.** Game Center сам обрывает долгий поиск ошибкой —
-//  пока код жив, лобби молча ищет заново; по сроку поиск отменяется, и на
-//  экране «Код истёк» с новым кодом.
+//  **Код живёт 10 минут** — наше правило, не Game Center: пока код жив, лобби
+//  молча ищет заново, когда Game Center обрывает долгий поиск; по сроку —
+//  «Код истёк» и новый код.
 //
 //  **Флот заранее** (4.4): у приглашающего партия создаётся до соперника на
 //  `DeferredTransport` — расстановку можно править, «Начать» ждёт подключения.
@@ -26,46 +28,46 @@ import Observation
 
 // MARK: - Код
 
-/// Код партии: шесть цифр, первая не ноль.
+/// Код «вечеринки» Game Center. Свои коды — шесть цифр, «472-913»; чужой,
+/// пришедший по ссылке или из приложения «Игры», может быть и буквенным
+/// («2MP4-9CMF») — Game Center выдаёт такие сам.
 struct InviteCode: Hashable, Sendable {
-    static let range = 100_000...999_999
+    /// Как код показан и как его понимает Game Center: две равные части через
+    /// дефис, прописными.
+    let text: String
 
-    let value: Int
-
-    init?(value: Int) {
-        guard Self.range.contains(value) else { return nil }
-        self.value = value
+    /// Код в формате Game Center: две равные части по 2–6 знаков через дефис,
+    /// обе из цифр или обе из букв и цифр (заголовок `GKGameActivity`,
+    /// `isValidPartyCode`). Окончательно код проверяет Game Center — здесь
+    /// отсекается явный мусор.
+    init?(partyCode: String) {
+        let upper = partyCode.trimmingCharacters(in: .whitespaces).uppercased()
+        let parts = upper.split(separator: "-", omittingEmptySubsequences: false)
+        guard parts.count == 2, parts[0].count == parts[1].count,
+              (2...6).contains(parts[0].count),
+              parts.allSatisfy({ $0.allSatisfy { $0.isASCII && ($0.isNumber || $0.isLetter) } })
+        else { return nil }
+        text = upper
     }
 
-    /// Как его набрали или вставили: пробелы, дефисы и прочее не цифры
+    /// Набранный руками: только шесть цифр, пробелы, дефисы и прочее
     /// отбрасываются — «472 913», «472-913» и «472913» один и тот же код.
     init?(typed: String) {
-        let digits = typed.filter(\.isASCIIDigit)
-        guard digits.count == 6, let value = Int(digits) else { return nil }
-        self.init(value: value)
+        let digits = typed.filter { $0.isASCII && $0.isNumber }
+        guard digits.count == 6 else { return nil }
+        self.init(partyCode: "\(digits.prefix(3))-\(digits.suffix(3))")
     }
 
+    /// Шесть цифр, первая не ноль — чтобы код не начинался с «0», который
+    /// легко потерять, диктуя.
     static func random<G: RandomNumberGenerator>(using generator: inout G) -> InviteCode {
-        InviteCode(value: Int.random(in: range, using: &generator))!
+        InviteCode(typed: String(Int.random(in: 100_000...999_999, using: &generator)))!
     }
 
     static func random() -> InviteCode {
         var generator = SystemRandomNumberGenerator()
         return random(using: &generator)
     }
-
-    /// «472 913» — две тройки читаются вслух и не путаются.
-    var display: String {
-        let digits = String(value)
-        return "\(digits.prefix(3)) \(digits.suffix(3))"
-    }
-
-    /// Группа подбора в Game Center.
-    var playerGroup: Int { value }
-}
-
-private extension Character {
-    var isASCIIDigit: Bool { isASCII && isNumber }
 }
 
 // MARK: - Сервис
@@ -77,6 +79,12 @@ struct FoundMatch {
     let connected: Bool
 }
 
+/// Кого ищем: случайного соперника или того, кто в той же «вечеринке».
+enum MatchKind: Equatable, Sendable {
+    case random
+    case party
+}
+
 /// Game Center и сеть — подменяются в тестах.
 @MainActor
 protocol OnlineService: AnyObject {
@@ -85,8 +93,14 @@ protocol OnlineService: AnyObject {
     func isOnline() async -> Bool
     /// Вошёл — или нет: отказался, Game Center выключен, нет учётной записи.
     func signIn() async -> Bool
-    /// Ждёт соперника в группе. Отмена — `cancelSearch()`, тогда ошибка.
-    func findMatch(playerGroup: Int) async throws -> FoundMatch
+    /// Открыть «вечеринку» с этим кодом — свою или чужую. Возвращает ссылку
+    /// для «Поделиться». Ошибка — приглашения недоступны (активность не
+    /// описана в App Store Connect, код не принят).
+    func openParty(_ code: InviteCode) throws -> URL?
+    /// Закрыть открытую «вечеринку».
+    func closeParty()
+    /// Ждёт соперника. Отмена — `cancelSearch()`, тогда ошибка.
+    func findMatch(_ kind: MatchKind) async throws -> FoundMatch
     func cancelSearch()
 }
 
@@ -120,10 +134,12 @@ enum OnlineStage: Equatable, Sendable {
     case codeExpired(InviteCode)
     /// Набираем код друга.
     case entering
-    /// Код набран, ищем того, кто его выдал.
+    /// Код набран или пришёл по ссылке, ищем того, кто его выдал.
     case joining(InviteCode, since: Date)
     /// Поиск не удался — не отменён, а именно не удался.
     case failed(OnlineSearch)
+    /// Game Center не открыл «вечеринку»: приглашать по коду сейчас нельзя.
+    case invitesUnavailable
 }
 
 enum OnlineSearch: Equatable, Sendable {
@@ -138,6 +154,8 @@ final class OnlineLobby {
     private(set) var stage: OnlineStage = .checking
     /// Код, который набирают сейчас (`entering`).
     var typedCode = ""
+    /// Ссылка на свою «вечеринку» — для «Поделиться».
+    private(set) var partyURL: URL?
 
     /// Соперник найден — партию дальше ведёт оболочка. У приглашающего это
     /// всегда `hostTransport`, даже если партия на нём уже создана.
@@ -151,29 +169,28 @@ final class OnlineLobby {
 
     @ObservationIgnored let service: any OnlineService
     @ObservationIgnored private let pacing: OnlinePacing
+    /// Код из ссылки, пришедшей до входа: после входа — сразу к нему.
+    @ObservationIgnored private var pendingJoin: InviteCode?
     @ObservationIgnored private var searchTask: Task<Void, Never>?
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
     /// Номер поиска: ответ отменённого поиска приходит позже нового и не
     /// должен его перебить.
     @ObservationIgnored private var searchID = 0
+    @ObservationIgnored private var partyIsOpen = false
 
-    init(service: any OnlineService, pacing: OnlinePacing = .live) {
+    init(service: any OnlineService, pacing: OnlinePacing = .live, joining code: InviteCode? = nil) {
         self.service = service
         self.pacing = pacing
+        self.pendingJoin = code
     }
 
     var enteredCode: InviteCode? { InviteCode(typed: typedCode) }
-
-    /// Приглашающий уже расставляет флот, пока ждёт.
-    var isHosting: Bool {
-        if case .hosting = stage { return true }
-        return false
-    }
 
     // MARK: Вход
 
     /// Открытие экрана и «Повторить»: сначала сеть, потом Game Center — без
     /// сети вход всё равно не пройдёт, а экран «Нет соединения» честнее.
+    /// Пришли по ссылке — после входа сразу присоединяемся.
     func enter() async {
         stage = .checking
         guard await service.isOnline() else {
@@ -186,6 +203,22 @@ final class OnlineLobby {
             return
         }
         stage = .choosing
+        if let code = pendingJoin {
+            pendingJoin = nil
+            join(code)
+        }
+    }
+
+    /// Ссылка пришла, когда экран уже открыт.
+    func joinFromLink(_ code: InviteCode) {
+        switch stage {
+        case .checking, .signingIn, .noConnection, .signInFailed:
+            // Вход ещё не прошёл — присоединимся после него.
+            pendingJoin = code
+        default:
+            cancel()
+            join(code)
+        }
     }
 
     // MARK: Случайный соперник
@@ -193,7 +226,7 @@ final class OnlineLobby {
     func findRandom() {
         stopSearch()
         stage = .searching(since: .now)
-        search(group: 0) { [weak self] found in
+        search(.random) { [weak self] found in
             self?.onFound?(found.transport)
         } failed: { [weak self] in
             await self?.failOrOffline(.random)
@@ -204,9 +237,14 @@ final class OnlineLobby {
 
     func host() {
         stopSearch()
+        let code = InviteCode.random()
+        guard open(code) else {
+            stage = .invitesUnavailable
+            return
+        }
         let transport = hostTransport ?? makeHostTransport()
         hostTransport = transport
-        startHosting(InviteCode.random(), on: transport)
+        startHosting(code, on: transport)
     }
 
     /// «Новый код» после истечения. Транспорт тот же: флот, расставленный
@@ -222,6 +260,7 @@ final class OnlineLobby {
             guard let self, let transport, self.hostTransport === transport else { return }
             self.hostTransport = nil
             self.stopSearch()
+            self.closeParty()
             self.stage = .choosing
         }
         return transport
@@ -235,6 +274,7 @@ final class OnlineLobby {
             try? await Task.sleep(for: pacing.codeLifetime)
             guard !Task.isCancelled, let self, self.searchID == id else { return }
             self.stopSearch()
+            self.closeParty()
             self.stage = .codeExpired(code)
             self.onInviteEnded?()
         }
@@ -242,7 +282,7 @@ final class OnlineLobby {
 
     /// Поиск приглашающего: обрыв поиска Game Center — не конец, пока код жив.
     private func hostSearch(_ code: InviteCode, on transport: DeferredTransport) {
-        search(group: code.playerGroup) { [weak self] found in
+        search(.party) { [weak self] found in
             guard let self else { return }
             self.expiryTask?.cancel()
             transport.attach(found.transport, connected: found.connected)
@@ -258,6 +298,7 @@ final class OnlineLobby {
 
     func beginEntering() {
         stopSearch()
+        closeParty()
         typedCode = ""
         stage = .entering
     }
@@ -267,13 +308,18 @@ final class OnlineLobby {
         join(code)
     }
 
-    /// «Попробовать снова» после неудачи — тот же код.
+    /// Набранный код, код из ссылки и «Попробовать снова» после неудачи.
     func join(_ code: InviteCode) {
         stopSearch()
+        guard open(code) else {
+            stage = .invitesUnavailable
+            return
+        }
         stage = .joining(code, since: .now)
-        search(group: code.playerGroup) { [weak self] found in
+        search(.party) { [weak self] found in
             self?.onFound?(found.transport)
         } failed: { [weak self] in
+            self?.closeParty()
             await self?.failOrOffline(.join(code))
         }
     }
@@ -284,6 +330,7 @@ final class OnlineLobby {
     /// приглашающего, если он уже расставлял флот, закрывается вместе с кодом.
     func cancel() {
         stopSearch()
+        closeParty()
         let transport = hostTransport
         hostTransport = nil
         transport?.disconnect()
@@ -297,9 +344,30 @@ final class OnlineLobby {
         cancel()
     }
 
+    // MARK: «Вечеринка»
+
+    /// Одна открытая «вечеринка» за раз: новый код закрывает прежний.
+    private func open(_ code: InviteCode) -> Bool {
+        closeParty()
+        do {
+            partyURL = try service.openParty(code)
+            partyIsOpen = true
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private func closeParty() {
+        guard partyIsOpen else { return }
+        partyIsOpen = false
+        partyURL = nil
+        service.closeParty()
+    }
+
     // MARK: Поиск
 
-    private func search(group: Int,
+    private func search(_ kind: MatchKind,
                         found: @escaping (FoundMatch) -> Void,
                         failed: @escaping () async -> Void) {
         searchID += 1
@@ -307,7 +375,7 @@ final class OnlineLobby {
         searchTask = Task { @MainActor [weak self] in
             guard let service = self?.service else { return }
             do {
-                let match = try await service.findMatch(playerGroup: group)
+                let match = try await service.findMatch(kind)
                 // Отменили, пока соперник подключался, — он не нужен.
                 guard let self, self.searchID == id, !Task.isCancelled else {
                     match.transport.disconnect()
