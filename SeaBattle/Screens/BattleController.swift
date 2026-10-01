@@ -173,6 +173,7 @@ final class BattleController {
         guard let appState else { return }
         let result = shoot(at: coordinate, on: enemy)
         if appState.soundOn { playOwnShot(result) }
+        HapticService.shared.play(shot: result)
         autosave()
         if appState.gameIsActive && appState.enemysTurn {
             startOpponentTurn()

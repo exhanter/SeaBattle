@@ -67,7 +67,9 @@ final class GameEngine {
     /// damage. The cue for damage they deal is chosen by the view model, which
     /// knows whether the shot came from a tap.
     private func play(_ result: Board.ShotResult, on target: PlayerData) {
-        guard appState.soundOn, target.side == .you else { return }
+        guard target.side == .you else { return }
+        HapticService.shared.play(shot: result)
+        guard appState.soundOn else { return }
         switch result {
         case .miss:
             AudioService.shared.play(.missed)

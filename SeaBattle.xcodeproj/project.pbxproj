@@ -138,6 +138,7 @@
 		CAD720E7306E73D900F6E49F /* WalletScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E6306E73D900F6E49F /* WalletScreen.swift */; };
 		CAD720EB306E81E900F6E49F /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720EA306E81E900F6E49F /* SettingsScreen.swift */; };
 		CAD720EF306E934E00F6E49F /* ProScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720EE306E934E00F6E49F /* ProScreens.swift */; };
+		CAD720F3306EB1EE00F6E49F /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720F2306EB1EE00F6E49F /* HapticService.swift */; };
 		CADF48B3306DA80100974A1B /* NetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B2306DA80100974A1B /* NetGame.swift */; };
 		CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B4306DA87100974A1B /* NetMatch.swift */; };
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
@@ -299,6 +300,7 @@
 		CAD720E6306E73D900F6E49F /* WalletScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletScreen.swift; sourceTree = "<group>"; };
 		CAD720EA306E81E900F6E49F /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		CAD720EE306E934E00F6E49F /* ProScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProScreens.swift; sourceTree = "<group>"; };
+		CAD720F2306EB1EE00F6E49F /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
 		CADF48B2306DA80100974A1B /* NetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetGame.swift; sourceTree = "<group>"; };
 		CADF48B4306DA87100974A1B /* NetMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetMatch.swift; sourceTree = "<group>"; };
 		CADF48B8306DAA4500974A1B /* NetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetScreen.swift; sourceTree = "<group>"; };
@@ -376,6 +378,7 @@
 				CA4F06383061E1E20083DE5C /* Core */,
 				CA6886263062B53C00859D7B /* GameMode.swift */,
 				CAD720E0306E72A700F6E49F /* PointsLedger.swift */,
+				CAD720F2306EB1EE00F6E49F /* HapticService.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -857,6 +860,7 @@
 				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				CADF48B3306DA80100974A1B /* NetGame.swift in Sources */,
+				CAD720F3306EB1EE00F6E49F /* HapticService.swift in Sources */,
 				2CC35ACB2C4AACE8009138FF /* GameLogicViewModel.swift in Sources */,
 				CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */,
 				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */,

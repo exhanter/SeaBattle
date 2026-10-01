@@ -145,6 +145,7 @@ final class DuelMatch {
             nextEventID += 1
         }
         if soundOn { play(shot) }
+        HapticService.shared.play(shot: shot)
 
         if finishIfOver() { return }
         save()

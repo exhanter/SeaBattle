@@ -272,6 +272,7 @@ final class NetMatch {
                               outcome: shot.outcome, before: shot.before, after: shot.after)
         nextEventID += 1
         if shot.field == .foe { aim = nil }
+        HapticService.shared.play(outcome: shot.outcome)
         guard soundOn else { return }
         switch shot.outcome {
         case .miss, .repeatHit, .repeatMiss: AudioService.shared.play(.missed)

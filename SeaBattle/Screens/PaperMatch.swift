@@ -64,6 +64,11 @@ final class PaperMatch {
         let before = game.foe
         guard let outcome = game.answer(answer) else { return }
         record(outcome, before: before, after: game.foe)
+        switch answer {
+        case .miss: HapticService.shared.play(.miss)
+        case .hit: HapticService.shared.play(.hit)
+        case .sunk: HapticService.shared.play(.sunk)
+        }
         if soundOn {
             switch answer {
             case .miss: AudioService.shared.play(.missed)
@@ -80,6 +85,7 @@ final class PaperMatch {
         let before = game.own
         guard let outcome = game.opponentShot(at: coordinate) else { return }
         record(outcome, before: before, after: game.own)
+        HapticService.shared.play(outcome.call.isDamage ? .hit : .miss)
         if soundOn {
             AudioService.shared.play(outcome.call.isDamage ? .hit : .missed)
         }

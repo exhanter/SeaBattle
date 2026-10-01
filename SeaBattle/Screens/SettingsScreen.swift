@@ -8,7 +8,8 @@
 //
 //  Отступления от кадров — решения R4.2:
 //  - **Строк без состояния в модели нет**: «Тема», «Жребий первого хода»,
-//    «Вибрация», «Подсказки» (iPad). Выдумывать поведение ради строки не стали.
+//    «Подсказки» (iPad). Выдумывать поведение ради строки не стали.
+//    «Вибрация» появилась в R4.3a — и только там, где есть вибромотор.
 //    Поэтому на iPhone нет группы «Вид» (в ней была одна «Тема»), а на iPad в
 //    ней одна строка — сторона своего поля.
 //  - **«Музыка» осталась** рядом со «Звуком»: в кадре её нет, но она есть в
@@ -48,6 +49,9 @@ struct SettingsScreen: View {
     /// Строка «Pro». `nil` — строки нет (iOS 18, решение 8).
     var onPro: (() -> Void)?
     var onAbout: () -> Void = {}
+    /// Строка «Вибрация» — только на устройстве с вибромотором (не iPad и не
+    /// симулятор). Параметр — ради превью, которое идёт на симуляторе.
+    var offersHaptics: Bool = HapticService.isSupported
 
     @Environment(AppState.self) private var appState
     @Environment(\.usesPadLayout) private var usesPadLayout
@@ -90,6 +94,10 @@ struct SettingsScreen: View {
             } else {
                 AudioService.shared.stopMusic()
             }
+        }
+        .onChange(of: appState.hapticsOn) { _, isOn in
+            // Включили — сразу дать почувствовать, как щелчок у звука.
+            if isOn { HapticService.shared.play(.hit) }
         }
     }
 
@@ -138,6 +146,12 @@ struct SettingsScreen: View {
                 .accessibilityIdentifier("settingsSound")
             ListToggleRow(title: "Music", isOn: clicking($appState.musicOn))
                 .accessibilityIdentifier("settingsMusic")
+            if offersHaptics {
+                ListToggleRow(title: "Vibration",
+                              subtitle: "Shots, sinkings, victory and defeat",
+                              isOn: clicking($appState.hapticsOn))
+                    .accessibilityIdentifier("settingsHaptics")
+            }
         }
     }
 
@@ -222,7 +236,7 @@ struct LevelMenu: View {
     ZStack {
         SeaBackground()
             .ignoresSafeArea()
-        SettingsScreen(isPremium: false, onPro: {})
+        SettingsScreen(isPremium: false, onPro: {}, offersHaptics: true)
     }
     .environment(AppState())
     .preferredColorScheme(.dark)

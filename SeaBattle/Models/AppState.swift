@@ -108,6 +108,15 @@ class AppState {
     var musicOn: Bool {
         didSet { UserDefaults.standard.set(musicOn, forKey: "musicOn") }
     }
+    /// R4.3a: вибрация на события боя. Включена по умолчанию; сама вибрация
+    /// и её выключатель — в `HapticService`, флаг лишь хранит выбор.
+    var hapticsOn: Bool {
+        didSet {
+            UserDefaults.standard.set(hapticsOn, forKey: Self.hapticsOnKey)
+            HapticService.shared.isEnabled = hapticsOn
+        }
+    }
+    private static let hapticsOnKey = "hapticsOn"
     var selectedTab: SelectedTabs = .menu
     /// Enemy cells revealed to the player by a paid hint (Phase 6). Transient —
     /// cleared on reset.
@@ -278,6 +287,12 @@ class AppState {
         self.ownBoardOnRight = defaults.bool(forKey: Self.ownBoardOnRightKey)
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
+        // Как у `askLevelBeforeMatch`: отсутствующий флаг — «вкл.», в том числе
+        // у тех, кто ставил игру до R4.3a.
+        let hapticsOn = defaults.object(forKey: Self.hapticsOnKey) as? Bool ?? true
+        self.hapticsOn = hapticsOn
+        // `didSet` в `init` не срабатывает — сервису пишем сами.
+        HapticService.shared.isEnabled = hapticsOn
         // No stored language yet — the system one, if the game speaks it.
         self.language = Self.supportedLanguage(defaults.string(forKey: Self.languageKey)
                                                ?? Locale.preferredLanguages.first)

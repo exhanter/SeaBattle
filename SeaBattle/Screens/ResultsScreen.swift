@@ -483,6 +483,7 @@ private struct MatchResultsModifier: ViewModifier {
                                                           reduceMotion: reduceMotion)))
         guard !Task.isCancelled else { return }
         showsResults = true
+        HapticService.shared.play(result.didWin ? .victory : .defeat)
         if appState.soundOn {
             AppState.playSound(sound: result.didWin ? "victory_sound.wav" : "defeat_sound.wav")
         }
