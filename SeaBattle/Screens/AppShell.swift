@@ -238,7 +238,18 @@ struct AppShell: View {
     var body: some View {
         @Bindable var appState = appState
         return Group {
-            if appState.selectedTab != .menu {
+            if !appState.onboardingDone {
+                ZStack {
+                    SeaBackground()
+                        .ignoresSafeArea()
+                    OnboardingFlow(isPremium: premiumManager.isPremium,
+                                   onRestore: restorePro,
+                                   onFinish: finishOnboarding)
+                        // iPad: колонка 520 pt по центру, как экран уровня.
+                        .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+                }
+                .transition(.opacity)
+            } else if appState.selectedTab != .menu {
                 ZStack {
                     SeaBackground()
                         .ignoresSafeArea()
@@ -402,7 +413,13 @@ struct AppShell: View {
                                onPro: PremiumManager.isOffered ? {
                                    if premiumManager.isPremium { settingsPage = .pro } else { openPro(intent: nil) }
                                } : nil,
-                               onAbout: { showAbout = true })
+                               onAbout: { showAbout = true },
+                               onPlayer: { settingsPage = .player })
+            case .player:
+                PlayerNameScreen(player: Binding(get: { appState.ownPlayer ?? .starter },
+                                                 set: { appState.ownPlayer = $0 }),
+                                 purpose: .settings,
+                                 onBack: { settingsPage = nil })
             case .pro:
                 ProActiveScreen(entitlement: premiumManager.entitlement,
                                 onBack: { settingsPage = nil },
@@ -608,9 +625,12 @@ struct AppShell: View {
 
     // MARK: Сетевые режимы
 
-    /// Как игрок назван у соперника. Своего профиля до онбординга (R4.4)
-    /// нет — берётся первый из «Играли раньше», иначе «Игрок».
+    /// Как игрок назван у соперника: владелец устройства (R4.4). Пропустил
+    /// имя — первый из «Играли раньше», так было до онбординга; иначе «Игрок».
     private var localPlayer: (name: String, glyph: String, colorIndex: Int) {
+        if let own = appState.ownPlayer, !own.trimmedName.isEmpty {
+            return (own.trimmedName, own.glyph, own.colorIndex)
+        }
         let profile = ProfileStore.shared.profiles.first
         let name = profile?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return (name.isEmpty ? String(localized: "Player") : name,
@@ -778,7 +798,14 @@ struct AppShell: View {
     // MARK: Вдвоём на устройстве
 
     private func openHotSeat() {
+        if let own = appState.ownPlayer { duelSetup.seat(own) }
         route = .duelSetup
+    }
+
+    /// Конец первого запуска: «Готово» отдаёт игрока, «Пропустить» — `nil`.
+    private func finishOnboarding(_ own: OwnPlayer?) {
+        if let own { appState.ownPlayer = own }
+        withAnimation(Motion.standard) { appState.onboardingDone = true }
     }
 
     /// «Играли раньше» — последние сыгравшие первыми.

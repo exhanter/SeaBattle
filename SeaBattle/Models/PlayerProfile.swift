@@ -57,6 +57,28 @@ struct PlayerProfile: Codable, Identifiable, Hashable, Sendable {
     }
 }
 
+/// The person holding this device (R4.4): what the first launch asks and
+/// Settings can change. Shown to opponents in network play and seated in the
+/// first card of the two-player setup. Not part of the "Played before" roster
+/// (`ProfileStore`) and not synced: it names this device's owner.
+struct OwnPlayer: Codable, Equatable, Sendable {
+    var name: String
+    var glyph: String
+    var colorIndex: Int
+
+    /// Preselected on the name screen — as in frame `screen13Name`: the brass
+    /// sailboat, the same as the first card of the two-player setup.
+    static let starter = OwnPlayer(name: "", glyph: "sailboat.fill", colorIndex: 0)
+
+    /// The typed name without surrounding spaces; empty means "no name".
+    var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    static func decode(_ data: Data?) -> OwnPlayer? {
+        guard let data else { return nil }
+        return try? JSONDecoder().decode(OwnPlayer.self, from: data)
+    }
+}
+
 /// Per-player aggregate statistics and the shared points wallet.
 ///
 /// Since R0.7 a finished match is filed under its own row (`StatKey`) instead of

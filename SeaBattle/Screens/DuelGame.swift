@@ -68,6 +68,26 @@ struct DuelSetup: Equatable, Sendable {
         displayName(0).caseInsensitiveCompare(displayName(1)) != .orderedSame
     }
 
+    /// Владелец устройства (R4.4) садится в первую карточку — только в пустую:
+    /// набранное руками не перетирается. Совпали значок или цвет со вторым
+    /// игроком — второму достаётся другой, иначе на слое передачи их не
+    /// различить.
+    mutating func seat(_ own: OwnPlayer) {
+        let name = own.trimmedName
+        guard !name.isEmpty,
+              players[0].name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              name.caseInsensitiveCompare(players[1].name.trimmingCharacters(in: .whitespacesAndNewlines))
+                != .orderedSame
+        else { return }
+        players[0] = DuelPlayer(name: name, glyph: own.glyph, colorIndex: own.colorIndex)
+        if players[1].glyph == own.glyph {
+            players[1].glyph = PlayerAvatar.glyphs.first { $0 != own.glyph } ?? players[1].glyph
+        }
+        if players[1].colorIndex == own.colorIndex {
+            players[1].colorIndex = PlayerAvatar.colors.indices.first { $0 != own.colorIndex } ?? 0
+        }
+    }
+
     /// Игроки с именами, подставленными вместо пустых.
     var resolvedPlayers: [DuelPlayer] {
         players.indices.map { index in

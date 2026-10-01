@@ -100,7 +100,7 @@ struct MenuScreen: View {
                     VStack(spacing: size.menuGap) {
                         title(size)
 
-                        hero(size)
+                        MenuHero(size: size)
 
                         modes(size)
                     }
@@ -134,35 +134,6 @@ struct MenuScreen: View {
             .accessibilityIdentifier("titleMainText")
     }
 
-    // MARK: Фото в деревянном мате
-
-    private func hero(_ size: Geometry.SizeClass) -> some View {
-        let photoSide = size.photo - size.mat * 2
-        // Фото показывается целиком (`objectFit: contain` в кадрах), поэтому
-        // `scaledToFit`, а не `scaledToFill`: сейчас снимок квадратный и разницы
-        // нет, но заказчик может заменить арт неквадратным, и тогда обрезка
-        // съест корабль молча.
-        return Image("war_ship8")
-            .resizable()
-            .scaledToFit()
-            .frame(width: photoSide, height: photoSide)
-            .clipShape(RoundedRectangle(cornerRadius: size.photoInnerRadius,
-                                        style: .continuous))
-            .padding(size.mat)
-            // Единственный градиент дерева в игре: `Chrome/Wood → WoodDeep`.
-            // Кант панелей 2 pt остаётся ровным `Chrome/Wood`.
-            .background {
-                RoundedRectangle(cornerRadius: size.photoRadius, style: .continuous)
-                    .fill(LinearGradient.woodMat)
-            }
-            // Тень мата пакет задаёт числами, а не токеном: альфа приходит
-            // отдельным значением, поэтому здесь чёрный с этой альфой.
-            .shadow(color: .black.opacity(size.matShadowAlpha),
-                    radius: size.matShadowBlur / 2,
-                    y: size.matShadowY)
-            .accessibilityHidden(true)
-    }
-
     // MARK: Пять строк режимов
 
     private func modes(_ size: Geometry.SizeClass) -> some View {
@@ -192,6 +163,41 @@ struct MenuScreen: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("continueGameButton")
+    }
+}
+
+// MARK: - Фото в деревянном мате
+
+/// Фото в мате: меню и приветствие первого запуска (кадр `screen13Welcome` —
+/// те же 252 pt, тот же мат).
+struct MenuHero: View {
+    let size: Geometry.SizeClass
+
+    var body: some View {
+        let photoSide = size.photo - size.mat * 2
+        // Фото показывается целиком (`objectFit: contain` в кадрах), поэтому
+        // `scaledToFit`, а не `scaledToFill`: сейчас снимок квадратный и разницы
+        // нет, но заказчик может заменить арт неквадратным, и тогда обрезка
+        // съест корабль молча.
+        return Image("war_ship8")
+            .resizable()
+            .scaledToFit()
+            .frame(width: photoSide, height: photoSide)
+            .clipShape(RoundedRectangle(cornerRadius: size.photoInnerRadius,
+                                        style: .continuous))
+            .padding(size.mat)
+            // Единственный градиент дерева в игре: `Chrome/Wood → WoodDeep`.
+            // Кант панелей 2 pt остаётся ровным `Chrome/Wood`.
+            .background {
+                RoundedRectangle(cornerRadius: size.photoRadius, style: .continuous)
+                    .fill(LinearGradient.woodMat)
+            }
+            // Тень мата пакет задаёт числами, а не токеном: альфа приходит
+            // отдельным значением, поэтому здесь чёрный с этой альфой.
+            .shadow(color: .black.opacity(size.matShadowAlpha),
+                    radius: size.matShadowBlur / 2,
+                    y: size.matShadowY)
+            .accessibilityHidden(true)
     }
 }
 

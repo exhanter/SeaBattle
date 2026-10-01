@@ -117,6 +117,19 @@ class AppState {
         }
     }
     private static let hapticsOnKey = "hapticsOn"
+    /// R4.4: the two first-launch screens have been passed (or skipped).
+    var onboardingDone: Bool {
+        didSet { UserDefaults.standard.set(onboardingDone, forKey: Self.onboardingDoneKey) }
+    }
+    private static let onboardingDoneKey = "onboardingDone"
+    /// R4.4: the device owner's name, icon and colour; `nil` until given.
+    var ownPlayer: OwnPlayer? {
+        didSet {
+            let data = ownPlayer.flatMap { try? JSONEncoder().encode($0) }
+            UserDefaults.standard.set(data, forKey: Self.ownPlayerKey)
+        }
+    }
+    private static let ownPlayerKey = "ownPlayer"
     var selectedTab: SelectedTabs = .menu
     /// Enemy cells revealed to the player by a paid hint (Phase 6). Transient —
     /// cleared on reset.
@@ -267,9 +280,24 @@ class AppState {
         }
     }
     
+    /// Onboarding is for a new player only. `notFirstLaunch` has been written
+    /// on the first launch of every build since 2024, so whoever has it but no
+    /// stored onboarding flag played before R4.4 and is not greeted again.
+    nonisolated static func onboardingDone(stored: Bool?, isFreshInstall: Bool) -> Bool {
+        stored ?? !isFreshInstall
+    }
+
     init() {
         let defaults = UserDefaults.standard
-        if !defaults.bool(forKey: "notFirstLaunch") {
+        let isFreshInstall = !defaults.bool(forKey: "notFirstLaunch")
+        self.onboardingDone = Self.onboardingDone(stored: defaults.object(forKey: Self.onboardingDoneKey) as? Bool,
+                                                  isFreshInstall: isFreshInstall)
+        self.ownPlayer = OwnPlayer.decode(defaults.data(forKey: Self.ownPlayerKey))
+        if isFreshInstall {
+            // Written now, not when onboarding ends: closed on the welcome
+            // screen, the app would otherwise come back with `notFirstLaunch`
+            // set and no flag — and take the newcomer for an old player.
+            defaults.set(false, forKey: Self.onboardingDoneKey)
             defaults.set(true, forKey: "musicOn")
             defaults.set(true, forKey: "soundOn")
             defaults.set(true, forKey: "notFirstLaunch")

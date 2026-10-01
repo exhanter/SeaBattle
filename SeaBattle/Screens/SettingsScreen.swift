@@ -29,6 +29,8 @@ import SwiftUI
 enum SettingsPage: Hashable, Sendable {
     /// «Pro активен» (кадр `screen12ProActive`) — строка «Pro», когда он куплен.
     case pro
+    /// Имя, значок и цвет владельца (R4.4) — тот же экран, что при первом запуске.
+    case player
 }
 
 enum SettingsMetrics {
@@ -49,6 +51,8 @@ struct SettingsScreen: View {
     /// Строка «Pro». `nil` — строки нет (iOS 18, решение 8).
     var onPro: (() -> Void)?
     var onAbout: () -> Void = {}
+    /// Строка «Ваше имя» (R4.4): подзаголовок первого запуска обещает её.
+    var onPlayer: () -> Void = {}
     /// Строка «Вибрация» — только на устройстве с вибромотором (не iPad и не
     /// симулятор). Параметр — ради превью, которое идёт на симуляторе.
     var offersHaptics: Bool = HapticService.isSupported
@@ -158,6 +162,8 @@ struct SettingsScreen: View {
     private var moreGroup: some View {
         @Bindable var appState = appState
         return ListGroup("More") {
+            ListRow(title: "Your name", value: playerName, action: onPlayer)
+                .accessibilityIdentifier("settingsPlayer")
             LanguageMenu(selection: $appState.language)
             if let onPro {
                 ListRow(title: "Pro",
@@ -167,6 +173,14 @@ struct SettingsScreen: View {
             }
             ListRow(title: "About the app", action: onAbout)
                 .accessibilityIdentifier("settingsAbout")
+        }
+    }
+
+    private var playerName: Text {
+        if let name = appState.ownPlayer?.trimmedName, !name.isEmpty {
+            Text(verbatim: name)
+        } else {
+            Text("Not set")
         }
     }
 
