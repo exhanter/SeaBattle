@@ -25,6 +25,9 @@ enum ListMetrics {
     static let rowValue: CGFloat = 13.5
     static let chevron: CGFloat = 18
     static let valueGap: CGFloat = 7
+    // Строка с контролом под названием (`setStack`) и выпадающий список
+    static let stackGap: CGFloat = 9
+    static let menuChevron: CGFloat = 12
     // Пустое состояние (`emptyState`)
     static let emptyRadius: CGFloat = 22
     static let emptyPaddingV: CGFloat = 26
@@ -109,18 +112,7 @@ struct ListRow: View {
 
     private func label(chevron: Bool) -> some View {
         HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: ListMetrics.rowTitle, weight: .medium))
-                    .foregroundStyle(Color.inkPrimary)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: ListMetrics.rowSubtitle))
-                        .foregroundStyle(Color.inkSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            ListRowText(title: title, subtitle: subtitle)
 
             HStack(spacing: ListMetrics.valueGap) {
                 if let value {
@@ -142,6 +134,91 @@ struct ListRow: View {
         .frame(minHeight: Geometry.Hit.minTarget)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Название строки и пояснение под ним — общее у всех строк группы.
+private struct ListRowText: View {
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: ListMetrics.rowTitle, weight: .medium))
+                .foregroundStyle(Color.inkPrimary)
+            if let subtitle {
+                Text(subtitle)
+                    .font(.system(size: ListMetrics.rowSubtitle))
+                    .foregroundStyle(Color.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Строка с тумблером (`setRow` + `toggleSw`). Нажатие по всей строке
+/// переключает: системный `Toggle` на iOS отвечает только самим тумблером, а
+/// строка с пояснением — крупная цель, и мимо неё промахиваются.
+struct ListToggleRow: View {
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey?
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            ListRowText(title: title, subtitle: subtitle)
+        }
+        .seaToggleStyle()
+        .padding(.vertical, ListMetrics.rowPaddingV)
+        .padding(.horizontal, ListMetrics.rowPaddingH)
+        .frame(minHeight: Geometry.Hit.minTarget)
+        .contentShape(Rectangle())
+        .onTapGesture { isOn.toggle() }
+    }
+}
+
+/// Строка, у которой контрол стоит под названием во всю ширину (`setStack`):
+/// сегменты в строку справа не помещаются.
+struct ListStackRow<Control: View>: View {
+    let title: LocalizedStringKey
+    @ViewBuilder var control: Control
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: ListMetrics.stackGap) {
+            ListRowText(title: title)
+            control
+        }
+        .padding(.vertical, ListMetrics.rowPaddingV)
+        .padding(.horizontal, ListMetrics.rowPaddingH)
+    }
+}
+
+/// Подпись выпадающего списка из своей строки: название, справа выбранное и
+/// `chevron.up.chevron.down` — не `chevron.right`: строка ничего не открывает,
+/// список выпадает прямо из неё (спека 4.11).
+struct ListMenuLabel: View {
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey?
+    let value: Text
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ListRowText(title: title, subtitle: subtitle)
+            HStack(spacing: ListMetrics.valueGap) {
+                value
+                    .font(.system(size: ListMetrics.rowValue))
+                    .foregroundStyle(Color.inkSecondary)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: ListMetrics.menuChevron, weight: .semibold))
+                    .foregroundStyle(Color.inkTertiary)
+            }
+        }
+        .padding(.vertical, ListMetrics.rowPaddingV)
+        .padding(.horizontal, ListMetrics.rowPaddingH)
+        .frame(minHeight: Geometry.Hit.minTarget)
+        .contentShape(Rectangle())
     }
 }
 

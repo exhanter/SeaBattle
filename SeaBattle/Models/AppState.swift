@@ -98,8 +98,16 @@ class AppState {
     /// match that has *ended*, so the "Start" button stays hidden during the
     /// brief window before the win/defeat alert appears.
     var gameIsOver = false
-    var soundOn: Bool
-    var musicOn: Bool
+    // R4.2: звук, музыка, язык и обводка сохраняются здесь, как
+    // `askLevelBeforeMatch`, — писателей у них теперь два (старый и новый
+    // экраны настроек), и правило «экран пишет `UserDefaults` сам» теряет
+    // значение у того, кто забудет.
+    var soundOn: Bool {
+        didSet { UserDefaults.standard.set(soundOn, forKey: "soundOn") }
+    }
+    var musicOn: Bool {
+        didSet { UserDefaults.standard.set(musicOn, forKey: "musicOn") }
+    }
     var selectedTab: SelectedTabs = .menu
     /// Enemy cells revealed to the player by a paid hint (Phase 6). Transient —
     /// cleared on reset.
@@ -107,10 +115,30 @@ class AppState {
     var manualShipArrangement: Bool = false
     var tabsBlocked = false
     var isTapEnabled = false
-    var language: String
+    /// Interface language: `ru`, `en` or `nl` (`supportedLanguage(_:)`). Feeds
+    /// `\.locale` at the root, so it changes the text and the board letters
+    /// at once — mid-match too (spec 4.11).
+    var language: String {
+        didSet { UserDefaults.standard.set(language, forKey: Self.languageKey) }
+    }
+    private static let languageKey = "Language"
+    nonisolated static let supportedLanguages = ["ru", "en", "nl"]
+
+    /// One of `supportedLanguages` for anything stored or reported by the
+    /// system. Older builds stored `"EN"`, `"NL"` or the system locale
+    /// identifier (`"ru_NL"`, `"en_US"`); a language the game doesn't speak
+    /// reads as English.
+    nonisolated static func supportedLanguage(_ identifier: String?) -> String {
+        guard let identifier,
+              let code = Locale(identifier: identifier).language.languageCode?.identifier.lowercased(),
+              supportedLanguages.contains(code) else { return "en" }
+        return code
+    }
     /// Optional beginner protection: reveal the empty ring around a sunk ship so
     /// you can't waste shots there. Default off (firing there stays allowed).
-    var autoRevealAroundSunk: Bool
+    var autoRevealAroundSunk: Bool {
+        didSet { UserDefaults.standard.set(autoRevealAroundSunk, forKey: "autoRevealAroundSunk") }
+    }
     /// Whether picking the computer's level is a step before a single-player
     /// match (spec 4.3 and the setting in 4.11). **On by default**; off starts
     /// the match straight away at the remembered level.
@@ -250,7 +278,9 @@ class AppState {
         self.ownBoardOnRight = defaults.bool(forKey: Self.ownBoardOnRightKey)
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
-        self.language = UserDefaults.standard.string(forKey: "Language") ?? Locale.current.identifier
+        // No stored language yet — the system one, if the game speaks it.
+        self.language = Self.supportedLanguage(defaults.string(forKey: Self.languageKey)
+                                               ?? Locale.preferredLanguages.first)
         self.autoRevealAroundSunk = UserDefaults.standard.bool(forKey: "autoRevealAroundSunk")
         // Touching the service configures the audio session (playback category,
         // so the game is heard with the mute switch on).

@@ -420,15 +420,20 @@ struct PlayerCard: View {
 
 /// Выпадающий список прямо из своей строки. В пунктах указаны буквы поля:
 /// от языка зависит не только текст, но и разметка координат, и игрок должен
-/// увидеть это до переключения, а не после.
+/// увидеть это до переключения, а не после. Строка группы (`ListGroup`), своей
+/// панели у неё нет.
 struct LanguageMenu: View {
     struct Language: Identifiable, Equatable {
         let id: String
         let title: String
         var alphabet: BoardAlphabet { BoardAlphabet.forLanguage(id) }
         var letters: String { alphabet == .cyrillic ? "А–К" : "A–J" }
+        /// «Русский · А–К» — и в строке, и в пункте списка.
+        var label: String { "\(title) · \(letters)" }
     }
 
+    /// Названия — на самом языке, не переводятся: свой язык ищут по его
+    /// собственному имени.
     static let languages = [Language(id: "ru", title: "Русский"),
                             Language(id: "en", title: "English"),
                             Language(id: "nl", title: "Nederlands")]
@@ -441,28 +446,15 @@ struct LanguageMenu: View {
                 Button {
                     selection = language.id
                 } label: {
-                    Text("\(language.title) · \(language.letters)")
+                    Text(verbatim: language.label)
                     if language.id == selection { Image(systemName: "checkmark") }
                 }
             }
         } label: {
-            HStack {
-                Text("Язык")
-                    .font(TypeScale.body)
-                    .foregroundStyle(Color.inkPrimary)
-                Spacer()
-                Text(current.title)
-                    .font(TypeScale.body)
-                    .foregroundStyle(Color.inkSecondary)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.inkTertiary)
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 50)
-            .contentShape(Rectangle())
+            ListMenuLabel(title: "Language", value: Text(verbatim: current.label))
         }
-        .glassPanel(.g2, radius: Geometry.Radius.button)
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settingsLanguage")
     }
 
     private var current: Language {
@@ -502,7 +494,7 @@ private struct MetaControlsDemo: View {
                         .padding(14)
                         .glassPanel(.g2)
 
-                    LanguageMenu(selection: $language)
+                    ListGroup { LanguageMenu(selection: $language) }
                 }
                 .padding(Geometry.Inset.phoneSide)
                 .padding(.top, 60)

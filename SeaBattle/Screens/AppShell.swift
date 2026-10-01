@@ -10,10 +10,9 @@
 //  В бою табы заменяются на переключатель полей и действия фазы, поэтому
 //  таб-бар живёт не в приложении целиком, а только в этой оболочке.
 //
-//  ПЕРЕХОДНОЕ. Новый экран настроек приходит позже
-//  (R4.2). До тех пор оболочка отдаёт управление старым экранам: они
-//  работают, просто выглядят по-старому. Всё, что помечено `ПЕРЕХОДНОЕ`,
-//  уходит вместе с ними в R4.6.
+//  ПЕРЕХОДНОЕ. Пейволл и «Об игре» пока старые: оболочка отдаёт им
+//  управление листом, они работают, просто выглядят по-старому. Всё, что
+//  помечено `ПЕРЕХОДНОЕ`, уходит вместе с ними в R4.3 и R4.6.
 //
 
 import SwiftUI
@@ -206,6 +205,8 @@ struct AppShell: View {
     @State private var linkCode: InviteCode?
     /// Окно «Pro — на iOS 26» вместо пейволла на iOS 18 (решение 01.10).
     @State private var proUnavailable = false
+    /// «О приложении» из настроек.
+    @State private var showAbout = false
     /// Сетевая партия. Продолжить её из меню нельзя: выход из неё — сдача
     /// или конец связи, поэтому она живёт ровно столько, сколько экран.
     @State private var net: NetMatch?
@@ -279,6 +280,10 @@ struct AppShell: View {
             Button("Cancel", role: .cancel) {}
         }
         .sheet(isPresented: $appState.showPaywall) { PaywallView() }
+        // ПЕРЕХОДНОЕ: старый экран «Об игре» — правила, авторы картинок и
+        // звуков (их лицензии требуют упоминания) и контакты. Своего кадра у
+        // «О приложении» нет; уйдёт со старыми представлениями в R4.6.
+        .sheet(isPresented: $showAbout) { AboutView() }
         .modalDialog(isPresented: proUnavailable) {
             NoticeDialog.proNeedsNewerSystem { proUnavailable = false }
         }
@@ -347,8 +352,12 @@ struct AppShell: View {
         case .statistics:
             statistics
         case .settings:
-            // ПЕРЕХОДНОЕ: свой экран приходит в R4.2.
-            SettingsView()
+            SettingsScreen(isPremium: premiumManager.isPremium,
+                           levelLocked: appState.gameIsActive && !appState.gameIsOver,
+                           onLevelLocked: { openPro(intent: .expert) },
+                           // На iOS 18 строки Pro нет (решение 8).
+                           onPro: PremiumManager.isOffered ? { openPro(intent: nil) } : nil,
+                           onAbout: { showAbout = true })
         }
     }
 
@@ -401,7 +410,8 @@ struct AppShell: View {
             let frame = Geometry.Inset.padFrame
             ZStack(alignment: .bottom) {
                 tabContent
-                    .frame(maxWidth: Geometry.Nav.padColumn)
+                    // Настройки — в две колонки, им 520 мало (4.11).
+                    .frame(maxWidth: tab == .settings ? SettingsMetrics.padWidth : Geometry.Nav.padColumn)
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, hidesTabs ? 0 : Geometry.Inset.padTile + Geometry.Nav.stackGap)
                 if !hidesTabs {
@@ -675,6 +685,16 @@ struct AppShell: View {
     }
 
     // MARK: Что делают строки меню
+
+    /// Пейволл, а на iOS 18 — окно «Pro — на iOS 26» (решение 8).
+    private func openPro(intent: AppState.PremiumIntent?) {
+        guard PremiumManager.isOffered else {
+            proUnavailable = true
+            return
+        }
+        appState.pendingPremiumIntent = intent
+        appState.showPaywall = true
+    }
 
     private func open(_ item: MenuMode) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
