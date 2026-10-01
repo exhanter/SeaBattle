@@ -6,9 +6,10 @@
 
 **Обновлено:** 2026-10-01
 **Ветка:** `feature/redesign` (от `feature/premium-phase5a`, в `main` ничего не влито)
-**Текущая задача:** следующая — **R4.4, онбординг** (план — раздел «Дальше по порядку»
-в конце файла). **R4.3a закрыт** — `015a531`: вибрация (раздел «R4.3a — как вышло»),
-**живьём на iPhone ещё не проверена** — в симуляторе вибромотора нет. **Ветка запушена**
+**Текущая задача:** следующая — **R4.5, локализация и доступность** (план — раздел
+«Дальше по порядку» в конце файла). **R4.4 закрыт** — `e220db1`: онбординг и свой игрок
+(раздел «R4.4 — как вышло»). R4.3a — `015a531` (вибрация, **живьём на iPhone ещё не
+проверена** — в симуляторе вибромотора нет). **Ветка запушена**
 на GitHub (`origin/feature/redesign`, 01.10). R4.3 — `af4ac94` (Pro), R4.2 — `253d3df`, R4.1 — `29b5542`. R3 закрыт целиком (R3.3c — `1dca172`).
 Сеть проверена тестами и превью; **настоящий подбор через Game Center живьём не
 проверен** — нужны два устройства. **С 30.09 работаем без Claude Design** (решение
@@ -294,13 +295,16 @@ SwiftUI-игра «Морской бой» (iPhone + iPad), три языка EN
 | R4.2 Настройки | `253d3df` | `SettingsScreen` (группы «Игра», «Вид» только на iPad, «Звук», «Ещё»; две колонки 754 на iPad), `LevelMenu`, `LanguageMenu` строкой группы; `ListToggleRow` / `ListStackRow` / `ListMenuLabel`; звук, музыка, язык и обводка сохраняются в `AppState`, язык — `ru`/`en`/`nl` (`supportedLanguage`). 749 тестов |
 | R4.3 Pro | `af4ac94` | `ProScreens.swift`: короткий лист `ProLockedSheet` (свой слой `proLockedSheet`), полный экран `ProPaywallScreen` (`fullScreenCover`), `ProActiveScreen` страницей `SettingsPage.pro`; `PremiumManager` — `ProPlan` (навсегда / год / месяц), `ProOffer`, `ProEntitlement.best`, `PurchaseOutcome`; в `.storekit` добавлены «навсегда» и месячная. 9 тестов |
 | R4.1 Статистика и кошелёк | `29b5542` | `StatsScreen` (сводка, режимы без бумаги, уровни, «Баллы», сброс; пустое состояние), `WalletScreen` и `PointsHistoryScreen`, `ResetScreen`; история баллов `PointsLedger` в `PlayerStats` (версия формата), `StatsSummary`, `StatsReset`; общие `ListGroup` / `ListRow` / `EmptyStateCard`. 746 тестов |
+| R4.4 Онбординг | `e220db1` | `OnboardingScreens.swift`: `OnboardingFlow`, `WelcomeScreen` (фото `MenuHero`, «Restore» только iOS 26+), `PlayerNameScreen` (первый запуск и `SettingsPage.player`); свой игрок `OwnPlayer` и `onboardingDone` в `AppState` (новичок — по `notFirstLaunch`); соперник по сети видит его, `DuelSetup.seat` сажает его в первую карточку. 8 тестов, всего 771 |
 | R2.2a Пакет раунда 4 | `5996d5c` | 80 токенов (`Warn/*`, своя латунь для светлой темы), `SecondaryButton` и `WarningLine` по спеке 2.15–2.16, подзаголовок в `ScreenTitle`, два текста ошибки |
 
 **Состояние сборки:** зелёная, без предупреждений. С R2.1 новый интерфейс —
 корень приложения на iPhone; что ещё работает по-старому — в разделе
 «Переходное» ниже.
 
-**Состояние тестов (01.10, после R4.3):** юнит-таргет `SeaBattleTests` — полный
+**Состояние тестов (01.10, после R4.4):** полный прогон `SeaBattleTests` — **771 пройдено,
+0 падений** (`TEST EXECUTE SUCCEEDED`), из них 8 новых в `OnboardingTests`.
+**Раньше (01.10, после R4.3):** юнит-таргет `SeaBattleTests` — полный
 прогон прошёл (`TEST EXECUTE SUCCEEDED`); повторный завис на последних медленных тестах
 со временем, до того **752 пройдено, 0 падений** (≈ 758 с новыми `ProTests`). После
 R4.1 было **746 пройдено, 0 падений, 2 пропущено** (так считаем всегда —
@@ -394,6 +398,7 @@ R4.1 было **746 пройдено, 0 падений, 2 пропущено** (
 | `Screens/WalletScreen.swift` | кошелёк: баланс, последние пять, «Все начисления» (`PointsHistoryScreen`), пустой кошелёк, `PointsEntryRow` |
 | `Models/PointsLedger.swift` | история баллов: `PointsEntry` (победа по ключу строки, подсказки и компенсация слитно за день), `PointsLedger` (100 последних, версия формата) |
 | `Screens/ProScreens.swift` | Pro: `ProFeature` (четыре строки «что входит», тексты листа), `ProLockedSheet` и слой `.proLockedSheet(intent:)`, `ProPaywallScreen`, `ProPlanRow`, `ProActiveScreen`, `ProPurchaseNotice`, `ProLinks` (заглушки Terms / Privacy) |
+| `Screens/OnboardingScreens.swift` | первый запуск: `OnboardingFlow` (два шага), `WelcomeScreen`, `PlayerNameScreen` (`Purpose`: `.firstLaunch` / `.settings`), `OnboardingMetrics` |
 | `Design/PadBattleControls.swift` | iPad: `PadHintButton` (квадрат 104), `ShotColumn` и `ShotColumnMetrics` (лента столбиком) |
 
 Тесты нового кода: `DesignTokensTests`, `BackgroundAndGlassTests`,
@@ -402,7 +407,8 @@ R4.1 было **746 пройдено, 0 падений, 2 пропущено** (
 `PadLayoutTests`, `PaperGameTests`, `DuelGameTests`, `NetGameTests` (две сюиты: правила и связь),
 `OnlineLobbyTests` (две сюиты: код и лобби), `WalletTests` (две сюиты: история баллов,
 сводка и сброс), `SettingsTests` (перевод старых значений языка), `ProTests` (выбор права,
-продукты, условие по умолчанию).
+продукты, условие по умолчанию), `OnboardingTests` (кому показывать, `OwnPlayer`,
+`DuelSetup.seat`).
 
 ## Переходное — что ещё работает по-старому
 
@@ -1941,11 +1947,52 @@ iPad — **`screen11Settings`** (две колонки, группа «Вид» 
 - **Проверено:** сборка, все юнит-тесты, превью настроек. **Не проверено живьём** —
   нужен iPhone: выстрелы во всех режимах, итоги, тумблер.
 
+## R4.4 — онбординг, как вышло
+
+Кадры: `screen13Welcome`, `screen13Name` (одно поколение, тур 13, пар на 375 нет). Всё в
+`Screens/OnboardingScreens.swift`, отступления — в его шапке.
+
+- **Кому показывается.** `AppState.onboardingDone` = сохранённый флаг, а без него — «не
+  первый запуск» (`notFirstLaunch` пишет первый запуск любой сборки с 2024 года): игравшие
+  до R4.4 онбординг не видят. Свежая установка пишет `false` **сразу**: иначе закрывший
+  приложение на приветствии вернулся бы с `notFirstLaunch` и без флага — и сошёл бы за
+  старого игрока. Правило — `AppState.onboardingDone(stored:isFreshInstall:)` под тестом.
+- **Корень:** в `AppShell.body` первая ветка — `OnboardingFlow` (на iPad колонкой 520).
+  Шаги сменяются прозрачностью (`Motion.standard`). Внизу нет `NavRow` (нет и в кадрах) —
+  своя колонка с теми же отступами и `padBottomFrame()`.
+- **Приветствие:** фото в мате — общий `MenuHero` (вынесен из меню). «Bought Pro before?
+  Restore» — только при `PremiumManager.isOffered`; при Pro строка «Pro is active», не
+  нашёлся — текст `ProPurchaseNotice.nothingToRestore`.
+- **Имя:** `PlayerCard` как в игре вдвоём; поле пустое — **имя «из системы» не
+  подставляется** (`UIDevice.name` с iOS 16 — просто «iPhone», Game Center ещё не вошёл).
+  «Done» гаснет без имени, «Skip» уходит в меню без игрока. Заголовок на 76 от края.
+- **Свой игрок — `OwnPlayer`** (`PlayerProfile.swift`): имя, значок, цвет; в `AppState`
+  (`ownPlayer`, JSON в `UserDefaults`, ключ `ownPlayer`), **не синхронизируется** и не
+  входит в «Играли раньше». Кто читает: `AppShell.localPlayer` (Рядом / По сети; без
+  имени — прежний путь через `ProfileStore`), `openHotSeat` → `DuelSetup.seat` (только в
+  пустую первую карточку, не при совпадении имени со вторым; совпали значок или цвет —
+  второму даются другие).
+- **Настройки:** строка «Your name» первой в «More» (значение — имя или «Not set») →
+  `SettingsPage.player` — тот же `PlayerNameScreen` со строкой возврата, без кнопок,
+  сохраняет по ходу набора, таб-бар остаётся.
+- **Проверено живьём** (iPhone Air): приветствие → имя → поповер цвета → «Done» → меню;
+  флаг и игрок в плисте приложения; строка в настройках и страница; «Two players» с Аней в
+  первой карточке. **Грабли:** сбросить онбординг на симуляторе —
+  `xcrun simctl spawn <udid> defaults write nl.brapps.SeaBattle onboardingDone -bool NO`
+  (читать обратно через `simctl … defaults read` бесполезно — показывает не тот домен;
+  смотреть `plutil -p` плиста в `simctl get_app_container … data`). На macOS нет
+  `timeout` — с ним команда тестов молча не запускается. iPad живьём не смотрели.
+- **Долг на R4.5:** кружки цвета и значки в окошках `PlayerCard` не видны VoiceOver (так
+  было и в игре вдвоём); `accessibilityIdentifier` на карточке расползается на её детей.
+
 ## Дальше по порядку
 
-**R4.4, онбординг** (спека 4.1, шаг 17): кадры `screen13Welcome` и
-`screen13Name` (приветствие, затем имя / значок / цвет — `PlayerCard`). Перед сверкой —
-«Как искать эталон в макетах».
+**R4.5, локализация и доступность** (шаг 18, решение 11 — тексты утверждены на английском):
+EN / RU / NL по каталогу `Localizable.xcstrings` (**русского перевода в каталоге нет
+вовсе**, только `en` и `nl`; чистка ключей из превью — здесь же), длинные подписи, Reduce
+Motion (`Motion.scaled`), Dynamic Type, VoiceOver для клеток (координата + состояние) и
+окошек `PlayerCard`. Падежи и формы чисел — тоже здесь. Для перевода — скилл
+`translation-coordinator`.
 
 **Вопросы к дизайну больше не копим** (решение заказчика 30.09): решаем сами, для
 выбора заказчика — превью рядом.
