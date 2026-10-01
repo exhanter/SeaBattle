@@ -27,10 +27,11 @@ struct WalletTests {
         stats.recordWin(.computer(.hard), at: morning)
         stats.recordWin(.paper, at: morning)
 
-        #expect(stats.points == 6)
+        let reward = AppState.DifficultyLevel.hard.pointsValue
+        #expect(stats.points == reward)
         #expect(stats.ledger.entries.count == 1, "партия на бумаге платит 0 — и строки нет")
         let entry = stats.ledger.entries[0]
-        #expect(entry.amount == 6)
+        #expect(entry.amount == reward)
         #expect(entry.winRow == .computer(.hard))
         #expect(stats.record(.paper).wins == 1, "но в статистику бумага пишется")
     }

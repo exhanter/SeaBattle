@@ -8,7 +8,7 @@
 //  Отступления от кадров — решения R4.1:
 //  - **Цена подсказки не одна.** В кадре «5 баллов за ход, это 25 подсказок»,
 //    а в игре подсказка стоит столько же, сколько победа на уровне партии
-//    (1 / 3 / 6 / 10, по сети — 10); цену заказчик ещё не выбрал (раздел про
+//    (1 / 3 / 5 / 10, по сети — 10); цену заказчик ещё не выбрал (раздел про
 //    R2.3 в `docs/STATUS.md`). Поэтому под балансом честное правило, а не
 //    число подсказок.
 //  - **Достижений нет** (решение 01.10) — их строки и источника «за
@@ -286,12 +286,12 @@ private extension Array where Element == PointsEntry {
         let now = Date.now
         let day: TimeInterval = 86_400
         var ledger = PointsLedger()
-        ledger.addWin(.computer(.hard), points: 6, at: now.addingTimeInterval(-40 * day))
+        ledger.addWin(.computer(.hard), points: 5, at: now.addingTimeInterval(-40 * day))
         ledger.addWin(.online, points: 10, at: now.addingTimeInterval(-day))
-        ledger.addHint(cost: 6, at: now)
-        ledger.addHint(cost: 6, at: now)
+        ledger.addHint(cost: 5, at: now)
+        ledger.addHint(cost: 5, at: now)
         ledger.addCompensation(10, at: now)
-        ledger.addWin(.computer(.hard), points: 6, at: now)
+        ledger.addWin(.computer(.hard), points: 5, at: now)
         return ledger.entries
     }
 }

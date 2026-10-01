@@ -22,7 +22,7 @@ class AppState {
             switch self {
             case .easy: return 1
             case .medium: return 3
-            case .hard: return 6
+            case .hard: return 5
             case .expert: return 10
             }
         }
