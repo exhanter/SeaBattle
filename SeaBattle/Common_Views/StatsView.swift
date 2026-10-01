@@ -61,7 +61,7 @@ struct StatsView: View {
         .confirmationDialog("Reset all statistics and points?",
                             isPresented: $showResetConfirmation,
                             titleVisibility: .visible) {
-            Button("Reset", role: .destructive) { progress.reset() }
+            Button("Reset", role: .destructive) { progress.reset(StatsReset(modes: Set(StatsSummary.shownModes))) }
             Button("Cancel", role: .cancel) {}
         }
     }

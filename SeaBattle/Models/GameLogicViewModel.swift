@@ -119,7 +119,7 @@ class GameLogicViewModel {
                 enemy.cells[coordinate.0 - 1][coordinate.1 - 1].cellStatus == .unknown
                     && !appState.revealedHintCells.contains(where: { $0 == coordinate })
             }
-        guard let pick = candidates.randomElement(), ProgressStore.shared.spend(hintCost) else { return false }
+        guard let pick = candidates.randomElement(), ProgressStore.shared.spendOnHint(hintCost) else { return false }
         appState.revealedHintCells.append(pick)
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
         return true

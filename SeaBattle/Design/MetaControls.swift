@@ -92,44 +92,91 @@ struct StatBar: View {
     var winShare: Double { total == 0 ? 0 : Double(wins) / Double(total) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                figure("Партии", "\(total)")
-                Spacer()
-                figure("Победы", "\(wins)")
-                Spacer()
-                figure("Доля", total == 0 ? "—" : "\(Int((winShare * 100).rounded()))%")
+        VStack(alignment: .leading, spacing: StatBarMetrics.gap) {
+            HStack(alignment: .top, spacing: StatBarMetrics.columnGap) {
+                figure("games", "\(total)")
+                figure("wins", "\(wins)")
+                figure("win rate", total == 0 ? "—" : Self.percent(winShare))
             }
             bar
+            HStack {
+                Text("^[\(wins) win](inflect: true)")
+                Spacer()
+                Text("^[\(losses) loss](inflect: true)")
+            }
+            .font(.system(size: StatBarMetrics.legend))
+            .monospacedDigit()
+            .foregroundStyle(Color.inkSecondary)
         }
+        .accessibilityElement(children: .combine)
     }
 
-    private func figure(_ caption: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value)
-                .font(TypeScale.title)
-                .foregroundStyle(Color.inkPrimary)
+    /// «58 %» по правилам языка: где ставится пробел перед знаком, решает
+    /// формат, а не строка.
+    static func percent(_ share: Double) -> String {
+        share.formatted(.percent.precision(.fractionLength(0)))
+    }
+
+    /// Значение над подписью, три колонки поровну (`metric10` в макете).
+    private func figure(_ caption: LocalizedStringKey, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(verbatim: value)
+                .font(.system(size: StatBarMetrics.value, weight: .bold, design: .rounded))
                 .monospacedDigit()
+                .foregroundStyle(Color.inkPrimary)
             Text(caption)
-                .font(TypeScale.footnote)
+                .font(.system(size: StatBarMetrics.caption))
                 .foregroundStyle(Color.inkSecondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var bar: some View {
         GeometryReader { proxy in
-            HStack(spacing: 2) {
+            HStack(spacing: StatBarMetrics.barGap) {
                 if total == 0 {
                     Capsule().fill(Color.inkTertiary.opacity(0.35))
                 } else {
-                    Capsule().fill(Color.roleYou)
-                        .frame(width: max(0, (proxy.size.width - 2) * winShare))
-                    Capsule().fill(Color.roleFoe)
+                    // Без поражений и без побед полоса одна, зазора нет.
+                    let gap = wins > 0 && losses > 0 ? StatBarMetrics.barGap : 0
+                    if wins > 0 {
+                        UnevenRoundedRectangle(cornerRadii: corners(leading: true, alone: losses == 0))
+                            .fill(Color.roleYou)
+                            .shadow(color: .roleYouSoft, radius: StatBarMetrics.glow)
+                            .frame(width: max(0, (proxy.size.width - gap) * winShare))
+                    }
+                    if losses > 0 {
+                        UnevenRoundedRectangle(cornerRadii: corners(leading: false, alone: wins == 0))
+                            .fill(Color.roleFoe)
+                    }
                 }
             }
         }
-        .frame(height: 10)
+        .frame(height: StatBarMetrics.barHeight)
     }
+
+    /// Снаружи полоса круглая, на стыке двух цветов — почти прямая (4 pt).
+    private func corners(leading: Bool, alone: Bool) -> RectangleCornerRadii {
+        let round = StatBarMetrics.barHeight / 2
+        let joint = alone ? round : StatBarMetrics.jointRadius
+        return leading
+            ? RectangleCornerRadii(topLeading: round, bottomLeading: round, bottomTrailing: joint, topTrailing: joint)
+            : RectangleCornerRadii(topLeading: joint, bottomLeading: joint, bottomTrailing: round, topTrailing: round)
+    }
+}
+
+/// Числа полосы сводки из кадра `screen10Stats`.
+enum StatBarMetrics {
+    static let gap: CGFloat = 8
+    static let columnGap: CGFloat = 12
+    static let value: CGFloat = 19
+    static let caption: CGFloat = 11.5
+    static let legend: CGFloat = 11.5
+    static let barHeight: CGFloat = 10
+    static let barGap: CGFloat = 3
+    static let jointRadius: CGFloat = 4
+    /// CSS 0 0 14.
+    static let glow: CGFloat = 7
 }
 
 // MARK: - Строка достижения

@@ -132,6 +132,10 @@
 		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
 		CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
 		CAD720DF306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
+		CAD720E1306E72A700F6E49F /* PointsLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E0306E72A700F6E49F /* PointsLedger.swift */; };
+		CAD720E3306E735000F6E49F /* ListControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E2306E735000F6E49F /* ListControls.swift */; };
+		CAD720E5306E73AE00F6E49F /* StatsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E4306E73AE00F6E49F /* StatsScreen.swift */; };
+		CAD720E7306E73D900F6E49F /* WalletScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720E6306E73D900F6E49F /* WalletScreen.swift */; };
 		CADF48B3306DA80100974A1B /* NetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B2306DA80100974A1B /* NetGame.swift */; };
 		CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B4306DA87100974A1B /* NetMatch.swift */; };
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
@@ -287,6 +291,10 @@
 		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
 		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
 		CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GameCenterResources.gamekit; sourceTree = "<group>"; };
+		CAD720E0306E72A700F6E49F /* PointsLedger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsLedger.swift; sourceTree = "<group>"; };
+		CAD720E2306E735000F6E49F /* ListControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListControls.swift; sourceTree = "<group>"; };
+		CAD720E4306E73AE00F6E49F /* StatsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsScreen.swift; sourceTree = "<group>"; };
+		CAD720E6306E73D900F6E49F /* WalletScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletScreen.swift; sourceTree = "<group>"; };
 		CADF48B2306DA80100974A1B /* NetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetGame.swift; sourceTree = "<group>"; };
 		CADF48B4306DA87100974A1B /* NetMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetMatch.swift; sourceTree = "<group>"; };
 		CADF48B8306DAA4500974A1B /* NetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetScreen.swift; sourceTree = "<group>"; };
@@ -363,6 +371,7 @@
 				CA4F06363061DB170083DE5C /* Log.swift */,
 				CA4F06383061E1E20083DE5C /* Core */,
 				CA6886263062B53C00859D7B /* GameMode.swift */,
+				CAD720E0306E72A700F6E49F /* PointsLedger.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -529,6 +538,8 @@
 				CADF48BA306DAA7A00974A1B /* NearbyScreen.swift */,
 				CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */,
 				CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */,
+				CAD720E4306E73AE00F6E49F /* StatsScreen.swift */,
+				CAD720E6306E73D900F6E49F /* WalletScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -570,6 +581,7 @@
 				CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */,
 				CAA32FCE3064040000469335 /* SeaBackground.swift */,
 				CAA32FD03064042800469335 /* GlassPanel.swift */,
+				CAD720E2306E735000F6E49F /* ListControls.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -796,6 +808,7 @@
 				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
 				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
 				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
+				CAD720E1306E72A700F6E49F /* PointsLedger.swift in Sources */,
 				CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */,
 				CA4F063E3061E2490083DE5C /* Board.swift in Sources */,
 				2CE7319A2D57A5EA00954841 /* iPadGameScoreViewV.swift in Sources */,
@@ -808,6 +821,7 @@
 				CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */,
 				CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */,
 				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
+				CAD720E3306E735000F6E49F /* ListControls.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
 				CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */,
 				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
@@ -820,6 +834,7 @@
 				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
 				CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */,
 				CA17D8B9302E7609007A33B0 /* NetworkMessage.swift in Sources */,
+				CAD720E7306E73D900F6E49F /* WalletScreen.swift in Sources */,
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				CA4F06373061DB170083DE5C /* Log.swift in Sources */,
 				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
@@ -854,6 +869,7 @@
 				CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */,
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
 				2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */,
+				CAD720E5306E73AE00F6E49F /* StatsScreen.swift in Sources */,
 				2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */,
 				2CE7319C2D5A03DE00954841 /* iPadGameScoreViewH.swift in Sources */,
 				2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */,

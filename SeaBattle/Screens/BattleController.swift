@@ -313,7 +313,7 @@ final class BattleController {
     func requestHint() -> Bool {
         guard let appState, canUseHint,
               let pick = hintCandidates.randomElement(),
-              ProgressStore.shared.spend(hintCost) else { return false }
+              ProgressStore.shared.spendOnHint(hintCost) else { return false }
         appState.revealedHintCells.append(pick.tuple)
         tally.recordHint(cost: hintCost)
         if appState.soundOn { AudioService.shared.play(.click) }

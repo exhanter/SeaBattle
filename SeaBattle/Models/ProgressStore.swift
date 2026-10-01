@@ -58,6 +58,9 @@ final class ProgressStore {
 
     var points: Int { stats.points }
 
+    /// The wallet history, newest first (R4.1).
+    var ledger: [PointsEntry] { stats.ledger.entries }
+
     /// Wins and losses in one row of the statistics.
     func record(_ key: StatKey) -> StatRecord { stats.record(key) }
 
@@ -75,8 +78,7 @@ final class ProgressStore {
     /// before R0.7 it was filed as a win over the expert (audit finding A7).
     func recordWin(_ key: StatKey) {
         guard key.mode.isTracked else { return }
-        stats.addWin(key)
-        stats.points += key.pointsForWin
+        stats.recordWin(key)
         persist()
     }
 
@@ -86,24 +88,33 @@ final class ProgressStore {
         persist()
     }
 
-    /// Spends `amount` points if the balance allows. RETURNS: whether it succeeded.
+    /// Pays for one hint if the balance allows; the history gets a line.
+    /// RETURNS: whether it was paid.
     @discardableResult
-    func spend(_ amount: Int) -> Bool {
-        guard stats.points >= amount else { return false }
-        stats.points -= amount
+    func spendOnHint(_ cost: Int) -> Bool {
+        guard stats.spendOnHint(cost) else { return false }
         persist()
         return true
     }
 
-    /// Adds points (win reward, a gift from another player, or an in-app purchase).
+    /// The opponent's hint revealed one of my ships over the network: I am
+    /// paid its price, and the history says why.
+    func receiveCompensation(_ amount: Int) {
+        stats.receiveCompensation(amount)
+        persist()
+    }
+
+    /// Tops the balance up without a line in the history. Only the tests use
+    /// it, to afford a hint; every real movement has its own method above.
     func addPoints(_ amount: Int) {
         stats.points += amount
         persist()
     }
 
-    /// Clears all statistics and points.
-    func reset() {
-        stats = PlayerStats()
+    /// Clears the chosen statistics. Points and their history stay (spec 4.10).
+    func reset(_ selection: StatsReset) {
+        guard !selection.isEmpty else { return }
+        stats.reset(selection)
         persist()
     }
 

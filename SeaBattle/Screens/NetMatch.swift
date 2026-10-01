@@ -187,7 +187,7 @@ final class NetMatch {
     }
 
     func requestHint() {
-        guard canUseHint, ProgressStore.shared.spend(hintCost),
+        guard canUseHint, ProgressStore.shared.spendOnHint(hintCost),
               let message = game.requestHint() else { return }
         game.recordHint(cost: hintCost)
         transport.send(message)
@@ -255,7 +255,7 @@ final class NetMatch {
         }
         if let shot = step.shot { show(shot) }
         if step.compensated && !game.isSameAccount {
-            ProgressStore.shared.addPoints(hintCost)
+            ProgressStore.shared.receiveCompensation(hintCost)
         }
         if step.opponentQuit { opponentQuit(during: stageBefore) }
         if step.began || (stageBefore == .arranging && game.isBattle) { battleBegan() }

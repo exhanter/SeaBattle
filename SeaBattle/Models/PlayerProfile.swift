@@ -73,11 +73,16 @@ struct PlayerStats: Codable, Hashable, Sendable {
     /// Single shared points wallet (Phase 6). The win reward and the hint cost
     /// vary by difficulty, but points themselves are fungible across levels.
     var points: Int
+    /// R4.1: every movement of `points`, newest first. Only the history — the
+    /// balance is stored apart and never recomputed from it.
+    var ledger: PointsLedger
 
-    init(records: [String: StatRecord] = [:], unattributedLosses: Int = 0, points: Int = 0) {
+    init(records: [String: StatRecord] = [:], unattributedLosses: Int = 0, points: Int = 0,
+         ledger: PointsLedger = PointsLedger()) {
         self.records = records
         self.unattributedLosses = unattributedLosses
         self.points = points
+        self.ledger = ledger
     }
 
     // MARK: - Reads
@@ -110,10 +115,49 @@ struct PlayerStats: Codable, Hashable, Sendable {
     mutating func addWin(_ key: StatKey) { records[key.storageKey, default: StatRecord()].wins += 1 }
     mutating func addLoss(_ key: StatKey) { records[key.storageKey, default: StatRecord()].losses += 1 }
 
+    /// A win with its reward, written to the history too.
+    mutating func recordWin(_ key: StatKey, at date: Date = .now) {
+        addWin(key)
+        points += key.pointsForWin
+        ledger.addWin(key, points: key.pointsForWin, at: date)
+    }
+
+    /// Pays for one hint if the balance allows. RETURNS: whether it was paid.
+    mutating func spendOnHint(_ cost: Int, at date: Date = .now) -> Bool {
+        guard points >= cost else { return false }
+        points -= cost
+        ledger.addHint(cost: cost, at: date)
+        return true
+    }
+
+    /// The price of the opponent's hint, paid to me (network play).
+    mutating func receiveCompensation(_ amount: Int, at date: Date = .now) {
+        points += amount
+        ledger.addCompensation(amount, at: date)
+    }
+
+    /// Clears the chosen statistics (spec 4.10). The points and their history
+    /// stay: «Начисленные баллы не отнимаются».
+    mutating func reset(_ selection: StatsReset) {
+        if selection.isEverything {
+            // Everything, including what the screen does not show — the paper
+            // game and the losses from before R0.7 — or a "clean" summary would
+            // still carry them.
+            records = [:]
+            unattributedLosses = 0
+            return
+        }
+        for mode in selection.modes {
+            for key in StatKey.tracked where key.mode == mode {
+                records[key.storageKey] = nil
+            }
+        }
+    }
+
     // MARK: - Codable
 
     private enum CodingKeys: String, CodingKey {
-        case records, unattributedLosses, points
+        case records, unattributedLosses, points, ledger
         // Pre-R0.7 shape. Read when migrating, and still WRITTEN, so a build
         // from before R0.7 sharing the same iCloud record (last-writer-wins)
         // keeps seeing sensible numbers instead of failing to decode.
@@ -123,6 +167,8 @@ struct PlayerStats: Codable, Hashable, Sendable {
     init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         points = try c.decodeIfPresent(Int.self, forKey: .points) ?? 0
+        // A damaged history is not worth losing the statistics over.
+        ledger = (try? c.decodeIfPresent(PointsLedger.self, forKey: .ledger)) ?? PointsLedger()
         if let records = try c.decodeIfPresent([String: StatRecord].self, forKey: .records) {
             self.records = records
             unattributedLosses = try c.decodeIfPresent(Int.self, forKey: .unattributedLosses) ?? 0
@@ -146,6 +192,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         try c.encode(records, forKey: .records)
         try c.encode(unattributedLosses, forKey: .unattributedLosses)
         try c.encode(points, forKey: .points)
+        try c.encode(ledger, forKey: .ledger)
         // Legacy mirror — see `CodingKeys`. Only the computer levels fit in it,
         // which is exactly right: an old build never knew any other column.
         var legacy: [String: Int] = [:]

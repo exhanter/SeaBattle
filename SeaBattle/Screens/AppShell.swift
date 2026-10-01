@@ -10,8 +10,8 @@
 //  В бою табы заменяются на переключатель полей и действия фазы, поэтому
 //  таб-бар живёт не в приложении целиком, а только в этой оболочке.
 //
-//  ПЕРЕХОДНОЕ. Новые экраны статистики и настроек приходят позже
-//  (R4.1–R4.2). До тех пор оболочка отдаёт управление старым экранам: они
+//  ПЕРЕХОДНОЕ. Новый экран настроек приходит позже
+//  (R4.2). До тех пор оболочка отдаёт управление старым экранам: они
 //  работают, просто выглядят по-старому. Всё, что помечено `ПЕРЕХОДНОЕ`,
 //  уходит вместе с ними в R4.6.
 //
@@ -171,6 +171,11 @@ struct AppShell: View {
     private var enemy: PlayerData { battle.enemy }
 
     @State private var tab: ShellTab = .play
+    /// Экран внутри таба «Статистика»; `nil` — сама страница статистики.
+    @State private var statsPage: StatsPage?
+    /// Счёт серии сохранённой партии вдвоём — читается с диска при входе в
+    /// статистику, а не на каждой перерисовке.
+    @State private var duelSeries: [Int]?
     @State private var askWhichGameToContinue = false
 
     /// Экран партии до боя, открытый поверх таба «Играть»: уровень или
@@ -301,6 +306,8 @@ struct AppShell: View {
                 }
             }
         }
+        // Таб-бар iPhone меняет таб напрямую, мимо `selectTab`.
+        .onChange(of: tab) { statsPage = nil }
         .onChange(of: appState.showPaywall) { _, shown in
             if !shown && !premiumManager.isPremium { appState.pendingPremiumIntent = nil }
         }
@@ -319,8 +326,10 @@ struct AppShell: View {
                 } else {
                     VStack(spacing: 0) {
                         tabContent
-                        SeaTabBar(selection: $tab,
-                                  size: .forWidth(proxy.size.width))
+                        if !hidesTabs {
+                            SeaTabBar(selection: $tab,
+                                      size: .forWidth(proxy.size.width))
+                        }
                     }
                 }
             }
@@ -336,12 +345,43 @@ struct AppShell: View {
                        onMode: open(_:),
                        onContinue: continueGame)
         case .statistics:
-            // ПЕРЕХОДНОЕ: свой экран приходит в R4.1. Старый рисует
-            // собственный фон, поэтому моря под ним не видно.
-            StatsView()
+            statistics
         case .settings:
             // ПЕРЕХОДНОЕ: свой экран приходит в R4.2.
             SettingsView()
+        }
+    }
+
+    /// Сброс прячет таб-бар (на iPad — квадраты по углам): внизу у него свои
+    /// две кнопки (кадр `screen10Reset`).
+    private var hidesTabs: Bool { tab == .statistics && statsPage?.hidesTabBar == true }
+
+    @ViewBuilder
+    private var statistics: some View {
+        let progress = ProgressStore.shared
+        switch statsPage {
+        case nil:
+            StatsScreen(stats: progress.stats,
+                        isPremium: premiumManager.isPremium,
+                        duelSeries: duelSeries,
+                        onPlay: { selectTab(.play) },
+                        onWallet: { statsPage = .wallet },
+                        onReset: { statsPage = .reset })
+                .onAppear { duelSeries = DuelStore.load()?.series }
+        case .wallet:
+            WalletScreen(points: progress.points,
+                         entries: progress.ledger,
+                         onBack: { statsPage = nil },
+                         onHistory: { statsPage = .history })
+        case .history:
+            PointsHistoryScreen(entries: progress.ledger,
+                                onBack: { statsPage = .wallet })
+        case .reset:
+            ResetScreen(onReset: { selection in
+                            progress.reset(selection)
+                            statsPage = nil
+                        },
+                        onCancel: { statsPage = nil })
         }
     }
 
@@ -363,11 +403,13 @@ struct AppShell: View {
                 tabContent
                     .frame(maxWidth: Geometry.Nav.padColumn)
                     .frame(maxWidth: .infinity)
-                    .padding(.bottom, Geometry.Inset.padTile + Geometry.Nav.stackGap)
-                PadCornerTabs(current: tab, onSelect: selectTab)
-                    .padding(.horizontal, frame)
-                    .padding(.bottom, frame)
-                    .ignoresSafeArea(edges: .bottom)
+                    .padding(.bottom, hidesTabs ? 0 : Geometry.Inset.padTile + Geometry.Nav.stackGap)
+                if !hidesTabs {
+                    PadCornerTabs(current: tab, onSelect: selectTab)
+                        .padding(.horizontal, frame)
+                        .padding(.bottom, frame)
+                        .ignoresSafeArea(edges: .bottom)
+                }
             }
         }
     }
@@ -375,6 +417,8 @@ struct AppShell: View {
     private func selectTab(_ newTab: ShellTab) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
         withAnimation(Motion.quick) { tab = newTab }
+        // Нажатие на таб возвращает на его корень, как в системных табах.
+        statsPage = nil
     }
 
     /// Подпись под «Продолжить партию» на iPad — уровень партии, которая идёт
