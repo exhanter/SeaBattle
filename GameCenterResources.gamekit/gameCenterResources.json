@@ -1,25 +1,49 @@
 {
-  "meta": {
-    "version": "2024-11-15"
+  "meta" : {
+    "version" : "2024-11-15"
   },
-  "resources": {
-    "gameActivities": [
+  "resources" : {
+    "gameActivities" : [
       {
-        "archived": false,
-        "maximumPlayersCount": 2,
-        "minimumPlayersCount": 2,
-        "playStyle": null,
-        "properties": {},
-        "referenceName": "Sea Battle Versus",
-        "supportsPartyCode": true,
-        "vendorIdentifier": "nl.brapps.SeaBattle.versus"
+        "archived" : false,
+        "maximumPlayersCount" : 2,
+        "minimumPlayersCount" : 2,
+        "playStyle" : null,
+        "properties" : {
+
+        },
+        "referenceName" : "Sea Battle Versus",
+        "supportsPartyCode" : true,
+        "vendorIdentifier" : "nl.brapps.SeaBattle.versus"
       }
     ],
-    "gameActivityDefaultImages": {
-      "nl.brapps.SeaBattle.versus": {
-        "localID": "nl.brapps.SeaBattle.versus",
-        "url": "GameActivityImage-nl.brapps.SeaBattle.versus.jpg"
+    "gameActivityDefaultImages" : {
+      "nl.brapps.SeaBattle.versus" : {
+        "localID" : "nl.brapps.SeaBattle.versus",
+        "url" : "GameActivityImage-nl.brapps.SeaBattle.versus.jpeg"
       }
+    },
+    "gameActivityLocalizations" : {
+      "nl.brapps.SeaBattle.versus" : [
+        {
+          "description" : "A battle between two players",
+          "locale" : "en-US",
+          "localID" : "nl.brapps.SeaBattle.versus-en-US",
+          "name" : "Sea Battle Versus"
+        },
+        {
+          "description" : "Een gevecht tussen twee spelers",
+          "locale" : "nl-NL",
+          "localID" : "nl.brapps.SeaBattle.versus-nl-NL",
+          "name" : "Zeeslag Versus"
+        },
+        {
+          "description" : "Сражение между двумя игроками",
+          "locale" : "ru",
+          "localID" : "nl.brapps.SeaBattle.versus-ru",
+          "name" : "Морской Бой - Дуэль"
+        }
+      ]
     }
   }
 }
