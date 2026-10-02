@@ -262,7 +262,7 @@ DECISIONS.md — почему так, mockups.html — эталон вида, De
   при стандартном тексте), мета-экраны до AX5 со столбцами строк, экраны партии до
   xxxLarge, Large Content Viewer у фиксированных элементов, передача хода на 375 × 667.
   Проверено живьём (iPhone Air AX5, SE iOS 18.6). 782 теста.
-- ☑ **R4.6 Уборка** — коммит «R4.6: уборка старых представлений». Удалены `iPhone_Views` /
+- ☑ **R4.6 Уборка** — `b94cf04`. Удалены `iPhone_Views` /
   `iPad_Views` / `Common_Views` (41 файл), `HotSeatGame` / `HotSeatStore`,
   `GameLogicViewModel`, `ShipReplacementViewViewModel`, `WoodenButton`,
   `CustomRoundedRectangle`, шрифты `Aldrich` / `Dorsa`, картинка `wood` (93 МБ; экран
