@@ -55,14 +55,17 @@ struct ArrangementScreen: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        if usesPadLayout {
-            // iPad: отдельного экрана расстановки нет — стол на два поля,
-            // правка на нём же (4.4). До боя «Меню» выходит без вопроса.
-            PadTableScreen(phase: .placement(editor: $editor, onStart: onStart),
-                           onMenu: onMenu, isPaper: isPaper, startEnabled: startEnabled)
-        } else {
-            phone
+        Group {
+            if usesPadLayout {
+                // iPad: отдельного экрана расстановки нет — стол на два поля,
+                // правка на нём же (4.4). До боя «Меню» выходит без вопроса.
+                PadTableScreen(phase: .placement(editor: $editor, onStart: onStart),
+                               onMenu: onMenu, isPaper: isPaper, startEnabled: startEnabled)
+            } else {
+                phone
+            }
         }
+        .battleTypeSize()
     }
 
     private var phone: some View {

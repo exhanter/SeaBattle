@@ -180,7 +180,7 @@ struct OnlineScreen: View {
             ProgressView()
                 .tint(Color.inkPrimary)
             Text(lobby.stage == .checking ? "Checking the connection…" : "Signing in to Game Center…")
-                .font(.system(size: OnlineMetrics.searchNote))
+                .font(.scalable(size: OnlineMetrics.searchNote))
                 .foregroundStyle(Color.inkSecondary)
         }
     }
@@ -200,6 +200,7 @@ struct OnlineScreen: View {
             }
             .padding(.horizontal, Geometry.Nav.stackInset)
             .padding(.top, Geometry.Nav.titleGap * 2)
+            .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
         .scrollBounceBehavior(.basedOnSize)
     }
@@ -282,13 +283,13 @@ struct RadarBlock: View {
                 TimelineView(.periodic(from: since, by: 1)) { context in
                     VStack(spacing: 8) {
                         Text(title)
-                            .font(.system(size: OnlineMetrics.searchTitle, weight: .semibold, design: .rounded))
+                            .font(.scalable(size: OnlineMetrics.searchTitle, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color.inkPrimary)
                         Text(verbatim: netClock(.seconds(context.date.timeIntervalSince(since))))
-                            .font(.system(size: OnlineMetrics.searchClock, design: .monospaced))
+                            .font(.scalable(size: OnlineMetrics.searchClock, design: .monospaced))
                             .foregroundStyle(Color.roleYou)
                         Text(note)
-                            .font(.system(size: OnlineMetrics.searchNote))
+                            .font(.scalable(size: OnlineMetrics.searchNote))
                             .lineSpacing(OnlineMetrics.searchNote * 0.5)
                             .foregroundStyle(Color.inkSecondary)
                             .multilineTextAlignment(.center)
@@ -374,6 +375,7 @@ struct InviteBlock: View {
             }
             .padding(.horizontal, Geometry.Nav.stackInset)
             .padding(.top, Geometry.Nav.titleGap * 2)
+            .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
         .scrollBounceBehavior(.basedOnSize)
     }
@@ -382,7 +384,7 @@ struct InviteBlock: View {
         VStack(spacing: OnlineMetrics.cardGap) {
             OnlineOverline(text: "Match code")
             Text(verbatim: code.text)
-                .font(.system(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
+                .font(.scalable(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
                 .tracking(OnlineMetrics.code * 0.08)
                 .foregroundStyle(Color.inkPrimary)
                 .shadow(color: .roleYouSoft, radius: OnlineMetrics.codeGlow)
@@ -391,7 +393,7 @@ struct InviteBlock: View {
                 .accessibilityIdentifier("onlineCode")
             Text(expired ? "The code has expired. Get a new one — the fleet stays as it is."
                          : "Your opponent enters the code in the same mode. The code lives for 10 minutes.")
-                .font(.system(size: OnlineMetrics.cardNote))
+                .font(.scalable(size: OnlineMetrics.cardNote))
                 .lineSpacing(OnlineMetrics.cardNote * 0.45)
                 .foregroundStyle(Color.inkSecondary)
                 .multilineTextAlignment(.center)
@@ -438,10 +440,10 @@ struct InviteBlock: View {
             InviteDots()
             VStack(alignment: .leading, spacing: 2) {
                 Text("Waiting for your opponent")
-                    .font(.system(size: OnlineMetrics.rowTitle, weight: .semibold))
+                    .font(.scalable(size: OnlineMetrics.rowTitle, weight: .semibold))
                     .foregroundStyle(Color.inkPrimary)
                 Text(arrangedAhead ? "Your fleet is ready" : "Meanwhile you can place your fleet")
-                    .font(.system(size: OnlineMetrics.rowDetail))
+                    .font(.scalable(size: OnlineMetrics.rowDetail))
                     .foregroundStyle(Color.inkSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -457,16 +459,14 @@ struct InviteBlock: View {
             onArrangeAhead()
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: "square.grid.3x3")
-                    .font(.system(size: symbolFontSize(inBox: OnlineMetrics.rowIcon)))
+                ScaledSymbol(name: "square.grid.3x3", box: OnlineMetrics.rowIcon)
                     .foregroundStyle(Color.inkPrimary)
-                    .frame(width: OnlineMetrics.rowIcon, height: OnlineMetrics.rowIcon)
                 Text(arrangedAhead ? "Back to your fleet" : "Place the fleet in advance")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.scalable(size: 14, weight: .medium))
                     .foregroundStyle(Color.inkPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.scalable(size: 15, weight: .semibold))
                     .foregroundStyle(Color.inkTertiary)
             }
             .padding(.vertical, 14)
@@ -506,7 +506,7 @@ private struct OnlineOverline: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: OnlineMetrics.overline, weight: .bold))
+            .font(.scalable(size: OnlineMetrics.overline, weight: .bold))
             .tracking(OnlineMetrics.overline * 0.12)
             .textCase(.uppercase)
             .foregroundStyle(Color.inkSecondary)
@@ -529,7 +529,7 @@ struct CodeEntryBlock: View {
                 TextField(text: $text, prompt: Text(verbatim: "000-000").foregroundStyle(Color.inkTertiary)) {
                     Text("Match code")
                 }
-                .font(.system(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
+                .font(.scalable(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
                 .tracking(OnlineMetrics.code * 0.08)
                 .foregroundStyle(Color.inkPrimary)
                 .multilineTextAlignment(.center)
@@ -539,7 +539,7 @@ struct CodeEntryBlock: View {
                 .onSubmit(onSubmit)
                 .accessibilityIdentifier("onlineCodeField")
                 Text("Your friend sees the code on their screen. It lives for 10 minutes.")
-                    .font(.system(size: OnlineMetrics.cardNote))
+                    .font(.scalable(size: OnlineMetrics.cardNote))
                     .lineSpacing(OnlineMetrics.cardNote * 0.45)
                     .foregroundStyle(Color.inkSecondary)
                     .multilineTextAlignment(.center)
@@ -551,6 +551,7 @@ struct CodeEntryBlock: View {
             .glassPanel(.g2, radius: OnlineMetrics.cardRadius)
             .padding(.horizontal, Geometry.Nav.stackInset)
             .padding(.top, Geometry.Nav.titleGap * 2)
+            .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
         .scrollBounceBehavior(.basedOnSize)
         .onAppear { focused = true }
@@ -587,6 +588,7 @@ struct OnlineErrorBlock: View {
             }
             .padding(.horizontal, Geometry.Nav.stackInset)
             .padding(.top, Geometry.Nav.titleGap * 2)
+            .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
         .scrollBounceBehavior(.basedOnSize)
     }
@@ -614,16 +616,16 @@ struct OnlineErrorBlock: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.scalable(size: 15, weight: .medium))
                         .foregroundStyle(Color.inkPrimary)
                     Text(detail)
-                        .font(.system(size: 11.5))
+                        .font(.scalable(size: 11.5))
                         .foregroundStyle(Color.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.scalable(size: 15, weight: .semibold))
                     .foregroundStyle(Color.inkTertiary)
             }
             .padding(.vertical, 13)
@@ -651,6 +653,7 @@ struct OnlineNoticeCard: View {
                 card(edge: false)
                     .padding(.horizontal, Geometry.Nav.stackInset)
                     .padding(.top, Geometry.Nav.titleGap * 2)
+                    .padding(.bottom, Geometry.Nav.titleGap * 2)
             }
             .scrollBounceBehavior(.basedOnSize)
         } else {
@@ -661,10 +664,9 @@ struct OnlineNoticeCard: View {
     private func card(edge: Bool) -> some View {
         let shape = RoundedRectangle(cornerRadius: OnlineMetrics.errorRadius, style: .continuous)
         return VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: symbolFontSize(inBox: OnlineMetrics.radarIcon)))
+            ScaledSymbol(name: icon, box: OnlineMetrics.errorIconBox,
+                         glyphBox: OnlineMetrics.radarIcon)
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: OnlineMetrics.errorIconBox, height: OnlineMetrics.errorIconBox)
                 .background {
                     RoundedRectangle(cornerRadius: OnlineMetrics.errorIconRadius, style: .continuous)
                         .fill(Color.roleFoe.opacity(0.18))
@@ -674,11 +676,11 @@ struct OnlineNoticeCard: View {
                         }
                 }
             Text(title)
-                .font(.system(size: OnlineMetrics.errorTitle, weight: .bold, design: .rounded))
+                .font(.scalable(size: OnlineMetrics.errorTitle, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.inkPrimary)
                 .multilineTextAlignment(.center)
             Text(message)
-                .font(.system(size: OnlineMetrics.errorText))
+                .font(.scalable(size: OnlineMetrics.errorText))
                 .lineSpacing(OnlineMetrics.errorText * 0.5)
                 .foregroundStyle(Color.inkSecondary)
                 .multilineTextAlignment(.center)

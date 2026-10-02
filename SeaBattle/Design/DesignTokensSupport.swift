@@ -13,7 +13,13 @@
 //  - заливки панелей G1/G2/G3 как готовые градиенты;
 //  - `Geometry.cellRadius(for:)` — радиус клетки от её размера;
 //  - `Animation.reduced(_:)` — правило Reduce Motion «длительности × 0,5» для
-//    готовых анимаций (`Motion.quick`, `Motion.standard`).
+//    готовых анимаций (`Motion.quick`, `Motion.standard`);
+//  - `Font.scalable(size:weight:design:)` — кегль макета под Dynamic Type.
+//
+//  Исключение одно — `TypeScale` в `DesignTokens.swift` (R4.5d): его кегли
+//  обёрнуты в `Font.scalable`. С 30.09 пакеты дизайна больше не приходят, а
+//  две параллельные шкалы шрифтов разошлись бы быстрее, чем одна правка.
+//  Если пакет всё же придёт — вернуть обёртку в `TypeScale`.
 //
 //  При обновлении пакета список ниже надо сверить с каталогом:
 //  `find SeaBattle/Colors.xcassets -name '*.colorset'` против `ColorToken.allCases`.
@@ -216,6 +222,111 @@ extension Animation {
     /// заменяют прозрачностью на месте.
     func reduced(_ reduceMotion: Bool) -> Animation {
         reduceMotion ? speed(2) : self
+    }
+}
+
+// MARK: - Dynamic Type
+
+extension Font {
+    /// Кегль макета, который растёт с Dynamic Type. При стандартном размере
+    /// текста — ровно `size`, как в макете; крупнее — по кривой системного
+    /// стиля с ближайшим базовым кеглем (`DynamicTypeAnchor`): мелкая подпись
+    /// растёт заметнее, крупный заголовок — сдержаннее, как у системы.
+    ///
+    /// `Font.scaled(by:)` есть только с iOS 26. На iOS 18–25 — сам опорный
+    /// стиль: текст растёт и там, а при стандартном размере кегль отходит от
+    /// макета на 1–2 pt (24 → 22, 30 → 28). Доступность на старых системах
+    /// важнее точности до пункта. Где текст расти не должен (поле, счёт боя,
+    /// значки в рамках) — по-прежнему `.system(size:)`.
+    static func scalable(size: CGFloat, weight: Font.Weight? = nil,
+                         design: Font.Design? = nil) -> Font {
+        let anchor = DynamicTypeAnchor.nearest(to: size)
+        let font = Font.system(anchor.style, design: design, weight: weight)
+        if #available(iOS 26.0, *) {
+            return font.scaled(by: size / anchor.baseSize)
+        }
+        return font
+    }
+}
+
+/// Значок в квадратной рамке, который растёт вместе с текстом строки: при
+/// стандартном размере — ровно `box` из макета, крупнее — по кривой `body`,
+/// но не больше чем вдвое (на AX5 тот бы вырос втрое и спорил с текстом).
+/// Для значков в рамках с фиксированной геометрией (поле, плитки iPad) — нет.
+struct ScaledSymbol: View {
+    let name: String
+    let box: CGFloat
+    /// Квадрат, по которому считается кегль символа, если он меньше рамки
+    /// (значок на плашке: рамка 38, символ как в 22).
+    var glyphBox: CGFloat?
+    var weight: Font.Weight?
+
+    @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
+
+    static let maxScale: CGFloat = 2
+
+    var body: some View {
+        let factor = min(scale, Self.maxScale)
+        Image(systemName: name)
+            .font(.system(size: symbolFontSize(inBox: (glyphBox ?? box) * factor), weight: weight))
+            .frame(width: box * factor, height: box * factor)
+    }
+}
+
+/// Ряд «текст · хвост» (значение, тумблер, цифры). На размерах AX1–AX5 —
+/// столбец по левому краю: сбоку от хвоста текст сжимался в колонку в пару
+/// слов на строку.
+struct AdaptiveRow<Content: View>: View {
+    var spacing: CGFloat
+    var accessibilitySpacing: CGFloat = 6
+    @ViewBuilder var content: Content
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: accessibilitySpacing))
+            : AnyLayout(HStackLayout(spacing: spacing))
+        layout { content }
+    }
+}
+
+extension View {
+    /// Потолок Dynamic Type на экранах партии (поле, расстановка, бой — во
+    /// всех режимах). Геометрия там задана полем 10 × 10, кегли поля и
+    /// панели счёта фиксированы, а у кнопок и предупреждений выше xxxLarge
+    /// растёт только то, что отнимает место у поля. Элементы фиксированного
+    /// размера на этих экранах показывают Large Content Viewer.
+    /// Итоги и окна поверх партии в потолок не входят — ставить **под**
+    /// `.matchResults` и `.modalDialog`.
+    func battleTypeSize() -> some View {
+        dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+    }
+}
+
+/// Системный стиль и его кегль при стандартном размере текста (Large).
+/// `headline` нет намеренно: он жирный сам по себе, а вес задаёт макет.
+struct DynamicTypeAnchor: Equatable {
+    let style: Font.TextStyle
+    let baseSize: CGFloat
+
+    static let all: [DynamicTypeAnchor] = [
+        .init(style: .caption2, baseSize: 11),
+        .init(style: .caption, baseSize: 12),
+        .init(style: .footnote, baseSize: 13),
+        .init(style: .subheadline, baseSize: 15),
+        .init(style: .callout, baseSize: 16),
+        .init(style: .body, baseSize: 17),
+        .init(style: .title3, baseSize: 20),
+        .init(style: .title2, baseSize: 22),
+        .init(style: .title, baseSize: 28),
+        .init(style: .largeTitle, baseSize: 34),
+    ]
+
+    /// Ближайший по отношению кеглей, а не по разности: 11 → 12 — это
+    /// столько же, сколько 31 → 34.
+    static func nearest(to size: CGFloat) -> DynamicTypeAnchor {
+        all.min { abs(log($0.baseSize / size)) < abs(log($1.baseSize / size)) } ?? all[5]
     }
 }
 

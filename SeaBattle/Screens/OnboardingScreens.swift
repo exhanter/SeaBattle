@@ -135,13 +135,13 @@ struct WelcomeScreen: View {
     private var lines: some View {
         VStack(spacing: OnboardingMetrics.linesGap) {
             Text("Familiar rules: a 10 × 10 board and ten ships.")
-                .font(.system(size: OnboardingMetrics.lead))
+                .font(.scalable(size: OnboardingMetrics.lead))
                 .lineSpacing(OnboardingMetrics.leadLineSpacing)
                 .foregroundStyle(Color.inkPrimary)
             (usesPadLayout
              ? Text("Alone against the computer, two players on one device, nearby without internet or online. You can even play someone who has a sheet of paper.")
              : Text("Alone against the computer, two players on one phone, nearby without internet or online. You can even play someone who has a sheet of paper."))
-                .font(.system(size: OnboardingMetrics.body))
+                .font(.scalable(size: OnboardingMetrics.body))
                 .lineSpacing(OnboardingMetrics.bodyLineSpacing)
                 .foregroundStyle(Color.inkSecondary)
         }
@@ -178,7 +178,7 @@ struct WelcomeScreen: View {
 
     private func restoreText(_ text: Text) -> some View {
         text
-            .font(.system(size: OnboardingMetrics.restoreText))
+            .font(.scalable(size: OnboardingMetrics.restoreText))
             .foregroundStyle(Color.inkSecondary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, minHeight: Geometry.Hit.minTarget)
@@ -219,7 +219,7 @@ struct PlayerNameScreen: View {
                         .accessibilityIdentifier("ownPlayerCard")
 
                     Text("The colour shows in the avatar, the name and on the handoff screen. The boards look the same for everyone: warm is yours, cool is your opponent’s.")
-                        .font(.system(size: OnboardingMetrics.note))
+                        .font(.scalable(size: OnboardingMetrics.note))
                         .lineSpacing(OnboardingMetrics.note * 0.5)
                         .foregroundStyle(Color.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -239,7 +239,7 @@ struct PlayerNameScreen: View {
                         .accessibilityIdentifier("nameDone")
                     Button(action: onSkip) {
                         Text("Skip")
-                            .font(.system(size: OnboardingMetrics.skipText))
+                            .font(.scalable(size: OnboardingMetrics.skipText))
                             .foregroundStyle(Color.inkSecondary)
                             .frame(maxWidth: .infinity, minHeight: Geometry.Hit.minTarget)
                             .contentShape(Rectangle())
@@ -258,7 +258,7 @@ struct PlayerNameScreen: View {
         (purpose == .firstLaunch
          ? Text("Only the people you play with see your name, icon and colour. You can change them in Settings at any time.")
          : Text("Only the people you play with see your name, icon and colour."))
-            .font(.system(size: OnboardingMetrics.body))
+            .font(.scalable(size: OnboardingMetrics.body))
             .lineSpacing(OnboardingMetrics.bodyLineSpacing)
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)

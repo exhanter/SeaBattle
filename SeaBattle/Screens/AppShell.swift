@@ -81,6 +81,11 @@ struct SeaTabBar: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("tab_\(tab.rawValue)")
                 .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                // Кегль таб-бара фиксирован, как у системного: крупно — по
+                // долгому нажатию.
+                .accessibilityShowsLargeContentViewer {
+                    Label(tab.title, systemImage: tab.icon)
+                }
             }
         }
         .frame(height: size.tabHeight)

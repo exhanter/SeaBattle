@@ -152,10 +152,8 @@ private struct BrassIconBox: View {
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        Image(systemName: icon)
-            .font(.system(size: symbolFontSize(inBox: symbol)))
+        ScaledSymbol(name: icon, box: box, glyphBox: symbol)
             .foregroundStyle(Color.inkPrimary)
-            .frame(width: box, height: box)
             .background(Color.roleYou.opacity(fill), in: shape)
             .overlay { shape.strokeBorder(Color.roleYou, lineWidth: 1) }
             .accessibilityHidden(true)
@@ -173,20 +171,18 @@ struct ProFeatureRow: View {
                          radius: ProMetrics.featureIconRadius, symbol: ProMetrics.featureIcon)
             VStack(alignment: .leading, spacing: 2) {
                 Text(feature.title)
-                    .font(.system(size: ProMetrics.featureName, weight: .semibold, design: .rounded))
+                    .font(.scalable(size: ProMetrics.featureName, weight: .semibold, design: .rounded))
                     .foregroundStyle(Color.inkPrimary)
                 Text(unlocked ? feature.unlocked : feature.subtitle)
-                    .font(.system(size: ProMetrics.featureText))
+                    .font(.scalable(size: ProMetrics.featureText))
                     .lineSpacing(ProMetrics.featureText * 0.35)
                     .foregroundStyle(Color.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if unlocked {
-                Image(systemName: "checkmark")
-                    .font(.system(size: symbolFontSize(inBox: ProMetrics.featureCheck), weight: .semibold))
+                ScaledSymbol(name: "checkmark", box: ProMetrics.featureCheck, weight: .semibold)
                     .foregroundStyle(Color.roleYou)
-                    .frame(width: ProMetrics.featureCheck, height: ProMetrics.featureCheck)
             }
         }
         .padding(.vertical, ProMetrics.featurePaddingV)
@@ -203,7 +199,7 @@ private struct ProPointsNote: View {
 
     var body: some View {
         Text("Pro gives no points and does not make hints cheaper: points are earned by playing, the same for everyone.")
-            .font(.system(size: ProMetrics.noteText))
+            .font(.scalable(size: ProMetrics.noteText))
             .lineSpacing(ProMetrics.noteText * 0.5)
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -245,7 +241,7 @@ private struct ProNoticeLine: View {
     var body: some View {
         if let notice {
             Text(notice.text)
-                .font(.system(size: ProMetrics.sheetText))
+                .font(.scalable(size: ProMetrics.sheetText))
                 .foregroundStyle(Color.inkPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -310,11 +306,11 @@ struct ProLockedSheet: View {
                              fill: 0.22)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(feature.title)
-                        .font(.system(size: ProMetrics.sheetTitle, weight: .bold, design: .rounded))
+                        .font(.scalable(size: ProMetrics.sheetTitle, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.inkPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Text(feature.sheetText)
-                        .font(.system(size: ProMetrics.sheetText))
+                        .font(.scalable(size: ProMetrics.sheetText))
                         .lineSpacing(ProMetrics.sheetText * 0.4)
                         .foregroundStyle(Color.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -461,11 +457,11 @@ struct ProPaywallScreen: View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: ProMetrics.headGap) {
                 Text(verbatim: "Pro")
-                    .font(.system(size: ProMetrics.headTitle, weight: .bold, design: .rounded))
+                    .font(.scalable(size: ProMetrics.headTitle, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.inkPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Text("Three modes for playing with people and a fourth computer level. Works on all your devices with the same Apple ID.")
-                    .font(.system(size: ProMetrics.headText))
+                    .font(.scalable(size: ProMetrics.headText))
                     .lineSpacing(ProMetrics.headText * 0.45)
                     .foregroundStyle(Color.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -493,7 +489,7 @@ struct ProPaywallScreen: View {
     private var plans: some View {
         VStack(alignment: .leading, spacing: ProMetrics.plansGap) {
             Text("Choose a plan")
-                .font(.system(size: ProMetrics.capLabel, weight: .bold))
+                .font(.scalable(size: ProMetrics.capLabel, weight: .bold))
                 .tracking(ProMetrics.capLabel * 0.11)
                 .textCase(.uppercase)
                 .foregroundStyle(Color.inkTertiary)
@@ -569,7 +565,7 @@ struct ProPaywallScreen: View {
             }
             .underline()
         }
-        .font(.system(size: ProMetrics.fineText))
+        .font(.scalable(size: ProMetrics.fineText))
         .lineSpacing(ProMetrics.fineText * 0.45)
         .foregroundStyle(Color.inkTertiary)
         .tint(Color.inkTertiary)
@@ -592,18 +588,18 @@ struct ProPlanRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 8) {
                         Text(title)
-                            .font(.system(size: ProMetrics.planTitle, weight: .semibold, design: .rounded))
+                            .font(.scalable(size: ProMetrics.planTitle, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color.inkPrimary)
                         if offer.plan == .lifetime { badge }
                     }
                     Text(note)
-                        .font(.system(size: ProMetrics.planNote))
+                        .font(.scalable(size: ProMetrics.planNote))
                         .foregroundStyle(Color.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Text(verbatim: offer.price)
-                    .font(.system(size: ProMetrics.planPrice, weight: .bold, design: .rounded))
+                    .font(.scalable(size: ProMetrics.planPrice, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(isSelected ? Color.roleYou : Color.inkPrimary)
             }
@@ -654,7 +650,7 @@ struct ProPlanRow: View {
 
     private var badge: some View {
         Text("best value")
-            .font(.system(size: ProMetrics.badgeText, weight: .bold))
+            .font(.scalable(size: ProMetrics.badgeText, weight: .bold))
             .tracking(ProMetrics.badgeText * 0.04)
             .foregroundStyle(Color.inkPrimary)
             .padding(.vertical, 2)
@@ -726,11 +722,11 @@ struct ProActiveScreen: View {
                          fill: 0.22)
             VStack(alignment: .leading, spacing: 3) {
                 Text("Pro is active")
-                    .font(.system(size: ProMetrics.statusTitle, weight: .bold, design: .rounded))
+                    .font(.scalable(size: ProMetrics.statusTitle, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.inkPrimary)
                 if let line = statusLine {
                     line
-                        .font(.system(size: ProMetrics.statusText))
+                        .font(.scalable(size: ProMetrics.statusText))
                         .foregroundStyle(Color.inkSecondary)
                 }
             }

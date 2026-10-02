@@ -43,6 +43,7 @@ struct ModalDialog: View {
                 Text(title)
                     .font(TypeScale.headline)
                     .foregroundStyle(Color.inkPrimary)
+                    .multilineTextAlignment(.center)
                 Text(message)
                     .font(TypeScale.footnote)
                     .lineSpacing(ModalMetrics.messageLineSpacing)

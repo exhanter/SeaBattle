@@ -165,9 +165,9 @@ struct StatsScreen: View {
         Button(action: onReset) {
             HStack(spacing: ListMetrics.valueGap) {
                 Text("Reset statistics")
-                    .font(.system(size: StatsMetrics.resetText, weight: .medium))
+                    .font(.scalable(size: StatsMetrics.resetText, weight: .medium))
                 Image(systemName: "chevron.right")
-                    .font(.system(size: symbolFontSize(inBox: StatsMetrics.resetChevron), weight: .semibold))
+                    .font(.scalable(size: symbolFontSize(inBox: StatsMetrics.resetChevron), weight: .semibold))
             }
             .foregroundStyle(Color.inkPrimary)
             .padding(.horizontal, StatsMetrics.resetPaddingH)
@@ -210,30 +210,29 @@ struct StatModeRow: View {
         }
     }
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: symbolFontSize(inBox: StatsMetrics.modeIcon)))
+        // На AX1–AX5 — столбцом: значок, название целиком, под ним цифры.
+        AdaptiveRow(spacing: 12) {
+            ScaledSymbol(name: icon, box: StatsMetrics.modeIcon)
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: StatsMetrics.modeIcon, height: StatsMetrics.modeIcon)
             Text(title)
-                .font(.system(size: StatsMetrics.modeName, weight: .medium))
+                .font(.scalable(size: StatsMetrics.modeName, weight: .medium))
                 .foregroundStyle(Color.inkPrimary)
-                .lineLimit(1)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if isLocked {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: symbolFontSize(inBox: StatsMetrics.modeLock)))
+                ScaledSymbol(name: "lock.fill", box: StatsMetrics.modeLock)
                     .foregroundStyle(Color.inkSecondary)
-                    .frame(width: StatsMetrics.modeLock, height: StatsMetrics.modeLock)
                     .accessibilityLabel("Locked")
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     detail?
-                        .font(.system(size: StatsMetrics.modeDetail))
+                        .font(.scalable(size: StatsMetrics.modeDetail))
                         .foregroundStyle(Color.inkSecondary)
                     value?
-                        .font(.system(size: StatsMetrics.modeValue, weight: .bold, design: .rounded))
+                        .font(.scalable(size: StatsMetrics.modeValue, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.roleYou)
                         .frame(minWidth: StatsMetrics.modeValueWidth, alignment: .trailing)
                 }
@@ -277,7 +276,7 @@ struct ResetScreen: View {
                         }
                     }
                     Text("Points already earned are not taken away: the wallet stays as it is.")
-                        .font(.system(size: StatsMetrics.noteText))
+                        .font(.scalable(size: StatsMetrics.noteText))
                         .lineSpacing(StatsMetrics.noteText * 0.5)
                         .foregroundStyle(Color.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -332,11 +331,11 @@ struct ResetPick: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: ListMetrics.rowTitle, weight: .medium))
+                        .font(.scalable(size: ListMetrics.rowTitle, weight: .medium))
                         .foregroundStyle(Color.inkPrimary)
                     if let subtitle {
                         Text(subtitle)
-                            .font(.system(size: ListMetrics.rowSubtitle))
+                            .font(.scalable(size: ListMetrics.rowSubtitle))
                             .foregroundStyle(Color.inkSecondary)
                     }
                 }

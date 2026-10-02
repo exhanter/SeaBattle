@@ -80,6 +80,7 @@ struct NetScreen: View {
 
     var body: some View {
         content
+            .battleTypeSize()
             .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
             .animation(Motion.quick.reduced(reduceMotion), value: match.link)
             .matchResults(match.result, onPlayAgain: match.playAgain, onMenu: exit)

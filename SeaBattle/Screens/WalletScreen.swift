@@ -51,6 +51,7 @@ struct WalletScreen: View {
     var onHistory: () -> Void = {}
 
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var isEmpty: Bool { points == 0 && entries.isEmpty }
 
@@ -101,10 +102,10 @@ struct WalletScreen: View {
         var resource: LocalizedStringResource = "\(points) points"
         resource.locale = locale
         var line = AttributedString(localized: resource)
-        line.font = .system(size: WalletMetrics.balanceUnit)
+        line.font = .scalable(size: WalletMetrics.balanceUnit)
         line.foregroundColor = Color.inkSecondary
         for run in line.runs where run.localizedNumericArgument != nil {
-            line[run.range].font = .system(size: WalletMetrics.balanceValue, weight: .bold,
+            line[run.range].font = .scalable(size: WalletMetrics.balanceValue, weight: .bold,
                                            design: .rounded).monospacedDigit()
             line[run.range].foregroundColor = Color.inkPrimary
         }
@@ -113,9 +114,13 @@ struct WalletScreen: View {
 
     private var balance: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .lastTextBaseline, spacing: 10) {
+            // На AX1–AX5 строка переносится («126 / баллов»): значок держится
+            // первой строки, а не последней.
+            HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .firstTextBaseline
+                                                                  : .lastTextBaseline,
+                   spacing: 10) {
                 Image(systemName: PointsSymbol.name)
-                    .font(.system(size: symbolFontSize(inBox: WalletMetrics.balanceIcon)))
+                    .font(.scalable(size: symbolFontSize(inBox: WalletMetrics.balanceIcon)))
                     .foregroundStyle(Color.roleYou)
                     .alignmentGuide(.lastTextBaseline) { $0[.bottom] - 3 }
                 Text(balanceLine)
@@ -127,13 +132,11 @@ struct WalletScreen: View {
                 .frame(height: 1)
 
             HStack(alignment: .top, spacing: 9) {
-                Image(systemName: "lightbulb.max")
-                    .font(.system(size: symbolFontSize(inBox: WalletMetrics.ruleIcon)))
+                ScaledSymbol(name: "lightbulb.max", box: WalletMetrics.ruleIcon)
                     .foregroundStyle(Color.inkPrimary)
-                    .frame(width: WalletMetrics.ruleIcon, height: WalletMetrics.ruleIcon)
                     .accessibilityHidden(true)
                 Text("For now points are spent on hints: a hint costs as much as a win at the level of the match, from 1 to 10 points. A shop with icons and colours will follow.")
-                    .font(.system(size: WalletMetrics.ruleText))
+                    .font(.scalable(size: WalletMetrics.ruleText))
                     .lineSpacing(WalletMetrics.ruleText * 0.4)
                     .foregroundStyle(Color.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -159,17 +162,16 @@ struct WalletScreen: View {
     }
 
     private func sourceRow(icon: String, title: LocalizedStringKey, value: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: symbolFontSize(inBox: WalletMetrics.entryIcon)))
+        // На AX1–AX5 — столбцом, как все строки «текст · число» (R4.5d).
+        AdaptiveRow(spacing: 12) {
+            ScaledSymbol(name: icon, box: WalletMetrics.entryIcon)
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: WalletMetrics.entryIcon, height: WalletMetrics.entryIcon)
             Text(title)
-                .font(.system(size: WalletMetrics.entryName))
+                .font(.scalable(size: WalletMetrics.entryName))
                 .foregroundStyle(Color.inkPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(verbatim: value)
-                .font(.system(size: WalletMetrics.entryValue, weight: .bold, design: .rounded))
+                .font(.scalable(size: WalletMetrics.entryValue, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(Color.roleYou)
         }
@@ -219,24 +221,24 @@ struct PointsEntryRow: View {
     let entry: PointsEntry
     var now: Date = .now
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: symbolFontSize(inBox: WalletMetrics.entryIcon)))
+        AdaptiveRow(spacing: 12) {
+            ScaledSymbol(name: icon, box: WalletMetrics.entryIcon)
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: WalletMetrics.entryIcon, height: WalletMetrics.entryIcon)
             VStack(alignment: .leading, spacing: 2) {
                 title
-                    .font(.system(size: WalletMetrics.entryName, weight: .medium))
+                    .font(.scalable(size: WalletMetrics.entryName, weight: .medium))
                     .foregroundStyle(Color.inkPrimary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 when
-                    .font(.system(size: WalletMetrics.entryWhen))
+                    .font(.scalable(size: WalletMetrics.entryWhen))
                     .foregroundStyle(Color.inkSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Text(verbatim: Self.signed(entry.amount))
-                .font(.system(size: WalletMetrics.entryValue, weight: .bold, design: .rounded))
+                .font(.scalable(size: WalletMetrics.entryValue, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(entry.amount < 0 ? Color.inkSecondary : Color.roleYou)
         }

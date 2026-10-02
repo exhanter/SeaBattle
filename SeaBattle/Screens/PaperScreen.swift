@@ -85,6 +85,7 @@ struct PaperScreen: View {
                 phone
             }
         }
+        .battleTypeSize()
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,

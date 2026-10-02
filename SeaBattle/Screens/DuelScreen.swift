@@ -42,6 +42,19 @@ enum HandoffMetrics {
     /// верха, цвет `…26` макета — 15 %.
     static let glowSide: CGFloat = 420
     static let glowShare: Double = 0x26 / 255
+
+    /// Плотность колонки iPhone. Макет рассчитан на высокий экран: на
+    /// 375 × 667 колонка выше экрана на ≈ 30 pt ещё при стандартном тексте —
+    /// SwiftUI её сжимал, `minimumScaleFactor` ужимал имя, а «Меню» уезжало
+    /// за край. Тесная — та же колонка с меньшим аватаром и клавишами.
+    struct Density {
+        let top, gap, avatar, keyHeight: CGFloat
+
+        static let regular = Density(top: HandoffMetrics.top, gap: HandoffMetrics.gap,
+                                     avatar: HandoffMetrics.avatar,
+                                     keyHeight: HandoffMetrics.keyHeight)
+        static let tight = Density(top: 12, gap: 12, avatar: 64, keyHeight: 52)
+    }
 }
 
 // MARK: - Экран партии
@@ -70,6 +83,7 @@ struct DuelScreen: View {
     var body: some View {
         ZStack {
             content
+                .battleTypeSize()
                 // Под слоем экран есть (состояние не пересоздаётся), но его не
                 // слышно и не нажать: VoiceOver прочёл бы чужой флот.
                 .accessibilityHidden(match.showsHandoff)
@@ -314,22 +328,35 @@ struct DuelHandoffLayer: View {
     /// iPhone (`screen4Handoff`): колонка от верха, «Меню» строкой внизу.
     private var phone: some View {
         VStack(spacing: 0) {
-            column
-                .padding(.top, HandoffMetrics.top)
-                .padding(.horizontal, HandoffMetrics.footnoteInset)
-
-            Spacer(minLength: HandoffMetrics.gap)
-
-            if game.codeStep != .none {
-                footnoteText
-                    .padding(.horizontal, HandoffMetrics.footnoteInset)
-                    .padding(.bottom, Geometry.Nav.stackGap)
+            // Первая раскладка, что помещается по высоте: макет → тесная →
+            // тесная с прокруткой (крупный текст на малом экране).
+            ViewThatFits(in: .vertical) {
+                phoneColumn(.regular)
+                phoneColumn(.tight)
+                ScrollView { phoneColumn(.tight) }
+                    .scrollBounceBehavior(.basedOnSize)
             }
+            .frame(maxHeight: .infinity, alignment: .top)
 
             BottomStack(onMenu: onMenu) {
                 if game.codeStep == .none { openButton }
             }
         }
+    }
+
+    private func phoneColumn(_ density: HandoffMetrics.Density) -> some View {
+        VStack(spacing: 0) {
+            column(density)
+                .padding(.top, density.top)
+
+            Spacer(minLength: density.gap)
+
+            if game.codeStep != .none {
+                footnoteText
+                    .padding(.bottom, Geometry.Nav.stackGap)
+            }
+        }
+        .padding(.horizontal, HandoffMetrics.footnoteInset)
     }
 
     /// iPad: кадра нет. Та же колонка шириной 520 по центру экрана, сноска и
@@ -339,7 +366,7 @@ struct DuelHandoffLayer: View {
         let mirrored = appState.ownBoardOnRight
         return ZStack(alignment: mirrored ? .bottomTrailing : .bottomLeading) {
             VStack(spacing: HandoffMetrics.gap) {
-                column
+                column(.regular)
                 if game.codeStep != .none {
                     footnoteText
                 } else {
@@ -358,22 +385,22 @@ struct DuelHandoffLayer: View {
     }
 
     /// Аватар, имя, код и клавиатура — общая часть обеих раскладок.
-    private var column: some View {
-        VStack(spacing: HandoffMetrics.gap) {
+    private func column(_ density: HandoffMetrics.Density) -> some View {
+        VStack(spacing: density.gap) {
             AvatarDot(glyph: player.glyph, colorIndex: player.colorIndex,
-                      size: HandoffMetrics.avatar)
+                      size: density.avatar)
                 .background { glow }
             heading
             if game.codeStep != .none {
                 code
-                keypad
+                keypad(keyHeight: density.keyHeight)
             }
         }
     }
 
     private var footnoteText: some View {
         Text(footnote)
-            .font(.system(size: HandoffMetrics.footnote))
+            .font(.scalable(size: HandoffMetrics.footnote))
             .lineSpacing(HandoffMetrics.footnote * 0.5)
             .multilineTextAlignment(.center)
             .foregroundStyle(Color.inkTertiary)
@@ -417,12 +444,12 @@ struct DuelHandoffLayer: View {
     private var heading: some View {
         VStack(spacing: HandoffMetrics.titleGap) {
             Text(player.name)
-                .font(.system(size: HandoffMetrics.title, weight: .semibold, design: .rounded))
+                .font(.scalable(size: HandoffMetrics.title, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.inkPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             subtitle
-                .font(.system(size: HandoffMetrics.subtitle))
+                .font(.scalable(size: HandoffMetrics.subtitle))
                 .foregroundStyle(Color.inkSecondary)
                 .multilineTextAlignment(.center)
         }
@@ -465,7 +492,7 @@ struct DuelHandoffLayer: View {
     private var code: some View {
         VStack(spacing: HandoffMetrics.codeGap) {
             Text(codeTitle)
-                .font(.system(size: HandoffMetrics.codeLabel, weight: .bold))
+                .font(.scalable(size: HandoffMetrics.codeLabel, weight: .bold))
                 .tracking(HandoffMetrics.codeLabel * 0.12)
                 .textCase(.uppercase)
                 .foregroundStyle(Color.inkSecondary)
@@ -488,32 +515,35 @@ struct DuelHandoffLayer: View {
         .padding(.top, 6)
     }
 
-    private var keypad: some View {
+    private func keypad(keyHeight: CGFloat) -> some View {
         let columns = Array(repeating: GridItem(.fixed(HandoffMetrics.keyWidth),
                                                 spacing: HandoffMetrics.keyGap), count: 3)
         return LazyVGrid(columns: columns, spacing: HandoffMetrics.keyGap) {
-            ForEach(1...9, id: \.self) { key(String($0)) }
-            Color.clear.frame(height: HandoffMetrics.keyHeight)
-            key("0")
+            ForEach(1...9, id: \.self) { key(String($0), height: keyHeight) }
+            Color.clear.frame(height: keyHeight)
+            key("0", height: keyHeight)
             Button(action: deleteDigit) {
                 Image(systemName: "delete.left")
                     .font(.system(size: symbolFontSize(inBox: HandoffMetrics.deleteIcon)))
                     .foregroundStyle(Color.inkPrimary)
-                    .frame(width: HandoffMetrics.keyWidth, height: HandoffMetrics.keyHeight)
+                    .frame(width: HandoffMetrics.keyWidth, height: keyHeight)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("Delete"))
+            .accessibilityShowsLargeContentViewer {
+                Label("Delete", systemImage: "delete.left")
+            }
         }
         .frame(width: HandoffMetrics.keyWidth * 3 + HandoffMetrics.keyGap * 2)
     }
 
-    private func key(_ digit: String) -> some View {
+    private func key(_ digit: String, height: CGFloat) -> some View {
         Button { type(digit) } label: {
             Text(verbatim: digit)
                 .font(.system(size: HandoffMetrics.keyText, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: HandoffMetrics.keyWidth, height: HandoffMetrics.keyHeight)
+                .frame(width: HandoffMetrics.keyWidth, height: height)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -522,6 +552,7 @@ struct DuelHandoffLayer: View {
         // Под ними глухой слой, так что просвечивать нечему — вид тот же.
         .glassPanel(.g2, radius: HandoffMetrics.keyRadius, treatment: .material)
         .accessibilityIdentifier("duelKey\(digit)")
+        .accessibilityShowsLargeContentViewer { Text(verbatim: digit) }
     }
 
     private func type(_ digit: String) {

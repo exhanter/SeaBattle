@@ -209,6 +209,9 @@ struct PadMenuScreen: View {
         .buttonStyle(.plain)
         .glassPanel(.g2, radius: PadTileMetrics.radius, highlight: .selected)
         .accessibilityIdentifier("continueGameButton")
+        .accessibilityShowsLargeContentViewer {
+            Label("Continue game", systemImage: "arrow.uturn.backward.circle")
+        }
     }
 }
 
@@ -261,6 +264,11 @@ private struct ModeTile: View {
         .glassPanel(.g2, radius: M.tileRadius)
         .accessibilityElement(children: .combine)
         .accessibilityValue(isLocked ? Text("Pro") : Text(""))
+        // Композиция меню iPad фиксирована (плитки на весь экран), кегли —
+        // тоже: крупно — по долгому нажатию.
+        .accessibilityShowsLargeContentViewer {
+            Label(item.title, systemImage: item.icon)
+        }
     }
 
     private func icon(_ side: CGFloat) -> some View {

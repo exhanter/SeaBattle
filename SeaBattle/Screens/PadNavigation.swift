@@ -74,6 +74,11 @@ struct PadTileLabel: View {
         }
         .foregroundStyle(Color.inkPrimary)
         .padding(.horizontal, 6)
+        // Кегль плитки фиксирован (квадрат 104): при крупном тексте долгое
+        // нажатие показывает подпись крупно.
+        .accessibilityShowsLargeContentViewer {
+            if let icon { Label(title, systemImage: icon) } else { Text(title) }
+        }
     }
 }
 

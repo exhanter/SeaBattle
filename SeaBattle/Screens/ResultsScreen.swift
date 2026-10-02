@@ -84,6 +84,7 @@ struct ResultsScreen: View {
     var onMenu: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var hasRisen = false
     @State private var counted = 0.0
 
@@ -152,23 +153,29 @@ struct ResultsScreen: View {
                           size: ResultMetrics.duelAvatar)
             }
             Text(result.didWin ? "Victory" : "Defeat")
-                .font(.system(size: ResultMetrics.word, weight: .bold, design: .rounded))
+                .font(.scalable(size: ResultMetrics.word, weight: .bold, design: .rounded))
                 .tracking(ResultMetrics.wordTracking)
                 .foregroundStyle(Color.inkPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             subtitle
-                .font(.system(size: ResultMetrics.subtitle))
+                .font(.scalable(size: ResultMetrics.subtitle))
                 .foregroundStyle(Color.inkSecondary)
+                .multilineTextAlignment(.center)
 
             // Цвета как в бою: тёплое — ваш флот (сколько потеряли),
             // холодное — флот соперника (сколько потопили). Своё слева, как
             // в панели счёта (4.9; наоборот было ошибкой макета тура 10).
-            HStack(spacing: ResultMetrics.scoreColumnsGap) {
+            // На AX1–AX5 — друг под другом: «10 / 10» в половине ширины
+            // переносилось посередине.
+            AdaptiveRow(spacing: ResultMetrics.scoreColumnsGap,
+                                  accessibilitySpacing: ResultMetrics.scoreTop) {
                 fleetScore(result.yourLosses, label: "you lost", color: .roleYou)
-                Rectangle()
-                    .fill(Color.glassStroke)
-                    .frame(width: 1)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Rectangle()
+                        .fill(Color.glassStroke)
+                        .frame(width: 1)
+                }
                 fleetScore(result.foeLosses, label: "you sank", color: .roleFoe)
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -186,11 +193,13 @@ struct ResultsScreen: View {
     private func fleetScore(_ count: Int, label: LocalizedStringKey, color: Color) -> some View {
         VStack(spacing: ResultMetrics.scoreLabelGap) {
             Text(verbatim: "\(count) / \(result.fleetSize)")
-                .font(.system(size: ResultMetrics.scoreValue, weight: .bold, design: .rounded)
+                .font(.scalable(size: ResultMetrics.scoreValue, weight: .bold, design: .rounded)
                         .monospacedDigit())
                 .foregroundStyle(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
             Text(label)
-                .font(.system(size: ResultMetrics.scoreLabel))
+                .font(.scalable(size: ResultMetrics.scoreLabel))
                 .foregroundStyle(Color.inkSecondary)
         }
         .frame(maxWidth: .infinity)
@@ -201,9 +210,7 @@ struct ResultsScreen: View {
     private var pointsCard: some View {
         VStack(alignment: .leading, spacing: ResultMetrics.cardInnerGap) {
             HStack(spacing: ResultMetrics.pointsHeaderGap) {
-                Image(systemName: PointsSymbol.name)
-                    .font(.system(size: symbolFontSize(inBox: ResultMetrics.pointsIcon)))
-                    .frame(width: ResultMetrics.pointsIcon, height: ResultMetrics.pointsIcon)
+                ScaledSymbol(name: PointsSymbol.name, box: ResultMetrics.pointsIcon)
                     .foregroundStyle(Color.roleYou)
                 PointsCounter(value: counted)
                     .foregroundStyle(Color.inkPrimary)
@@ -224,11 +231,9 @@ struct ResultsScreen: View {
             }
 
             HStack(spacing: ResultMetrics.totalGap) {
-                Image(systemName: PointsSymbol.name)
-                    .font(.system(size: symbolFontSize(inBox: ResultMetrics.totalIcon)))
-                    .frame(width: ResultMetrics.totalIcon, height: ResultMetrics.totalIcon)
+                ScaledSymbol(name: PointsSymbol.name, box: ResultMetrics.totalIcon)
                 Text("Balance now: \(result.balance) points")
-                    .font(.system(size: ResultMetrics.totalText))
+                    .font(.scalable(size: ResultMetrics.totalText))
             }
             .foregroundStyle(Color.inkSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -248,7 +253,7 @@ struct ResultsScreen: View {
     private func seriesCard(_ duel: DuelSummary) -> some View {
         VStack(alignment: .leading, spacing: ResultMetrics.cardInnerGap) {
             Text("This series")
-                .font(.system(size: ResultMetrics.capLabel, weight: .bold))
+                .font(.scalable(size: ResultMetrics.capLabel, weight: .bold))
                 .tracking(ResultMetrics.capTracking)
                 .textCase(.uppercase)
                 .foregroundStyle(Color.inkSecondary)
@@ -274,12 +279,12 @@ struct ResultsScreen: View {
             AvatarDot(glyph: player.glyph, colorIndex: player.colorIndex,
                       size: ResultMetrics.seriesAvatar)
             Text(player.name)
-                .font(.system(size: ResultMetrics.rowText, weight: .semibold))
+                .font(.scalable(size: ResultMetrics.rowText, weight: .semibold))
                 .foregroundStyle(Color.inkPrimary)
                 .lineLimit(1)
             Spacer(minLength: 4)
             Text(verbatim: "\(duel.series[index])")
-                .font(.system(size: ResultMetrics.scoreValue, weight: .bold, design: .rounded)
+                .font(.scalable(size: ResultMetrics.scoreValue, weight: .bold, design: .rounded)
                         .monospacedDigit())
                 .foregroundStyle(PlayerAvatar.color(player.colorIndex))
         }
@@ -303,7 +308,7 @@ struct ResultsScreen: View {
                 // Начисление тёплое, списание приглушено (кадр `pointRow`).
                 .foregroundStyle(line.amount < 0 ? Color.inkSecondary : Color.roleYou)
         }
-        .font(.system(size: ResultMetrics.rowText))
+        .font(.scalable(size: ResultMetrics.rowText))
         .accessibilityElement(children: .combine)
     }
 
@@ -313,16 +318,18 @@ struct ResultsScreen: View {
         let tally = result.tally
         return VStack(alignment: .leading, spacing: ResultMetrics.cardInnerGap) {
             Text("How the match went")
-                .font(.system(size: ResultMetrics.capLabel, weight: .bold))
+                .font(.scalable(size: ResultMetrics.capLabel, weight: .bold))
                 .tracking(ResultMetrics.capTracking)
                 .textCase(.uppercase)
                 .foregroundStyle(Color.inkSecondary)
 
-            HStack(spacing: ResultMetrics.metricsGap) {
+            AdaptiveRow(spacing: ResultMetrics.metricsGap,
+                                  accessibilitySpacing: ResultMetrics.rowsTop) {
                 metric("shots", value: Text(verbatim: "\(tally.shots)"))
                 metric("accuracy", value: accuracyText(tally.accuracy))
             }
-            HStack(spacing: ResultMetrics.metricsGap) {
+            AdaptiveRow(spacing: ResultMetrics.metricsGap,
+                                  accessibilitySpacing: ResultMetrics.rowsTop) {
                 metric("best streak", value: Text(verbatim: "\(tally.bestStreak)"))
                 // Вдвоём подсказок нет — на их месте число ходов партии.
                 if let duel = result.duel {
@@ -342,11 +349,13 @@ struct ResultsScreen: View {
     private func metric(_ label: LocalizedStringKey, value: Text) -> some View {
         VStack(alignment: .leading, spacing: ResultMetrics.metricLabelGap) {
             value
-                .font(.system(size: ResultMetrics.metricValue, weight: .bold, design: .rounded)
+                .font(.scalable(size: ResultMetrics.metricValue, weight: .bold, design: .rounded)
                         .monospacedDigit())
                 .foregroundStyle(Color.inkPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
             Text(label)
-                .font(.system(size: ResultMetrics.metricLabel))
+                .font(.scalable(size: ResultMetrics.metricLabel))
                 .foregroundStyle(Color.inkSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -421,7 +430,7 @@ private struct PointsCounter: View, Animatable {
 
     var body: some View {
         Text.signedPoints(Int(value.rounded()))
-            .font(.system(size: ResultMetrics.pointsValue, weight: .bold, design: .rounded)
+            .font(.scalable(size: ResultMetrics.pointsValue, weight: .bold, design: .rounded)
                     .monospacedDigit())
     }
 }

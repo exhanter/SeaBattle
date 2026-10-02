@@ -23,7 +23,7 @@ enum ControlMetrics {
     enum Button {
         static let radius = Geometry.Radius.button       // 18
         static let minHeight: CGFloat = 50
-        static let font = Font.system(size: 15.5, weight: .bold, design: .rounded)
+        static let font = Font.scalable(size: 15.5, weight: .bold, design: .rounded)
         /// Неактивная кнопка гаснет целиком, а не по частям: подложка, кант и
         /// надпись вместе. Так она остаётся кнопкой, просто выключенной.
         static let disabledOpacity: Double = 0.38
@@ -34,6 +34,9 @@ enum ControlMetrics {
         static let haloRadius: CGFloat = 22
         static let shadowRadius: CGFloat = 9             // CSS 0 6 18
         static let shadowOffsetY: CGFloat = 6
+        /// Поля надписи — нужны только перенесённой крупной надписи.
+        static let textInset: CGFloat = 16
+        static let textInsetV: CGFloat = 8
     }
 
     /// Строка режима в меню. Все размеры приходят из `Geometry.SizeClass`
@@ -42,6 +45,8 @@ enum ControlMetrics {
         static let lockOpacity: Double = 0.75
         /// Зазор между названием и подписью.
         static let textGap: CGFloat = 2
+        /// Поля сверху и снизу у строки, выросшей с Dynamic Type.
+        static let grownPadding: CGFloat = 8
     }
 
     /// Строка выбора `ChoiceRow`, спека 2.13. Числа одни на оба размера:
@@ -55,8 +60,8 @@ enum ControlMetrics {
         static let iconSize: CGFloat = 30
         static let markSize: CGFloat = 22
         static let textGap: CGFloat = 3
-        static let title = Font.system(size: 15.5, weight: .semibold, design: .rounded)
-        static let subtitle = Font.system(size: 12)
+        static let title = Font.scalable(size: 15.5, weight: .semibold, design: .rounded)
+        static let subtitle = Font.scalable(size: 12)
         /// Межстрочный 1,4 при кегле 12 — это 16,8 pt, то есть +4,8 к строке.
         static let subtitleLineSpacing: CGFloat = 12 * 0.4
         /// Свечение выбранной строки вместо тени.
@@ -67,7 +72,7 @@ enum ControlMetrics {
     enum Segment {
         static let radius: CGFloat = 13
         static let padding = Geometry.Segment.trackInset
-        static let font = Font.system(size: 12.5, weight: .semibold)
+        static let font = Font.scalable(size: 12.5, weight: .semibold)
         /// 44 pt — видимая высота сегмента. В макетах переключатель 40 pt, это
         /// ошибка макета: спека требует 44 pt везде, кроме клетки поля.
         /// Подтверждено дизайном, значение пришло в пакет как
@@ -96,6 +101,11 @@ struct PrimaryButtonStyle: ButtonStyle {
             .font(ControlMetrics.Button.font)
             .foregroundStyle(Color.inkPrimary)
             .shadow(color: .buttonTextShadow, radius: 1, y: 1)
+            // Крупный текст переносится — по центру и не вплотную к канту.
+            // При стандартном тексте поля внутри высоты 50 и ничего не меняют.
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, fillsFrame ? 0 : ControlMetrics.Button.textInset)
+            .padding(.vertical, fillsFrame ? 0 : ControlMetrics.Button.textInsetV)
             .frame(maxWidth: .infinity, minHeight: ControlMetrics.Button.minHeight,
                    maxHeight: fillsFrame ? .infinity : nil)
             .background {
@@ -177,40 +187,80 @@ struct ModeRow: View {
     var size: Geometry.SizeClass = .regular
     var action: () -> Void = {}
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: size.modeRowGap) {
-                Image(systemName: icon)
-                    .font(.system(size: symbolFontSize(inBox: size.modeIcon)))
-                    .foregroundStyle(Color.inkPrimary)
-                    .frame(width: size.modeIcon, height: size.modeIcon)
-
-                VStack(alignment: .leading, spacing: ControlMetrics.ModeRow.textGap) {
-                    Text(title)
-                        .font(.system(size: size.modeName, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.inkPrimary)
-                    Text(subtitle)
-                        .font(.system(size: size.modeSub))
-                        .foregroundStyle(Color.inkSecondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                if isLocked {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: symbolFontSize(inBox: size.modeLock)))
-                        .frame(height: size.modeLock)
-                        .foregroundStyle(Color.inkPrimary)
-                        .opacity(ControlMetrics.ModeRow.lockOpacity)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    // AX1–AX5: значок и замок — строкой сверху, текст — под
+                    // ними во всю ширину. Сбоку от значка название шло по
+                    // слову на строку, а описание обрезалось.
+                    VStack(alignment: .leading, spacing: ControlMetrics.ModeRow.textGap) {
+                        HStack {
+                            iconView
+                            Spacer(minLength: 0)
+                            lockView
+                        }
+                        texts
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    HStack(spacing: size.modeRowGap) {
+                        iconView
+                        texts
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        lockView
+                    }
                 }
             }
             .padding(.horizontal, size.modeRowPadding)
-            .frame(height: size.modeRowHeight)
+            // Не меньше высоты макета, но растёт с Dynamic Type — иначе
+            // крупное название обрезалось бы рамкой. Вертикальные поля
+            // нужны только выросшей строке: при стандартном тексте (≈ 34 pt)
+            // с ними 50 — меньше высоты макета, и она не меняется.
+            .padding(.vertical, ControlMetrics.ModeRow.grownPadding)
+            .frame(minHeight: size.modeRowHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .glassPanel(.g2, radius: size.modeRowRadius)
+    }
+
+    private var iconView: some View {
+        ScaledSymbol(name: icon, box: size.modeIcon)
+            .foregroundStyle(Color.inkPrimary)
+    }
+
+    private var texts: some View {
+        VStack(alignment: .leading, spacing: ControlMetrics.ModeRow.textGap) {
+            Text(title)
+                .font(.scalable(size: size.modeName, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.inkPrimary)
+            Text(subtitle)
+                .font(.scalable(size: size.modeSub))
+                .foregroundStyle(Color.inkSecondary)
+                .lineLimit(subtitleLines)
+                .truncationMode(.tail)
+        }
+    }
+
+    /// По макету одна строка; крупнее стандартного текста — две, на AX —
+    /// сколько нужно: иначе от описания остаётся пара слов.
+    private var subtitleLines: Int? {
+        if dynamicTypeSize.isAccessibilitySize { return nil }
+        return dynamicTypeSize > .large ? 2 : 1
+    }
+
+    @ViewBuilder
+    private var lockView: some View {
+        if isLocked {
+            Image(systemName: "lock.fill")
+                .font(.scalable(size: symbolFontSize(inBox: size.modeLock)))
+                .frame(minHeight: size.modeLock)
+                .foregroundStyle(Color.inkPrimary)
+                .opacity(ControlMetrics.ModeRow.lockOpacity)
+        }
     }
 }
 
@@ -231,32 +281,33 @@ struct ChoiceRow: View {
     var isLocked: Bool = false
     var action: () -> Void = {}
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: ControlMetrics.ChoiceRow.spacing) {
-                Image(systemName: icon)
-                    .font(.system(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.iconSize)))
-                    .foregroundStyle(Color.inkPrimary)
-                    .frame(width: ControlMetrics.ChoiceRow.iconSize,
-                           height: ControlMetrics.ChoiceRow.iconSize)
-
-                VStack(alignment: .leading, spacing: ControlMetrics.ChoiceRow.textGap) {
-                    Text(title)
-                        .font(ControlMetrics.ChoiceRow.title)
-                        .foregroundStyle(Color.inkPrimary)
-                    Text(subtitle)
-                        .font(ControlMetrics.ChoiceRow.subtitle)
-                        .foregroundStyle(Color.inkSecondary)
-                        .lineSpacing(ControlMetrics.ChoiceRow.subtitleLineSpacing)
-                        .fixedSize(horizontal: false, vertical: true)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    // AX1–AX5: значок и отметка — строкой сверху, текст под
+                    // ними во всю ширину (как у `ModeRow`).
+                    VStack(alignment: .leading, spacing: ControlMetrics.ChoiceRow.textGap) {
+                        HStack {
+                            iconView
+                            Spacer(minLength: 0)
+                            markView
+                        }
+                        texts
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    HStack(spacing: ControlMetrics.ChoiceRow.spacing) {
+                        iconView
+                        texts
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        // Место справа занято всегда одним и тем же: иначе от
+                        // выбора строки текст в ней ехал бы по ширине.
+                        markView
+                    }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Место справа занято всегда одним и тем же: иначе от выбора
-                // строки текст в ней ехал бы по ширине.
-                mark
-                    .frame(width: ControlMetrics.ChoiceRow.markSize,
-                           height: ControlMetrics.ChoiceRow.markSize)
             }
             .padding(.vertical, ControlMetrics.ChoiceRow.verticalPadding)
             .padding(.horizontal, ControlMetrics.ChoiceRow.horizontalPadding)
@@ -269,16 +320,41 @@ struct ChoiceRow: View {
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
+    private var iconView: some View {
+        ScaledSymbol(name: icon, box: ControlMetrics.ChoiceRow.iconSize)
+            .foregroundStyle(Color.inkPrimary)
+    }
+
+    private var texts: some View {
+        VStack(alignment: .leading, spacing: ControlMetrics.ChoiceRow.textGap) {
+            Text(title)
+                .font(ControlMetrics.ChoiceRow.title)
+                .foregroundStyle(Color.inkPrimary)
+            Text(subtitle)
+                .font(ControlMetrics.ChoiceRow.subtitle)
+                .foregroundStyle(Color.inkSecondary)
+                .lineSpacing(ControlMetrics.ChoiceRow.subtitleLineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var markView: some View {
+        // Минимум, а не жёсткая рамка: отметка растёт с текстом строки.
+        mark
+            .frame(minWidth: ControlMetrics.ChoiceRow.markSize,
+                   minHeight: ControlMetrics.ChoiceRow.markSize)
+    }
+
     @ViewBuilder
     private var mark: some View {
         if isSelected {
             Image(systemName: "checkmark")
-                .font(.system(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize),
+                .font(.scalable(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize),
                               weight: .semibold))
                 .foregroundStyle(Color.roleYou)
         } else if isLocked {
             Image(systemName: "lock.fill")
-                .font(.system(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize)))
+                .font(.scalable(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize)))
                 .foregroundStyle(Color.inkPrimary)
                 .opacity(ControlMetrics.ModeRow.lockOpacity)
         } else {
@@ -308,7 +384,9 @@ struct SecondaryButtonStyle: ButtonStyle {
         return configuration.label
             .font(TypeScale.secondaryButton)
             .foregroundStyle(Color.inkPrimary)
+            .multilineTextAlignment(.center)
             .padding(.horizontal, fillsFrame ? 0 : Geometry.SecondaryButton.padding)
+            .padding(.vertical, fillsFrame ? 0 : ControlMetrics.Button.textInsetV)
             // В ряду кнопки делят ширину поровну (2.15).
             .frame(maxWidth: .infinity, minHeight: minHeight,
                    maxHeight: fillsFrame ? .infinity : nil)
@@ -338,8 +416,8 @@ private struct SecondaryLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: Geometry.SecondaryButton.gap) {
             configuration.icon
-                .font(.system(size: symbolFontSize(inBox: Geometry.SecondaryButton.icon)))
-                .frame(height: Geometry.SecondaryButton.icon)
+                .font(.scalable(size: symbolFontSize(inBox: Geometry.SecondaryButton.icon)))
+                .frame(minHeight: Geometry.SecondaryButton.icon)
             configuration.title
         }
     }

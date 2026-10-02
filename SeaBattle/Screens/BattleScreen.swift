@@ -90,6 +90,7 @@ struct BattleScreen: View {
                 phone
             }
         }
+        .battleTypeSize()
         .matchResults(battle.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,

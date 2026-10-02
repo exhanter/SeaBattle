@@ -369,24 +369,24 @@ extension Material {
 enum TypeScale {
     /// Название игры на главном и приветствии. Трекинг −.02em: .tracking(gameTitleTracking(compact)).
     static func gameTitle(compact: Bool) -> Font {
-        .system(size: compact ? 28 : 36, weight: .semibold, design: .rounded)
+        .scalable(size: compact ? 28 : 36, weight: .semibold, design: .rounded)
     }
     static func gameTitleTracking(compact: Bool) -> CGFloat { compact ? -0.56 : -0.72 }
     /// Заголовок экрана (ScreenTitle), один на оба размера. Трекинг −.01em.
-    static let screenTitle = Font.system(size: 30, weight: .bold, design: .rounded)
+    static let screenTitle = Font.scalable(size: 30, weight: .bold, design: .rounded)
     static let screenTitleTracking: CGFloat = -0.3
     /// Подзаголовок ScreenTitle (необязательный): межстрочный 1,4, до двух строк, Ink/Secondary.
-    static let screenSubtitle = Font.system(size: 12.5, weight: .regular)
-    static let secondaryButton = Font.system(size: 14, weight: .semibold, design: .rounded)
-    static let warning = Font.system(size: 13.5, weight: .semibold, design: .rounded)
-    static let title     = Font.system(size: 24, weight: .semibold, design: .rounded)
-    static let headline  = Font.system(size: 17, weight: .semibold)
-    static let body      = Font.system(size: 16, weight: .regular)
-    static let callout   = Font.system(size: 15, weight: .regular)
-    static let footnote  = Font.system(size: 13, weight: .regular)
-    static let caption   = Font.system(size: 11, weight: .semibold)
+    static let screenSubtitle = Font.scalable(size: 12.5, weight: .regular)
+    static let secondaryButton = Font.scalable(size: 14, weight: .semibold, design: .rounded)
+    static let warning = Font.scalable(size: 13.5, weight: .semibold, design: .rounded)
+    static let title     = Font.scalable(size: 24, weight: .semibold, design: .rounded)
+    static let headline  = Font.scalable(size: 17, weight: .semibold)
+    static let body      = Font.scalable(size: 16, weight: .regular)
+    static let callout   = Font.scalable(size: 15, weight: .regular)
+    static let footnote  = Font.scalable(size: 13, weight: .regular)
+    static let caption   = Font.scalable(size: 11, weight: .semibold)
     /// Координаты поля и числа счёта: моноширинные цифры, чтобы не дёргались.
-    static let tally     = Font.system(size: 15, weight: .semibold).monospacedDigit()
+    static let tally     = Font.scalable(size: 15, weight: .semibold).monospacedDigit()
 }
 
 // MARK: - Движение

@@ -146,7 +146,7 @@ struct LevelScreen: View {
 
     private var overline: some View {
         Text("Opponent level")
-            .font(.system(size: LevelMetrics.overlineSize, weight: .bold))
+            .font(.scalable(size: LevelMetrics.overlineSize, weight: .bold))
             .tracking(LevelMetrics.overlineTracking)
             .textCase(.uppercase)
             .foregroundStyle(Color.inkSecondary)
@@ -173,7 +173,7 @@ struct LevelScreen: View {
         // и единственное настоящее отличие двух верхних уровней, а в одну
         // строку подписи оно не влезает.
         Text("On Hard and Expert the computer does not just shoot better — it also hides its fleet, so finding its ships takes more shots.")
-            .font(.system(size: LevelMetrics.noteSize))
+            .font(.scalable(size: LevelMetrics.noteSize))
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)

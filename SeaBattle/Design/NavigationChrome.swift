@@ -39,10 +39,10 @@ struct ScreenTitle: View {
                 Button(action: onBack) {
                     HStack(spacing: NavMetrics.backGap) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: symbolFontSize(inBox: NavMetrics.backChevron),
+                            .font(.scalable(size: symbolFontSize(inBox: NavMetrics.backChevron),
                                           weight: .semibold))
                         Text(back)
-                            .font(.system(size: NavMetrics.backText, weight: .semibold))
+                            .font(.scalable(size: NavMetrics.backText, weight: .semibold))
                     }
                     .foregroundStyle(Color.roleYou)
                     // Цель нажатия — вся строка целиком, не один шеврон.
@@ -124,6 +124,9 @@ struct NavRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("navMenuButton")
+            .accessibilityShowsLargeContentViewer {
+                Label("Menu", systemImage: "line.3.horizontal")
+            }
 
             // Пустая половина занимает место, а не сжимается: иначе «Меню»
             // уедет в середину, и строка перестроится, когда правила появятся.
@@ -187,8 +190,8 @@ struct WarningLine: View {
     var body: some View {
         HStack(spacing: Geometry.Warning.gap) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: symbolFontSize(inBox: Geometry.Warning.icon)))
-                .frame(height: Geometry.Warning.icon)
+                .font(.scalable(size: symbolFontSize(inBox: Geometry.Warning.icon)))
+                .frame(minHeight: Geometry.Warning.icon)
                 .foregroundStyle(Color.warnIcon)
             Text(text)
                 .font(TypeScale.warning)

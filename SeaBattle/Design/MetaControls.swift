@@ -133,22 +133,27 @@ struct StatBar: View {
     /// это не «половина», а «ещё не играли».
     var winShare: Double { total == 0 ? 0 : Double(wins) / Double(total) }
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(alignment: .leading, spacing: StatBarMetrics.gap) {
-            HStack(alignment: .top, spacing: StatBarMetrics.columnGap) {
+            // На AX1–AX5 три колонки — столбцом: в трети ширины подписи
+            // переносились по слогам.
+            AdaptiveRow(spacing: StatBarMetrics.columnGap,
+                                  accessibilitySpacing: StatBarMetrics.gap) {
                 figure("games", "\(total)")
                 figure("wins", "\(wins)")
                 figure("win rate", total == 0 ? "—" : Self.percent(winShare))
             }
             bar
-            HStack {
+            AdaptiveRow(spacing: 8, accessibilitySpacing: 2) {
                 // Формы числа — в каталоге: автоматическое согласование
                 // (`inflect`) русского не умеет.
                 Text("\(wins) wins")
-                Spacer()
+                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                 Text("\(losses) losses")
             }
-            .font(.system(size: StatBarMetrics.legend))
+            .font(.scalable(size: StatBarMetrics.legend))
             .monospacedDigit()
             .foregroundStyle(Color.inkSecondary)
         }
@@ -165,11 +170,14 @@ struct StatBar: View {
     private func figure(_ caption: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(verbatim: value)
-                .font(.system(size: StatBarMetrics.value, weight: .bold, design: .rounded))
+                .font(.scalable(size: StatBarMetrics.value, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(Color.inkPrimary)
+                // Число не переносится посередине («59 / %»).
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
             Text(caption)
-                .font(.system(size: StatBarMetrics.caption))
+                .font(.scalable(size: StatBarMetrics.caption))
                 .foregroundStyle(Color.inkSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -265,7 +273,7 @@ struct AchievementRow: View {
             case let .earned(points):
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.scalable(size: 11, weight: .bold))
                     Text("+\(points)")
                         .font(TypeScale.tally)
                 }

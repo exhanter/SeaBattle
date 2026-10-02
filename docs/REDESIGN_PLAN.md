@@ -257,8 +257,11 @@ DECISIONS.md — почему так, mockups.html — эталон вида, De
   лента «По вам», `SegmentedPick`. С настоящим VoiceOver на iPhone не проверено.
 - ☑ **R4.5c Reduce Motion** — `9562c1d`. Нажатие кнопок без масштаба (`PressDepth`),
   `Animation.reduced(_:)` — длительности × 0,5 у готовых анимаций. Живьём не смотрели.
-- ☐ **R4.5d Dynamic Type** — **следующая**. Что масштабируется, что нет; проверка на 375.
-- ☐ **R4.6 Уборка.** Удалить старые `iPhone_Views` / `iPad_Views` / `Common_Views`,
+- ☑ **R4.5d Dynamic Type** — коммит «R4.5d: Dynamic Type». `Font.scalable` (кегль макета
+  при стандартном тексте), мета-экраны до AX5 со столбцами строк, экраны партии до
+  xxxLarge, Large Content Viewer у фиксированных элементов, передача хода на 375 × 667.
+  Проверено живьём (iPhone Air AX5, SE iOS 18.6). 782 теста.
+- ☐ **R4.6 Уборка** — **следующая**. Удалить старые `iPhone_Views` / `iPad_Views` / `Common_Views`,
   старые шрифты и ассеты, финальная полировка механики.
 
 ---

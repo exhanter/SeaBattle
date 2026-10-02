@@ -67,7 +67,7 @@ struct NearbyScreen: View {
     private var devices: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Devices nearby")
-                .font(.system(size: NearbyMetrics.overline, weight: .bold))
+                .font(.scalable(size: NearbyMetrics.overline, weight: .bold))
                 .tracking(NearbyMetrics.overline * 0.09)
                 .textCase(.uppercase)
                 .foregroundStyle(Color.inkSecondary)
@@ -91,13 +91,11 @@ struct NearbyScreen: View {
         let connecting = transport.partner == peer.peerID
         return Button { transport.invite(peer) } label: {
             HStack(spacing: 12) {
-                Image(systemName: peer.isPad ? "ipad" : "iphone")
-                    .font(.system(size: symbolFontSize(inBox: NearbyMetrics.rowIcon)))
+                ScaledSymbol(name: peer.isPad ? "ipad" : "iphone", box: NearbyMetrics.rowIcon)
                     .foregroundStyle(Color.inkPrimary)
-                    .frame(width: NearbyMetrics.rowIcon, height: NearbyMetrics.rowIcon)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: peer.name)
-                        .font(.system(size: NearbyMetrics.rowName, weight: .medium))
+                        .font(.scalable(size: NearbyMetrics.rowName, weight: .medium))
                         .foregroundStyle(Color.inkPrimary)
                         .lineLimit(1)
                     Group {
@@ -107,7 +105,7 @@ struct NearbyScreen: View {
                             Text(verbatim: peer.model)
                         }
                     }
-                    .font(.system(size: NearbyMetrics.rowDetail))
+                    .font(.scalable(size: NearbyMetrics.rowDetail))
                     .foregroundStyle(Color.inkSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -116,7 +114,7 @@ struct NearbyScreen: View {
                         .tint(Color.inkPrimary)
                 } else {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.scalable(size: 15, weight: .semibold))
                         .foregroundStyle(Color.inkTertiary)
                 }
             }
@@ -135,12 +133,10 @@ struct NearbyScreen: View {
 
     private var scanning: some View {
         HStack(spacing: 11) {
-            Image(systemName: "antenna.radiowaves.left.and.right")
-                .font(.system(size: symbolFontSize(inBox: NearbyMetrics.scanIcon)))
+            ScaledSymbol(name: "antenna.radiowaves.left.and.right", box: NearbyMetrics.scanIcon)
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: NearbyMetrics.scanIcon, height: NearbyMetrics.scanIcon)
             Text(transport.peers.isEmpty ? "Searching for devices…" : "Still searching…")
-                .font(.system(size: NearbyMetrics.scanText))
+                .font(.scalable(size: NearbyMetrics.scanText))
                 .foregroundStyle(Color.inkSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             SearchDots()
@@ -152,7 +148,7 @@ struct NearbyScreen: View {
 
     private var note: some View {
         Text("Works over Bluetooth and a shared Wi-Fi network, no internet needed. The other player must open the same mode — then the device appears in the list.")
-            .font(.system(size: NearbyMetrics.note))
+            .font(.scalable(size: NearbyMetrics.note))
             .lineSpacing(NearbyMetrics.note * 0.5)
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)

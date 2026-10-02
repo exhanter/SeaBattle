@@ -59,7 +59,7 @@ struct DuelSetupScreen: View {
                     card(1)
                     options
                     Text("The colour shows in the avatar, the name and on the handoff screen. The boards look the same for both: warm is yours, cool is your opponent’s.")
-                        .font(.system(size: DuelSetupMetrics.note))
+                        .font(.scalable(size: DuelSetupMetrics.note))
                         .lineSpacing(DuelSetupMetrics.note * 0.5)
                         .foregroundStyle(Color.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -90,7 +90,7 @@ struct DuelSetupScreen: View {
 
     private func sectionLabel(_ text: LocalizedStringKey) -> some View {
         Text(text)
-            .font(.system(size: DuelSetupMetrics.sectionLabel, weight: .bold))
+            .font(.scalable(size: DuelSetupMetrics.sectionLabel, weight: .bold))
             .tracking(DuelSetupMetrics.sectionLabel * 0.1)
             .textCase(.uppercase)
             .foregroundStyle(Color.inkSecondary)
@@ -127,12 +127,12 @@ struct DuelSetupScreen: View {
             Toggle(isOn: $setup.locksWithCode) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Lock the screen with a code")
-                        .font(.system(size: DuelSetupMetrics.optionTitle, weight: .semibold,
+                        .font(.scalable(size: DuelSetupMetrics.optionTitle, weight: .semibold,
                                       design: .rounded))
                         .foregroundStyle(Color.inkPrimary)
                     (usesPadLayout ? Text("Four digits when passing the device")
                                    : Text("Four digits when passing the phone"))
-                        .font(.system(size: DuelSetupMetrics.optionSubtitle))
+                        .font(.scalable(size: DuelSetupMetrics.optionSubtitle))
                         .foregroundStyle(Color.inkSecondary)
                 }
             }
@@ -146,7 +146,7 @@ struct DuelSetupScreen: View {
 
             VStack(alignment: .leading, spacing: DuelSetupMetrics.firstMoveGap) {
                 Text("First move")
-                    .font(.system(size: DuelSetupMetrics.optionTitle, weight: .semibold,
+                    .font(.scalable(size: DuelSetupMetrics.optionTitle, weight: .semibold,
                                   design: .rounded))
                     .foregroundStyle(Color.inkPrimary)
                 SegmentedPick(options: [(DuelFirstMove.coinToss, String(game: "Coin toss", locale: locale)),

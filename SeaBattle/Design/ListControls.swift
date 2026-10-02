@@ -59,7 +59,7 @@ struct ListGroup<Content: View>: View {
         VStack(alignment: .leading, spacing: ListMetrics.groupGap) {
             if let title {
                 Text(title)
-                    .font(.system(size: ListMetrics.overline, weight: .bold))
+                    .font(.scalable(size: ListMetrics.overline, weight: .bold))
                     .tracking(ListMetrics.overlineTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(Color.inkSecondary)
@@ -111,22 +111,23 @@ struct ListRow: View {
     }
 
     private func label(chevron: Bool) -> some View {
-        HStack(spacing: 12) {
-            ListRowText(title: title, subtitle: subtitle)
-
-            HStack(spacing: ListMetrics.valueGap) {
+        HStack(spacing: ListMetrics.valueGap) {
+            // На AX1–AX5 значение уходит под название, а шеврон остаётся
+            // справа: строкой ниже он ни на что не указывал бы.
+            AdaptiveRow(spacing: 12) {
+                ListRowText(title: title, subtitle: subtitle)
                 if let value {
                     value
-                        .font(.system(size: ListMetrics.rowValue))
+                        .font(.scalable(size: ListMetrics.rowValue))
                         .monospacedDigit()
                         .foregroundStyle(Color.inkSecondary)
                 }
-                if chevron {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: symbolFontSize(inBox: ListMetrics.chevron), weight: .semibold))
-                        .foregroundStyle(Color.inkTertiary)
-                        .frame(height: ListMetrics.chevron)
-                }
+            }
+            if chevron {
+                Image(systemName: "chevron.right")
+                    .font(.scalable(size: symbolFontSize(inBox: ListMetrics.chevron), weight: .semibold))
+                    .foregroundStyle(Color.inkTertiary)
+                    .frame(minHeight: ListMetrics.chevron)
             }
         }
         .padding(.vertical, ListMetrics.rowPaddingV)
@@ -145,11 +146,11 @@ private struct ListRowText: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.system(size: ListMetrics.rowTitle, weight: .medium))
+                .font(.scalable(size: ListMetrics.rowTitle, weight: .medium))
                 .foregroundStyle(Color.inkPrimary)
             if let subtitle {
                 Text(subtitle)
-                    .font(.system(size: ListMetrics.rowSubtitle))
+                    .font(.scalable(size: ListMetrics.rowSubtitle))
                     .foregroundStyle(Color.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -166,9 +167,27 @@ struct ListToggleRow: View {
     var subtitle: LocalizedStringKey?
     @Binding var isOn: Bool
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        Toggle(isOn: $isOn) {
-            ListRowText(title: title, subtitle: subtitle)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // AX1–AX5: тумблер под текстом. Системный `Toggle` держит его
+                // справа, и текст сжимался в колонку по слову на строку.
+                // Для VoiceOver — один системный тумблер с названием строки,
+                // пояснение — подсказкой.
+                VStack(alignment: .leading, spacing: ListMetrics.stackGap) {
+                    ListRowText(title: title, subtitle: subtitle)
+                        .accessibilityHidden(true)
+                    Toggle(isOn: $isOn) { Text(title) }
+                        .labelsHidden()
+                        .accessibilityHint(subtitle.map { Text($0) } ?? Text(verbatim: ""))
+                }
+            } else {
+                Toggle(isOn: $isOn) {
+                    ListRowText(title: title, subtitle: subtitle)
+                }
+            }
         }
         .seaToggleStyle()
         .padding(.vertical, ListMetrics.rowPaddingV)
@@ -204,14 +223,14 @@ struct ListMenuLabel: View {
     let value: Text
 
     var body: some View {
-        HStack(spacing: 12) {
+        AdaptiveRow(spacing: 12) {
             ListRowText(title: title, subtitle: subtitle)
             HStack(spacing: ListMetrics.valueGap) {
                 value
-                    .font(.system(size: ListMetrics.rowValue))
+                    .font(.scalable(size: ListMetrics.rowValue))
                     .foregroundStyle(Color.inkSecondary)
                 Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: ListMetrics.menuChevron, weight: .semibold))
+                    .font(.scalable(size: ListMetrics.menuChevron, weight: .semibold))
                     .foregroundStyle(Color.inkTertiary)
             }
         }
@@ -248,10 +267,10 @@ struct EmptyStateCard<Action: View>: View {
                 }
                 .accessibilityHidden(true)
             Text(title)
-                .font(.system(size: ListMetrics.emptyTitle, weight: .bold, design: .rounded))
+                .font(.scalable(size: ListMetrics.emptyTitle, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.inkPrimary)
             Text(text)
-                .font(.system(size: ListMetrics.emptyText))
+                .font(.scalable(size: ListMetrics.emptyText))
                 .lineSpacing(ListMetrics.emptyText * 0.5)
                 .foregroundStyle(Color.inkSecondary)
                 .multilineTextAlignment(.center)

@@ -290,6 +290,7 @@ struct FieldSwitch: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier(side == .you ? "fieldSwitchYou" : "fieldSwitchFoe")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityShowsLargeContentViewer { Text(title) }
     }
 }
 
@@ -331,6 +332,9 @@ struct BattleHintButton: View {
         .disabled(!isEnabled)
         .accessibilityLabel(Text("Hint, \(cost) points"))
         .accessibilityIdentifier("hintButton")
+        .accessibilityShowsLargeContentViewer {
+            Label { Text(verbatim: "−\(cost)") } icon: { Image(systemName: "lightbulb.max") }
+        }
     }
 }
 

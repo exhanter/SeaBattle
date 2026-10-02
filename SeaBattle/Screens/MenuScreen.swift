@@ -107,8 +107,13 @@ struct MenuScreen: View {
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, size.menuInset)
                     .padding(.top, MenuMetrics.topInset(compact: size.isCompact))
+                    // Просвет под последней строкой — до «Продолжить».
+                    .padding(.bottom, size.menuGap)
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                // Прокрученный список не заходит под часы: плашки над
+                // полосой состояния нет, и строки ложились прямо под цифры.
+                .clipped()
 
                 // «Продолжить» стоит **вне** прокрутки: это единственный путь
                 // назад в незакрытую партию, и уезжать за край экрана ему
@@ -155,7 +160,7 @@ struct MenuScreen: View {
     private func continueLink(_ size: Geometry.SizeClass) -> some View {
         Button(action: onContinue) {
             Text("Continue game")
-                .font(.system(size: size.continueText, weight: .semibold, design: .rounded))
+                .font(.scalable(size: size.continueText, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.roleYou)
                 .underline()
                 .frame(minHeight: Geometry.Hit.minTarget)

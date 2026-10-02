@@ -156,6 +156,33 @@ struct DesignTokensTests {
         #expect(Motion.scaled(Motion.splash, reduceMotion: false) == 0.240)
         #expect(Motion.scaled(Motion.splash, reduceMotion: true) == 0.120)
     }
+
+    @Test("Опорный стиль Dynamic Type — ближайший по отношению кеглей")
+    func dynamicTypeAnchorIsNearest() {
+        #expect(DynamicTypeAnchor.nearest(to: 11).style == .caption2)
+        #expect(DynamicTypeAnchor.nearest(to: 12.5).style == .footnote)   // 13 ближе, чем 12
+        #expect(DynamicTypeAnchor.nearest(to: 15.5).style == .callout)    // 16 ближе, чем 15
+        #expect(DynamicTypeAnchor.nearest(to: 16).style == .callout)
+        #expect(DynamicTypeAnchor.nearest(to: 24).style == .title2)
+        #expect(DynamicTypeAnchor.nearest(to: 30).style == .title)
+        #expect(DynamicTypeAnchor.nearest(to: 36).style == .largeTitle)
+    }
+
+    @Test("Кегль макета: ровно при стандартном размере, крупнее — при xxxLarge",
+          arguments: [10, 11, 12.5, 13.5, 15.5, 16, 17, 24, 30, 36] as [CGFloat])
+    func scalableFontKeepsMockupSize(size: CGFloat) throws {
+        guard #available(iOS 26.0, *) else { return }
+        func pointSize(_ dynamicType: DynamicTypeSize) -> CGFloat {
+            var environment = EnvironmentValues()
+            environment.dynamicTypeSize = dynamicType
+            return Font.scalable(size: size, weight: .semibold, design: .rounded)
+                .resolve(in: environment.fontResolutionContext).pointSize
+        }
+        #expect(abs(pointSize(.large) - size) < 0.01)
+        #expect(pointSize(.xxxLarge) > size + 1)
+        // caption2 у системы не мельче 11 pt — поэтому «не крупнее», а не «мельче».
+        #expect(pointSize(.xSmall) <= size)
+    }
 }
 
 private extension UIColor {
