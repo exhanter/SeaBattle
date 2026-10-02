@@ -215,14 +215,14 @@ private struct NavigationChromeDemo: View {
             SeaBackground()
 
             VStack(spacing: 0) {
-                ScreenTitle(title: "Одиночная игра", back: "Играть")
+                ScreenTitle(title: "Single player", back: "Play")
                     .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
                 Spacer()
 
                 BottomStack {
                     Button(action: {}) {
-                        Text("Перемешать")
+                        Text("Shuffle")
                     }
                     .primaryButton()
                 }

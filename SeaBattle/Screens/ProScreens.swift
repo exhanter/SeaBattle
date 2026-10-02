@@ -29,6 +29,7 @@
 //    кадра на нём не получить. Закрывается нажатием мимо и жестом вниз.
 //
 
+import StoreKit
 import SwiftUI
 
 enum ProMetrics {

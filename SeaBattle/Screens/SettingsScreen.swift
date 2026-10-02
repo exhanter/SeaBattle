@@ -31,6 +31,8 @@ enum SettingsPage: Hashable, Sendable {
     case pro
     /// Имя, значок и цвет владельца (R4.4) — тот же экран, что при первом запуске.
     case player
+    /// «О приложении» (R4.6): правила, связь, авторы.
+    case about
 }
 
 enum SettingsMetrics {

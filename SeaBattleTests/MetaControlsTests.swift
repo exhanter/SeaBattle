@@ -11,6 +11,7 @@ import SwiftUI
 @testable import SeaBattle
 
 @Suite("Контролы мета-экранов")
+@MainActor
 struct MetaControlsTests {
 
     @Test("Палитра игрока: 10 значков и 16 цветов, без повторов")

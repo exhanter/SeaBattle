@@ -7,8 +7,9 @@
 //  handoff, like the paper game: there is no computer turn to wait for, so
 //  every point between moves is a stable one.
 //
-//  Since R3.2b both iPhone and iPad play on `DuelGame`. The old `HotSeatStore`
-//  file is no longer read; it goes away with the old screens in R4.6.
+//  Since R3.2b both iPhone and iPad play on `DuelGame`; the old `HotSeatStore`
+//  (`HotSeatSession.json`) is deleted in R4.6. It never shipped — the premium
+//  phases were not released — so no device needs its file cleaned up.
 //
 
 import Foundation

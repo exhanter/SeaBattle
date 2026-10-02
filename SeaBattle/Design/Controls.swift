@@ -348,9 +348,7 @@ struct ChoiceRow: View {
     @ViewBuilder
     private var mark: some View {
         if isSelected {
-            Image(systemName: "checkmark")
-                .font(.scalable(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize),
-                              weight: .semibold))
+            checkmark
                 .foregroundStyle(Color.roleYou)
         } else if isLocked {
             Image(systemName: "lock.fill")
@@ -358,8 +356,18 @@ struct ChoiceRow: View {
                 .foregroundStyle(Color.inkPrimary)
                 .opacity(ControlMetrics.ModeRow.lockOpacity)
         } else {
-            Color.clear
+            // Скрытая галочка, а не `Color.clear`: пустой цвет гибкий по ширине
+            // и забирал у текста половину строки — описание невыбранного уровня
+            // переносилось в узкую колонку (найдено живьём в R4.6).
+            checkmark
+                .hidden()
         }
+    }
+
+    private var checkmark: some View {
+        Image(systemName: "checkmark")
+            .font(.scalable(size: symbolFontSize(inBox: ControlMetrics.ChoiceRow.markSize),
+                            weight: .semibold))
     }
 }
 
@@ -491,10 +499,10 @@ private struct ControlsDemo: View {
             SeaBackground()
 
             VStack(spacing: 16) {
-                Button("Старт") {}
+                Button("Start") {}
                     .primaryButton()
 
-                Button("Готово") {}
+                Button("Done") {}
                     .primaryButton(enabled: false)
 
                 SegmentedPick(options: [(0, "Поле противника"), (1, "Ваше поле")],
@@ -503,10 +511,10 @@ private struct ControlsDemo: View {
                 // Оба размера строки рядом: малый отличается не только высотой,
                 // и в одиночку его отличий не видно.
                 VStack(spacing: 8) {
-                    ModeRow(icon: "target", title: "Одиночная игра",
-                            subtitle: "Против компьютера, 4 уровня")
-                    ModeRow(icon: "person.2", title: "Вдвоём на устройстве",
-                            subtitle: "Передавайте телефон по очереди",
+                    ModeRow(icon: "target", title: "Single player",
+                            subtitle: "Against the computer, four levels")
+                    ModeRow(icon: "person.2", title: "Two players on one device",
+                            subtitle: "Pass the phone around",
                             isLocked: true,
                             size: .compact)
                 }
@@ -514,17 +522,17 @@ private struct ControlsDemo: View {
                 // Строка выбора в трёх состояниях: подпись в две строки,
                 // латунная обводка со свечением у выбранной, замок у закрытой.
                 VStack(spacing: 8) {
-                    ChoiceRow(icon: "safari", title: "Средне",
-                              subtitle: "Добивает найденный корабль и не тратит выстрелы на воду вокруг него")
-                    ChoiceRow(icon: "binoculars", title: "Сложно",
-                              subtitle: "Бьёт через клетку и расставляет свой флот так, что его дольше искать",
+                    ChoiceRow(icon: "safari", title: "Medium",
+                              subtitle: "Finishes off a ship it has found and never wastes shots on the water around it")
+                    ChoiceRow(icon: "binoculars", title: "Hard",
+                              subtitle: "Shoots every other cell and arranges its own fleet so it takes longer to find",
                               isSelected: true)
-                    ChoiceRow(icon: "scope", title: "Эксперт",
-                              subtitle: "Считает, где корабли вероятнее всего, и прячет свой флот ещё лучше",
+                    ChoiceRow(icon: "scope", title: "Expert",
+                              subtitle: "Works out where the ships most likely are, and hides its own fleet even better",
                               isLocked: true)
                 }
 
-                Toggle("Звук", isOn: $sound)
+                Toggle("Sound", isOn: $sound)
                     .font(TypeScale.body)
                     .foregroundStyle(Color.inkPrimary)
                     .seaToggleStyle()

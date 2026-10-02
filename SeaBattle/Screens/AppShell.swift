@@ -10,10 +10,6 @@
 //  В бою табы заменяются на переключатель полей и действия фазы, поэтому
 //  таб-бар живёт не в приложении целиком, а только в этой оболочке.
 //
-//  ПЕРЕХОДНОЕ. Пейволл и «Об игре» пока старые: оболочка отдаёт им
-//  управление листом, они работают, просто выглядят по-старому. Всё, что
-//  помечено `ПЕРЕХОДНОЕ`, уходит вместе с ними в R4.3 и R4.6.
-//
 
 import SwiftUI
 
@@ -218,7 +214,6 @@ struct AppShell: View {
     /// Страница внутри таба «Настройки» («Pro активен»).
     @State private var settingsPage: SettingsPage?
     /// «О приложении» из настроек.
-    @State private var showAbout = false
     /// Сетевая партия. Продолжить её из меню нельзя: выход из неё — сдача
     /// или конец связи, поэтому она живёт ровно столько, сколько экран.
     @State private var net: NetMatch?
@@ -331,10 +326,6 @@ struct AppShell: View {
                 }
             }
         }
-        // ПЕРЕХОДНОЕ: старый экран «Об игре» — правила, авторы картинок и
-        // звуков (их лицензии требуют упоминания) и контакты. Своего кадра у
-        // «О приложении» нет; уйдёт со старыми представлениями в R4.6.
-        .sheet(isPresented: $showAbout) { AboutView() }
         .modalDialog(isPresented: proUnavailable) {
             NoticeDialog.proNeedsNewerSystem { proUnavailable = false }
         }
@@ -421,13 +412,15 @@ struct AppShell: View {
                                onPro: PremiumManager.isOffered ? {
                                    if premiumManager.isPremium { settingsPage = .pro } else { openPro(intent: nil) }
                                } : nil,
-                               onAbout: { showAbout = true },
+                               onAbout: { settingsPage = .about },
                                onPlayer: { settingsPage = .player })
             case .player:
                 PlayerNameScreen(player: Binding(get: { appState.ownPlayer ?? .starter },
                                                  set: { appState.ownPlayer = $0 }),
                                  purpose: .settings,
                                  onBack: { settingsPage = nil })
+            case .about:
+                AboutScreen(onBack: { settingsPage = nil })
             case .pro:
                 ProActiveScreen(entitlement: premiumManager.entitlement,
                                 onBack: { settingsPage = nil },

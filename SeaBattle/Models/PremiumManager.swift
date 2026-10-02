@@ -131,10 +131,7 @@ final class PremiumManager {
         if #available(iOS 26.0, *) { true } else { false }
     }
 
-    /// Online play needs iOS 26 regardless of Pro.
-    static var supportsOnline: Bool { isOffered }
-
-    /// The loaded products in `ProPlan` order (for the old paywall).
+    /// The loaded products in `ProPlan` order (what a purchase is made with).
     private(set) var products: [Product] = []
 
     /// The loaded products as the new paywall shows them, in `ProPlan` order.

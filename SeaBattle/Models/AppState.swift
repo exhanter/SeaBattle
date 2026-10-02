@@ -5,7 +5,6 @@
 //  Created by Ivan Tkachev on 18/12/2024.
 //
 
-import AVFoundation
 import Observation
 import SwiftUI
 
@@ -85,7 +84,7 @@ class AppState {
         static let freeFallback: DifficultyLevel = .hard
     }
     enum SelectedTabs: CaseIterable {
-        case menu, playerView, enemyView, about, iPadBattleView
+        case menu, playerView, enemyView
     }
 
     /// Legacy storage of the level: see `DifficultyLevel.storedValue`. Read and
@@ -99,9 +98,8 @@ class AppState {
     /// brief window before the win/defeat alert appears.
     var gameIsOver = false
     // R4.2: звук, музыка, язык и обводка сохраняются здесь, как
-    // `askLevelBeforeMatch`, — писателей у них теперь два (старый и новый
-    // экраны настроек), и правило «экран пишет `UserDefaults` сам» теряет
-    // значение у того, кто забудет.
+    // `askLevelBeforeMatch`: правило «экран пишет `UserDefaults` сам» теряет
+    // значение у второго писателя, который забудет.
     var soundOn: Bool {
         didSet { UserDefaults.standard.set(soundOn, forKey: "soundOn") }
     }
@@ -135,8 +133,6 @@ class AppState {
     /// cleared on reset.
     var revealedHintCells: [(Int, Int)] = []
     var manualShipArrangement: Bool = false
-    var tabsBlocked = false
-    var isTapEnabled = false
     /// Interface language: `ru`, `en` or `nl` (`supportedLanguage(_:)`). Feeds
     /// `\.locale` at the root, so it changes the text and the board letters
     /// at once — mid-match too (spec 4.11).
@@ -203,25 +199,13 @@ class AppState {
         }
     }
     private static let ownBoardOnRightKey = "ownBoardOnRight"
-    /// Transient presentation flags (set from the menu, presented at the root so
-    /// the covers survive layout changes — notably on iPad).
-    var showHotSeat = false
+    /// The full Pro paywall, presented at the root so the cover survives layout
+    /// changes — notably on iPad.
     var showPaywall = false
     /// What the user was trying to do when a premium paywall opened, so the
     /// action can be completed automatically once they subscribe.
     enum PremiumIntent { case expert, hotSeat, nearby, online }
     var pendingPremiumIntent: PremiumIntent?
-    
-    static var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
-    /// True on the narrow iPhones (SE / mini, 375 and 320 pt wide), which need a
-    /// smaller type scale. TODO (R2): the redesign sizes everything from the
-    /// container, so this goes away with the old views.
-    static var isSmallPhone: Bool {
-        let width = UIApplication.shared.connectedScenes
-            .compactMap { ($0 as? UIWindowScene)?.screen.bounds.width }
-            .first ?? 393
-        return width <= 375
-    }
 
     // MARK: - Audio
 
@@ -298,7 +282,9 @@ class AppState {
     init() {
         let defaults = UserDefaults.standard
         let isFreshInstall = !defaults.bool(forKey: "notFirstLaunch")
-        self.onboardingDone = Self.onboardingDone(stored: defaults.object(forKey: Self.onboardingDoneKey) as? Bool,
+        let storedOnboarding = defaults.object(forKey: Self.onboardingDoneKey) == nil
+            ? nil : defaults.bool(forKey: Self.onboardingDoneKey)
+        self.onboardingDone = Self.onboardingDone(stored: storedOnboarding,
                                                   isFreshInstall: isFreshInstall)
         self.ownPlayer = OwnPlayer.decode(defaults.data(forKey: Self.ownPlayerKey))
         if isFreshInstall {
@@ -317,15 +303,17 @@ class AppState {
         self.difficulty = defaults.integer(forKey: "difficulty")
         // An absent flag has to read as `true` (asking is the default), and
         // `bool(forKey:)` would read it as `false` for everybody who already
-        // has the app installed.
-        self.askLevelBeforeMatch = defaults.object(forKey: Self.askLevelKey) as? Bool ?? true
+        // has the app installed. A present one goes through `bool(forKey:)`,
+        // not `as? Bool`: a launch argument (`-askLevelBeforeMatch NO`, the UI
+        // tests) arrives as the string "NO", which `as? Bool` reads as absent.
+        self.askLevelBeforeMatch = Self.flag(Self.askLevelKey, absent: true, in: defaults)
         self.confirmShot = defaults.bool(forKey: Self.confirmShotKey)
         self.ownBoardOnRight = defaults.bool(forKey: Self.ownBoardOnRightKey)
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")
         // Как у `askLevelBeforeMatch`: отсутствующий флаг — «вкл.», в том числе
         // у тех, кто ставил игру до R4.3a.
-        let hapticsOn = defaults.object(forKey: Self.hapticsOnKey) as? Bool ?? true
+        let hapticsOn = Self.flag(Self.hapticsOnKey, absent: true, in: defaults)
         self.hapticsOn = hapticsOn
         // `didSet` в `init` не срабатывает — сервису пишем сами.
         HapticService.shared.isEnabled = hapticsOn
@@ -336,6 +324,11 @@ class AppState {
         // Touching the service configures the audio session (playback category,
         // so the game is heard with the mute switch on).
         _ = AudioService.shared
+    }
+
+    /// A stored flag, or `absent` when it was never written.
+    private static func flag(_ key: String, absent: Bool, in defaults: UserDefaults) -> Bool {
+        defaults.object(forKey: key) == nil ? absent : defaults.bool(forKey: key)
     }
 }
 

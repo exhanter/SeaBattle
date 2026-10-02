@@ -14,48 +14,16 @@
 		288F1D73B8350925B60CC7A0 /* ArrangementScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9D2DABD6826E32CD5CA684 /* ArrangementScreen.swift */; };
 		2B46482AE52D9791C681887E /* BattleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F2D5E52D96EE8EC8A7BD6D /* BattleController.swift */; };
 		2B7940ED380293E06C5620B3 /* DuelSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF286DAABB44AEFC15FF609 /* DuelSetupScreen.swift */; };
-		2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1271492C81F2C7001548F4 /* GameScoreView.swift */; };
-		2C12714C2C831194001548F4 /* Dorsa-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */; };
-		2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C12714D2C85E047001548F4 /* CustomTabView.swift */; };
-		2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1914B12D1EDF0F004A095B /* ContactsView.swift */; };
-		2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */; };
-		2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */; };
 		2C275E722D522396008E29A9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2C275E712D522396008E29A9 /* Localizable.xcstrings */; };
 		2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAF62D12F14200A9BC19 /* AppState.swift */; };
-		2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */; };
-		2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */; };
-		2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C28DB002D15B9F900A9BC19 /* iPadMenuViewV.swift */; };
 		2C2A961F615A3D905AF983A0 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46408B524E733F0AEBE41ACD /* AppShell.swift */; };
-		2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */; };
-		2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C403C4E2D006B6700E2A386 /* InformationView.swift */; };
-		2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C403C502D00B0D800E2A386 /* SettingsView.swift */; };
-		2C4AE0EB2C875FC90013DF12 /* Aldrich-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */; };
-		2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */; };
 		2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84702B6E99620001A20C /* SeaBattleApp.swift */; };
-		2C6A84732B6E99620001A20C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84722B6E99620001A20C /* ContentView.swift */; };
 		2C6A84752B6E99640001A20C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C6A84742B6E99640001A20C /* Assets.xcassets */; };
 		2C6A84782B6E99640001A20C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C6A84772B6E99640001A20C /* Preview Assets.xcassets */; };
-		2C6A847F2B6E99BA0001A20C /* EnemyFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */; };
-		2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84822B723C0E0001A20C /* AboutView.swift */; };
 		2C6A84852B723C660001A20C /* PlayerData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84842B723C660001A20C /* PlayerData.swift */; };
 		2C6A84872B723C990001A20C /* Ship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84862B723C990001A20C /* Ship.swift */; };
-		2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84882B73D3960001A20C /* PlayerFieldView.swift */; };
-		2C900E802C415CF7005BD968 /* CellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C900E7F2C415CF7005BD968 /* CellView.swift */; };
 		2C900E882C416963005BD968 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C900E872C416963005BD968 /* Cell.swift */; };
-		2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA0169C2C8B1847000C2E3A /* ShipView.swift */; };
-		2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */; };
 		2CA38D042CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */; };
-		2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */; };
-		2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */; };
-		2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5A92D2D670500EDE9CF /* iPadMainViewH.swift */; };
-		2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5AB2D2D76F500EDE9CF /* iPadMenuViewH.swift */; };
-		2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */; };
-		2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */; };
-		2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */; };
-		2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B32D2DA8BC00EDE9CF /* iPadMainViewV.swift */; };
-		2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */; };
-		2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */; };
-		2CC35ACB2C4AACE8009138FF /* GameLogicViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */; };
 		2CE3E3EF2CB41AA0003AF40E /* blast_onfire2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3E92CB41AA0003AF40E /* blast_onfire2.wav */; };
 		2CE3E3F02CB41AA0003AF40E /* defeat_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EB2CB41AA0003AF40E /* defeat_sound.wav */; };
 		2CE3E3F12CB41AA0003AF40E /* Battles_on_the_High_Seas.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3E72CB41AA0003AF40E /* Battles_on_the_High_Seas.mp3 */; };
@@ -63,16 +31,6 @@
 		2CE3E3F32CB41AA0003AF40E /* click_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EA2CB41AA0003AF40E /* click_sound.wav */; };
 		2CE3E3F42CB41AA0003AF40E /* start_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */; };
 		2CE3E3F52CB41AA0003AF40E /* victory_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */; };
-		2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE731932D561C7A00954841 /* EnemySquareView.swift */; };
-		2CE731962D564D7300954841 /* PlayerSquareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE731952D564D7300954841 /* PlayerSquareView.swift */; };
-		2CE731982D56A0A500954841 /* iPadStartButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE731972D56A0A500954841 /* iPadStartButton.swift */; };
-		2CE7319A2D57A5EA00954841 /* iPadGameScoreViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE731992D57A5EA00954841 /* iPadGameScoreViewV.swift */; };
-		2CE7319C2D5A03DE00954841 /* iPadGameScoreViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE7319B2D5A03DE00954841 /* iPadGameScoreViewH.swift */; };
-		2CE731A02D5B627F00954841 /* iPadShipArrangementMenuViewV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE7319F2D5B627F00954841 /* iPadShipArrangementMenuViewV.swift */; };
-		2CE731A22D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE731A12D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift */; };
-		2CE9D5C92D5BA11400324F58 /* UpperLabelAndButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE9D5C82D5BA11400324F58 /* UpperLabelAndButtonView.swift */; };
-		2CE9D5CB2D5BAD4C00324F58 /* YourTurnButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE9D5CA2D5BAD4C00324F58 /* YourTurnButtonView.swift */; };
-		2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CED70BC2C7C9F520006546F /* WoodenButton.swift */; };
 		4EEEB8052B418CF0C4F9A718 /* PadNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A8332488FDFA780709339 /* PadNavigation.swift */; };
 		52F66E84CCD4A8DD51A0040C /* PaperScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7454EAC8EAC4D486BA6A30D6 /* PaperScreen.swift */; };
 		68EE947935FA92485B267979 /* BattleControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9724CBA94C4AB8786693B8 /* BattleControls.swift */; };
@@ -100,22 +58,16 @@
 		CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */; };
 		CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C5302CAF2F007A33B0 /* GameStore.swift */; };
 		CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C7302CB294007A33B0 /* PremiumManager.swift */; };
-		CA17D7CA302CB2A2007A33B0 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */; };
 		CA17D7CC302CB93A007A33B0 /* SeaBattle.storekit in Resources */ = {isa = PBXBuildFile; fileRef = CA17D7CB302CB93A007A33B0 /* SeaBattle.storekit */; };
 		CA17D7CF302CC22F007A33B0 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA17D7CE302CC22F007A33B0 /* StoreKit.framework */; };
 		CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */; };
-		CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D2302D2805007A33B0 /* HintButton.swift */; };
-		CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D4302D2843007A33B0 /* StatsView.swift */; };
 		CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */; };
-		CA17D7D9302D9BBA007A33B0 /* HotSeatGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */; };
-		CA17D7DB302D9C2C007A33B0 /* HotSeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */; };
 		CA17D8B9302E7609007A33B0 /* NetworkMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8B8302E7609007A33B0 /* NetworkMessage.swift */; };
 		CA17D8BD302E777B007A33B0 /* AccountID.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BC302E777B007A33B0 /* AccountID.swift */; };
 		CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */; };
 		CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */; };
 		CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */; };
 		CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */; };
-		CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */; };
 		CA4F06353061DB140083DE5C /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06343061DB140083DE5C /* AudioService.swift */; };
 		CA4F06373061DB170083DE5C /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06363061DB170083DE5C /* Log.swift */; };
 		CA4F063A3061E1E20083DE5C /* Side.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06393061E1E20083DE5C /* Side.swift */; };
@@ -130,6 +82,7 @@
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
 		CAD00239306EDD3D006405DC /* OnboardingScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD00238306EDD3D006405DC /* OnboardingScreens.swift */; };
 		CAD0023D306EE683006405DC /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CAD0023C306EE683006405DC /* InfoPlist.xcstrings */; };
+		CAD0023F30707218006405DC /* AboutScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0023E30707218006405DC /* AboutScreen.swift */; };
 		CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */; };
 		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
 		CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
@@ -175,50 +128,18 @@
 		11F9AE6E7E8530E90B5A21D3 /* DuelMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelMatch.swift; sourceTree = "<group>"; };
 		19B5EB15EE20130BDCA7E793 /* MenuScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuScreen.swift; sourceTree = "<group>"; };
 		24F62178B1A661E5C2BEF863 /* DuelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuelScreen.swift; sourceTree = "<group>"; };
-		2C1271492C81F2C7001548F4 /* GameScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScoreView.swift; sourceTree = "<group>"; };
-		2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Dorsa-Regular.ttf"; sourceTree = "<group>"; };
-		2C12714D2C85E047001548F4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		2C1387492D53D3DA0000A18B /* SeaBattleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SeaBattleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2C1914B12D1EDF0F004A095B /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
-		2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomRoundedRectangle.swift; sourceTree = "<group>"; };
-		2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartMenuView.swift; sourceTree = "<group>"; };
 		2C275E662D4CDC7C008E29A9 /* SeaBattleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SeaBattleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C275E712D522396008E29A9 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		2C28DAF62D12F14200A9BC19 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainView.swift; sourceTree = "<group>"; };
-		2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleViewV.swift; sourceTree = "<group>"; };
-		2C28DB002D15B9F900A9BC19 /* iPadMenuViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuViewV.swift; sourceTree = "<group>"; };
-		2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementView.swift; sourceTree = "<group>"; };
-		2C403C4E2D006B6700E2A386 /* InformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationView.swift; sourceTree = "<group>"; };
-		2C403C502D00B0D800E2A386 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aldrich-Regular.ttf"; sourceTree = "<group>"; };
-		2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinAlertView.swift; sourceTree = "<group>"; };
 		2C6A846D2B6E99620001A20C /* SeaBattle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SeaBattle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C6A84702B6E99620001A20C /* SeaBattleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBattleApp.swift; sourceTree = "<group>"; };
-		2C6A84722B6E99620001A20C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2C6A84742B6E99640001A20C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C6A84772B6E99640001A20C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyFieldView.swift; sourceTree = "<group>"; };
-		2C6A84822B723C0E0001A20C /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		2C6A84842B723C660001A20C /* PlayerData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerData.swift; sourceTree = "<group>"; };
 		2C6A84862B723C990001A20C /* Ship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ship.swift; sourceTree = "<group>"; };
-		2C6A84882B73D3960001A20C /* PlayerFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerFieldView.swift; sourceTree = "<group>"; };
-		2C900E7F2C415CF7005BD968 /* CellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellView.swift; sourceTree = "<group>"; };
 		2C900E872C416963005BD968 /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
-		2CA0169C2C8B1847000C2E3A /* ShipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipView.swift; sourceTree = "<group>"; };
-		2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipReplacementViewViewModel.swift; sourceTree = "<group>"; };
 		2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Glass_Break-stephan_schutze-958181291.wav"; sourceTree = "<group>"; };
-		2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuButtonsViewV.swift; sourceTree = "<group>"; };
-		2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadAboutViewV.swift; sourceTree = "<group>"; };
-		2CA3D5A92D2D670500EDE9CF /* iPadMainViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainViewH.swift; sourceTree = "<group>"; };
-		2CA3D5AB2D2D76F500EDE9CF /* iPadMenuViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuViewH.swift; sourceTree = "<group>"; };
-		2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleViewH.swift; sourceTree = "<group>"; };
-		2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMenuBattonsViewH.swift; sourceTree = "<group>"; };
-		2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadAboutViewH.swift; sourceTree = "<group>"; };
-		2CA3D5B32D2DA8BC00EDE9CF /* iPadMainViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadMainViewV.swift; sourceTree = "<group>"; };
-		2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadBattleView.swift; sourceTree = "<group>"; };
-		2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadAboutView.swift; sourceTree = "<group>"; };
-		2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogicViewModel.swift; sourceTree = "<group>"; };
 		2CE3E3E72CB41AA0003AF40E /* Battles_on_the_High_Seas.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Battles_on_the_High_Seas.mp3; sourceTree = "<group>"; };
 		2CE3E3E82CB41AA0003AF40E /* blast_missed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = blast_missed.wav; sourceTree = "<group>"; };
 		2CE3E3E92CB41AA0003AF40E /* blast_onfire2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = blast_onfire2.wav; sourceTree = "<group>"; };
@@ -226,17 +147,7 @@
 		2CE3E3EB2CB41AA0003AF40E /* defeat_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = defeat_sound.wav; sourceTree = "<group>"; };
 		2CE3E3EC2CB41AA0003AF40E /* start_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = start_sound.wav; sourceTree = "<group>"; };
 		2CE3E3ED2CB41AA0003AF40E /* victory_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = victory_sound.wav; sourceTree = "<group>"; };
-		2CE731932D561C7A00954841 /* EnemySquareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemySquareView.swift; sourceTree = "<group>"; };
-		2CE731952D564D7300954841 /* PlayerSquareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSquareView.swift; sourceTree = "<group>"; };
-		2CE731972D56A0A500954841 /* iPadStartButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadStartButton.swift; sourceTree = "<group>"; };
-		2CE731992D57A5EA00954841 /* iPadGameScoreViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadGameScoreViewV.swift; sourceTree = "<group>"; };
-		2CE7319B2D5A03DE00954841 /* iPadGameScoreViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadGameScoreViewH.swift; sourceTree = "<group>"; };
-		2CE7319F2D5B627F00954841 /* iPadShipArrangementMenuViewV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadShipArrangementMenuViewV.swift; sourceTree = "<group>"; };
-		2CE731A12D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadShipArrangementMenuViewH.swift; sourceTree = "<group>"; };
-		2CE9D5C82D5BA11400324F58 /* UpperLabelAndButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperLabelAndButtonView.swift; sourceTree = "<group>"; };
-		2CE9D5CA2D5BAD4C00324F58 /* YourTurnButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourTurnButtonView.swift; sourceTree = "<group>"; };
 		2CED70AF2C78E00D0006546F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		2CED70BC2C7C9F520006546F /* WoodenButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WoodenButton.swift; sourceTree = "<group>"; };
 		3FCFFBCEC5E6074D89591013 /* PadTableScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadTableScreen.swift; sourceTree = "<group>"; };
 		41D9FA82B19E6FFB57AD9CA6 /* CellEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellEvent.swift; sourceTree = "<group>"; };
 		46408B524E733F0AEBE41ACD /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
@@ -264,15 +175,10 @@
 		CA17D7C3302CAD01007A33B0 /* ComputerOpponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerOpponent.swift; sourceTree = "<group>"; };
 		CA17D7C5302CAF2F007A33B0 /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		CA17D7C7302CB294007A33B0 /* PremiumManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumManager.swift; sourceTree = "<group>"; };
-		CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		CA17D7CB302CB93A007A33B0 /* SeaBattle.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = SeaBattle.storekit; sourceTree = "<group>"; };
 		CA17D7CE302CC22F007A33B0 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
-		CA17D7D2302D2805007A33B0 /* HintButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintButton.swift; sourceTree = "<group>"; };
-		CA17D7D4302D2843007A33B0 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
-		CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatGame.swift; sourceTree = "<group>"; };
-		CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatView.swift; sourceTree = "<group>"; };
 		CA17D8B8302E7609007A33B0 /* NetworkMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMessage.swift; sourceTree = "<group>"; };
 		CA17D8BC302E777B007A33B0 /* AccountID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountID.swift; sourceTree = "<group>"; };
 		CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerTransport.swift; sourceTree = "<group>"; };
@@ -280,7 +186,6 @@
 		CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameKitTransport.swift; sourceTree = "<group>"; };
 		CA17D8C8302E7D0B007A33B0 /* SeaBattle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SeaBattle.entitlements; sourceTree = "<group>"; };
 		CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
-		CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSeatStore.swift; sourceTree = "<group>"; };
 		CA4F06343061DB140083DE5C /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		CA4F06363061DB170083DE5C /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		CA4F06393061E1E20083DE5C /* Side.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Side.swift; sourceTree = "<group>"; };
@@ -295,6 +200,7 @@
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
 		CAD00238306EDD3D006405DC /* OnboardingScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreens.swift; sourceTree = "<group>"; };
 		CAD0023C306EE683006405DC /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		CAD0023E30707218006405DC /* AboutScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutScreen.swift; sourceTree = "<group>"; };
 		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
 		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
 		CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GameCenterResources.gamekit; sourceTree = "<group>"; };
@@ -356,9 +262,7 @@
 				0BCA3BF873763F07AEFF3861 /* DuelStore.swift */,
 				7647A9463C4A0CE0DB9BBF54 /* PaperStore.swift */,
 				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
-				2CC35ACA2C4AACE8009138FF /* GameLogicViewModel.swift */,
 				2C6A84842B723C660001A20C /* PlayerData.swift */,
-				2CA016A02C94B186000C2E3A /* ShipReplacementViewViewModel.swift */,
 				CA17D7B9302C90C6007A33B0 /* Coordinate.swift */,
 				CA17D7BB302C90CD007A33B0 /* PlayerProfile.swift */,
 				CA17D7BD302C90D8007A33B0 /* GameSnapshot.swift */,
@@ -369,14 +273,12 @@
 				CA17D7C7302CB294007A33B0 /* PremiumManager.swift */,
 				CA17D7D0302D27C9007A33B0 /* ProgressStore.swift */,
 				CA17D7D6302D9B8B007A33B0 /* ProfileStore.swift */,
-				CA17D7D8302D9BBA007A33B0 /* HotSeatGame.swift */,
 				CA17D8B8302E7609007A33B0 /* NetworkMessage.swift */,
 				CA17D8BC302E777B007A33B0 /* AccountID.swift */,
 				CA17D8BE302E77AB007A33B0 /* MultipeerTransport.swift */,
 				CA17D8C2302E794F007A33B0 /* GameCenterManager.swift */,
 				CA17D8C4302E7959007A33B0 /* GameKitTransport.swift */,
 				CA17D8C9302EFAC5007A33B0 /* CloudSyncManager.swift */,
-				CA17D8CB303729F6007A33B0 /* HotSeatStore.swift */,
 				CA4F06343061DB140083DE5C /* AudioService.swift */,
 				CA4F06363061DB170083DE5C /* Log.swift */,
 				CA4F06383061E1E20083DE5C /* Core */,
@@ -385,26 +287,6 @@
 				CAD720F2306EB1EE00F6E49F /* HapticService.swift */,
 			);
 			path = Models;
-			sourceTree = "<group>";
-		};
-		2C13873E2D538FFE0000A18B /* Common_Views */ = {
-			isa = PBXGroup;
-			children = (
-				2CE731952D564D7300954841 /* PlayerSquareView.swift */,
-				2CE731932D561C7A00954841 /* EnemySquareView.swift */,
-				2C403C502D00B0D800E2A386 /* SettingsView.swift */,
-				2C4AE0EC2C89CE880013DF12 /* WinAlertView.swift */,
-				2C900E7F2C415CF7005BD968 /* CellView.swift */,
-				2C1914B12D1EDF0F004A095B /* ContactsView.swift */,
-				2C403C4E2D006B6700E2A386 /* InformationView.swift */,
-				2C385F312C4A9DAA00543AC9 /* ShipReplacementView.swift */,
-				2CA0169C2C8B1847000C2E3A /* ShipView.swift */,
-				CA17D7C9302CB2A2007A33B0 /* PaywallView.swift */,
-				CA17D7D2302D2805007A33B0 /* HintButton.swift */,
-				CA17D7D4302D2843007A33B0 /* StatsView.swift */,
-				CA17D7DA302D9C2C007A33B0 /* HotSeatView.swift */,
-			);
-			path = Common_Views;
 			sourceTree = "<group>";
 		};
 		2C6A84642B6E99620001A20C = {
@@ -437,17 +319,10 @@
 				2CED70AF2C78E00D0006546F /* Info.plist */,
 				2C6A84702B6E99620001A20C /* SeaBattleApp.swift */,
 				2C13873D2D538F7F0000A18B /* Models */,
-				2CA3D5A22D2D4B1500EDE9CF /* iPhone_Views */,
-				2CA3D5A12D2D4A9000EDE9CF /* iPad_Views */,
-				2C13873E2D538FFE0000A18B /* Common_Views */,
-				2CED70BC2C7C9F520006546F /* WoodenButton.swift */,
 				2C6A84862B723C990001A20C /* Ship.swift */,
 				2C900E872C416963005BD968 /* Cell.swift */,
-				2C2336622D19A0AE008055C7 /* CustomRoundedRectangle.swift */,
 				2C6A84742B6E99640001A20C /* Assets.xcassets */,
 				CA11C01E31000A0200C01025 /* Colors.xcassets */,
-				2C4AE0EA2C875FC90013DF12 /* Aldrich-Regular.ttf */,
-				2C12714B2C831194001548F4 /* Dorsa-Regular.ttf */,
 				2C6A84762B6E99640001A20C /* Preview Content */,
 				2CE3E3EE2CB41AA0003AF40E /* Sound */,
 				2C275E712D522396008E29A9 /* Localizable.xcstrings */,
@@ -464,47 +339,6 @@
 				2C6A84772B6E99640001A20C /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		2CA3D5A12D2D4A9000EDE9CF /* iPad_Views */ = {
-			isa = PBXGroup;
-			children = (
-				2C2336662D19DC02008055C7 /* iPadStartMenuView.swift */,
-				2C28DAFA2D159FC600A9BC19 /* iPadMainView.swift */,
-				2CA3D5B32D2DA8BC00EDE9CF /* iPadMainViewV.swift */,
-				2CA3D5A92D2D670500EDE9CF /* iPadMainViewH.swift */,
-				2CE731992D57A5EA00954841 /* iPadGameScoreViewV.swift */,
-				2CE7319B2D5A03DE00954841 /* iPadGameScoreViewH.swift */,
-				2CE7319F2D5B627F00954841 /* iPadShipArrangementMenuViewV.swift */,
-				2CE731A12D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift */,
-				2C28DB002D15B9F900A9BC19 /* iPadMenuViewV.swift */,
-				2CA3D5AB2D2D76F500EDE9CF /* iPadMenuViewH.swift */,
-				2CA3D5B52D2DB29700EDE9CF /* iPadBattleView.swift */,
-				2C28DAFE2D15AEB000A9BC19 /* iPadBattleViewV.swift */,
-				2CA3D5AD2D2D7F2900EDE9CF /* iPadBattleViewH.swift */,
-				2CA3D59F2D28292A00EDE9CF /* iPadMenuButtonsViewV.swift */,
-				2CA3D5AF2D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift */,
-				2CA3D5B72D2DBB3800EDE9CF /* iPadAboutView.swift */,
-				2CA3D5A72D2D4D5A00EDE9CF /* iPadAboutViewV.swift */,
-				2CA3D5B12D2DA66300EDE9CF /* iPadAboutViewH.swift */,
-				2CE731972D56A0A500954841 /* iPadStartButton.swift */,
-			);
-			path = iPad_Views;
-			sourceTree = "<group>";
-		};
-		2CA3D5A22D2D4B1500EDE9CF /* iPhone_Views */ = {
-			isa = PBXGroup;
-			children = (
-				2C6A84722B6E99620001A20C /* ContentView.swift */,
-				2C12714D2C85E047001548F4 /* CustomTabView.swift */,
-				2C6A84882B73D3960001A20C /* PlayerFieldView.swift */,
-				2C1271492C81F2C7001548F4 /* GameScoreView.swift */,
-				2C6A847E2B6E99BA0001A20C /* EnemyFieldView.swift */,
-				2C6A84822B723C0E0001A20C /* AboutView.swift */,
-				2CE9D5C82D5BA11400324F58 /* UpperLabelAndButtonView.swift */,
-				2CE9D5CA2D5BAD4C00324F58 /* YourTurnButtonView.swift */,
-			);
-			path = iPhone_Views;
 			sourceTree = "<group>";
 		};
 		2CE3E3EE2CB41AA0003AF40E /* Sound */ = {
@@ -555,6 +389,7 @@
 				CAD720EA306E81E900F6E49F /* SettingsScreen.swift */,
 				CAD720EE306E934E00F6E49F /* ProScreens.swift */,
 				CAD00238306EDD3D006405DC /* OnboardingScreens.swift */,
+				CAD0023E30707218006405DC /* AboutScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -736,8 +571,6 @@
 				CAD720DF306E427700F6E49F /* GameCenterResources.gamekit in Resources */,
 				2CA38D042CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav in Resources */,
 				2C6A84782B6E99640001A20C /* Preview Assets.xcassets in Resources */,
-				2C4AE0EB2C875FC90013DF12 /* Aldrich-Regular.ttf in Resources */,
-				2C12714C2C831194001548F4 /* Dorsa-Regular.ttf in Resources */,
 				2C6A84752B6E99640001A20C /* Assets.xcassets in Resources */,
 				CA11C01E31000A0100C01025 /* Colors.xcassets in Resources */,
 				2CE3E3EF2CB41AA0003AF40E /* blast_onfire2.wav in Resources */,
@@ -806,96 +639,51 @@
 				CECFA2E0D5E595C15AFECC9C /* DuelMatch.swift in Sources */,
 				DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */,
 				E6B6658BCC70C76953BDC2F7 /* DuelScreen.swift in Sources */,
-				2C6A84732B6E99620001A20C /* ContentView.swift in Sources */,
 				CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */,
 				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,
-				2CE9D5CB2D5BAD4C00324F58 /* YourTurnButtonView.swift in Sources */,
-				2CE731982D56A0A500954841 /* iPadStartButton.swift in Sources */,
 				CAA32FD13064042800469335 /* GlassPanel.swift in Sources */,
-				2CE731962D564D7300954841 /* PlayerSquareView.swift in Sources */,
 				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
 				CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */,
 				CA6886273062B53C00859D7B /* GameMode.swift in Sources */,
-				2CE9D5C92D5BA11400324F58 /* UpperLabelAndButtonView.swift in Sources */,
-				2CA3D5B42D2DA8BC00EDE9CF /* iPadMainViewV.swift in Sources */,
-				2CE731942D561C7A00954841 /* EnemySquareView.swift in Sources */,
-				2C2336672D19DC02008055C7 /* iPadStartMenuView.swift in Sources */,
 				CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */,
-				CA17D7D9302D9BBA007A33B0 /* HotSeatGame.swift in Sources */,
-				CA17D7DB302D9C2C007A33B0 /* HotSeatView.swift in Sources */,
-				2CA3D5AC2D2D76F500EDE9CF /* iPadMenuViewH.swift in Sources */,
 				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
-				2CA3D5B82D2DBB3800EDE9CF /* iPadAboutView.swift in Sources */,
 				CAD720E1306E72A700F6E49F /* PointsLedger.swift in Sources */,
 				CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */,
 				CA4F063E3061E2490083DE5C /* Board.swift in Sources */,
-				2CE7319A2D57A5EA00954841 /* iPadGameScoreViewV.swift in Sources */,
-				CA17D7D5302D2843007A33B0 /* StatsView.swift in Sources */,
-				2CA3D5A82D2D4D5A00EDE9CF /* iPadAboutViewV.swift in Sources */,
-				2C2336632D19A0AE008055C7 /* CustomRoundedRectangle.swift in Sources */,
 				CA17D8BD302E777B007A33B0 /* AccountID.swift in Sources */,
-				2CA3D5AA2D2D670500EDE9CF /* iPadMainViewH.swift in Sources */,
-				2C28DAFF2D15AEB000A9BC19 /* iPadBattleViewV.swift in Sources */,
-				CA17D8CC303729F6007A33B0 /* HotSeatStore.swift in Sources */,
 				CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */,
-				2CA016A12C94B186000C2E3A /* ShipReplacementViewViewModel.swift in Sources */,
 				CAD720E3306E735000F6E49F /* ListControls.swift in Sources */,
 				2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */,
 				CA17D7BC302C90CD007A33B0 /* PlayerProfile.swift in Sources */,
-				2C403C512D00B0D800E2A386 /* SettingsView.swift in Sources */,
 				CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */,
-				2CE731A22D5B8D6600954841 /* iPadShipArrangementMenuViewH.swift in Sources */,
-				2C6A84892B73D3960001A20C /* PlayerFieldView.swift in Sources */,
-				2C4AE0ED2C89CE880013DF12 /* WinAlertView.swift in Sources */,
 				CA17D7BE302C90D8007A33B0 /* GameSnapshot.swift in Sources */,
-				CA17D7D3302D2805007A33B0 /* HintButton.swift in Sources */,
-				2C1914B22D1EDF0F004A095B /* ContactsView.swift in Sources */,
 				CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */,
 				CA17D8B9302E7609007A33B0 /* NetworkMessage.swift in Sources */,
 				CAD720E7306E73D900F6E49F /* WalletScreen.swift in Sources */,
+				CAD0023F30707218006405DC /* AboutScreen.swift in Sources */,
 				CA17D7C2302CACEF007A33B0 /* GameEngine.swift in Sources */,
 				CA4F06373061DB170083DE5C /* Log.swift in Sources */,
-				2C28DAFB2D159FC600A9BC19 /* iPadMainView.swift in Sources */,
 				CAD720EF306E934E00F6E49F /* ProScreens.swift in Sources */,
 				CAD00239306EDD3D006405DC /* OnboardingScreens.swift in Sources */,
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
 				CA4F06353061DB140083DE5C /* AudioService.swift in Sources */,
 				CA4F063A3061E1E20083DE5C /* Side.swift in Sources */,
-				2CED70BD2C7C9F520006546F /* WoodenButton.swift in Sources */,
 				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
 				CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */,
-				2CA3D5B62D2DB29800EDE9CF /* iPadBattleView.swift in Sources */,
-				2C28DB012D15B9F900A9BC19 /* iPadMenuViewV.swift in Sources */,
 				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				CADF48B3306DA80100974A1B /* NetGame.swift in Sources */,
 				CAD720F3306EB1EE00F6E49F /* HapticService.swift in Sources */,
-				2CC35ACB2C4AACE8009138FF /* GameLogicViewModel.swift in Sources */,
 				CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */,
-				2CA3D5A02D28292A00EDE9CF /* iPadMenuButtonsViewV.swift in Sources */,
-				CA17D7CA302CB2A2007A33B0 /* PaywallView.swift in Sources */,
-				2C12714A2C81F2C7001548F4 /* GameScoreView.swift in Sources */,
 				2C900E882C416963005BD968 /* Cell.swift in Sources */,
-				2CE731A02D5B627F00954841 /* iPadShipArrangementMenuViewV.swift in Sources */,
-				2CA0169D2C8B1847000C2E3A /* ShipView.swift in Sources */,
 				CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */,
-				2CA3D5B02D2D823C00EDE9CF /* iPadMenuBattonsViewH.swift in Sources */,
 				CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */,
 				CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */,
-				2CA3D5B22D2DA66300EDE9CF /* iPadAboutViewH.swift in Sources */,
-				2C900E802C415CF7005BD968 /* CellView.swift in Sources */,
 				CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */,
-				2C6A847F2B6E99BA0001A20C /* EnemyFieldView.swift in Sources */,
 				CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */,
 				CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */,
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
-				2C12714E2C85E047001548F4 /* CustomTabView.swift in Sources */,
 				CAD720E5306E73AE00F6E49F /* StatsScreen.swift in Sources */,
-				2CA3D5AE2D2D7F2900EDE9CF /* iPadBattleViewH.swift in Sources */,
-				2CE7319C2D5A03DE00954841 /* iPadGameScoreViewH.swift in Sources */,
-				2C6A84832B723C0E0001A20C /* AboutView.swift in Sources */,
-				2C403C4F2D006B6800E2A386 /* InformationView.swift in Sources */,
-				2C385F322C4A9DAA00543AC9 /* ShipReplacementView.swift in Sources */,
 				CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

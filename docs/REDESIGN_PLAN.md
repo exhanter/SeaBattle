@@ -256,13 +256,21 @@ DECISIONS.md — почему так, mockups.html — эталон вида, De
   подсказка и прицел в значении клетки, корабли расстановки с действиями, `PlayerCard`,
   лента «По вам», `SegmentedPick`. С настоящим VoiceOver на iPhone не проверено.
 - ☑ **R4.5c Reduce Motion** — `9562c1d`. Нажатие кнопок без масштаба (`PressDepth`),
-  `Animation.reduced(_:)` — длительности × 0,5 у готовых анимаций. Живьём не смотрели.
+  `Animation.reduced(_:)` — длительности × 0,5 у готовых анимаций. Живьём проверено в R4.6
+  (бой, окно выхода, продолжение партии — без замечаний).
 - ☑ **R4.5d Dynamic Type** — коммит «R4.5d: Dynamic Type». `Font.scalable` (кегль макета
   при стандартном тексте), мета-экраны до AX5 со столбцами строк, экраны партии до
   xxxLarge, Large Content Viewer у фиксированных элементов, передача хода на 375 × 667.
   Проверено живьём (iPhone Air AX5, SE iOS 18.6). 782 теста.
-- ☐ **R4.6 Уборка** — **следующая**. Удалить старые `iPhone_Views` / `iPad_Views` / `Common_Views`,
-  старые шрифты и ассеты, финальная полировка механики.
+- ☑ **R4.6 Уборка** — коммит «R4.6: уборка старых представлений». Удалены `iPhone_Views` /
+  `iPad_Views` / `Common_Views` (41 файл), `HotSeatGame` / `HotSeatStore`,
+  `GameLogicViewModel`, `ShipReplacementViewViewModel`, `WoodenButton`,
+  `CustomRoundedRectangle`, шрифты `Aldrich` / `Dorsa`, картинка `wood` (93 МБ; экран
+  запуска — цвет `Sea/Mid`), мёртвые члены `AppState` / `PlayerData` и C15
+  (`defineSafeAreaNearShip`); случайный флот — через ядро. Новое «О приложении»
+  (`AboutScreen`, страница настроек). Каталог −117 мёртвых ключей; превью без русских ключей.
+  UI-тесты переписаны на новый интерфейс. Починено живьём: узкие описания невыбранных
+  уровней (`ChoiceRow`). 780 тестов + 4 UI.
 
 ---
 

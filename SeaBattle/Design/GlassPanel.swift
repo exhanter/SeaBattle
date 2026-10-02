@@ -316,10 +316,10 @@ private struct GlassPanelDemo: View {
 
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Ваш ход")
+                    Text("Your turn")
                         .font(TypeScale.headline)
                         .foregroundStyle(Color.inkPrimary)
-                    Text("ход 14 · 02:41")
+                    Text(verbatim: "ход 14 · 02:41")
                         .font(TypeScale.footnote)
                         .foregroundStyle(Color.inkSecondary)
                 }
@@ -330,13 +330,13 @@ private struct GlassPanelDemo: View {
                 Spacer()
 
                 VStack(spacing: 12) {
-                    Text("G3 — приподнятый слой")
+                    Text(verbatim: "G3 — приподнятый слой")
                         .font(TypeScale.callout)
                         .foregroundStyle(Color.inkPrimary)
                         .padding(14)
                         .glassPanel(.g3, radius: Geometry.Radius.button)
 
-                    Text("G1 — глухая шторка")
+                    Text(verbatim: "G1 — глухая шторка")
                         .font(TypeScale.callout)
                         .foregroundStyle(Color.inkPrimary)
                         .padding(14)
@@ -371,7 +371,7 @@ private struct GlassTreatmentComparison: View {
             SeaBackground()
 
             VStack(spacing: 18) {
-                Text("iOS 26 · системное стекло  ↔  iOS 18 · материалы")
+                Text(verbatim: "iOS 26 · системное стекло  ↔  iOS 18 · материалы")
                     .font(TypeScale.footnote)
                     .foregroundStyle(Color.inkSecondary)
 
@@ -422,7 +422,7 @@ private struct GlassTreatmentComparison: View {
     }
 
     private func tabBar(_ treatment: GlassTreatment) -> some View {
-        Text("нижняя панель")
+        Text(verbatim: "нижняя панель")
             .font(TypeScale.caption)
             .foregroundStyle(Color.inkSecondary)
             .frame(maxWidth: .infinity)

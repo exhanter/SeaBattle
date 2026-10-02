@@ -7,15 +7,10 @@
 		<string>_seabattle-mp._tcp</string>
 		<string>_seabattle-mp._udp</string>
 	</array>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Dorsa-Regular.ttf</string>
-		<string>Aldrich-Regular.ttf</string>
-	</array>
 	<key>UILaunchScreen</key>
 	<dict>
-		<key>UIImageName</key>
-		<string>wood</string>
+		<key>UIColorName</key>
+		<string>Sea/Mid</string>
 	</dict>
 	<key>UILaunchScreens</key>
 	<dict>

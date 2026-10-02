@@ -4,127 +4,103 @@
 //
 //  Created by Ivan Tkachev on 05/02/2025.
 //
-//  NOTE (R0.3): three of these tests drive the pre-b6fd237 main screen —
-//  "newOrStopGameButton", "startOrYourTurnButton", "changeOrSaveButton" — which
-//  went away when the menu was reduced to New game / Continue game / Settings.
-//  They have been failing since then. Rather than leave the suite permanently
-//  red, they are skipped with an explicit reason; they are rewritten against
-//  the redesigned screens in R2 (see docs/REDESIGN_PLAN.md).
+//  R4.6: the three tests that drove the pre-redesign main screen are gone with
+//  that screen. These go through the new interface instead: the menu, and a
+//  single-player match from the menu to the first shot and back.
+//
+//  The app starts past onboarding, in English, with the level step and
+//  without sound — set through launch arguments, which override what the app
+//  stored in `UserDefaults` for this run only.
 //
 
 import XCTest
 
 final class SeaBattleUITests: XCTestCase {
-    
-    var app: XCUIApplication!
-    
+
+    private var app: XCUIApplication!
+
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-        app = XCUIApplication()
-        app.launch()
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-    override func tearDownWithError() throws {
-        app = nil
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    /// `XCUIApplication` is main-actor isolated, so the launch lives here and
+    /// not in the nonisolated `setUpWithError`.
+    @MainActor
+    private func launch() {
+        app = XCUIApplication()
+        app.launchArguments += [
+            "-notFirstLaunch", "YES",
+            "-onboardingDone", "YES",
+            "-Language", "en",
+            "-askLevelBeforeMatch", "YES",
+            "-confirmShot", "NO",
+            "-soundOn", "NO",
+            "-musicOn", "NO",
+        ]
+        app.launch()
     }
 
     @MainActor
-    func testLocalization() throws {
-        let text = app.staticTexts["titleMainText"]
-        let language = Locale.current.identifier
-        
-        if language == "EN" {
-            XCTAssertEqual(text.label, "Sea Battle", "Localization test for EN failed")
-        } else if language == "NL" {
-            XCTAssertEqual(text.label, "Zeeslag", "Localization test for NL failed")
+    func testMenuShowsTheTitleTabsAndModes() throws {
+        launch()
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["titleMainText"].label, "Sea Battle")
+
+        // The three tabs live on the iPhone only; the iPad has corner squares.
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            for tab in ["play", "statistics", "settings"] {
+                XCTAssertTrue(app.buttons["tab_\(tab)"].exists, "Tab \(tab) is missing")
+            }
+        }
+        for mode in ["Single player", "Paper game", "Two players on one device",
+                     "Nearby, no internet", "Online"] {
+            XCTAssertTrue(modeButton(mode).exists, "Mode \(mode) is missing")
         }
     }
-    
-    @MainActor
-    func testSideButtonsDisabledBeforeStart() throws {
-        throw XCTSkip("Drives the pre-redesign main screen; rewritten in R2 against the new UI.")
-        let sideMenuButton = app.buttons["sideMenuButton"]
-        let sidePlayerButton = app.buttons["sidePlayerButton"]
-        let sideEnemyButton = app.buttons["sideEnemyButton"]
-        let sideAboutButton = app.buttons["sideAboutButton"]
-        
-        //app.buttons["newOrStopGameButton"].tap()
-        
-        XCTAssertTrue(sideMenuButton.isEnabled, "The side Menu button should be disabled")
-        XCTAssertFalse(sidePlayerButton.isEnabled, "The side Player button should be disabled")
-        XCTAssertFalse(sideEnemyButton.isEnabled, "The side Enemy button should be disabled")
-        XCTAssertTrue(sideAboutButton.isEnabled, "The side About button should be disabled")
-    }
-    
-    @MainActor
-    func testButtonsDisabledWhileShipsReplacement() throws {
-        throw XCTSkip("Drives the pre-redesign main screen; rewritten in R2 against the new UI.")
-        let startOrYourTurnButton = app.buttons["startOrYourTurnButton"]
-        let sideMenuButton = app.buttons["sideMenuButton"]
-        let sidePlayerButton = app.buttons["sidePlayerButton"]
-        let sideEnemyButton = app.buttons["sideEnemyButton"]
-        let sideAboutButton = app.buttons["sideAboutButton"]
-        
-        app.buttons["newOrStopGameButton"].tap()
-        app.buttons["changeOrSaveButton"].tap()
-        
-        XCTAssertFalse(startOrYourTurnButton.isEnabled, "The Start / YourTurn button should be disabled")
-        XCTAssertFalse(sideMenuButton.isEnabled, "The side Menu button should be disabled")
-        XCTAssertFalse(sidePlayerButton.isEnabled, "The side Player button should be disabled")
-        XCTAssertFalse(sideEnemyButton.isEnabled, "The side Enemy button should be disabled")
-        XCTAssertFalse(sideAboutButton.isEnabled, "The side About button should be disabled")
-    }
-    
-    @MainActor
-    func testAlghoritmWithPressingButtonsConsistently() throws {
-        throw XCTSkip("Drives the pre-redesign main screen; rewritten in R2 against the new UI.")
-        var endGame = false
-        let testCell: XCUIElement = app.buttons["testCell"]
 
-        app.buttons["newOrStopGameButton"].tap()
-        app.buttons["startOrYourTurnButton"].tap()
-        repeat {
-            let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: app.buttons["testCell"])
-            let result = XCTWaiter().wait(for: [expectation], timeout: 30.0) // max 30 seconds
-            if result == .completed {
-                testCell.tap()
-            } else {
-                XCTFail("The cell button didn't become enabled in 30 seconds")
-            }
-            
-            let winAlert = app.otherElements["winAlert"]
-//            let endGameExpectation = XCTNSPredicateExpectation(
-//                    predicate: NSPredicate(format: "exists == true"),
-//                    object: app.otherElements["winAlert"]
-//                )
-//            let endResult = XCTWaiter().wait(for: [endGameExpectation], timeout: 10)
-            
-            let yourTurnExpectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: app.buttons["startOrYourTurnButton"])
-            let yourTurnButtonResult = XCTWaiter().wait(for: [yourTurnExpectation], timeout: 10.0)
-            if yourTurnButtonResult == .completed {
-                app.buttons["startOrYourTurnButton"].tap()
-            } else if winAlert.exists {
-                print("FINISHED GAME")
-                endGame = true
-            } else {
-                XCTFail("The Your Turn button didn't become enabled in 30 seconds")
-            }
-            
-        } while !endGame
-        XCTAssertTrue(endGame, "The game should be finished")
+    @MainActor
+    func testASinglePlayerMatchStartsTakesAShotAndLeaves() throws {
+        launch()
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+        modeButton("Single player").tap()
+
+        let medium = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Medium")).firstMatch
+        XCTAssertTrue(medium.waitForExistence(timeout: 5))
+        medium.tap()
+        app.buttons["Start match"].tap()
+
+        let start = app.buttons["Start"]
+        XCTAssertTrue(start.waitForExistence(timeout: 5))
+        start.tap()
+
+        // A miss passes the turn to the computer and a hit keeps it, so after
+        // one shot the cell is no longer fresh either way.
+        // Only the opponent's board is tappable, so only its cells are buttons.
+        let cell = app.buttons["A1"].firstMatch
+        XCTAssertTrue(cell.waitForExistence(timeout: 5))
+        cell.tap()
+        XCTAssertTrue(app.buttons["navMenuButton"].waitForExistence(timeout: 5))
+
+        app.buttons["navMenuButton"].tap()
+        let leave = app.buttons["modalSecondary"]
+        XCTAssertTrue(leave.waitForExistence(timeout: 5))
+        leave.tap()
+
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["continueGameButton"].exists,
+                      "A match left halfway can be continued from the menu")
     }
 
     @MainActor
     func testLaunchPerformance() throws {
-        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
-            // This measures how long it takes to launch your application.
-            measure(metrics: [XCTApplicationLaunchMetric()]) {
-                XCUIApplication().launch()
-            }
+        measure(metrics: [XCTApplicationLaunchMetric()]) {
+            XCUIApplication().launch()
         }
+    }
+
+    /// A menu row is one button whose label starts with the mode's title.
+    @MainActor
+    private func modeButton(_ title: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
     }
 }

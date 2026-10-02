@@ -11,6 +11,7 @@ import Testing
 @testable import SeaBattle
 
 @Suite("Настройки")
+@MainActor
 struct SettingsTests {
 
     @Test("Старые значения языка читаются как коды списка",

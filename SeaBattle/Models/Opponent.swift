@@ -2,14 +2,10 @@
 //  Opponent.swift
 //  SeaBattle
 //
-//  Phase 0 scaffolding: a transport-agnostic opponent abstraction. Extracting
-//  the game engine to talk to this protocol (instead of hard-coding the
-//  computer) is what lets the same engine drive:
-//    - ComputerOpponent      (AI, incl. the Expert level in Phase 4)
-//    - LocalHotSeatOpponent  (a second human on-device, Phase 5a)
-//    - RemoteOpponent        (a networked player, Phase 5)
-//
-//  Wired in via ComputerOpponent, driven by GameLogicViewModel + GameEngine.
+//  Phase 0 scaffolding: a transport-agnostic opponent abstraction. Only
+//  `ComputerOpponent` conforms, driven by `BattleController` + `GameEngine`:
+//  two players on one device (`DuelGame`) and the network game (`NetGame`)
+//  ended up with rule types of their own instead.
 //
 
 import Foundation

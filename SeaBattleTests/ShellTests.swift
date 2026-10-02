@@ -12,6 +12,7 @@ import SwiftUI
 @testable import SeaBattle
 
 @Suite("Оболочка и меню")
+@MainActor
 struct ShellTests {
 
     // MARK: Табы

@@ -122,7 +122,7 @@ private struct BreathInspector: View {
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                Toggle("Живой цикл, 2 с вместо 18", isOn: $live)
+                Toggle(isOn: $live) { Text(verbatim: "Живой цикл, 2 с вместо 18") }
                     .font(TypeScale.callout)
                     .foregroundStyle(Color.inkPrimary)
 

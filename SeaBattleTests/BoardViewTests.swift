@@ -86,5 +86,3 @@ struct BoardViewTests {
         #expect(BoardAlphabet.forLanguage(nil) == .latin)
     }
 }
-
-extension BoardAlphabet: Equatable {}

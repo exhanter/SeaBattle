@@ -3,11 +3,10 @@
 //  SeaBattleTests
 //
 //  R0.4: all three modes now resolve shots on the rules core and write the
-//  result back into the legacy `PlayerData` arrays the old views read. The
+//  result back into the `PlayerData` arrays the computer match still keeps. The
 //  projection in both directions is the risky part of that migration, so it is
 //  pinned down here — together with the guarantee that the AI cannot see the
-//  fleet it is hunting for, and with a whole match played through each of the
-//  three modes.
+//  fleet it is hunting for, and with a whole match played against the computer.
 //
 
 import Foundation
@@ -281,115 +280,4 @@ struct VsComputerMatchTests {
     }
 }
 
-// MARK: - Hot seat
-
-@MainActor
-struct HotSeatMatchTests {
-
-    /// A session with both fleets placed and the first player ready to shoot.
-    private func shootingGame() -> HotSeatGame {
-        let game = HotSeatGame()
-        game.soundOn = false
-        game.begin(name0: "A", avatar0: "a", color0: 0, pin0: "",
-                   name1: "B", avatar1: "b", color1: 1, pin1: "")
-        game.finishArrangement(player: 0)
-        game.unlockArrange(player: 1)
-        game.finishArrangement(player: 1)
-        game.startShooting()
-        return game
-    }
-
-    @Test("Hitting keeps the turn, missing offers it to the other player")
-    func outcomesMatchTheCore() {
-        let game = shootingGame()
-        let defender = game.boards[game.defender]
-
-        let shipCell = defender.ships.first { $0.numberOfDecks > 1 }!.coordinates[0]
-        #expect(game.fire(row: shipCell.0, column: shipCell.1) == .hit)
-        #expect(game.attacker == 0, "A hit must not pass the turn on its own")
-
-        let empty = Board.allCoordinates.first { defender.coreBoard[$0] == .water }!
-        #expect(game.fire(row: empty.row, column: empty.column) == .missed)
-        // The view, not the model, advances the turn once the animation is done.
-        game.passTurn()
-        #expect(game.attacker == 1)
-    }
-
-    @Test("A one-deck ship sinks on the first hit")
-    func sinkingReportsSunk() {
-        let game = shootingGame()
-        let single = game.boards[game.defender].ships.first { $0.numberOfDecks == 1 }!
-        let cell = single.coordinates[0]
-
-        #expect(game.fire(row: cell.0, column: cell.1) == .sunk)
-        #expect(game.boards[game.defender].numberShipsDestroyed == 1)
-    }
-
-    @Test("Firing at the same cell twice is refused")
-    func repeatShotIsRefused() {
-        let game = shootingGame()
-        let empty = Board.allCoordinates.first {
-            game.boards[game.defender].coreBoard[$0] == .water
-        }!
-
-        #expect(game.fire(row: empty.row, column: empty.column) == .missed)
-        #expect(game.canFire(row: empty.row, column: empty.column) == false)
-        #expect(game.fire(row: empty.row, column: empty.column) == nil)
-    }
-
-    @Test("Auto-reveal marks the ring, and stays off by default")
-    func revealAroundSunkIsOptional() {
-        for reveal in [false, true] {
-            let game = shootingGame()
-            game.revealAroundSunk = reveal
-            let defender = game.boards[game.defender]
-            let victim = defender.ships.first { $0.numberOfDecks == 1 }!
-
-            game.fire(row: victim.coordinates[0].0, column: victim.coordinates[0].1)
-
-            let board = defender.coreBoard
-            let ring = victim.corePlacement.ring
-            #expect(!ring.isEmpty)
-            if reveal {
-                #expect(ring.allSatisfy { board[$0] == .miss })
-            } else {
-                #expect(ring.contains { board[$0] != .miss })
-            }
-        }
-    }
-
-    @Test("Sinking the last ship wins the session game")
-    func wholeMatchCanBePlayed() {
-        let game = shootingGame()
-        let defender = game.boards[game.defender]
-        var last: HotSeatGame.ShotResult?
-
-        // Fire only at hulls: every shot is a hit, so the turn never changes
-        // hands and one player can finish the fleet in a single run.
-        for cell in defender.ships.flatMap(\.coordinates) {
-            last = game.fire(row: cell.0, column: cell.1) ?? last
-        }
-
-        #expect(last == .win)
-        #expect(game.winner == 0)
-        #expect(game.players[0].sessionWins == 1)
-        #expect(defender.coreBoard.isFleetDestroyed)
-        #expect(game.canFire(row: 1, column: 1) == false, "The match is over")
-    }
-
-    @Test("The defender's board never gives its fleet away")
-    func defenderBoardIsMasked() {
-        // Both hot-seat boards store their owner's hulls, so the mask the grid
-        // applies is the only thing keeping them secret from the shooter.
-        #expect(HotSeatBoardGrid.masked(.showShip) == .unknown)
-        #expect(HotSeatBoardGrid.masked(.showShipHalo) == .unknown)
-        #expect(HotSeatBoardGrid.masked(.showShipOnFire) == .onFire)
-        // Public information passes through untouched.
-        #expect(HotSeatBoardGrid.masked(.missed) == .missed)
-        #expect(HotSeatBoardGrid.masked(.destroyed) == .destroyed)
-        #expect(HotSeatBoardGrid.masked(.onFire) == .onFire)
-        #expect(HotSeatBoardGrid.masked(.unknown) == .unknown)
-    }
-}
-
-// Сетевая партия с R3.3 — `NetGameTests`.
+// Вдвоём на устройстве с R3.2 — `DuelGameTests`; сетевая партия с R3.3 — `NetGameTests`.

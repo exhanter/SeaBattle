@@ -48,16 +48,18 @@ struct TokenGalleryView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Токены")
+            Text(verbatim: "Токены")
                 .font(TypeScale.screenTitle)
                 .foregroundStyle(Color.inkPrimary)
-            Text("\(ColorToken.allCases.count) цветов · Colors.xcassets")
+            Text(verbatim: "\(ColorToken.allCases.count) цветов · Colors.xcassets")
                 .font(TypeScale.footnote)
                 .foregroundStyle(Color.inkSecondary)
 
-            Picker("Тема", selection: $scheme) {
-                Text("Тёмная").tag(ColorScheme.dark)
-                Text("Светлая").tag(ColorScheme.light)
+            Picker(selection: $scheme) {
+                Text(verbatim: "Тёмная").tag(ColorScheme.dark)
+                Text(verbatim: "Светлая").tag(ColorScheme.light)
+            } label: {
+                Text(verbatim: "Тема")
             }
             .pickerStyle(.segmented)
         }
@@ -78,7 +80,7 @@ struct TokenGalleryView: View {
                     }
                     .clipShape(RoundedRectangle(cornerRadius: Geometry.Radius.chip,
                                                 style: .continuous))
-                Text("sea + seaGlow — неподвижный градиент и дышащий слой над ним")
+                Text(verbatim: "sea + seaGlow — неподвижный градиент и дышащий слой над ним")
                     .font(TypeScale.caption)
                     .foregroundStyle(Color.inkTertiary)
             }

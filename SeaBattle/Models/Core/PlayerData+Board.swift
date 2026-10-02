@@ -4,14 +4,15 @@
 //
 //  R0.4: the bridge between the rules core and the legacy `PlayerData`.
 //
-//  `PlayerData` is an @Observable class the old views read directly — they bind
-//  to `cells[row][column].cellStatus`. Rather than rewrite those views (they are
-//  deleted in R4.6 anyway), the shot rules now run on a `Board` projected out of
-//  `PlayerData` and written straight back. The duplicated rule code disappears;
-//  the views keep seeing exactly the arrays they always saw.
+//  `PlayerData` is the @Observable class the match against the computer still
+//  keeps (`BattleController`, `GameEngine`, `ComputerOpponent`, the save in
+//  `GameSnapshot`). The shot rules run on a `Board` projected out of it and
+//  written straight back, so the rules exist only in the core.
 //
-//  THIS FILE IS TEMPORARY. When the redesigned screens bind to `Board` directly,
-//  both this projection and `PlayerData` itself go away.
+//  The old views that bound to `cells` directly are gone since R4.6. Moving the
+//  computer match onto `Board` itself (as paper, duel and network already are)
+//  would retire this projection and `PlayerData` together — and change the
+//  save format, so it is a task of its own.
 //
 
 import Foundation
@@ -101,16 +102,14 @@ extension PlayerData {
 
     /// Replaces this side's fleet with a layout produced by the core.
     ///
-    /// `shipsRandomArrangement()` still exists for the random case the arranging
-    /// screen and the lower difficulty levels use; this is the way in for a
-    /// layout that was chosen rather than rolled (see
-    /// `FleetLayout.leastExposed`).
+    /// Every way a fleet gets onto a board ends here: a chosen layout (the
+    /// arranging screen, `FleetLayout.arrangement(givingAwayAtMost:)`) as well
+    /// as `shipsRandomArrangement()`.
     func place(_ layout: [ShipPlacement]) {
         clearShips()
-        // `number` is what the old views use to address a ship, and they expect
-        // the fleet longest-first, which is the order `FleetLayout` returns.
+        // `number` addresses a ship in the fleet, longest-first — the order
+        // `FleetLayout` returns.
         ships = layout.enumerated().map { Ship($0.element, number: $0.offset) }
-        shipPositions = Array(repeating: .zero, count: FleetLayout.shipCount)
         apply(Board(ships: layout))
     }
 }
