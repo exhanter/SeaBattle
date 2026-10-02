@@ -56,7 +56,7 @@ struct DuelSetup: Equatable, Sendable {
     /// кнопку, ничего не набирая.
     static func displayName(_ typed: String, index: Int) -> String {
         let trimmed = typed.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? String(localized: "Player \(index + 1)") : trimmed
+        return trimmed.isEmpty ? String(game: "Player \(index + 1)") : trimmed
     }
 
     func displayName(_ index: Int) -> String {

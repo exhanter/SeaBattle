@@ -40,6 +40,7 @@ struct DuelSetupScreen: View {
     var onBack: () -> Void = {}
 
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(spacing: 0) {
@@ -145,7 +146,7 @@ struct DuelSetupScreen: View {
                     .font(.system(size: DuelSetupMetrics.optionTitle, weight: .semibold,
                                   design: .rounded))
                     .foregroundStyle(Color.inkPrimary)
-                SegmentedPick(options: [(DuelFirstMove.coinToss, String(localized: "Coin toss")),
+                SegmentedPick(options: [(DuelFirstMove.coinToss, String(game: "Coin toss", locale: locale)),
                                         (.player(0), setup.displayName(0)),
                                         (.player(1), setup.displayName(1))],
                               selection: $setup.firstMove)

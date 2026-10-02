@@ -129,6 +129,7 @@
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
 		CAD00239306EDD3D006405DC /* OnboardingScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD00238306EDD3D006405DC /* OnboardingScreens.swift */; };
+		CAD0023D306EE683006405DC /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CAD0023C306EE683006405DC /* InfoPlist.xcstrings */; };
 		CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */; };
 		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
 		CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
@@ -293,6 +294,7 @@
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
 		CAD00238306EDD3D006405DC /* OnboardingScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreens.swift; sourceTree = "<group>"; };
+		CAD0023C306EE683006405DC /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
 		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
 		CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GameCenterResources.gamekit; sourceTree = "<group>"; };
@@ -449,6 +451,7 @@
 				2C6A84762B6E99640001A20C /* Preview Content */,
 				2CE3E3EE2CB41AA0003AF40E /* Sound */,
 				2C275E712D522396008E29A9 /* Localizable.xcstrings */,
+				CAD0023C306EE683006405DC /* InfoPlist.xcstrings */,
 				CA68863E3062FF3400859D7B /* Design */,
 				53A0845D4B8953C5E1E8A0CE /* Screens */,
 			);
@@ -695,6 +698,7 @@
 				en,
 				Base,
 				nl,
+				ru,
 			);
 			mainGroup = 2C6A84642B6E99620001A20C;
 			productRefGroup = 2C6A846E2B6E99620001A20C /* Products */;
@@ -743,6 +747,7 @@
 				2CE3E3F22CB41AA0003AF40E /* blast_missed.wav in Resources */,
 				2CE3E3F32CB41AA0003AF40E /* click_sound.wav in Resources */,
 				2CE3E3F42CB41AA0003AF40E /* start_sound.wav in Resources */,
+				CAD0023D306EE683006405DC /* InfoPlist.xcstrings in Resources */,
 				2CE3E3F52CB41AA0003AF40E /* victory_sound.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

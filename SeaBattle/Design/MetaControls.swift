@@ -100,9 +100,11 @@ struct StatBar: View {
             }
             bar
             HStack {
-                Text("^[\(wins) win](inflect: true)")
+                // Формы числа — в каталоге: автоматическое согласование
+                // (`inflect`) русского не умеет.
+                Text("\(wins) wins")
                 Spacer()
-                Text("^[\(losses) loss](inflect: true)")
+                Text("\(losses) losses")
             }
             .font(.system(size: StatBarMetrics.legend))
             .monospacedDigit()
@@ -113,8 +115,8 @@ struct StatBar: View {
 
     /// «58 %» по правилам языка: где ставится пробел перед знаком, решает
     /// формат, а не строка.
-    static func percent(_ share: Double) -> String {
-        share.formatted(.percent.precision(.fractionLength(0)))
+    static func percent(_ share: Double, locale: Locale = AppState.gameLocale) -> String {
+        share.formatted(.percent.precision(.fractionLength(0)).locale(locale))
     }
 
     /// Значение над подписью, три колонки поровну (`metric10` в макете).

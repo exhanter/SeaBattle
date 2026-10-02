@@ -59,6 +59,7 @@ struct SettingsScreen: View {
 
     @Environment(AppState.self) private var appState
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(spacing: 0) {
@@ -135,8 +136,8 @@ struct SettingsScreen: View {
         @Bindable var appState = appState
         return ListGroup("View") {
             ListStackRow(title: "Your board in landscape") {
-                SegmentedPick(options: [(false, String(localized: "Left")),
-                                        (true, String(localized: "Right"))],
+                SegmentedPick(options: [(false, String(game: "Left", locale: locale)),
+                                        (true, String(game: "Right", locale: locale))],
                               selection: clicking($appState.ownBoardOnRight))
                     .accessibilityIdentifier("settingsOwnBoardSide")
             }

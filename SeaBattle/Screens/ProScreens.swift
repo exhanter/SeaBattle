@@ -741,17 +741,18 @@ struct ProActiveScreen: View {
         .accessibilityElement(children: .combine)
     }
 
+    private static let dateStyle = Date.FormatStyle(date: .long, time: .omitted)
+
     private var statusLine: Text? {
         guard let entitlement else { return nil }
         switch entitlement.plan {
         case .lifetime:
-            let date = entitlement.purchaseDate.formatted(date: .long, time: .omitted)
-            return Text("Bought forever · \(date)")
+            // Даты — через `format:`: так их пишет `\.locale` игры, а не системный язык.
+            return Text("Bought forever · \(entitlement.purchaseDate, format: Self.dateStyle)")
         case .yearly, .monthly:
             let plan: LocalizedStringKey = entitlement.plan == .yearly ? "Yearly plan" : "Monthly plan"
-            guard let until = entitlement.expirationDate?.formatted(date: .long, time: .omitted)
-            else { return Text(plan) }
-            return Text(plan) + Text(verbatim: " · ") + Text("paid until \(until)")
+            guard let until = entitlement.expirationDate else { return Text(plan) }
+            return Text(plan) + Text(verbatim: " · ") + Text("paid until \(until, format: Self.dateStyle)")
         }
     }
 }

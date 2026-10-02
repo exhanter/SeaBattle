@@ -203,7 +203,7 @@ struct StatModeRow: View {
     init(icon: String, title: LocalizedStringKey, record: StatRecord) {
         if let share = record.winShare {
             self.init(icon: icon, title: title,
-                      detail: Text("^[\(record.played) game](inflect: true)"),
+                      detail: Text("\(record.played) games"),
                       value: Text(verbatim: StatBar.percent(share)))
         } else {
             self.init(icon: icon, title: title, detail: Text("no games"), value: Text(verbatim: "—"))

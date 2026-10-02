@@ -361,6 +361,7 @@ struct InviteBlock: View {
     var onArrangeAhead: () -> Void = {}
 
     @State private var copied = false
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
@@ -418,7 +419,7 @@ struct InviteBlock: View {
     /// остаётся в тексте для того, кто откроет игру сам.
     @ViewBuilder
     private var share: some View {
-        let message = String(localized: "Let's play Sea Battle! Match code: \(code.text)")
+        let message = String(game: "Let's play Sea Battle! Match code: \(code.text)", locale: locale)
         if let link {
             ShareLink(item: link, message: Text(verbatim: message)) {
                 Label("Share", systemImage: "square.and.arrow.up")

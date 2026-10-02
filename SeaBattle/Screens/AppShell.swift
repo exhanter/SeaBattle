@@ -633,7 +633,7 @@ struct AppShell: View {
         }
         let profile = ProfileStore.shared.profiles.first
         let name = profile?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return (name.isEmpty ? String(localized: "Player") : name,
+        return (name.isEmpty ? String(game: "Player") : name,
                 profile?.avatar ?? "sailboat.fill",
                 profile?.colorIndex ?? 0)
     }

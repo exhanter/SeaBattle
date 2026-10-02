@@ -209,7 +209,7 @@ struct ResultsScreen: View {
                     .foregroundStyle(Color.inkPrimary)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("\(MatchResult.signed(result.net)) points"))
+            .accessibilityLabel(Text.signedPoints(result.net))
 
             // При поражении без подсказок строк нет вовсе — пустой блок с
             // линией сверху выглядел бы оборванным.
@@ -402,6 +402,15 @@ struct ResultsScreen: View {
 
 /// Баллы досчитываются от нуля за `Motion.pointsCounter`: анимируется само
 /// число, а не смена цифр, поэтому это `Animatable`, а не `numericText`.
+extension Text {
+    /// «+60 points», «−5 points»: знак отдельным аргументом, число — целым,
+    /// чтобы каталог склонял слово по числу («+1 балл», «+5 баллов»).
+    static func signedPoints(_ value: Int) -> Text {
+        let sign = value > 0 ? "+" : value < 0 ? "\u{2212}" : ""
+        return Text("\(sign)\(abs(value)) points")
+    }
+}
+
 private struct PointsCounter: View, Animatable {
     var value: Double
 
@@ -411,7 +420,7 @@ private struct PointsCounter: View, Animatable {
     }
 
     var body: some View {
-        Text("\(MatchResult.signed(Int(value.rounded()))) points")
+        Text.signedPoints(Int(value.rounded()))
             .font(.system(size: ResultMetrics.pointsValue, weight: .bold, design: .rounded)
                     .monospacedDigit())
     }

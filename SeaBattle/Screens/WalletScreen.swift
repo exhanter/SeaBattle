@@ -50,6 +50,8 @@ struct WalletScreen: View {
     var onBack: () -> Void = {}
     var onHistory: () -> Void = {}
 
+    @Environment(\.locale) private var locale
+
     private var isEmpty: Bool { points == 0 && entries.isEmpty }
 
     var body: some View {
@@ -93,6 +95,22 @@ struct WalletScreen: View {
 
     // MARK: Баланс
 
+    /// «126 баллов» одной строкой каталога — слово склоняется по числу, — а
+    /// число крупнее: его кусок строка помечает сама (`localizedNumericArgument`).
+    private var balanceLine: AttributedString {
+        var resource: LocalizedStringResource = "\(points) points"
+        resource.locale = locale
+        var line = AttributedString(localized: resource)
+        line.font = .system(size: WalletMetrics.balanceUnit)
+        line.foregroundColor = Color.inkSecondary
+        for run in line.runs where run.localizedNumericArgument != nil {
+            line[run.range].font = .system(size: WalletMetrics.balanceValue, weight: .bold,
+                                           design: .rounded).monospacedDigit()
+            line[run.range].foregroundColor = Color.inkPrimary
+        }
+        return line
+    }
+
     private var balance: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .lastTextBaseline, spacing: 10) {
@@ -100,13 +118,7 @@ struct WalletScreen: View {
                     .font(.system(size: symbolFontSize(inBox: WalletMetrics.balanceIcon)))
                     .foregroundStyle(Color.roleYou)
                     .alignmentGuide(.lastTextBaseline) { $0[.bottom] - 3 }
-                Text(verbatim: "\(points)")
-                    .font(.system(size: WalletMetrics.balanceValue, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.inkPrimary)
-                Text("points")
-                    .font(.system(size: WalletMetrics.balanceUnit))
-                    .foregroundStyle(Color.inkSecondary)
+                Text(balanceLine)
             }
             .accessibilityElement(children: .combine)
 

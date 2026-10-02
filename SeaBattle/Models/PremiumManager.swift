@@ -91,6 +91,10 @@ struct ProOffer: Identifiable, Equatable, Sendable {
         @unknown default: return nil
         }
         let formatter = DateComponentsFormatter()
+        // The formatter speaks its calendar's language — the game's, not the system's.
+        var calendar = Calendar.current
+        calendar.locale = AppState.gameLocale
+        formatter.calendar = calendar
         formatter.unitsStyle = .full
         formatter.allowedUnits = [.day, .weekOfMonth, .month, .year]
         return formatter.string(from: components)

@@ -143,8 +143,16 @@ class AppState {
     var language: String {
         didSet { UserDefaults.standard.set(language, forKey: Self.languageKey) }
     }
-    private static let languageKey = "Language"
+    nonisolated private static let languageKey = "Language"
     nonisolated static let supportedLanguages = ["ru", "en", "nl"]
+
+    /// The game's language for code with no `\.locale` at hand — what
+    /// `language` holds, read straight from `UserDefaults`, so models and
+    /// formatters off the main actor can ask too.
+    nonisolated static var gameLocale: Locale {
+        Locale(identifier: supportedLanguage(UserDefaults.standard.string(forKey: languageKey)
+                                             ?? Locale.preferredLanguages.first))
+    }
 
     /// One of `supportedLanguages` for anything stored or reported by the
     /// system. Older builds stored `"EN"`, `"NL"` or the system locale
@@ -328,5 +336,18 @@ class AppState {
         // Touching the service configures the audio session (playback category,
         // so the game is heard with the mute switch on).
         _ = AudioService.shared
+    }
+}
+
+extension String {
+    /// `String(localized:)` in the game's own language (Settings → Language)
+    /// rather than the system one. `\.locale` at the root reaches every `Text`,
+    /// but a `String` built in code is looked up in the system language unless
+    /// its resource is told otherwise. Literals passed here still land in the
+    /// catalog: Xcode extracts `LocalizedStringResource` parameters.
+    init(game resource: LocalizedStringResource, locale: Locale = AppState.gameLocale) {
+        var resource = resource
+        resource.locale = locale
+        self.init(localized: resource)
     }
 }
