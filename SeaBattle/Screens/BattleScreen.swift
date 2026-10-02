@@ -155,6 +155,9 @@ struct BattleScreen: View {
                 .shadow(color: .inkTitleShadow,
                         radius: NavMetrics.titleShadowRadius,
                         y: NavMetrics.titleShadowOffsetY)
+                // Подпись поля — заголовок: VoiceOver прыгает по ним ротором, и
+                // это единственное имя поля (у `BoardView` своего нет).
+                .accessibilityAddTraits(.isHeader)
             // Уровень компьютера — только в одиночной игре и только на поле
             // противника (4.5). Не нажимается: посреди партии он не меняется.
             if field == .foe {
@@ -228,6 +231,7 @@ struct BattleBoard: View {
         return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
                          alphabet: alphabet,
                          event: battle.event(on: field),
+                         marks: field == .foe ? accessibilityMarks : [:],
                          onTap: field == .foe
                             ? { column, row in battle.tap(Coordinate(row: row + 1, column: column + 1)) }
                             : nil)
@@ -241,6 +245,16 @@ struct BattleBoard: View {
             }
             .frame(width: m.totalSize.width, height: m.totalSize.height)
             .accessibilityIdentifier(field == .foe ? "foeBoard" : "yourBoard")
+    }
+
+    /// Те же метки, что рисует `marks`, — значением клеток для VoiceOver.
+    private var accessibilityMarks: [Coordinate: BoardMark] {
+        var result: [Coordinate: BoardMark] = [:]
+        for cell in battle.hintCells where battle.enemy.coreBoard[cell].isUnshot {
+            result[cell] = .hint
+        }
+        if let aim = battle.aim { result[aim] = .aim }
+        return result
     }
 
     /// Прицел и открытые подсказкой клетки — поверх сетки, как корабли на
@@ -258,6 +272,9 @@ struct BattleBoard: View {
                            height: m.cell * BattleScreenMetrics.hintMark)
                     .frame(width: m.cell, height: m.cell)
                     .offset(x: origin.x, y: origin.y)
+                    // Метка — значение клетки (`BoardView.marks`), картинка
+                    // VoiceOver не нужна.
+                    .accessibilityHidden(true)
             }
             if let aim = battle.aim {
                 AimMark(at: aim, metrics: m)
@@ -288,6 +305,9 @@ struct AimMark: View {
             .shadow(color: .roleYouSoft, radius: m.cell * AimMetrics.glowRatio)
             .frame(width: m.cell, height: m.cell)
             .offset(x: origin.x, y: origin.y)
+            // Для VoiceOver прицел — значение клетки (`BoardMark.aim`); сама
+            // рамка иначе висела бы пустым элементом над клеткой.
+            .accessibilityHidden(true)
             // Появляется за `Motion.aim`, гаснет за 60 мс и в анимации
             // выстрела не участвует.
             .transition(.asymmetric(

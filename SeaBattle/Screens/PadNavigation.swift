@@ -62,6 +62,9 @@ struct PadTileLabel: View {
                     .font(.system(size: symbolFontSize(inBox: PadTileMetrics.icon)))
                     .frame(height: PadTileMetrics.icon)
                     .foregroundStyle(iconTint)
+                    // Плитку называет подпись; системное имя символа
+                    // («Drag» у меню) VoiceOver читать незачем.
+                    .accessibilityHidden(true)
             }
             Text(title)
                 .font(.system(size: PadTileMetrics.label, weight: .semibold, design: .rounded))

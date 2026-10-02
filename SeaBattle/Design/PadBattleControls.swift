@@ -115,7 +115,10 @@ struct ShotColumn: View {
             }
         }
         .frame(width: width)
-        .accessibilityElement(children: .combine)
+        // Как у ленты iPhone: капсулы в прокрутке `.combine` не склеивает.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Shots at you"))
+        .accessibilityValue(ShotFeed.accessibilityValue(entries, alphabet: alphabet))
     }
 
     private var chipArrival: AnyTransition {

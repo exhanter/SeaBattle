@@ -141,6 +141,9 @@ struct PaperScreen: View {
             .shadow(color: .inkTitleShadow,
                     radius: NavMetrics.titleShadowRadius,
                     y: NavMetrics.titleShadowOffsetY)
+            // Подпись поля — заголовок: VoiceOver прыгает по ним ротором, и
+            // это единственное имя поля (у `BoardView` своего нет).
+            .accessibilityAddTraits(.isHeader)
             .frame(height: BattleScreenMetrics.captionHeight)
     }
 
@@ -286,6 +289,7 @@ struct PaperBoard: View {
                          aim: marked.map { (column: $0.column - 1, row: $0.row - 1) },
                          alphabet: alphabet,
                          event: match.event(on: field),
+                         marks: (field == .foe ? game.aim : game.foeMark).map { [$0: .aim] } ?? [:],
                          onTap: accepts ? { column, row in
                              let cell = Coordinate(row: row + 1, column: column + 1)
                              if field == .foe { match.tapFoe(cell) } else { match.tapOwn(cell) }

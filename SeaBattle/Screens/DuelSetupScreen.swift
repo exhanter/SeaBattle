@@ -108,6 +108,9 @@ struct DuelSetupScreen: View {
             .padding(DuelSetupMetrics.cardPadding)
             .glassPanel(.g2, radius: DuelSetupMetrics.cardRadius)
             .accessibilityIdentifier("duelPlayer\(index)")
+            // Карточек две и устроены одинаково — без имени VoiceOver не
+            // скажет, в какую вошли.
+            .accessibilityLabel(Text("Player \(index + 1)"))
     }
 
     /// Три последних игрока — кроме тех, кто уже сидит в одной из карточек:

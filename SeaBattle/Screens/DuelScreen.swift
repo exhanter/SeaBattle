@@ -219,6 +219,9 @@ struct DuelScreen: View {
             .shadow(color: .inkTitleShadow,
                     radius: NavMetrics.titleShadowRadius,
                     y: NavMetrics.titleShadowOffsetY)
+            // Подпись поля — заголовок: VoiceOver прыгает по ним ротором, и
+            // это единственное имя поля (у `BoardView` своего нет).
+            .accessibilityAddTraits(.isHeader)
             .frame(height: BattleScreenMetrics.captionHeight)
     }
 
@@ -257,6 +260,7 @@ struct DuelBoard: View {
         return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
                          alphabet: alphabet,
                          event: match.event(on: field),
+                         marks: field == .foe ? match.aim.map { [$0: .aim] } ?? [:] : [:],
                          onTap: field == .foe
                             ? { column, row in match.tap(Coordinate(row: row + 1, column: column + 1)) }
                             : nil)

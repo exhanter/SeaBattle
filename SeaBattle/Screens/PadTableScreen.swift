@@ -455,6 +455,9 @@ struct PadTableScreen: View {
             .shadow(color: .inkTitleShadow,
                     radius: NavMetrics.titleShadowRadius,
                     y: NavMetrics.titleShadowOffsetY)
+            // Подпись поля — заголовок: VoiceOver прыгает по ним ротором, и
+            // это единственное имя поля (у `BoardView` своего нет).
+            .accessibilityAddTraits(.isHeader)
     }
 
     /// Вдвоём своё поле — «Ваш флот» в бою и «Флот: Аня» на расстановке

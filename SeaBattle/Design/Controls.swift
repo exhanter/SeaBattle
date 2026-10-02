@@ -359,11 +359,16 @@ struct SegmentedPick<Value: Hashable>: View {
                     .onTapGesture {
                         withAnimation(Motion.quick) { selection = option.value }
                     }
+                    // Без этого VoiceOver читал сегменты простым текстом:
+                    // ни что их можно нажать, ни какой выбран.
+                    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                    .accessibilityAction { selection = option.value }
             }
         }
         .padding(ControlMetrics.Segment.padding)
         .glassPanel(.g2, radius: ControlMetrics.Segment.radius
                     + ControlMetrics.Segment.padding)
+        .accessibilityElement(children: .contain)
     }
 }
 

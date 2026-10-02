@@ -35,6 +35,48 @@ enum PlayerAvatar {
     static func color(_ index: Int) -> Color {
         colors.indices.contains(index) ? colors[index] : .roleYou
     }
+
+    /// Название для VoiceOver, по порядку `colors`. Цвет на слух не отличить,
+    /// а соперникам в игре вдвоём важно не взять один и тот же.
+    static func colorName(_ index: Int) -> LocalizedStringKey {
+        switch index {
+        case 1: "Gold"
+        case 2: "Bronze"
+        case 3: "Red"
+        case 4: "Coral"
+        case 5: "Rust"
+        case 6: "Violet"
+        case 7: "Indigo"
+        case 8: "Blue"
+        case 9: "Sky blue"
+        case 10: "Turquoise"
+        case 11: "Green"
+        case 12: "Lime"
+        case 13: "Pink"
+        case 14: "Sand"
+        case 15: "Grey"
+        // Ноль и всё, чего нет в палитре: `color(_:)` рисует его латунью.
+        default: "Brass"
+        }
+    }
+
+    /// Название значка для VoiceOver: имя символа SF («ferry.fill») система
+    /// читает по-английски и не всегда, поэтому своё.
+    static func glyphName(_ glyph: String) -> LocalizedStringKey {
+        switch glyph {
+        case "helm": "Helm"
+        case "sailboat.fill": "Sailboat"
+        case "ferry.fill": "Ferry"
+        case "water.waves": "Waves"
+        case "fish.fill": "Fish"
+        case "shield.fill": "Shield"
+        case "bolt.fill": "Lightning"
+        case "star.fill": "Star"
+        case "crown.fill": "Crown"
+        case "flag.fill": "Flag"
+        default: "Icon"
+        }
+    }
 }
 
 // MARK: - Аватар
@@ -296,6 +338,7 @@ struct PlayerCard: View {
                     AvatarDot(glyph: glyph, colorIndex: colorIndex, size: 32)
                 }
                 .accessibilityLabel(Text("Icon"))
+                .accessibilityValue(Text(PlayerAvatar.glyphName(glyph)))
                 .popover(isPresented: $showsGlyphs, arrowEdge: .top) {
                     glyphPicker
                 }
@@ -306,6 +349,7 @@ struct PlayerCard: View {
                         .frame(width: 24, height: 24)
                 }
                 .accessibilityLabel(Text("Colour"))
+                .accessibilityValue(Text(PlayerAvatar.colorName(colorIndex)))
                 .popover(isPresented: $showsColors, arrowEdge: .top) {
                     colorPicker
                 }
@@ -324,6 +368,9 @@ struct PlayerCard: View {
                 }
             }
         }
+        // Контейнер: без него `accessibilityIdentifier` снаружи достаётся
+        // каждому ребёнку — полю имени, обеим кнопкам и чипам.
+        .accessibilityElement(children: .contain)
     }
 
     /// Кнопка с открытым окошком обведена цветом игрока (кадр `screen4TwoSetup`).
@@ -362,6 +409,10 @@ struct PlayerCard: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { glyph = symbol; showsGlyphs = false }
+                    .accessibilityElement()
+                    .accessibilityLabel(Text(PlayerAvatar.glyphName(symbol)))
+                    .accessibilityAddTraits(symbol == glyph ? [.isButton, .isSelected] : .isButton)
+                    .accessibilityAction { glyph = symbol; showsGlyphs = false }
             }
         }
         .padding(12)
@@ -384,6 +435,10 @@ struct PlayerCard: View {
                     .frame(width: 36, height: 36)
                     .contentShape(Rectangle())
                     .onTapGesture { colorIndex = index; showsColors = false }
+                    .accessibilityElement()
+                    .accessibilityLabel(Text(PlayerAvatar.colorName(index)))
+                    .accessibilityAddTraits(index == colorIndex ? [.isButton, .isSelected] : .isButton)
+                    .accessibilityAction { colorIndex = index; showsColors = false }
             }
         }
         .padding(12)
@@ -415,6 +470,8 @@ struct PlayerCard: View {
         }
         .buttonStyle(.plain)
         .glassPanel(.g2, radius: 14)
+        // Только имя: значок в кружке VoiceOver прочёл бы именем символа SF.
+        .accessibilityLabel(Text(verbatim: player.name))
     }
 }
 

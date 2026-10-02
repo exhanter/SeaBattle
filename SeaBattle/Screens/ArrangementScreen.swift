@@ -173,10 +173,18 @@ struct EditableFleetBoard: View {
     let metrics: BoardMetrics
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
+
+    private var alphabet: BoardAlphabet {
+        .forLanguage(locale.language.languageCode?.identifier)
+    }
 
     var body: some View {
         BoardView(cells: [BoardCellState](repeating: .water, count: 100),
                   role: .you, metrics: metrics)
+            // Под кораблями одна вода: для VoiceOver поле здесь — корабли,
+            // сто клеток «вода» только мешали бы их найти.
+            .accessibilityHidden(true)
             // Корабли лежат **поверх** сетки, а не внутри неё: их надо тянуть
             // целиком, а сетка — это сто отдельных клеток.
             .overlay(alignment: .topLeading) {
@@ -214,7 +222,35 @@ struct EditableFleetBoard: View {
             .onTapGesture { editor.rotate(ship.id) }
             .accessibilityElement()
             .accessibilityLabel(Text("\(ship.length)-cell ship"))
-            .accessibilityValue(isDenied ? Text("cannot be placed here") : Text(""))
+            .accessibilityValue(accessibilityValue(ship, isDenied: isDenied))
+            .accessibilityAddTraits(editor.isEditing ? .isButton : [])
+            .accessibilityAction { editor.rotate(ship.id) }
+            // Перетаскивать VoiceOver не умеет — вместо жеста шаг на клетку.
+            // Правило то же, что у пальца: корабль не упирается в соседей, а
+            // краснеет, и только край поля его держит.
+            .accessibilityActions {
+                if editor.isEditing {
+                    Button("Move left") { nudge(ship, columns: -1) }
+                    Button("Move right") { nudge(ship, columns: 1) }
+                    Button("Move up") { nudge(ship, rows: -1) }
+                    Button("Move down") { nudge(ship, rows: 1) }
+                    Button("Turn") { editor.rotate(ship.id) }
+                }
+            }
+    }
+
+    /// «Е4, по горизонтали» и, если стоит не по правилам, — почему. У
+    /// однопалубного направления нет.
+    private func accessibilityValue(_ ship: ShipPlacement, isDenied: Bool) -> Text {
+        let cell = Text(verbatim: ShotChip.label(ship.origin, alphabet: alphabet))
+        let place = ship.length == 1 ? cell
+            : cell + Text(verbatim: ", ") + Text(ship.orientation == .horizontal ? "horizontal" : "vertical")
+        return isDenied ? place + Text(verbatim: ", ") + Text("cannot be placed here") : place
+    }
+
+    private func nudge(_ ship: ShipPlacement, columns: Int = 0, rows: Int = 0) {
+        editor.move(ship.id, to: Coordinate(row: ship.origin.row + rows,
+                                            column: ship.origin.column + columns))
     }
 
     /// Смещение считается в **клетках**, а не в точках: между клетками корабль

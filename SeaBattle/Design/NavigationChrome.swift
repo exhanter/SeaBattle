@@ -110,6 +110,9 @@ struct NavRow: View {
                     Image(systemName: "line.3.horizontal")
                         .font(.system(size: symbolFontSize(inBox: NavMetrics.menuIcon),
                                       weight: .semibold))
+                        // Системная подпись символа — «Drag»: VoiceOver
+                        // читал бы её рядом с «Меню».
+                        .accessibilityHidden(true)
                     Text("Menu")
                         .font(.system(size: NavMetrics.menuText, weight: .semibold,
                                       design: .rounded))

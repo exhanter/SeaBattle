@@ -250,6 +250,9 @@ struct NetScreen: View {
         .shadow(color: .inkTitleShadow,
                 radius: NavMetrics.titleShadowRadius,
                 y: NavMetrics.titleShadowOffsetY)
+        // Подпись поля — заголовок: VoiceOver прыгает по ним ротором, и
+        // это единственное имя поля (у `BoardView` своего нет).
+        .accessibilityAddTraits(.isHeader)
         .frame(height: BattleScreenMetrics.captionHeight)
     }
 
@@ -334,6 +337,7 @@ struct NetBoard: View {
         return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
                          alphabet: alphabet,
                          event: match.event(on: field),
+                         marks: field == .foe ? accessibilityMarks : [:],
                          onTap: field == .foe
                             ? { column, row in match.tap(Coordinate(row: row + 1, column: column + 1)) }
                             : nil)
@@ -347,6 +351,15 @@ struct NetBoard: View {
             }
             .frame(width: m.totalSize.width, height: m.totalSize.height)
             .accessibilityIdentifier(field == .foe ? "netFoeBoard" : "netOwnBoard")
+    }
+
+    /// Те же метки, что рисует `marks`, — значением клеток для VoiceOver.
+    private var accessibilityMarks: [Coordinate: BoardMark] {
+        let board = match.board(.foe)
+        var result: [Coordinate: BoardMark] = [:]
+        for cell in match.game.revealed where board[cell].isUnshot { result[cell] = .hint }
+        if let aim = match.aim { result[aim] = .aim }
+        return result
     }
 
     /// Прицел и клетки, открытые подсказкой, — как в бою против компьютера.
@@ -364,6 +377,9 @@ struct NetBoard: View {
                            height: m.cell * BattleScreenMetrics.hintMark)
                     .frame(width: m.cell, height: m.cell)
                     .offset(x: origin.x, y: origin.y)
+                    // Метка — значение клетки (`BoardView.marks`), картинка
+                    // VoiceOver не нужна.
+                    .accessibilityHidden(true)
             }
             if let aim = match.aim {
                 AimMark(at: aim, metrics: m)

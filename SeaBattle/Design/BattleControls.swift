@@ -374,7 +374,25 @@ struct ShotFeed: View {
         .frame(maxWidth: .infinity, minHeight: Self.height, maxHeight: Self.height,
                alignment: .topLeading)
         .glassPanel(.g2, radius: 20)
-        .accessibilityElement(children: .combine)
+        // Один элемент: заголовок и выстрелы значением. Склеить детей
+        // (`.combine`) не выходит — капсулы лежат в прокрутке, и VoiceOver
+        // находил её пустой.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Self.accessibilityValue(entries, alphabet: alphabet))
+    }
+
+    /// Свежие первыми: «Е4 мимо, Б2 ранен, …». На экране последний справа, но
+    /// слушать ленту с самого старого выстрела незачем. Общее со столбиком
+    /// iPad (`ShotColumn`).
+    static func accessibilityValue(_ entries: [ShotFeedEntry], alphabet: BoardAlphabet) -> Text {
+        guard !entries.isEmpty else { return Text("No shots yet") }
+        return entries.reversed().enumerated().reduce(Text(verbatim: "")) { text, item in
+            let (index, entry) = item
+            return text
+                + Text(verbatim: (index > 0 ? ", " : "") + ShotChip.label(entry.coordinate, alphabet: alphabet) + " ")
+                + Text(ShotChip.outcomeTitle(entry.outcome))
+        }
     }
 
     /// Reduce Motion: перемещение становится прозрачностью (спека 5).
@@ -455,6 +473,17 @@ struct ShotChip: View {
     }
 
     static func outcomeTitle(_ outcome: FeedOutcome) -> LocalizedStringKey {
+        switch outcome {
+        case .miss: "miss"
+        case .hit: "hit"
+        case .sunk: "sunk"
+        case .repeatHit: "repeat hit"
+        case .repeatMiss: "repeat shot"
+        }
+    }
+
+    /// То же для строк вне `Text` — объявления VoiceOver (`BoardView`).
+    static func outcomeResource(_ outcome: FeedOutcome) -> LocalizedStringResource {
         switch outcome {
         case .miss: "miss"
         case .hit: "hit"

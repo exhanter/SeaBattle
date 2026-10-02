@@ -122,6 +122,25 @@ enum BoardAlphabet: Sendable {
     }
 }
 
+// MARK: - Метка клетки
+
+/// Что лежит поверх клетки своим слоем. Для отрисовки поля не нужна — только
+/// для значения клетки в VoiceOver.
+enum BoardMark: Equatable, Sendable {
+    /// Клетка, которую подсветила подсказка.
+    case hint
+    /// Прицел: выстрел назван и ждёт подтверждения или ответа. В игре на
+    /// бумаге на своём поле — клетка, которую назвал соперник.
+    case aim
+
+    var accessibilityTitle: LocalizedStringKey {
+        switch self {
+        case .hint: "hint"
+        case .aim: "aimed"
+        }
+    }
+}
+
 // MARK: - Поле
 
 struct BoardView: View {
@@ -139,16 +158,22 @@ struct BoardView: View {
     /// Последний выстрел по этому полю. Чужое событие сюда не передавать:
     /// цвет кольца закреплён за полем, а не за стрелявшим.
     var event: CellEvent?
+    /// Метки поверх клеток — прицел и подсказка. Рисует их вызывающий своим
+    /// слоем; сюда они приходят только ради VoiceOver: картинку поверх поля
+    /// он не свяжет с клеткой, а значение клетки — свяжет.
+    var marks: [Coordinate: BoardMark] = [:]
     var onTap: ((_ column: Int, _ row: Int) -> Void)?
 
     private var alphabet: BoardAlphabet = .current
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
 
     init(cells: [BoardCellState], role: Side, metrics: BoardMetrics,
          isActive: Bool = false, aim: (column: Int, row: Int)? = nil,
          alphabet: BoardAlphabet = .current,
          event: CellEvent? = nil,
+         marks: [Coordinate: BoardMark] = [:],
          onTap: ((_ column: Int, _ row: Int) -> Void)? = nil) {
         self.cells = cells
         self.role = role
@@ -157,6 +182,7 @@ struct BoardView: View {
         self.aim = aim
         self.alphabet = alphabet
         self.event = event
+        self.marks = marks
         self.onTap = onTap
     }
 
@@ -167,6 +193,57 @@ struct BoardView: View {
                 if metrics.showsCoordinates { digits }
                 board
             }
+        }
+        // VoiceOver: поле — контейнер из ста клеток. Буквы и цифры по краям
+        // скрыты: координата есть у каждой клетки, а лишние двадцать
+        // элементов только удлиняют обход. Своего имени у контейнера нет —
+        // поле называет подпись над ним (заголовок на каждом экране боя),
+        // и имя звучало бы дважды подряд.
+        .accessibilityElement(children: .contain)
+        .onChange(of: event?.id, initial: true) { announce(event) }
+    }
+
+    // MARK: VoiceOver
+
+    /// Старше этого событие уже не объявляется: на iPhone одно и то же поле
+    /// показывает то своё, то чужое, и переключение полей меняет `event` на
+    /// давний выстрел — его повторять не надо.
+    static let announceWindow: TimeInterval = 1
+
+    /// Исход выстрела вслух. Клетка меняет значение и без этого, но фокус
+    /// VoiceOver стоит на ней не всегда, а выстрелы компьютера приходят на
+    /// поле, которого игрок в этот момент не трогает.
+    private func announce(_ event: CellEvent?) {
+        guard let event, Date.now.timeIntervalSince(event.start) < Self.announceWindow else { return }
+        let cell = ShotChip.label(event.target, alphabet: alphabet)
+        let outcome = String(game: ShotChip.outcomeResource(event.outcome), locale: locale)
+        let text = role == .you
+            ? String(game: "Shot at you: \(cell), \(outcome)", locale: locale)
+            : "\(cell), \(outcome)"
+        var announcement = AttributedString(text)
+        // Высокий приоритет: объявление не обрывается сменой фокуса, а
+        // следующее встаёт в очередь — компьютер стреляет сериями.
+        announcement.accessibilitySpeechAnnouncementPriority = .high
+        AccessibilityNotification.Announcement(announcement).post()
+    }
+
+    /// «не обстреляна» или «не обстреляна, подсказка».
+    private func accessibilityValue(row: Int, column: Int) -> Text {
+        let state = Text(Self.accessibilityState(state(row: row, column: column), on: role))
+        guard let mark = marks[Coordinate(row: row + 1, column: column + 1)] else { return state }
+        return state + Text(verbatim: ", ") + Text(mark.accessibilityTitle)
+    }
+
+    /// Что VoiceOver говорит значением клетки. Вода на поле противника — это
+    /// «не обстреляна»: что там на самом деле, игрок не знает.
+    static func accessibilityState(_ state: BoardCellState, on role: Side) -> LocalizedStringKey {
+        switch state {
+        case .water: role == .foe ? "not shot" : "water"
+        case .miss: "miss"
+        case .ship: "ship"
+        case .hit, .hitMine: "hit"
+        case .sunk: "sunk"
+        case .shipDenied: "cannot be placed here"
         }
     }
 
@@ -230,6 +307,15 @@ struct BoardView: View {
                             // поэтому размер меньше 44 pt здесь допустим.
                             .contentShape(Rectangle())
                             .onTapGesture { onTap?(column, row) }
+                            .accessibilityElement()
+                            .accessibilityLabel(Text(verbatim: ShotChip.label(
+                                Coordinate(row: row + 1, column: column + 1), alphabet: alphabet)))
+                            .accessibilityValue(accessibilityValue(row: row, column: column))
+                            // Касание по клетке SwiftUI сам выдаёт за кнопку —
+                            // на поле, по которому не бьют, признак снимается.
+                            .accessibilityAddTraits(onTap == nil ? [] : .isButton)
+                            .accessibilityRemoveTraits(onTap == nil ? .isButton : [])
+                            .accessibilityAction { onTap?(column, row) }
                     }
                 }
             }
@@ -266,6 +352,7 @@ struct BoardView: View {
             }
         }
         .padding(.leading, metrics.digitsWidth + metrics.axisGap + metrics.inset)
+        .accessibilityHidden(true)
     }
 
     private var digits: some View {
@@ -276,6 +363,7 @@ struct BoardView: View {
             }
         }
         .padding(.top, metrics.inset)
+        .accessibilityHidden(true)
     }
 
     private func axisLabel(_ text: String, highlighted: Bool) -> some View {
