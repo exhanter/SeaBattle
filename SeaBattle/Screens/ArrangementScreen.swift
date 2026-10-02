@@ -52,6 +52,7 @@ struct ArrangementScreen: View {
     var startEnabled = true
 
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if usesPadLayout {
@@ -86,7 +87,8 @@ struct ArrangementScreen: View {
             // Предупреждение появляется и гаснет вместе с розовым кораблём —
             // одной анимацией на оба, иначе строка приходит после того, как
             // корабль уже покраснел.
-            .animation(.easeInOut(duration: ArrangementMetrics.warningFade),
+            .animation(.easeInOut(duration: Motion.scaled(ArrangementMetrics.warningFade,
+                                                          reduceMotion: reduceMotion)),
                        value: editor.conflictKind)
         }
     }

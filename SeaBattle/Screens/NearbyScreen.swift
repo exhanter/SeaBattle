@@ -36,6 +36,8 @@ struct NearbyScreen: View {
     let transport: MultipeerTransport
     var onBack: () -> Void = {}
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Nearby, no internet", back: "Play", onBack: onBack)
@@ -49,7 +51,7 @@ struct NearbyScreen: View {
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, Geometry.Nav.titleGap * 2)
-                .animation(Motion.quick, value: transport.peers)
+                .animation(Motion.quick.reduced(reduceMotion), value: transport.peers)
             }
             .scrollBounceBehavior(.basedOnSize)
 

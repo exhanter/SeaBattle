@@ -52,6 +52,8 @@ struct SeaTabBar: View {
     @Binding var selection: ShellTab
     var size: Geometry.SizeClass = .regular
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(ShellTab.allCases, id: \.self) { tab in
@@ -59,7 +61,7 @@ struct SeaTabBar: View {
                 // Кнопка, а не жест: таб должен быть кнопкой и для VoiceOver,
                 // а выбранный — сообщать о себе, что он выбран.
                 Button {
-                    withAnimation(Motion.quick) { selection = tab }
+                    withAnimation(Motion.quick.reduced(reduceMotion)) { selection = tab }
                 } label: {
                     VStack(spacing: size.isCompact ? 3 : 5) {
                         Image(systemName: tab.icon)
@@ -161,6 +163,7 @@ struct AppShell: View {
     @Environment(PremiumManager.self) private var premiumManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Бой живёт в оболочке, а не в экране: партия и ход компьютера не должны
     /// теряться от того, что игрок вышел в меню посмотреть статистику. Поля
@@ -494,7 +497,7 @@ struct AppShell: View {
 
     private func selectTab(_ newTab: ShellTab) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
-        withAnimation(Motion.quick) { tab = newTab }
+        withAnimation(Motion.quick.reduced(reduceMotion)) { tab = newTab }
         // Нажатие на таб возвращает на его корень, как в системных табах.
         statsPage = nil
         settingsPage = nil
@@ -805,7 +808,7 @@ struct AppShell: View {
     /// Конец первого запуска: «Готово» отдаёт игрока, «Пропустить» — `nil`.
     private func finishOnboarding(_ own: OwnPlayer?) {
         if let own { appState.ownPlayer = own }
-        withAnimation(Motion.standard) { appState.onboardingDone = true }
+        withAnimation(Motion.standard.reduced(reduceMotion)) { appState.onboardingDone = true }
     }
 
     /// «Играли раньше» — последние сыгравшие первыми.

@@ -80,6 +80,8 @@ struct OnlineScreen: View {
 
     @State private var gameCenter = GameCenterManager.shared
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 0) {
             title
@@ -88,7 +90,7 @@ struct OnlineScreen: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             bottom
         }
-        .animation(Motion.quick, value: lobby.stage)
+        .animation(Motion.quick.reduced(reduceMotion), value: lobby.stage)
         .task { if lobby.stage == .checking { await lobby.enter() } }
         .sheet(isPresented: signInBinding) {
             if let controller = gameCenter.authViewController {

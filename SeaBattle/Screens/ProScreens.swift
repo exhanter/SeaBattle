@@ -383,7 +383,7 @@ private struct ProSheetLayer<Sheet: View>: View {
                         .onChanged { drag = $0.translation.height }
                         .onEnded { value in
                             if value.translation.height > ProMetrics.dismissDrag { onDismiss() }
-                            withAnimation(Motion.quick) { drag = 0 }
+                            withAnimation(Motion.quick.reduced(reduceMotion)) { drag = 0 }
                         })
                     // Без `.contain` черта и действие ложатся на детей по
                     // отдельности, и VoiceOver видел только последнюю кнопку.

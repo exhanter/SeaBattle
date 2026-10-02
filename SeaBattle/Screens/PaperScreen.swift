@@ -67,6 +67,7 @@ struct PaperScreen: View {
 
     @Environment(\.locale) private var locale
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var askLeave = false
 
     private var game: PaperGame { match.game }
@@ -93,8 +94,8 @@ struct PaperScreen: View {
                                        onLeave()
                                    })
         }
-        .animation(Motion.quick, value: match.shownField)
-        .animation(Motion.quick, value: game.aim)
+        .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
+        .animation(Motion.quick.reduced(reduceMotion), value: game.aim)
     }
 
     private var phone: some View {

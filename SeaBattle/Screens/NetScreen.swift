@@ -69,6 +69,7 @@ struct NetScreen: View {
 
     @Environment(\.locale) private var locale
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var askLeave = false
 
     private var game: NetGame { match.game }
@@ -79,8 +80,8 @@ struct NetScreen: View {
 
     var body: some View {
         content
-            .animation(Motion.quick, value: match.shownField)
-            .animation(Motion.quick, value: match.link)
+            .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
+            .animation(Motion.quick.reduced(reduceMotion), value: match.link)
             .matchResults(match.result, onPlayAgain: match.playAgain, onMenu: exit)
             .modalDialog(isPresented: askLeave) {
                 ModalDialog.leaveMatch(.network,

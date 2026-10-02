@@ -27,6 +27,10 @@ enum ControlMetrics {
         /// Неактивная кнопка гаснет целиком, а не по частям: подложка, кант и
         /// надпись вместе. Так она остаётся кнопкой, просто выключенной.
         static let disabledOpacity: Double = 0.38
+        /// Нажатие: кнопка чуть уходит вглубь. При Reduce Motion масштаба нет —
+        /// кнопка на миг гаснет (спека 4: масштаб → прозрачность).
+        static let pressedScale: CGFloat = 0.98
+        static let pressedOpacity: Double = 0.8
         static let haloRadius: CGFloat = 22
         static let shadowRadius: CGFloat = 9             // CSS 0 6 18
         static let shadowOffsetY: CGFloat = 6
@@ -120,9 +124,23 @@ struct PrimaryButtonStyle: ButtonStyle {
             .shadow(color: .roleYouSoft, radius: ControlMetrics.Button.haloRadius)
             // Нажатие: кнопка чуть уходит вглубь. Масштаб, а не смена цвета, —
             // цвет здесь занят ролью.
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .animation(Motion.quick, value: configuration.isPressed)
+            .modifier(PressDepth(isPressed: configuration.isPressed))
             .opacity(isEnabled ? 1 : ControlMetrics.Button.disabledOpacity)
+    }
+}
+
+/// Отклик на нажатие у главной и вторичной кнопки. Отдельным модификатором,
+/// потому что `ButtonStyle` сам окружение не читает, а Reduce Motion нужен.
+struct PressDepth: ViewModifier {
+    let isPressed: Bool
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(isPressed && !reduceMotion ? ControlMetrics.Button.pressedScale : 1)
+            .opacity(isPressed && reduceMotion ? ControlMetrics.Button.pressedOpacity : 1)
+            .animation(Motion.quick.reduced(reduceMotion), value: isPressed)
     }
 }
 
@@ -297,8 +315,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .background { shape.fill(LinearGradient.glassPanelFill) }
             .overlay { shape.strokeBorder(Color.glassStroke, lineWidth: 1) }
             .clipShape(shape)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .animation(Motion.quick, value: configuration.isPressed)
+            .modifier(PressDepth(isPressed: configuration.isPressed))
             // Неактивная гаснет целиком, как главная: отдельного набора цветов
             // для выключенного состояния в системе нет.
             .opacity(isEnabled ? 1 : ControlMetrics.Button.disabledOpacity)
@@ -338,6 +355,8 @@ struct SegmentedPick<Value: Hashable>: View {
     let options: [(value: Value, title: String)]
     @Binding var selection: Value
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         HStack(spacing: ControlMetrics.Segment.padding) {
             ForEach(options, id: \.value) { option in
@@ -357,7 +376,7 @@ struct SegmentedPick<Value: Hashable>: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        withAnimation(Motion.quick) { selection = option.value }
+                        withAnimation(Motion.quick.reduced(reduceMotion)) { selection = option.value }
                     }
                     // Без этого VoiceOver читал сегменты простым текстом:
                     // ни что их можно нажать, ни какой выбран.

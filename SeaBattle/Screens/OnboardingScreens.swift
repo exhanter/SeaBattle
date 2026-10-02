@@ -62,6 +62,8 @@ struct OnboardingFlow: View {
     @State private var step: Step = .welcome
     @State private var player = OwnPlayer.starter
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ZStack {
             switch step {
@@ -69,7 +71,7 @@ struct OnboardingFlow: View {
                 WelcomeScreen(offersRestore: offersRestore,
                               isPremium: isPremium,
                               onRestore: onRestore,
-                              onPlay: { withAnimation(Motion.standard) { step = .name } })
+                              onPlay: { withAnimation(Motion.standard.reduced(reduceMotion)) { step = .name } })
                     .transition(.opacity)
             case .name:
                 PlayerNameScreen(player: $player,

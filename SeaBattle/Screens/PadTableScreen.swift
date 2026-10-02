@@ -179,6 +179,7 @@ struct PadTableScreen: View {
 
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var alphabet: BoardAlphabet {
         .forLanguage(locale.language.languageCode?.identifier)
@@ -241,10 +242,11 @@ struct PadTableScreen: View {
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
         }
-        .animation(.easeInOut(duration: ArrangementMetrics.warningFade),
+        .animation(.easeInOut(duration: Motion.scaled(ArrangementMetrics.warningFade,
+                                                      reduceMotion: reduceMotion)),
                    value: editor?.wrappedValue.conflictKind)
-        .animation(Motion.quick, value: paper?.game.aim)
-        .animation(Motion.quick, value: duel?.aim)
+        .animation(Motion.quick.reduced(reduceMotion), value: paper?.game.aim)
+        .animation(Motion.quick.reduced(reduceMotion), value: duel?.aim)
     }
 
     // MARK: Вертикально (21a, 23d)

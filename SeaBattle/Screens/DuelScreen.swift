@@ -84,7 +84,7 @@ struct DuelScreen: View {
         }
         .animation(.easeOut(duration: Motion.scaled(Motion.handoverIn, reduceMotion: reduceMotion)),
                    value: match.showsHandoff)
-        .animation(Motion.quick, value: match.shownField)
+        .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,

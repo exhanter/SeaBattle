@@ -74,6 +74,7 @@ struct BattleScreen: View {
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var askLeave = false
 
     private var alphabet: BoardAlphabet {
@@ -98,7 +99,7 @@ struct BattleScreen: View {
                                        onLeave()
                                    })
         }
-        .animation(Motion.quick, value: battle.shownField)
+        .animation(Motion.quick.reduced(reduceMotion), value: battle.shownField)
     }
 
     /// iPhone: одно поле на экране, переключатель полей внизу.
@@ -294,6 +295,8 @@ struct AimMark: View {
         self.metrics = metrics
     }
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         let m = metrics
         let origin = m.cellOrigin(coordinate)
@@ -311,8 +314,10 @@ struct AimMark: View {
             // Появляется за `Motion.aim`, гаснет за 60 мс и в анимации
             // выстрела не участвует.
             .transition(.asymmetric(
-                insertion: .opacity.animation(.easeOut(duration: Motion.aim)),
-                removal: .opacity.animation(.easeOut(duration: AimMetrics.fadeOut))))
+                insertion: .opacity.animation(.easeOut(duration: Motion.scaled(Motion.aim,
+                                                                               reduceMotion: reduceMotion))),
+                removal: .opacity.animation(.easeOut(duration: Motion.scaled(AimMetrics.fadeOut,
+                                                                             reduceMotion: reduceMotion)))))
     }
 }
 

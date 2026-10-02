@@ -11,7 +11,9 @@
 //    тест (значит, опечатка в имени ассета — красный тест, а не странный
 //    оттенок на экране: `Color("Sea/Tpo")` не падает, а рисует не тем цветом);
 //  - заливки панелей G1/G2/G3 как готовые градиенты;
-//  - `Geometry.cellRadius(for:)` — радиус клетки от её размера.
+//  - `Geometry.cellRadius(for:)` — радиус клетки от её размера;
+//  - `Animation.reduced(_:)` — правило Reduce Motion «длительности × 0,5» для
+//    готовых анимаций (`Motion.quick`, `Motion.standard`).
 //
 //  При обновлении пакета список ниже надо сверить с каталогом:
 //  `find SeaBattle/Colors.xcassets -name '*.colorset'` против `ColorToken.allCases`.
@@ -202,6 +204,18 @@ extension LinearGradient {
     static var buttonBrass: LinearGradient {
         LinearGradient(colors: [.buttonBrassTop, .buttonBrassBottom],
                        startPoint: .top, endPoint: .bottom)
+    }
+}
+
+// MARK: - Reduce Motion
+
+extension Animation {
+    /// Та же анимация вдвое быстрее при Reduce Motion — `Motion.scaled` для
+    /// готовых анимаций, у которых длительность снаружи не видна. Задержка
+    /// тоже сокращается вдвое. Перемещение и масштаб этим не убираются: их
+    /// заменяют прозрачностью на месте.
+    func reduced(_ reduceMotion: Bool) -> Animation {
+        reduceMotion ? speed(2) : self
     }
 }
 

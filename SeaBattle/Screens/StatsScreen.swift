@@ -254,6 +254,7 @@ struct ResetScreen: View {
 
     @State private var selection = StatsReset()
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
@@ -287,7 +288,7 @@ struct ResetScreen: View {
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, Geometry.Nav.titleGap * 2)
-                .animation(Motion.quick, value: selection)
+                .animation(Motion.quick.reduced(reduceMotion), value: selection)
             }
             .scrollBounceBehavior(.basedOnSize)
 

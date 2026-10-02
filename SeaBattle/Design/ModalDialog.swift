@@ -124,7 +124,7 @@ struct NoticeDialog: View {
 extension View {
     /// Затемнение и окно поверх всего экрана. Появление: затемнение
     /// прозрачностью за 180 мс, окно прозрачностью и масштабом 0,96 → 1 за
-    /// 220 мс; при Reduce Motion — только прозрачность.
+    /// 220 мс; при Reduce Motion — только прозрачность, вдвое быстрее.
     func modalDialog<Dialog: View>(isPresented: Bool,
                                    @ViewBuilder dialog: () -> Dialog) -> some View {
         overlay { ModalPresenter(isPresented: isPresented, dialog: dialog()) }
@@ -147,7 +147,8 @@ private struct ModalPresenter<Dialog: View>: View {
                     .contentShape(Rectangle())
                     .onTapGesture {}
                     .accessibilityHidden(true)
-                    .transition(.opacity.animation(.easeOut(duration: ModalMetrics.scrimFade)))
+                    .transition(.opacity.animation(.easeOut(duration: Motion.scaled(ModalMetrics.scrimFade,
+                                                                                   reduceMotion: reduceMotion))))
             }
             if isPresented {
                 dialog
@@ -159,7 +160,8 @@ private struct ModalPresenter<Dialog: View>: View {
                     .transition(windowTransition)
             }
         }
-        .animation(.easeOut(duration: ModalMetrics.windowAppear), value: isPresented)
+        .animation(.easeOut(duration: Motion.scaled(ModalMetrics.windowAppear, reduceMotion: reduceMotion)),
+                   value: isPresented)
     }
 
     private var windowTransition: AnyTransition {
