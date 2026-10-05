@@ -21,12 +21,16 @@ struct FleetEditor: Equatable, Sendable {
     private(set) var ships: [ShipPlacement]
     /// Режим изменения: клетки кораблей дрожат, корабль можно тянуть и вращать.
     private(set) var isEditing = false
-    /// Корабль, который тянут прямо сейчас. Он полупрозрачный и **не дрожит**.
+    /// Корабль, который тянут прямо сейчас. Он «поднят» и **не дрожит**.
     private(set) var draggingID: UUID?
     /// Где корабль стоял в момент взятия. Смещение считается от него, а не от
     /// текущего места: иначе каждое событие жеста прибавлялось бы к уже
     /// сдвинутому кораблю, и он уезжал бы в несколько раз дальше пальца.
     private var dragOrigin: Coordinate?
+    /// Кого трогали последним: номер последнего касания у каждого корабля.
+    /// По нему решается, чьи клетки розовеют, и кто лежит сверху.
+    private var touchOrder: [UUID: Int] = [:]
+    private var touchCount = 0
 
     init(ships: [ShipPlacement] = FleetLayout.random()) {
         self.ships = ships
@@ -39,6 +43,43 @@ struct FleetEditor: Equatable, Sendable {
     var conflicts: Set<UUID> { FleetLayout.conflicts(in: ships) }
 
     var hasConflicts: Bool { !conflicts.isEmpty }
+
+    /// Розовые клетки (решение заказчика 05.10): розовеет не корабль целиком и
+    /// не оба корабля, а только **клетки виноватого**, попавшие в чужую зону —
+    /// на клетки соседа или в кольцо вокруг него. Виноват тот, кого трогали
+    /// позже. Одинаково под пальцем и после того, как его отпустили: иначе
+    /// розовое пятно из двух кораблей не давало понять, где какой.
+    var deniedCells: [UUID: Set<Coordinate>] {
+        var result: [UUID: Set<Coordinate>] = [:]
+        for (index, ship) in ships.enumerated() {
+            for other in ships[(index + 1)...] {
+                let shipIn = Set(ship.cells).intersection(other.footprint)
+                guard !shipIn.isEmpty else { continue }
+                let otherIn = Set(other.cells).intersection(ship.footprint)
+                let mine = order(of: ship.id), theirs = order(of: other.id)
+                // Поровну — никого не трогали (так из ядра конфликт не
+                // приходит, но на всякий случай розовеют оба).
+                if mine >= theirs { result[ship.id, default: []].formUnion(shipIn) }
+                if theirs >= mine { result[other.id, default: []].formUnion(otherIn) }
+            }
+        }
+        return result
+    }
+
+    /// Те из розовых клеток, что лежат прямо на клетке другого корабля, — их
+    /// рисуют особо (`ShipOverlapStyle`).
+    var overlapCells: [UUID: Set<Coordinate>] {
+        var result: [UUID: Set<Coordinate>] = [:]
+        for (id, denied) in deniedCells {
+            let others = ships.filter { $0.id != id }
+            let covered = denied.filter { cell in others.contains { $0.contains(cell) } }
+            if !covered.isEmpty { result[id] = covered }
+        }
+        return result
+    }
+
+    /// Порядок касания: больше — трогали позже, такой корабль лежит сверху.
+    func order(of id: UUID) -> Int { touchOrder[id] ?? 0 }
 
     /// Чем именно плоха расстановка. Ядру это различие не нужно — запрещено и
     /// то и другое, — но `WarningLine` (спека 2.16) говорит разное: «Клетка
@@ -86,7 +127,15 @@ struct FleetEditor: Equatable, Sendable {
     /// сам распутывать не хочет.
     mutating func shuffle() {
         ships = FleetLayout.random()
+        touchOrder = [:]
         endDragging()
+    }
+
+    /// Корабль тронули: он теперь «последний» — лежит сверху и отвечает за
+    /// пересечение.
+    private mutating func touch(_ id: UUID) {
+        touchCount += 1
+        touchOrder[id] = touchCount
     }
 
     mutating func beginEditing() {
@@ -107,6 +156,7 @@ struct FleetEditor: Equatable, Sendable {
         guard isEditing, let ship = ship(id: id) else { return }
         draggingID = id
         dragOrigin = ship.origin
+        touch(id)
     }
 
     /// Смещение корабля в клетках **от места взятия**. Позиция не проверяется:
@@ -125,6 +175,8 @@ struct FleetEditor: Equatable, Sendable {
     /// превью и тесты.
     mutating func move(_ id: UUID, to origin: Coordinate) {
         guard let index = ships.firstIndex(where: { $0.id == id }) else { return }
+        // Тот же корабль под пальцем — номер не растёт на каждом событии жеста.
+        if draggingID != id { touch(id) }
         ships[index] = ships[index].moved(to: clamped(origin, for: ships[index]))
     }
 
@@ -143,6 +195,7 @@ struct FleetEditor: Equatable, Sendable {
     /// нормально.
     mutating func rotate(_ id: UUID) {
         guard isEditing, let index = ships.firstIndex(where: { $0.id == id }) else { return }
+        touch(id)
         let rotated = ships[index].rotated()
         ships[index] = rotated.moved(to: clamped(rotated.origin, for: rotated))
     }

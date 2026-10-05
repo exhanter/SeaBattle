@@ -337,6 +337,83 @@ struct BattleHintButton: View {
     }
 }
 
+// MARK: - Возврат к итогам
+
+/// Место кнопки рядом с переключателем полей: в партии — своя кнопка режима
+/// (подсказка, отмена хода), в просмотре полей после партии — «Итоги».
+/// Отдельным view, потому что `MatchReview` ставит `matchResults` **внутри**
+/// экрана партии: сам экран его не видит, видят только дети.
+///
+/// «Итоги» ложатся **ровно в рамку** прежней кнопки (она остаётся в раскладке
+/// невидимой) — переключатель полей при входе в просмотр не меняет ширину.
+/// Где кнопки режима нет (вдвоём), `reservesWidth: false` — «Итоги» своей
+/// ширины.
+struct ReviewSlot<Content: View>: View {
+    var size: Geometry.SizeClass = .regular
+    var reservesWidth = true
+    @ViewBuilder var content: Content
+
+    @Environment(\.matchReview) private var review
+
+    var body: some View {
+        if let review {
+            if reservesWidth {
+                content
+                    .opacity(0)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                    .overlay {
+                        ReviewResultsButton(size: size, fillsFrame: true,
+                                            action: review.backToResults)
+                    }
+            } else {
+                ReviewResultsButton(size: size, action: review.backToResults)
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// Просмотр полей после партии (`MatchReview`): кнопка встаёт на место
+/// подсказки, тем же стеклом с латунной обводкой, и возвращает итоги.
+struct ReviewResultsButton: View {
+    var size: Geometry.SizeClass = .regular
+    /// Заполнить рамку прежней кнопки — тогда только подпись: значок рядом с
+    /// ней в ширину подсказки не помещается.
+    var fillsFrame = false
+    let action: () -> Void
+
+    private var m: BattleMetrics { .forSize(size) }
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: m.hintRadius, style: .continuous)
+        Button(action: action) {
+            HStack(spacing: m.hintGap) {
+                if !fillsFrame {
+                    Image(systemName: "flag.checkered")
+                        .font(.system(size: symbolFontSize(inBox: m.hintIcon)))
+                }
+                Text("Results")
+                    .font(.system(size: m.segmentText, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .foregroundStyle(Color.inkPrimary)
+            .padding(.horizontal, fillsFrame ? 6 : m.hintPadding)
+            .frame(maxWidth: fillsFrame ? .infinity : nil, maxHeight: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .glassPanel(.g2, radius: m.hintRadius)
+        .overlay { shape.strokeBorder(Color.roleYou, lineWidth: 1).allowsHitTesting(false) }
+        .accessibilityIdentifier("reviewResults")
+        .accessibilityShowsLargeContentViewer {
+            Label("Results", systemImage: "flag.checkered")
+        }
+    }
+}
+
 // MARK: - Лента выстрелов
 
 /// Спека 2.8. Капсулы без подложки под лентой, последняя выделена
@@ -351,6 +428,8 @@ struct ShotFeed: View {
     /// поэтому поле над ней не прыгает, когда компьютер начинает стрелять.
     static let height: CGFloat = 72
     static let fadeWidth: CGFloat = 34
+    /// Подпись чуть отступает от края колонки — по кромке поля над ней.
+    static let leadingInset: CGFloat = 4
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -373,10 +452,12 @@ struct ShotFeed: View {
         }
         .padding(.top, 11)
         .padding(.bottom, 12)
-        .padding(.leading, 14)
+        .padding(.leading, Self.leadingInset)
+        // Подложки нет (2.8; решение заказчика 05.10): стеклянная плашка
+        // появлялась и пропадала при каждом переключении полей, и переход
+        // выходил резким. Капсулы и подпись лежат прямо на море.
         .frame(maxWidth: .infinity, minHeight: Self.height, maxHeight: Self.height,
                alignment: .topLeading)
-        .glassPanel(.g2, radius: 20)
         // Один элемент: заголовок и выстрелы значением. Склеить детей
         // (`.combine`) не выходит — капсулы лежат в прокрутке, и VoiceOver
         // находил её пустой.

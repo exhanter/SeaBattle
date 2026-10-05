@@ -2,9 +2,9 @@
 //  MenuScreen.swift
 //  Sea Battle — главный экран (R2.1, шаг 5 порядка сборки)
 //
-//  Спека 4.2: фото корабля целиком, квадратом в деревянном мате; ниже — один
-//  список из пяти равных строк по 58 pt, без групп; под списком — «Продолжить
-//  партию», если есть незакрытая.
+//  Спека 4.2: один список из пяти равных строк по 58 pt, без групп; под
+//  списком — «Продолжить партию», если есть незакрытая. Фото в деревянном мате
+//  заменено артом во всю ширину по образцу iPad (решение заказчика 05.10).
 //
 //  Экран ничего не делает сам: он получает готовые ответы («куплен ли Pro»,
 //  «есть ли незакрытая партия») и отдаёт наружу нажатия. Поэтому его целиком
@@ -73,69 +73,87 @@ struct MenuMode: Identifiable {
 /// Числа, которых нет в таблице 3.3 пакета. Всё остальное приходит из
 /// `Geometry.SizeClass` — два размера iPhone со всеми величинами сразу.
 enum MenuMetrics {
-    /// Отступ сверху **от безопасной зоны**: в кадрах он задан от края экрана
-    /// (66 на 393 при полосе состояния 59, 28 на 375 при 20).
-    static func topInset(compact: Bool) -> CGFloat { compact ? 8 : 7 }
+    /// Арт уходит под верхнюю строку режимов — как на iPad
+    /// (`Geometry.PadMenu.artOverlap`): строки лежат на растворяющейся части.
+    static let artOverlap: CGFloat = Geometry.PadMenu.artOverlap
 }
 
 // MARK: - Экран
 
+/// Раскладка по образцу iPad (решение заказчика 05.10, вместо фото в мате из
+/// спеки 4.2): зоны считаются **снизу вверх**. Режимы и «Продолжить партию»
+/// прижаты к таб-бару — там, куда достаёт большой палец; название лежит на
+/// арте над ними; арт во всю ширину от верхнего края экрана забирает всё, что
+/// осталось, и растворяется в море. На высоком телефоне арт крупнее, на
+/// 375 × 667 — меньше, но строки на любом экране стоят у пальца.
 struct MenuScreen: View {
     let isPremium: Bool
     let canContinue: Bool
     var onMode: (MenuMode) -> Void = { _ in }
     var onContinue: () -> Void = {}
 
+    /// Высота нижнего блока — от неё считается высота арта.
+    @State private var blockHeight: CGFloat = 0
+
     var body: some View {
         GeometryReader { proxy in
             let size = Geometry.SizeClass.forWidth(proxy.size.width)
+            let top = proxy.safeAreaInsets.top
+            // Арт — от края экрана, под полосой состояния: высота считается
+            // вместе с ней, а сам он поднят на неё вверх.
+            let artHeight = top + max(0, proxy.size.height - blockHeight) + MenuMetrics.artOverlap
 
             VStack(spacing: 0) {
-                // Прокрутка нужна не всегда: на 393 × 852 заголовок, фотография
-                // на 252 pt и пять строк укладываются, на 375 × 667 с
-                // фотографией на 170 pt — почти вплотную. Она здесь как
-                // страховка: при крупном системном шрифте список всё равно
-                // перестанет влезать, и лучше его прокрутить, чем обрезать.
-                ScrollView {
-                    VStack(spacing: size.menuGap) {
-                        title(size)
-
-                        MenuHero(size: size)
-
-                        modes(size)
+                Spacer(minLength: 0)
+                // При крупном системном шрифте блок перестаёт помещаться — тогда
+                // он прокручивается, а не обрезается.
+                ViewThatFits(in: .vertical) {
+                    block(size)
+                    ScrollView {
+                        block(size)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, size.menuInset)
-                    .padding(.top, MenuMetrics.topInset(compact: size.isCompact))
-                    // Просвет под последней строкой — до «Продолжить».
-                    .padding(.bottom, size.menuGap)
+                    .scrollBounceBehavior(.basedOnSize)
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                // Прокрученный список не заходит под часы: плашки над
-                // полосой состояния нет, и строки ложились прямо под цифры.
-                .clipped()
-
-                // «Продолжить» стоит **вне** прокрутки: это единственный путь
-                // назад в незакрытую партию, и уезжать за край экрана ему
-                // нельзя. Когда содержимое короче экрана, прокрутка занимает
-                // всё оставшееся место, и ссылка оказывается у низа — как в
-                // макете. Просвет до таб-бара — тот же зазор блоков.
-                if canContinue {
-                    continueLink(size)
-                        .padding(.bottom, size.menuGap)
-                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { blockHeight = $0 }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .background(alignment: .top) {
+                MenuArt(kind: .phone, width: proxy.size.width, height: artHeight)
+                    .offset(y: -top)
             }
         }
+    }
+
+    /// Название, пять строк и «Продолжить партию» — одним блоком у низа.
+    private func block(_ size: Geometry.SizeClass) -> some View {
+        VStack(alignment: .leading, spacing: size.menuGap) {
+            title(size)
+            modes(size)
+            // «Продолжить» — под строками, у самого таб-бара: это единственный
+            // путь назад в незакрытую партию. Нет партии — строки опускаются
+            // к таб-бару, а не висят над пустым местом.
+            if canContinue {
+                continueLink(size)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, size.menuInset)
+        .padding(.bottom, size.menuGap)
     }
 
     // MARK: Заголовок
 
     private func title(_ size: Geometry.SizeClass) -> some View {
         // Шрифт системный: по логу дизайна в игре только SF Rounded и SF Pro.
+        // Лежит на арте — с той же тенью, что название на iPad.
         Text("Sea Battle")
             .font(TypeScale.gameTitle(compact: size.isCompact))
             .tracking(TypeScale.gameTitleTracking(compact: size.isCompact))
             .foregroundStyle(Color.inkPrimary)
+            .shadow(color: .inkTitleShadow,
+                    radius: NavMetrics.titleShadowRadius,
+                    y: NavMetrics.titleShadowOffsetY)
+            .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("titleMainText")
     }
 
@@ -171,10 +189,56 @@ struct MenuScreen: View {
     }
 }
 
+// MARK: - Арт меню
+
+/// Арт меню во всю ширину, без мата: `cover` от **верхнего** края (лишнее
+/// срезается снизу, где картинка всё равно растворяется), по горизонтали —
+/// по центру. Непрозрачен до 55 % своей высоты, к низу растворяется в море.
+/// Один на iPhone и iPad; файлы — свои на каждую раскладку, требования к ним
+/// — в `docs/STATUS.md`, раздел «Арт меню».
+struct MenuArt: View {
+    enum Kind {
+        case phone, padPortrait, padLandscape
+
+        var assetName: String {
+            switch self {
+            case .phone: "MenuArtPhone"
+            case .padPortrait: "MenuArtPortrait"
+            case .padLandscape: "MenuArtLandscape"
+            }
+        }
+    }
+
+    let kind: Kind
+    let width: CGFloat
+    let height: CGFloat
+
+    /// Пока файла нет — квадратный снимок `war_ship8`, по центру: от верхнего
+    /// края у него срезался бы низ корабля.
+    private static let placeholder = "war_ship8"
+
+    var body: some View {
+        let hasArt = UIImage(named: kind.assetName) != nil
+        Image(hasArt ? kind.assetName : Self.placeholder)
+            .resizable()
+            .scaledToFill()
+            .frame(width: width, height: max(0, height), alignment: hasArt ? .top : .center)
+            .clipped()
+            .mask {
+                LinearGradient(stops: [.init(color: .black, location: 0),
+                                       .init(color: .black, location: Geometry.PadMenu.artOpaqueUntil),
+                                       .init(color: .clear, location: 1)],
+                               startPoint: .top, endPoint: .bottom)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
 // MARK: - Фото в деревянном мате
 
-/// Фото в мате: меню и приветствие первого запуска (кадр `screen13Welcome` —
-/// те же 252 pt, тот же мат).
+/// Фото в мате — приветствие первого запуска (кадр `screen13Welcome`). В меню
+/// с 05.10 вместо него `MenuArt`.
 struct MenuHero: View {
     let size: Geometry.SizeClass
 
@@ -241,6 +305,23 @@ struct MenuHero: View {
         MenuScreen(isPremium: false, canContinue: true)
     }
     .frame(width: 375, height: 667)
+    .clipShape(RoundedRectangle(cornerRadius: Geometry.Radius.sheet, style: .continuous))
+    .preferredColorScheme(.dark)
+}
+
+/// iPhone 12 / 13 mini вместе с таб-баром: компактная раскладка на высоком
+/// экране — тот случай, где фото в мате оставляло пустой низ.
+#Preview("Меню · 375 × 812 с таб-баром") {
+    ZStack {
+        SeaBackground()
+        VStack(spacing: 0) {
+            MenuScreen(isPremium: false, canContinue: true)
+            SeaTabBar(selection: .constant(.play), size: .compact)
+        }
+        .padding(.top, 50)
+        .padding(.bottom, 34)
+    }
+    .frame(width: 375, height: 812)
     .clipShape(RoundedRectangle(cornerRadius: Geometry.Radius.sheet, style: .continuous))
     .preferredColorScheme(.dark)
 }

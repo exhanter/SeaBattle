@@ -182,7 +182,9 @@ struct PaperScreen: View {
         BottomStack(onMenu: menuTapped) {
             HStack(spacing: Geometry.Nav.stackGap) {
                 FieldSwitch(selection: field, size: size) { match.show($0) }
-                PaperUndoButton(isEnabled: match.canUndo, size: size) { match.undo() }
+                ReviewSlot(size: size) {
+                    PaperUndoButton(isEnabled: match.canUndo, size: size) { match.undo() }
+                }
             }
             .fixedSize(horizontal: false, vertical: true)
         }

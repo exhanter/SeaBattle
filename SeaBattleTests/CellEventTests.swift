@@ -69,7 +69,7 @@ struct CellEventTests {
         #expect(sunk.change(at: Coordinate(row: 2, column: 4))?.from == .ship)
     }
 
-    @Test("Волна потопления не длиннее 240 мс")
+    @Test("Волна потопления не длиннее предела")
     func theWaveIsCapped() throws {
         let long = ShipPlacement(length: 4, origin: Coordinate(row: 1, column: 1),
                                  orientation: .vertical)
@@ -218,5 +218,26 @@ struct CellEventTests {
 
         battle.beginMatch()
         #expect(battle.lastEvent == nil)
+    }
+
+    // MARK: Финал партии (05.10)
+
+    @Test("Вал финала проходит один раз и до ухода полей под итоги")
+    func theFinaleSweepPassesOnce() {
+        #expect(FinaleMetrics.sweep(at: 0) == nil)
+        #expect(FinaleMetrics.sweep(at: FinaleMetrics.duration / 2) == 0.5)
+        #expect(FinaleMetrics.sweep(at: FinaleMetrics.duration) == nil)
+        #expect(Motion.finaleDelay + FinaleMetrics.duration < Motion.lastShotHold)
+    }
+
+    @Test("Потопление длинного корабля укладывается в полсекунды")
+    func sinkingAFourDeckerIsQuick() throws {
+        let long = ShipPlacement(length: 4, origin: Coordinate(row: 1, column: 1),
+                                 orientation: .vertical)
+        var board = Board(ships: [long])
+        for row in 2...4 { _ = board.apply(shotAt: Coordinate(row: row, column: 1)) }
+        let sunk = try #require(event(shootingAt: Coordinate(row: 1, column: 1), on: &board))
+        let timing = CellEventTiming(reduceMotion: false)
+        #expect(sunk.changes.map(timing.end(of:)).max() ?? 0 <= 0.55)
     }
 }

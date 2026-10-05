@@ -218,8 +218,13 @@ struct DuelScreen: View {
                 }
 
                 BottomStack(onMenu: menuTapped) {
-                    FieldSwitch(selection: field, size: size) { match.show($0) }
-                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: Geometry.Nav.stackGap) {
+                        FieldSwitch(selection: field, size: size) { match.show($0) }
+                        // Подсказок вдвоём нет — место занимает только
+                        // «Итоги» в просмотре полей после партии.
+                        ReviewSlot(size: size, reservesWidth: false) { EmptyView() }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }

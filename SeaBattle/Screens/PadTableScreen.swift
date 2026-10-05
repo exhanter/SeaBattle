@@ -180,6 +180,8 @@ struct PadTableScreen: View {
     @Environment(AppState.self) private var appState
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Просмотр полей после партии — ставит `matchResults` экрана партии.
+    @Environment(\.matchReview) private var review
 
     private var alphabet: BoardAlphabet {
         .forLanguage(locale.language.languageCode?.identifier)
@@ -424,6 +426,7 @@ struct PadTableScreen: View {
                            isArranging: battle == nil,
                            // Уровень — только у одиночной игры, в центре панели.
                            level: isComputerTable ? appState.difficultyLevel : nil,
+                           status: battle?.result.map(MatchResult.statusText),
                            showsBalance: isComputerTable)
             }
         }
@@ -517,7 +520,15 @@ struct PadTableScreen: View {
     /// кромки экрана).
     @ViewBuilder
     private func phaseTiles(stacked: Bool) -> some View {
-        if let paper {
+        if let review {
+            // Просмотр полей после партии: вместо кнопок фазы — «Итоги».
+            Button(action: review.backToResults) {
+                PadTileLabel(title: "Results", icon: "flag.checkered")
+            }
+            .buttonStyle(SecondaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
+            .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+            .accessibilityIdentifier("reviewResults")
+        } else if let paper {
             answerTiles(paper, stacked: stacked)
         } else if let battle {
             PadHintButton(cost: battle.hintCost, isEnabled: battle.canUseHint) {

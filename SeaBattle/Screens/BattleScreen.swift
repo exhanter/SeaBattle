@@ -115,7 +115,8 @@ struct BattleScreen: View {
                            foeLosses: battle.enemy.numberShipsDestroyed,
                            isYourTurn: !appState.enemysTurn,
                            balance: ProgressStore.shared.points,
-                           size: size)
+                           size: size,
+                           status: battle.result.map(MatchResult.statusText))
                     .padding(.top, BattleScreenMetrics.scoreTop)
 
                 GeometryReader { area in
@@ -181,12 +182,14 @@ struct BattleScreen: View {
         BottomStack(onMenu: { menuTapped() }) {
             HStack(spacing: Geometry.Nav.stackGap) {
                 FieldSwitch(selection: field, size: size) { battle.show($0) }
-                // Подсказка только у поля противника (2.9) и **без Pro**:
-                // Pro открывает режимы, а не ход партии (решение заказчика
-                // 29.09, спека 4.12).
-                if field == .foe {
+                // Подсказка работает только на поле противника (2.9) и **без
+                // Pro**: Pro открывает режимы, а не ход партии (решение
+                // заказчика 29.09, спека 4.12). Стоит на обоих полях, на своём
+                // погашена: иначе переключатель менял ширину при каждом
+                // переключении (решение заказчика 05.10).
+                ReviewSlot(size: size) {
                     BattleHintButton(cost: battle.hintCost,
-                                     isEnabled: battle.canUseHint,
+                                     isEnabled: field == .foe && battle.canUseHint,
                                      size: size) { battle.requestHint() }
                 }
             }
@@ -223,8 +226,10 @@ struct BattleBoard: View {
     var body: some View {
         let data = field == .foe ? battle.enemy : battle.player
         // Флот противника скрыт тем же способом, каким он скрыт от ИИ: из
-        // `opponentView()` нетронутый корабль приходит водой.
-        let core = field == .foe ? data.coreBoard.opponentView() : data.coreBoard
+        // `opponentView()` нетронутый корабль приходит водой. После партии
+        // флот открыт — посмотреть, где он стоял (решение заказчика 05.10).
+        let core = field == .foe && battle.result == nil
+            ? data.coreBoard.opponentView() : data.coreBoard
         let cells = Board.allCoordinates.map { BoardCellState.forDisplay(core[$0], on: field) }
         // Свечение рамки — на поле, по которому сейчас стреляют (2.4).
         let isActive = appState.gameIsActive

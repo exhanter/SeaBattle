@@ -191,12 +191,17 @@ struct NetScreen: View {
                     } else {
                         HStack(spacing: Geometry.Nav.stackGap) {
                             FieldSwitch(selection: field, size: size) { match.show($0) }
-                            // Подсказка — на своём ходу и не против своего
-                            // аккаунта; в ожидании строка только переключателя.
-                            if field == .foe && match.isMyTurn && match.offersHint {
-                                BattleHintButton(cost: match.hintCost,
-                                                 isEnabled: match.canUseHint,
-                                                 size: size) { match.requestHint() }
+                            // Подсказка — не против своего аккаунта. Работает
+                            // на своём ходу и на поле противника, в остальное
+                            // время погашена, но стоит на месте: переключатель
+                            // не меняет ширину (решение заказчика 05.10).
+                            ReviewSlot(size: size) {
+                                if match.offersHint {
+                                    BattleHintButton(cost: match.hintCost,
+                                                     isEnabled: field == .foe && match.isMyTurn
+                                                         && match.canUseHint,
+                                                     size: size) { match.requestHint() }
+                                }
                             }
                         }
                         .fixedSize(horizontal: false, vertical: true)

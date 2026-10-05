@@ -82,6 +82,9 @@ struct ResultsScreen: View {
     let result: MatchResult
     var onPlayAgain: () -> Void = {}
     var onMenu: () -> Void = {}
+    /// «Посмотреть поля»: итоги уходят, поля партии снова видны. `nil` —
+    /// кнопки нет.
+    var onReview: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -396,11 +399,22 @@ struct ResultsScreen: View {
             .primaryButton()
             .accessibilityIdentifier("resultPlayAgain")
 
-            Button(action: onMenu) {
-                Label("To menu", systemImage: "line.3.horizontal")
+            // Поля после партии (решение заказчика 05.10): посмотреть, где
+            // стоял флот противника, и чем кончился последний выстрел.
+            AdaptiveRow(spacing: Geometry.Nav.stackGap, accessibilitySpacing: Geometry.Nav.stackGap) {
+                if let onReview {
+                    Button(action: onReview) {
+                        Label("View boards", systemImage: "square.grid.3x3")
+                    }
+                    .secondaryButton()
+                    .accessibilityIdentifier("resultReview")
+                }
+                Button(action: onMenu) {
+                    Label("To menu", systemImage: "line.3.horizontal")
+                }
+                .secondaryButton()
+                .accessibilityIdentifier("resultMenu")
             }
-            .secondaryButton()
-            .accessibilityIdentifier("resultMenu")
         }
         .padding(.horizontal, Geometry.Nav.stackInset)
         .padBottomFrame()
@@ -448,6 +462,37 @@ extension View {
     }
 }
 
+extension MatchResult {
+    /// Статус в панели счёта после партии — вместо «Ваш ход», который после
+    /// последнего выстрела врал бы (виден в просмотре полей).
+    static func statusText(_ result: MatchResult) -> Text {
+        Text(result.didWin ? "Victory" : "Defeat")
+    }
+}
+
+/// Просмотр полей после партии: итоги убраны, поля снова видны, и вернуть
+/// итоги можно кнопкой на месте подсказки (`ReviewResultsButton`). Приходит
+/// в экран партии окружением от `matchResults`; `nil` — партия идёт или на
+/// экране итоги.
+struct MatchReview {
+    let backToResults: () -> Void
+}
+
+/// Последний выстрел партии: поле, по которому он пришёлся, вспыхивает
+/// (`BoardFinale`) — видно, что выстрел финальный (решение заказчика 05.10,
+/// вместо плашки). Ставит `matchResults` на время паузы перед итогами.
+struct MatchFinale: Equatable {
+    /// Когда пришёл итог — то есть момент последнего выстрела.
+    let start: Date
+    /// Победа — латунь, поражение — лазурь, как рамка исхода на итогах.
+    let didWin: Bool
+}
+
+extension EnvironmentValues {
+    @Entry var matchReview: MatchReview? = nil
+    @Entry var matchFinale: MatchFinale? = nil
+}
+
 private struct MatchResultsModifier: ViewModifier {
     let result: MatchResult?
     let onPlayAgain: () -> Void
@@ -456,54 +501,94 @@ private struct MatchResultsModifier: ViewModifier {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.usesPadLayout) private var usesPadLayout
-    /// Итоги на экране. Ставится после паузы `Motion.toResults`, а не сразу
-    /// с итогом: последний выстрел должен успеть доиграть на поле.
+    /// Поля ушли в размытие под итоги.
+    @State private var fieldsHidden = false
+    /// Итоги на экране. Ставятся не сразу с итогом, а после паузы
+    /// `Motion.lastShotHold`: последний выстрел должен доиграть на поле, иначе
+    /// игрок не видит, чем кончилась партия (решение заказчика 05.10).
     @State private var showsResults = false
+    /// Игрок вышел из итогов посмотреть поля.
+    @State private var reviewing = false
+    /// Вспышка поля на последнем выстреле: без неё игрок видел потопленный
+    /// корабль и пытался стрелять дальше (решение заказчика 05.10).
+    @State private var finale: MatchFinale?
 
-    /// Партия кончилась — поля уходят в размытие под итоги.
-    private var isOver: Bool { result != nil }
+    private var half: Double { Motion.scaled(Motion.toResults, reduceMotion: reduceMotion) / 2 }
+    private var fade: Animation { .easeInOut(duration: half) }
 
     func body(content: Content) -> some View {
         content
-            // Первая половина — пауза, чтобы всплеск последнего выстрела
-            // доиграл резким; прозрачность до нуля, чтобы под итогами было
-            // одно море, как в кадре.
-            .blur(radius: isOver ? ResultMetrics.fieldsBlur : 0)
-            .opacity(isOver ? 0 : 1)
-            .allowsHitTesting(!isOver)
-            .animation(fieldsOut, value: isOver)
+            // Прозрачность до нуля, чтобы под итогами было одно море, как в
+            // кадре.
+            .blur(radius: fieldsHidden ? ResultMetrics.fieldsBlur : 0)
+            .opacity(fieldsHidden ? 0 : 1)
+            // Пока доигрывает последний выстрел и пока видны итоги, поля не
+            // нажимаются; в просмотре — да: переключатель, «Меню», «Итоги».
+            .allowsHitTesting(result == nil || reviewing)
+            // Под итогами поля невидимы — и для VoiceOver тоже.
+            .accessibilityHidden(fieldsHidden)
+            .environment(\.matchReview, reviewing ? MatchReview(backToResults: backToResults) : nil)
+            .environment(\.matchFinale, finale)
             .overlay { overlay }
             .task(id: result) { await present() }
-    }
-
-    private var fieldsOut: Animation {
-        let half = Motion.scaled(Motion.toResults, reduceMotion: reduceMotion) / 2
-        return .easeInOut(duration: half).delay(half)
     }
 
     @ViewBuilder
     private var overlay: some View {
         if showsResults, let result {
-            ResultsScreen(result: result, onPlayAgain: onPlayAgain, onMenu: onMenu)
+            ResultsScreen(result: result, onPlayAgain: onPlayAgain, onMenu: onMenu,
+                          onReview: review)
                 // iPad: колонкой 520 pt по центру, как экран уровня (4.3).
                 .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+                .transition(.opacity)
         }
     }
 
-    /// Итог пришёл — выждать переход и показать экран; ушёл (новая партия) —
-    /// убрать. `task(id:)` обрывает ожидание, если итог сменился раньше.
+    /// Итог пришёл — дать доиграть выстрелу, увести поля и показать экран;
+    /// ушёл (новая партия) — всё убрать. `task(id:)` обрывает ожидание, если
+    /// итог сменился раньше.
     private func present() async {
         guard let result else {
+            fieldsHidden = false
             showsResults = false
+            reviewing = false
+            finale = nil
             return
         }
-        try? await Task.sleep(for: .seconds(Motion.scaled(Motion.toResults,
-                                                          reduceMotion: reduceMotion)))
+        // Поле вспыхивает само по часам от `start` (`BoardFinale`); звук и
+        // вибрация победы — в момент вспышки.
+        finale = MatchFinale(start: .now, didWin: result.didWin)
+        let delay = Motion.scaled(Motion.finaleDelay, reduceMotion: reduceMotion)
+        try? await Task.sleep(for: .seconds(delay))
         guard !Task.isCancelled else { return }
-        showsResults = true
         HapticService.shared.play(result.didWin ? .victory : .defeat)
         if appState.soundOn {
             AppState.playSound(sound: result.didWin ? "victory_sound.wav" : "defeat_sound.wav")
+        }
+        try? await Task.sleep(for: .seconds(Motion.scaled(Motion.lastShotHold,
+                                                          reduceMotion: reduceMotion) - delay))
+        guard !Task.isCancelled else { return }
+        withAnimation(fade) { fieldsHidden = true }
+        try? await Task.sleep(for: .seconds(half))
+        guard !Task.isCancelled else { return }
+        showsResults = true
+    }
+
+    private func review() {
+        withAnimation(fade) {
+            showsResults = false
+            fieldsHidden = false
+            reviewing = true
+            // В просмотре поля без вспышки — она уже отыграла.
+            finale = nil
+        }
+    }
+
+    private func backToResults() {
+        withAnimation(fade) {
+            reviewing = false
+            fieldsHidden = true
+            showsResults = true
         }
     }
 }

@@ -393,12 +393,14 @@ enum TypeScale {
 
 enum Motion {
     // Клетка. В момент выстрела всплеск, смена состояния и подсветка
-    // контура стартуют одновременно — отложенных фаз нет.
-    static let splash: Double  = 0.240   // два расходящихся кольца
-    static let stateSwap: Double = 0.260 // вода → воронка / огонь / сталь
-    static let contourGlow: Double = 0.520
+    // контура стартуют одновременно — отложенных фаз нет. Числа пакета
+    // (0.240 / 0.260 / 0.520 / 0.060) на телефоне читались как моргание —
+    // растянуты (решение заказчика 05.10).
+    static let splash: Double  = 0.500   // кольцо (одно с 05.10, если не волна по полю)
+    static let stateSwap: Double = 0.450 // вода → воронка / огонь / сталь
+    static let contourGlow: Double = 0.700
     static let aim: Double = 0.120
-    static let sinkPerCell: Double = 0.060   // волна по корпусу, максимум 0.240
+    static let sinkPerCell: Double = 0.070   // волна по корпусу, максимум 0.240 (05.10: была 0.110 — длинный корабль тонул затянуто)
     static let incomingShot: Double = 0.180
     static let feedChip: Double = 0.220
 
@@ -406,6 +408,13 @@ enum Motion {
     static let turnFade: Double = 0.160     // рамка гаснет
     static let turnRaise: Double = 0.240    // разгорается вторая
     static let toResults: Double = 0.600
+    /// Последний выстрел партии доигрывает на поле, прежде чем поля уйдут под
+    /// итоги: волна потопления, затем световой вал по полю
+    /// (`BoardSweepModifier`) — видно, что выстрел последний (решение заказчика 05.10).
+    static let lastShotHold: Double = 2.400
+    /// Через сколько после последнего выстрела по полю идёт вал: чуть
+    /// раньше, чем доиграет потопление (05.10).
+    static let finaleDelay: Double = 0.300
     static let resultsFill: Double = 0.320
     static let pointsCounter: Double = 0.500
     static let handoverIn: Double = 0.260

@@ -42,9 +42,29 @@ struct EventClock<Content: View>: View {
 // MARK: - Числа
 
 enum CellEffectMetrics {
+    /// Чем показан всплеск (решение заказчика 05.10: два кольца бросались в
+    /// глаза). Поменять — одна строка. Для `.ripple` нужен Metal Toolchain
+    /// (`xcodebuild -downloadComponent MetalToolchain`, установлен 05.10).
+    static let wave: WaveStyle = .ripple
+
+    enum WaveStyle: Sendable {
+        /// Одно расходящееся кольцо.
+        case singleRing
+        /// Само поле идёт волной (`BoardRipple.metal`), колец нет.
+        case ripple
+    }
+
+    /// Сколько колец рисовать: в 14d их два, с 05.10 — одно или ни одного.
+    static var ringCount: Int {
+        switch wave {
+        case .singleRing: 1
+        case .ripple: 0
+        }
+    }
+
     /// Диаметр кольца — доля клетки.
     static let ringDiameter: CGFloat = 1.45
-    /// Масштаб кольца: от 0,45 растёт на 1,35.
+    /// Масштаб кольца: от 0,45 растёт на 1,35 — как в 14d.
     static let ringScaleFrom: CGFloat = 0.45
     static let ringScaleGrowth: CGFloat = 1.35
     /// Под Reduce Motion кольцо стоит на этом масштабе и только гаснет.
@@ -114,7 +134,7 @@ struct CellSplashFrame: View {
         let t = elapsed
         let color = tone.color
         ZStack {
-                ForEach(0..<2, id: \.self) { index in
+                ForEach(0..<CellEffectMetrics.ringCount, id: \.self) { index in
                     if let p = timing.ring(index, at: t) {
                         Circle()
                             .strokeBorder(color, lineWidth: CellEffectMetrics.ringStroke(for: cell))
@@ -137,6 +157,165 @@ struct CellSplashFrame: View {
                 }
         }
         .frame(width: cell, height: cell)
+    }
+}
+
+// MARK: - Волна по полю
+
+/// Числа волны — подбираются здесь (заказчик подбирает анимацию, 05.10).
+/// Сейчас волна **в пределах клетки выстрела**: гаснет к `radiusCells` от
+/// центра, чуть за кромкой — качается сама клетка и её край.
+enum RippleMetrics {
+    /// Наибольшее смещение — доля клетки. Больше 0,15 внутри клетки уже
+    /// подтягивает в неё картинку соседей.
+    static let amplitudeRatio: CGFloat = 0.12
+    /// Частота колебаний (рад/с) и затухание во времени.
+    static let frequency: Float = 28
+    static let decay: Float = 6
+    /// Скорость волны — клеток в секунду: за ~0,15 с доходит до кромки.
+    static let speedCells: CGFloat = 4
+    /// Затухание по расстоянию — в клетках (внутри клетки почти не влияет).
+    static let falloffCells: CGFloat = 1
+    /// Дальше этого от центра клетки волны нет: 0,5 — кромка клетки.
+    static let radiusCells: CGFloat = 0.6
+    static let duration: Double = 0.6
+}
+
+/// Поле идёт волной от клетки выстрела. Вешается на картинку сетки
+/// (`drawingGroup`) — искажается вся сетка разом. Под Reduce Motion и в
+/// варианте «одно кольцо» не делает ничего.
+struct BoardRippleModifier: ViewModifier {
+    let event: CellEvent?
+    /// Центр клетки выстрела в координатах того, к чему применяется.
+    let origin: CGPoint
+    let cell: CGFloat
+    let reduceMotion: Bool
+    /// Превью: волна застыла в этот момент от выстрела.
+    var still: Double?
+
+    func body(content: Content) -> some View {
+        if let still {
+            content.layerEffect(shader(still), maxSampleOffset: maxOffset)
+        } else if let event, !reduceMotion, CellEffectMetrics.wave == .ripple {
+            EventClock(start: event.start, duration: RippleMetrics.duration) { t in
+                content.layerEffect(shader(t), maxSampleOffset: maxOffset,
+                                    isEnabled: t < RippleMetrics.duration)
+            }
+            .id(event.id)
+        } else {
+            content
+        }
+    }
+
+    private var maxOffset: CGSize {
+        CGSize(width: cell * RippleMetrics.amplitudeRatio, height: cell * RippleMetrics.amplitudeRatio)
+    }
+
+    private func shader(_ t: Double) -> Shader {
+        ShaderLibrary.boardRipple(
+            .float2(origin),
+            .float(Float(t)),
+            .float(Float(cell * RippleMetrics.amplitudeRatio)),
+            .float(RippleMetrics.frequency),
+            .float(RippleMetrics.decay),
+            .float(Float(cell * RippleMetrics.speedCells)),
+            .float(Float(cell * RippleMetrics.falloffCells)),
+            .float(Float(cell * RippleMetrics.radiusCells)))
+    }
+}
+
+// MARK: - Финал партии
+
+/// Последний выстрел: по полю наискось проходит световой вал — поле идёт
+/// волной и светлеет (`boardSweep` в `BoardRipple.metal`). Одно на все режимы —
+/// вешает `BoardView`, когда в окружении есть `MatchFinale` и последнее событие
+/// этого поля и есть финальный выстрел. Латунной вспышки окантовки нет: на
+/// iPhone её не было видно (решение заказчика 05.10).
+enum FinaleMetrics {
+    /// Проход вала по полю.
+    static let duration: Double = 0.6
+    /// Наклон фронта, градусы от вертикали.
+    static let angle: Double = 22
+    /// Ширина вала, длина волны внутри, смещение — в клетках; свет — прибавка
+    /// к яркости на гребне.
+    static let widthCells: CGFloat = 2.2
+    static let wavelengthCells: CGFloat = 3.2
+    static let amplitudeCells: CGFloat = 0.12
+    static let glow: Float = 0.5
+    /// Reduce Motion: вместо вала — короткая ровная вспышка всего поля.
+    static let stillFlash: Double = 0.5
+    static let stillPeak: Double = 0.22
+
+    /// Положение вала 0…1 в момент `x` от начала; `nil` — вала нет.
+    static func sweep(at x: Double) -> Double? {
+        let p = x / duration
+        guard p > 0, p < 1 else { return nil }
+        // Равномерно: с ease-in-out вал проскакивал середину поля.
+        return p
+    }
+
+    /// Направление прохода — перпендикуляр к фронту.
+    static var direction: CGVector {
+        let a = angle * .pi / 180
+        return CGVector(dx: cos(a), dy: sin(a))
+    }
+}
+
+/// Вал по картинке сетки. Вешается рядом с `BoardRippleModifier`.
+struct BoardSweepModifier: ViewModifier {
+    let finale: MatchFinale?
+    let size: CGSize
+    let cell: CGFloat
+    let reduceMotion: Bool
+    /// Превью: вал застыл в этом положении 0…1.
+    var still: Double?
+
+    func body(content: Content) -> some View {
+        if let still {
+            content.layerEffect(shader(still), maxSampleOffset: maxOffset)
+        } else if let finale {
+            let delay = Motion.scaled(Motion.finaleDelay, reduceMotion: reduceMotion)
+            EventClock(start: finale.start, duration: delay + FinaleMetrics.duration) { t in
+                if reduceMotion {
+                    content.overlay {
+                        Color.white
+                            .opacity(stillFlash(t - delay))
+                            .blendMode(.plusLighter)
+                            .allowsHitTesting(false)
+                    }
+                } else {
+                    let p = FinaleMetrics.sweep(at: t - delay)
+                    content.layerEffect(shader(p ?? 0), maxSampleOffset: maxOffset,
+                                        isEnabled: p != nil)
+                }
+            }
+        } else {
+            content
+        }
+    }
+
+    private var maxOffset: CGSize {
+        CGSize(width: cell * FinaleMetrics.amplitudeCells, height: cell * FinaleMetrics.amplitudeCells)
+    }
+
+    private func shader(_ p: Double) -> Shader {
+        let d = FinaleMetrics.direction
+        let width = cell * FinaleMetrics.widthCells
+        // Фронт идёт от-за верхнего левого угла до-за нижнего правого.
+        let span = size.width * d.dx + size.height * d.dy
+        let front = -width * 2 + (span + width * 4) * p
+        return ShaderLibrary.boardSweep(
+            .float2(CGPoint(x: d.dx, y: d.dy)),
+            .float(Float(front)),
+            .float(Float(width)),
+            .float(Float(cell * FinaleMetrics.amplitudeCells)),
+            .float(Float(cell * FinaleMetrics.wavelengthCells)),
+            .float(FinaleMetrics.glow))
+    }
+
+    private func stillFlash(_ x: Double) -> Double {
+        guard x > 0, x < FinaleMetrics.stillFlash else { return 0 }
+        return FinaleMetrics.stillPeak * (1 - x / FinaleMetrics.stillFlash)
     }
 }
 
@@ -210,6 +389,59 @@ private struct SplashStoryboard: View {
 
 #Preview("Всплеск · раскадровка") {
     SplashStoryboard()
+        .preferredColorScheme(.dark)
+}
+
+/// Вал финала в трёх положениях — шейдер без часов.
+private struct SweepStoryboard: View {
+    var body: some View {
+        let metrics = BoardMetrics(cell: 24)
+        let cells = (0..<100).map { $0 % 7 == 0 ? BoardCellState.sunk : .water }
+        ZStack {
+            SeaBackground()
+            HStack(spacing: 20) {
+                ForEach([0.2, 0.5, 0.8], id: \.self) { p in
+                    BoardView(cells: cells, role: .foe, metrics: metrics)
+                        .modifier(BoardSweepModifier(finale: nil,
+                                                     size: CGSize(width: metrics.boardSide,
+                                                                  height: metrics.boardSide),
+                                                     cell: metrics.cell, reduceMotion: false,
+                                                     still: p))
+                }
+            }
+        }
+    }
+}
+
+/// Волна от выстрела в В5 (потопленная клетка) в три момента — шейдер без часов.
+private struct RippleStoryboard: View {
+    var body: some View {
+        let metrics = BoardMetrics(cell: 32)
+        let cells = (0..<100).map { $0 % 7 == 0 ? BoardCellState.sunk : .water }
+        let origin = metrics.cellOrigin(Coordinate(row: 5, column: 3))
+        ZStack {
+            SeaBackground()
+            HStack(spacing: 20) {
+                ForEach([0.04, 0.1, 0.2], id: \.self) { t in
+                    BoardView(cells: cells, role: .foe, metrics: metrics)
+                        .modifier(BoardRippleModifier(
+                            event: nil,
+                            origin: CGPoint(x: metrics.inset + origin.x + metrics.cell / 2,
+                                            y: metrics.inset + origin.y + metrics.cell / 2),
+                            cell: metrics.cell, reduceMotion: false, still: t))
+                }
+            }
+        }
+    }
+}
+
+#Preview("Выстрел · волна", traits: .fixedLayout(width: 1180, height: 420)) {
+    RippleStoryboard()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Финал · вал", traits: .fixedLayout(width: 900, height: 340)) {
+    SweepStoryboard()
         .preferredColorScheme(.dark)
 }
 

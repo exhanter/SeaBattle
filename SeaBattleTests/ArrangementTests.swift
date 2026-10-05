@@ -302,4 +302,49 @@ struct ArrangementTests {
         }
         #expect(BoardCellState.allCases.contains(.shipDenied))
     }
+
+    // MARK: Розовые клетки (05.10)
+
+    /// Трёхпалубный (1,6) сдвинут на три клетки влево: клетки Г1 и В1 легли
+    /// на четырёхпалубный (1,1)–(1,4), Д1 — в его кольцо.
+    private func threeOntoFour(release: Bool) -> (FleetEditor, three: UUID, four: UUID) {
+        var editor = editorWithCanonicalFleet()
+        editor.beginEditing()
+        let three = editor.ships.first { $0.length == 3 }!.id
+        let four = editor.ships.first { $0.length == 4 }!.id
+        editor.beginDragging(three)
+        editor.dragBy(columns: -3, rows: 0)
+        if release { editor.endDragging() }
+        return (editor, three, four)
+    }
+
+    @Test("Розовеют только клетки сдвинутого корабля, попавшие в чужую зону", arguments: [false, true])
+    func onlyTheMovedShipsCellsTurnPink(release: Bool) {
+        let (editor, three, four) = threeOntoFour(release: release)
+        let row1 = { (column: Int) in Coordinate(row: 1, column: column) }
+        // Одинаково под пальцем и после.
+        #expect(editor.deniedCells[three] == [row1(3), row1(4), row1(5)])
+        #expect(editor.deniedCells[four] == nil)
+        #expect(editor.overlapCells[three] == [row1(3), row1(4)])
+    }
+
+    @Test("Виноват тот, кого трогали позже")
+    func theLaterTouchedShipIsGuilty() {
+        var (editor, three, four) = threeOntoFour(release: true)
+        // Теперь подвинули четырёхпалубный — на месте, но он «последний».
+        editor.move(four, to: Coordinate(row: 1, column: 1))
+        #expect(editor.deniedCells[three] == nil)
+        // Б1 — в кольце трёхпалубного, В1 и Г1 — под ним.
+        #expect(editor.deniedCells[four] == [Coordinate(row: 1, column: 2),
+                                             Coordinate(row: 1, column: 3),
+                                             Coordinate(row: 1, column: 4)])
+        #expect(editor.order(of: four) > editor.order(of: three))
+    }
+
+    @Test("Перемешать — розовых клеток нет")
+    func shuffleClearsPink() {
+        var (editor, _, _) = threeOntoFour(release: true)
+        editor.shuffle()
+        #expect(editor.deniedCells.isEmpty)
+    }
 }

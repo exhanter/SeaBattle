@@ -168,6 +168,10 @@ struct BoardView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
+    /// Последний выстрел партии (`matchResults`): поле, где он пришёлся,
+    /// вспыхивает.
+    @Environment(\.matchFinale) private var finale
+    @Environment(\.usesPadLayout) private var usesPadLayout
 
     init(cells: [BoardCellState], role: Side, metrics: BoardMetrics,
          isActive: Bool = false, aim: (column: Int, row: Int)? = nil,
@@ -262,6 +266,14 @@ struct BoardView: View {
             // отрисовка. Кольца выстрела — отдельно, поверх.
             .padding(metrics.inset)
             .drawingGroup()
+            // Волна по полю — по готовой картинке сетки (05.10).
+            .modifier(BoardRippleModifier(event: event, origin: rippleOrigin,
+                                          cell: metrics.cell, reduceMotion: reduceMotion))
+            // Финал партии — световой вал по тому же полю (05.10).
+            .modifier(BoardSweepModifier(finale: finaleHere,
+                                         size: CGSize(width: metrics.gridSide + metrics.inset * 2,
+                                                      height: metrics.gridSide + metrics.inset * 2),
+                                         cell: metrics.cell, reduceMotion: reduceMotion))
             .padding(-metrics.inset)
             .overlay(alignment: .topLeading) { splash }
             .padding(metrics.inset)
@@ -282,10 +294,21 @@ struct BoardView: View {
                 RoundedRectangle(cornerRadius: metrics.radius, style: .continuous)
                     .strokeBorder(Color.roleYou, lineWidth: 2.5)
                     .shadow(color: .roleYouSoft, radius: 13)
-                    .opacity(isActive ? 1 : 0)
+                    // Только на iPad (решение заказчика 05.10): там два поля
+                    // и рамка показывает, по какому стреляют. На iPhone поле
+                    // одно — рамка ничего не выделяла.
+                    .opacity(isActive && usesPadLayout ? 1 : 0)
                     .animation(turnAnimation, value: isActive)
                     .allowsHitTesting(false)
             }
+    }
+
+    /// Финал — только у поля, на котором последнее событие и есть финальный
+    /// выстрел: на iPad видны оба поля, вспыхивает одно.
+    private var finaleHere: MatchFinale? {
+        guard let finale, let event,
+              abs(finale.start.timeIntervalSince(event.start)) < 0.5 else { return nil }
+        return finale
     }
 
     private var turnAnimation: Animation {
@@ -293,6 +316,14 @@ struct BoardView: View {
         return isActive
             ? .easeInOut(duration: Motion.scaled(Motion.turnRaise, reduceMotion: reduceMotion)).delay(fade)
             : .easeInOut(duration: fade)
+    }
+
+    /// Центр клетки выстрела в картинке сетки — она с отступом подложки.
+    private var rippleOrigin: CGPoint {
+        guard let event else { return .zero }
+        let origin = metrics.cellOrigin(event.target)
+        return CGPoint(x: metrics.inset + origin.x + metrics.cell / 2,
+                       y: metrics.inset + origin.y + metrics.cell / 2)
     }
 
     /// Кольца и подсветка у клетки выстрела — слоем поверх сетки: кольцо

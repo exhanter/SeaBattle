@@ -81,11 +81,15 @@ struct CellEvent: Equatable, Sendable {
 
     // MARK: Расписание
 
-    /// Обводка промахами вокруг потопленного (таблица 14c): 200 мс, ease-out.
-    /// Своего токена в `Motion` нет.
-    static let outlineDuration: Double = 0.200
-    /// Предел волны по корпусу (спека 5).
+    /// Обводка промахами вокруг потопленного (таблица 14c — 200 мс; 05.10 —
+    /// 250, часть сцены потопления), ease-out. Своего токена в `Motion` нет.
+    static let outlineDuration: Double = 0.250
+    /// Предел волны по корпусу (спека 5 — 240 мс; 05.10 растягивали до 440,
+    /// вернули: на четырёхпалубном выходило затянуто).
     static let sinkWaveLimit: Double = 0.240
+    /// Смена клетки корпуса на «потоплен» — короче обычной (`Motion.stateSwap`):
+    /// клеток много, и каждая по 0,45 с превращала потопление в долгую сцену.
+    static let sinkSwap: Double = 0.300
 
     private static func schedule(target: Coordinate, before: Board, after: Board) -> [CellChange] {
         let changed = Board.allCoordinates.filter { before[$0] != after[$0] }
@@ -101,7 +105,7 @@ struct CellEvent: Equatable, Sendable {
         return changed.map { cell in
             if let delay = hull[cell] {
                 return CellChange(coordinate: cell, from: before[cell], delay: delay,
-                                  duration: Motion.stateSwap)
+                                  duration: sinkSwap)
             }
             if cell != target, after[cell] == .miss {
                 // Воронка обводки идёт вместе с ближайшей клеткой корпуса —
@@ -126,8 +130,9 @@ struct CellEvent: Equatable, Sendable {
 struct CellEventTiming: Equatable, Sendable {
     let reduceMotion: Bool
 
-    /// Второе кольцо идёт за первым со сдвигом 50 мс (таблица 14c).
-    static let secondRingLag: Double = 0.050
+    /// Второе кольцо идёт за первым со сдвигом (таблица 14c — 50 мс; с
+    /// длинным кольцом 05.10 сдвиг вырос, иначе два кольца сливались в одно).
+    static let secondRingLag: Double = 0.150
 
     private func scaled(_ d: Double) -> Double { Motion.scaled(d, reduceMotion: reduceMotion) }
 

@@ -88,7 +88,8 @@ struct PadMenuScreen: View {
             let frame = Geometry.Inset.padFrame
 
             ZStack(alignment: .topLeading) {
-                art(width: size.width, height: g.artHeight)
+                MenuArt(kind: g.orientation == .portrait ? .padPortrait : .padLandscape,
+                        width: size.width, height: g.artHeight)
 
                 Text("Sea Battle")
                     .font(.system(size: g.titleSize, weight: .semibold, design: .rounded))
@@ -114,26 +115,6 @@ struct PadMenuScreen: View {
             .frame(width: size.width, height: size.height, alignment: .topLeading)
             .ignoresSafeArea()
         }
-    }
-
-    // MARK: Арт
-
-    /// Пока отдельных файлов `MenuArtPortrait` / `MenuArtLandscape` нет — тот
-    /// же снимок, что на iPhone, с `cover` и маской (раунд 7).
-    private func art(width: CGFloat, height: CGFloat) -> some View {
-        Image("war_ship8")
-            .resizable()
-            .scaledToFill()
-            .frame(width: width, height: max(0, height))
-            .clipped()
-            // Непрозрачен до 55 % высоты, к низу растворяется в море.
-            .mask {
-                LinearGradient(stops: [.init(color: .black, location: 0),
-                                       .init(color: .black, location: M.artOpaqueUntil),
-                                       .init(color: .clear, location: 1)],
-                               startPoint: .top, endPoint: .bottom)
-            }
-            .accessibilityHidden(true)
     }
 
     // MARK: Плитки режимов

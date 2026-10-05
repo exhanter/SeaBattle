@@ -20,9 +20,13 @@ import SwiftUI
 enum ArrangementMetrics {
     /// Между заголовком и полем.
     static let boardGap: CGFloat = 18
-    /// Полупрозрачность корабля в руке (спека 4.4). Это непрозрачность **всего
-    /// элемента** как состояния, поэтому правило про альфу в цвете не задето.
-    static let draggedOpacity: Double = 0.62
+    /// Корабль в руке «поднят» над полем: чуть крупнее и с тенью. Раньше он
+    /// был полупрозрачным (спека 4.4), но тогда его цвет смешивался с цветом
+    /// корабля под ним (решение заказчика 05.10).
+    static let liftScale: CGFloat = 1.06
+    static let liftShadowRadius: CGFloat = 5
+    static let liftShadowY: CGFloat = 4
+    static let liftShadowAlpha: Double = 0.5
     /// Предупреждение появляется и гаснет вместе с розовым кораблём (2.16).
     static let warningFade: Double = 0.160
 }
@@ -176,6 +180,9 @@ struct ArrangementScreen: View {
 struct EditableFleetBoard: View {
     @Binding var editor: FleetEditor
     let metrics: BoardMetrics
+    /// Как рисовать клетку, легшую прямо на чужой корабль. Пока заказчик
+    /// выбирает по превью «Пересечение · …» — параметром.
+    var overlapStyle: ShipOverlapStyle = .current
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
@@ -213,16 +220,26 @@ struct EditableFleetBoard: View {
 
     private func shipView(_ ship: ShipPlacement) -> some View {
         let isDragged = editor.draggingID == ship.id
-        let isDenied = editor.conflicts.contains(ship.id)
+        let denied = editor.deniedCells[ship.id] ?? []
+        let isDenied = !denied.isEmpty
         let origin = metrics.cellOrigin(ship.origin)
         let size = metrics.shipSize(length: ship.length, orientation: ship.orientation)
 
         return ShipCells(ship: ship, metrics: metrics,
-                         isDenied: isDenied,
+                         denied: denied,
+                         overlaps: editor.overlapCells[ship.id] ?? [],
+                         overlapStyle: overlapStyle,
                          isJiggling: editor.isEditing && !isDragged && !reduceMotion)
             .frame(width: size.width, height: size.height)
-            .opacity(isDragged ? ArrangementMetrics.draggedOpacity : 1)
+            .scaleEffect(isDragged ? ArrangementMetrics.liftScale : 1)
+            .shadow(color: .black.opacity(isDragged ? ArrangementMetrics.liftShadowAlpha : 0),
+                    radius: ArrangementMetrics.liftShadowRadius,
+                    y: ArrangementMetrics.liftShadowY)
+            .animation(.easeOut(duration: Motion.scaled(Motion.aim, reduceMotion: reduceMotion)),
+                       value: isDragged)
             .offset(x: origin.x, y: origin.y)
+            // Кого трогали последним, тот сверху — и под пальцем, и после.
+            .zIndex(Double(editor.order(of: ship.id)))
             .gesture(dragGesture(ship), isEnabled: editor.isEditing)
             .onTapGesture { editor.rotate(ship.id) }
             .accessibilityElement()
@@ -281,7 +298,11 @@ struct EditableFleetBoard: View {
 private struct ShipCells: View {
     let ship: ShipPlacement
     let metrics: BoardMetrics
-    let isDenied: Bool
+    /// Клетки, попавшие в чужую зону, — розовые.
+    let denied: Set<Coordinate>
+    /// Из них — легшие прямо на чужой корабль.
+    let overlaps: Set<Coordinate>
+    let overlapStyle: ShipOverlapStyle
     let isJiggling: Bool
 
     var body: some View {
@@ -291,7 +312,8 @@ private struct ShipCells: View {
 
         return layout {
             ForEach(ship.cells, id: \.self) { cell in
-                JigglingCell(state: isDenied ? .shipDenied : .ship,
+                JigglingCell(look: overlaps.contains(cell) ? .overlap(overlapStyle)
+                                 : denied.contains(cell) ? .denied : .ship,
                              size: metrics.cell,
                              spec: .forCell(cell),
                              isJiggling: isJiggling)
@@ -300,10 +322,35 @@ private struct ShipCells: View {
     }
 }
 
+/// Как рисовать клетку корабля, легшую прямо на клетку другого корабля.
+/// Клетки в кольце соседа (на воде) розовые во всех вариантах.
+enum ShipOverlapStyle: CaseIterable, Sendable {
+    /// Замещение: розовая клетка целиком закрывает клетку под собой.
+    case replace
+    /// Рамка: от клетки остаётся розовая рамка, внутри видна клетка снизу.
+    case frame
+    /// Вложение: розовая клетка поменьше, вокруг видна клетка снизу.
+    case inset
+
+    /// Что стоит в игре, пока заказчик выбирает.
+    static let current: ShipOverlapStyle = .frame
+
+    /// Толщина рамки и размер вложенной клетки — доли клетки.
+    static let frameRatio: CGFloat = 0.17
+    static let insetRatio: CGFloat = 0.6
+}
+
+/// Вид одной клетки корабля при расстановке.
+private enum ShipCellLook: Equatable {
+    case ship
+    case denied
+    case overlap(ShipOverlapStyle)
+}
+
 /// Одна клетка корабля со своим дрожанием. Отдельным типом, потому что нужен
 /// собственный `@State` на клетку: без него все клетки качались бы в ногу.
 private struct JigglingCell: View {
-    let state: BoardCellState
+    let look: ShipCellLook
     let size: CGFloat
     let spec: JiggleSpec
     let isJiggling: Bool
@@ -311,7 +358,8 @@ private struct JigglingCell: View {
     @State private var swung = false
 
     var body: some View {
-        BoardCell(state, size: size)
+        cell
+            .frame(width: size, height: size)
             .rotationEffect(.degrees(swung ? spec.angle : -spec.angle))
             .animation(isJiggling
                        ? .easeInOut(duration: spec.period).repeatForever(autoreverses: true)
@@ -330,6 +378,22 @@ private struct JigglingCell: View {
                     withTransaction(transaction) { swung = false }
                 }
             }
+    }
+
+    @ViewBuilder
+    private var cell: some View {
+        switch look {
+        case .ship:
+            BoardCell(.ship, size: size)
+        case .denied, .overlap(.replace):
+            BoardCell(.shipDenied, size: size)
+        case .overlap(.frame):
+            RoundedRectangle(cornerRadius: Geometry.cellRadius(for: size), style: .continuous)
+                .strokeBorder(LinearGradient.hullDenied,
+                              lineWidth: size * ShipOverlapStyle.frameRatio)
+        case .overlap(.inset):
+            BoardCell(.shipDenied, size: size * ShipOverlapStyle.insetRatio)
+        }
     }
 }
 
@@ -374,6 +438,67 @@ private struct ArrangementDemo: View {
 #Preview("Расстановка · запрет") {
     ArrangementDemo(conflict: true)
         .preferredColorScheme(.dark)
+}
+
+/// Выбор заказчика (05.10): как рисовать клетку, легшую на чужой корабль.
+/// Слева корабль под пальцем, справа — тот же, отпущенный. Трёхпалубный
+/// наехал на четырёхпалубный двумя клетками, третья — в кольце соседа.
+private struct OverlapGallery: View {
+    let style: ShipOverlapStyle
+    let title: String
+
+    private static func editor(held: Bool) -> FleetEditor {
+        var editor = FleetEditor(ships: FleetLayout.canonicalLayout())
+        editor.beginEditing()
+        let id = editor.ships.first { $0.length == 3 }!.id
+        editor.beginDragging(id)
+        editor.dragBy(columns: -3, rows: 0)
+        if !held { editor.endDragging() }
+        return editor
+    }
+
+    var body: some View {
+        let metrics = BoardMetrics(cell: Geometry.Cell.iPhone)
+        ZStack {
+            SeaBackground()
+            VStack(spacing: 16) {
+                Text(verbatim: title)
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.inkPrimary)
+                HStack(spacing: 28) {
+                    ForEach([true, false], id: \.self) { held in
+                        VStack(spacing: 8) {
+                            EditableFleetBoard(editor: .constant(Self.editor(held: held)),
+                                               metrics: metrics, overlapStyle: style)
+                            Text(verbatim: held ? "under the finger" : "released")
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color.inkSecondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview("Пересечение · замещение", traits: .fixedLayout(width: 800, height: 470)) {
+    OverlapGallery(style: .replace, title: "A · replace")
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Пересечение · рамка", traits: .fixedLayout(width: 800, height: 470)) {
+    OverlapGallery(style: .frame, title: "B · frame")
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Пересечение · вложение", traits: .fixedLayout(width: 800, height: 470)) {
+    OverlapGallery(style: .inset, title: "C · inset")
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Пересечение · светлая", traits: .fixedLayout(width: 800, height: 470)) {
+    OverlapGallery(style: .current, title: "current · light")
+        .preferredColorScheme(.light)
 }
 
 #Preview("Расстановка · светлая") {

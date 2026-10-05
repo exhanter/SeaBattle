@@ -153,8 +153,8 @@ struct DesignTokensTests {
 
     @Test("Reduce Motion делит длительности пополам")
     func reduceMotionHalvesDurations() {
-        #expect(Motion.scaled(Motion.splash, reduceMotion: false) == 0.240)
-        #expect(Motion.scaled(Motion.splash, reduceMotion: true) == 0.120)
+        #expect(Motion.scaled(Motion.splash, reduceMotion: false) == 0.500)
+        #expect(Motion.scaled(Motion.splash, reduceMotion: true) == 0.250)
     }
 
     @Test("Опорный стиль Dynamic Type — ближайший по отношению кеглей")
