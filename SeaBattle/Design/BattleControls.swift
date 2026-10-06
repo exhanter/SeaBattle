@@ -263,6 +263,7 @@ struct FieldSwitch: View {
 
     private var m: BattleMetrics { .forSize(size) }
     @Environment(\.shapeFamily) private var shapeFamily
+    @Environment(\.inBottomStack) private var inBottomStack
 
     var body: some View {
         HStack(spacing: Geometry.Segment.trackInset) {
@@ -279,9 +280,12 @@ struct FieldSwitch: View {
             onSelect(side)
         } label: {
             Text(title)
-                .font(.system(size: m.segmentText, weight: .semibold))
+                .font(inBottomStack ? TypeScale.bottomLabelFixed : .system(size: m.segmentText, weight: .semibold))
                 .foregroundStyle(isSelected ? Color.inkOnBrass : Color.inkPrimary)
                 .lineLimit(1)
+                // «Tegenstander» на 375 pt в кегле дока — впритык.
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 4)
                 .frame(maxWidth: .infinity, minHeight: Geometry.Segment.height)
                 .background {
                     if isSelected {
@@ -313,6 +317,7 @@ struct BattleHintButton: View {
 
     private var m: BattleMetrics { .forSize(size) }
     @Environment(\.shapeFamily) private var shapeFamily
+    @Environment(\.inBottomStack) private var inBottomStack
 
     var body: some View {
         let radius = shapeFamily.radius(.control, legacy: m.hintRadius)
@@ -323,7 +328,8 @@ struct BattleHintButton: View {
                     .font(.system(size: symbolFontSize(inBox: m.hintIcon)))
                     .foregroundStyle(Color.inkPrimary)
                 Text(verbatim: "−\(cost)")
-                    .font(.system(size: m.hintText, weight: .bold, design: .monospaced))
+                    .font(inBottomStack ? TypeScale.bottomLabelFixed.weight(.bold).monospacedDigit()
+                                        : .system(size: m.hintText, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color.roleYou)
             }
             .padding(.horizontal, m.hintPadding)
@@ -393,6 +399,7 @@ struct ReviewResultsButton: View {
 
     private var m: BattleMetrics { .forSize(size) }
     @Environment(\.shapeFamily) private var shapeFamily
+    @Environment(\.inBottomStack) private var inBottomStack
 
     var body: some View {
         let radius = shapeFamily.radius(.control, legacy: m.hintRadius)
@@ -404,7 +411,7 @@ struct ReviewResultsButton: View {
                         .font(.system(size: symbolFontSize(inBox: m.hintIcon)))
                 }
                 Text("Results")
-                    .font(.system(size: m.segmentText, weight: .semibold))
+                    .font(inBottomStack ? TypeScale.bottomLabelFixed : .system(size: m.segmentText, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }

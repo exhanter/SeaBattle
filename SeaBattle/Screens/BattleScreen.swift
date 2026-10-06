@@ -45,12 +45,14 @@ enum BattleScreenMetrics {
 // MARK: - Прицел
 
 /// Спека 2.18, макет 18b: обводка `Role/You` толщиной 7 % клетки (не меньше
-/// 1,5 pt), внутрь на 1 pt, по радиусу клетки; мягкое свечение `Role/YouSoft`
+/// 1,5 pt), по краю и радиусу клетки; мягкое свечение `Role/YouSoft`
 /// радиусом 50 % клетки.
 enum AimMetrics {
     static let strokeRatio: CGFloat = 0.07
     static let minStroke: CGFloat = 1.5
-    static let insetIntoCell: CGFloat = 1
+    /// 0, а не 1 pt из спеки (06.10): в зазор выглядывала кромка клетки —
+    /// светлая сверху, тёмная снизу, — и рамка казалась сдвинутой.
+    static let insetIntoCell: CGFloat = 0
     static let glowRatio: CGFloat = 0.5
     /// Гаснет за 60 мс в момент выстрела (правило 4).
     static let fadeOut: Double = 0.060
@@ -260,11 +262,10 @@ struct BattleBoard: View {
         for cell in battle.hintCells where battle.enemy.coreBoard[cell].isUnshot {
             result[cell] = .hint
         }
-        if let aim = battle.aim { result[aim] = .aim }
         return result
     }
 
-    /// Прицел и открытые подсказкой клетки — поверх сетки, как корабли на
+    /// Открытые подсказкой клетки — поверх сетки, как корабли на
     /// расстановке: у `BoardCell` таких состояний нет, это не правила.
     private var marks: some View {
         let unshot = Set(Board.allCoordinates.filter { battle.enemy.coreBoard[$0].isUnshot })
@@ -283,15 +284,13 @@ struct BattleBoard: View {
                     // VoiceOver не нужна.
                     .accessibilityHidden(true)
             }
-            if let aim = battle.aim {
-                AimMark(at: aim, metrics: m)
-            }
         }
     }
 }
 
-/// Прицел на клетке (2.18) — слоем поверх сетки. Один на бой и игру на бумаге,
-/// где он значит «выстрел назван, ждём ответ».
+/// Прицел на клетке (2.18) — слоем поверх сетки. Только в игре на бумаге: там
+/// он значит «выстрел назван, ждём ответ». В остальных режимах касание сразу
+/// стреляет — подтверждение выстрела убрано 06.10.
 struct AimMark: View {
     let coordinate: Coordinate
     let metrics: BoardMetrics
@@ -391,7 +390,6 @@ private struct FinishDemo: View {
         .environment(\.usesPadLayout, pad)
         .task {
             appState.soundOn = false
-            appState.confirmShot = false
             battle.configure(appState: appState)
             appState.resetData(player: battle.player, enemy: battle.enemy)
             battle.player.place(FleetLayout.canonicalLayout())

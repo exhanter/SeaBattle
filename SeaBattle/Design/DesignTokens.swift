@@ -379,6 +379,14 @@ enum TypeScale {
     /// Подзаголовок ScreenTitle (необязательный): межстрочный 1,4, до двух строк, Ink/Secondary.
     static let screenSubtitle = Font.scalable(size: 12.5, weight: .regular)
     static let secondaryButton = Font.scalable(size: 14, weight: .semibold, design: .rounded)
+    /// Подписи всего, что внизу экрана на iPhone (`BottomStack`, `\.inBottomStack`):
+    /// кегль главной кнопки, на ступень тоньше. Раньше там стояли 15,5 / 14 /
+    /// 13 / 12,5 вперемешку — замечание заказчика 06.10.
+    static let bottomLabel = Font.scalable(size: 15.5, weight: .semibold, design: .rounded)
+    /// Тот же кегль, но **не растёт** с Dynamic Type — для переключателя полей,
+    /// подсказки, «Итогов» и «Отменить»: в R4.5d они фиксированы (ряд дока не
+    /// вмещает их крупнее), вместо роста у них Large Content Viewer.
+    static let bottomLabelFixed = Font.system(size: 15.5, weight: .semibold, design: .rounded)
     static let warning = Font.scalable(size: 13.5, weight: .semibold, design: .rounded)
     static let title     = Font.scalable(size: 24, weight: .semibold, design: .rounded)
     static let headline  = Font.scalable(size: 17, weight: .semibold)

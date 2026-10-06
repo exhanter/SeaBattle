@@ -228,4 +228,16 @@ struct ShellTests {
         #expect(ContinueTarget.resolve(isPlaying: true,
                                        hasVsComputer: true, hasHotSeat: true) == .resume)
     }
+
+    @Test("Экран уровня: тумблер обводки уходит, когда не помещается, и возвращается без дёрганья")
+    func markWaterTogglesByRoom() {
+        // Показан, всё влезает — остаётся; на 1 pt больше — уходит.
+        #expect(LevelScreen.markWaterFits(isShown: true, content: 600, slot: 58, viewport: 600))
+        #expect(!LevelScreen.markWaterFits(isShown: true, content: 601, slot: 58, viewport: 600))
+        // Скрыт: возвращается, только если влезет вместе со своим местом.
+        #expect(!LevelScreen.markWaterFits(isShown: false, content: 543, slot: 58, viewport: 600))
+        #expect(LevelScreen.markWaterFits(isShown: false, content: 542, slot: 58, viewport: 600))
+        // Скрыли при 601 → без него 543 → снова не влезает: решение устойчиво.
+        #expect(!LevelScreen.markWaterFits(isShown: false, content: 601 - 58, slot: 58, viewport: 600))
+    }
 }

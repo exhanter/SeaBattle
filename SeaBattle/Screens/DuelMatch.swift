@@ -32,8 +32,6 @@ final class DuelMatch {
     var editor = FleetEditor()
     /// Поле на экране. После открытия слоя — всегда поле противника (2.7).
     private(set) var shownField: Side = .foe
-    /// Названная клетка при включённом подтверждении выстрела.
-    private(set) var aim: Coordinate?
     /// Последнее событие клетки — одно, анимации не копятся (спека 5).
     private(set) var lastEvent: CellEvent?
     private(set) var result: MatchResult?
@@ -42,7 +40,6 @@ final class DuelMatch {
     private(set) var showsHandoff: Bool
 
     @ObservationIgnored var soundOn = true
-    @ObservationIgnored var confirmShot = false
     @ObservationIgnored private let pacing: DuelPacing
     /// Тесты не пишут на диск: сохранение одно на приложение.
     @ObservationIgnored private let persists: Bool
@@ -90,7 +87,6 @@ final class DuelMatch {
         cancelHandoff()
         showsHandoff = false
         shownField = .foe
-        aim = nil
         lastEvent = nil
         editor = FleetEditor()
         save()
@@ -103,7 +99,6 @@ final class DuelMatch {
         cancelHandoff()
         game.relock()
         showsHandoff = game.handoff != nil
-        aim = nil
         save()
     }
 
@@ -122,16 +117,9 @@ final class DuelMatch {
 
     // MARK: Выстрел
 
-    /// Касание поля противника. При подтверждении первое касание ставит
-    /// прицел, второе по той же клетке стреляет (как в бою против компьютера).
+    /// Касание поля противника — сразу выстрел.
     func tap(_ coordinate: Coordinate) {
         guard game.acceptsShot, shownField == .foe else { return }
-        if confirmShot && aim != coordinate {
-            aim = coordinate
-            if soundOn { AudioService.shared.play(.click) }
-            return
-        }
-        aim = nil
         fire(at: coordinate)
     }
 
@@ -165,7 +153,6 @@ final class DuelMatch {
 
     func show(_ field: Side) {
         shownField = field
-        if field == .you { aim = nil }
     }
 
     // MARK: Итог и серия
@@ -193,7 +180,6 @@ final class DuelMatch {
         editor = FleetEditor()
         result = nil
         lastEvent = nil
-        aim = nil
         shownField = .foe
         showsHandoff = game.handoff != nil
         save()

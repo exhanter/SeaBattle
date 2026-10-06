@@ -484,6 +484,8 @@ struct PaperUndoButton: View {
     var size: Geometry.SizeClass = .regular
     var action: () -> Void = {}
 
+    @Environment(\.inBottomStack) private var inBottomStack
+
     var body: some View {
         let compact = size.isCompact
         Button(action: action) {
@@ -492,7 +494,8 @@ struct PaperUndoButton: View {
                     .font(.system(size: symbolFontSize(inBox: compact ? 18 : 20)))
                     .frame(height: compact ? 18 : 20)
                 Text("Undo")
-                    .font(.system(size: compact ? 12 : 12.5, weight: .semibold, design: .rounded))
+                    .font(inBottomStack ? TypeScale.bottomLabelFixed
+                                        : .system(size: compact ? 12 : 12.5, weight: .semibold, design: .rounded))
             }
             .padding(.horizontal, compact ? 11 : 14)
         }

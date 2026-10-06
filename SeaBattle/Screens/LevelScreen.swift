@@ -130,11 +130,16 @@ struct LevelScreen: View {
     var onBack: () -> Void = {}
     var onMenu: () -> Void = {}
     var layout: LevelLayout = .rows
-    /// Настройки партии для раскладки `capsules` — те же, что в «Настройках».
-    var confirmShot: Binding<Bool> = .constant(false)
-    var markWater: Binding<Bool> = .constant(true)
+    /// Ставка, обводка и звук для раскладки `capsules`.
+    var options = LevelMatchOptions()
 
     @Environment(\.shapeFamily) private var shapeFamily
+    /// Высота области прокрутки и содержимого в ней — чтобы убрать тумблер
+    /// обводки, когда всё не помещается без прокрутки.
+    @State private var viewportHeight: CGFloat = 0
+    @State private var contentHeight: CGFloat = 0
+    @State private var markWaterSlot: CGFloat = Geometry.Bottom.controlHeight + 8
+    @State private var showsMarkWater = true
 
     var body: some View {
         VStack(spacing: 0) {
@@ -150,13 +155,20 @@ struct LevelScreen: View {
                         note
                     case .capsules:
                         LevelCapsuleList(selected: selected, isPremium: isPremium, onPick: pick)
-                        LevelMatchOptions(confirmShot: confirmShot, markWater: markWater)
+                        LevelMatchSection(level: selected, options: options,
+                                          showsMarkWater: showsMarkWater,
+                                          onMarkWaterHeight: { markWaterSlot = $0 + 8 })
                     }
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, Geometry.Nav.titleGap * 2)
+                .padding(.bottom, Geometry.Nav.titleGap)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
             }
             .scrollBounceBehavior(.basedOnSize)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+            .onChange(of: contentHeight) { fitMarkWater() }
+            .onChange(of: viewportHeight) { fitMarkWater() }
 
             BottomStack(onMenu: onMenu) {
                 // Форма с явной надписью, а не `Button("…", action:)`:
@@ -169,6 +181,23 @@ struct LevelScreen: View {
                 .primaryButton()
             }
         }
+    }
+
+    /// Тумблер прячется, если с ним экран прокручивался бы, и возвращается,
+    /// когда для него снова есть место. Решение по одной и той же сумме в обе
+    /// стороны, поэтому туда-обратно не дёргается.
+    private func fitMarkWater() {
+        guard layout == .capsules, viewportHeight > 0, contentHeight > 0 else { return }
+        let fits = Self.markWaterFits(isShown: showsMarkWater, content: contentHeight,
+                                      slot: markWaterSlot, viewport: viewportHeight)
+        if fits != showsMarkWater { showsMarkWater = fits }
+    }
+
+    /// Помещается ли содержимое вместе с тумблером. `content` — как сейчас
+    /// на экране: с тумблером, если он показан, без него — если нет.
+    static func markWaterFits(isShown: Bool, content: CGFloat, slot: CGFloat,
+                              viewport: CGFloat) -> Bool {
+        (isShown ? content : content + slot) <= viewport
     }
 
     private func pick(_ choice: LevelChoice) {
@@ -307,11 +336,27 @@ private struct LevelCapsuleList: View {
     }
 }
 
-/// Настройки, которые касаются именно партии, — под списком, капсулами. Это
-/// те же флаги, что в «Настройках», а не копии: переключённое здесь видно и там.
-private struct LevelMatchOptions: View {
-    @Binding var confirmShot: Bool
-    @Binding var markWater: Bool
+/// Ставка, настройка партии и звук — под списком уровней (решение заказчика
+/// 06.10, вместо убранного «Подтверждать выстрел»). Флаги — те же, что в
+/// «Настройках», а не копии: переключённое здесь видно и там.
+struct LevelMatchOptions {
+    var balance: Int = 0
+    var markWater: Binding<Bool> = .constant(true)
+    var soundOn: Binding<Bool> = .constant(true)
+    var musicOn: Binding<Bool> = .constant(false)
+    var hapticsOn: Binding<Bool> = .constant(true)
+    /// Кружка вибрации нет там, где её нет и в настройках: iPad, симулятор
+    /// (`HapticService.isSupported`).
+    var offersHaptics = true
+}
+
+private struct LevelMatchSection: View {
+    let level: AppState.DifficultyLevel
+    let options: LevelMatchOptions
+    /// Тумблер обводки не помещается (маленький экран, крупный шрифт) — им
+    /// жертвуем первым: он есть и в «Настройках» (выбор заказчика 06.10).
+    let showsMarkWater: Bool
+    var onMarkWaterHeight: (CGFloat) -> Void = { _ in }
 
     @Environment(\.shapeFamily) private var shapeFamily
 
@@ -324,16 +369,20 @@ private struct LevelMatchOptions: View {
                 .foregroundStyle(Color.inkSecondary)
                 .padding(.leading, LevelMetrics.overlineInset)
                 .padding(.top, 14)
-            option("Confirm each shot", isOn: $confirmShot)
-                .accessibilityIdentifier("levelConfirmShot")
-            option("Mark the water around sunk ships", isOn: $markWater)
-                .accessibilityIdentifier("levelAutoReveal")
+            LevelStakeCard(level: level, balance: options.balance)
+            if showsMarkWater {
+                markWater
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onMarkWaterHeight($0) }
+            }
+            LevelSoundRow(soundOn: options.soundOn, musicOn: options.musicOn,
+                          hapticsOn: options.hapticsOn, offersHaptics: options.offersHaptics)
+                .padding(.top, 4)
         }
     }
 
-    private func option(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
-            Text(title)
+    private var markWater: some View {
+        Toggle(isOn: options.markWater) {
+            Text("Mark the water around sunk ships")
                 .font(.scalable(size: 14.5, weight: .medium))
                 .foregroundStyle(Color.inkPrimary)
         }
@@ -342,6 +391,146 @@ private struct LevelMatchOptions: View {
         .padding(.trailing, 12)
         .frame(minHeight: Geometry.Bottom.controlHeight)
         .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: 18))
+        .accessibilityIdentifier("levelAutoReveal")
+    }
+}
+
+/// Что стоит выбранный уровень: сколько даёт победа, сколько стоит подсказка
+/// (это одно число — ставка уровня) и сколько баллов у игрока сейчас.
+private struct LevelStakeCard: View {
+    let level: AppState.DifficultyLevel
+    let balance: Int
+
+    @Environment(\.shapeFamily) private var shapeFamily
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// На AX1–AX5 три колонки не помещаются — столбец строк «число — подпись».
+    private var stacked: Bool { dynamicTypeSize.isAccessibilitySize }
+
+    var body: some View {
+        let layout = stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(spacing: 0))
+        layout {
+            cell(value: "+\(level.pointsValue)", caption: "per win", warm: true)
+            divider
+            cell(value: "\(level.pointsValue)", caption: "per hint", warm: false)
+            divider
+            cell(value: "\(balance)", caption: "you have", warm: false)
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, stacked ? 18 : 0)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: LevelMetrics.noteRadius))
+        .accessibilityIdentifier("levelStake")
+    }
+
+    @ViewBuilder
+    private var divider: some View {
+        if !stacked {
+            Rectangle()
+                .fill(Color.glassStroke)
+                .frame(width: 1, height: 30)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func cell(value: String, caption: LocalizedStringKey, warm: Bool) -> some View {
+        let layout = stacked
+            ? AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 10))
+            : AnyLayout(VStackLayout(spacing: 2))
+        return layout {
+            HStack(spacing: 4) {
+                Image(systemName: PointsSymbol.name)
+                    .font(.scalable(size: 13, weight: .semibold))
+                    .accessibilityHidden(true)
+                Text(verbatim: value)
+                    .font(.scalable(size: 19, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
+            .foregroundStyle(warm ? Color.roleYou : Color.inkPrimary)
+            Text(caption)
+                .font(.scalable(size: 11.5))
+                .foregroundStyle(Color.inkSecondary)
+                .lineLimit(stacked ? nil : 1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: stacked ? nil : .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Звук, музыка и вибрация кружками: латунный — включено, стеклянный с
+/// перечёркнутым значком — выключено. Перехода в настройки рядом нет — он
+/// в меню (решение заказчика 06.10).
+private struct LevelSoundRow: View {
+    @Binding var soundOn: Bool
+    @Binding var musicOn: Bool
+    @Binding var hapticsOn: Bool
+    let offersHaptics: Bool
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Toggle(isOn: $soundOn) { Text("Sound") }
+                .toggleStyle(SoundChipStyle(title: "Sound", on: "speaker.wave.2.fill", off: "speaker.slash.fill"))
+                .accessibilityIdentifier("levelSound")
+            Toggle(isOn: $musicOn) { Text("Music") }
+                .toggleStyle(SoundChipStyle(title: "Music", on: "music.note", off: "music.note", strikesOff: true))
+                .accessibilityIdentifier("levelMusic")
+            if offersHaptics {
+                Toggle(isOn: $hapticsOn) { Text("Vibration") }
+                    .toggleStyle(SoundChipStyle(title: "Vibration", on: "iphone.radiowaves.left.and.right",
+                                                off: "iphone.slash"))
+                    .accessibilityIdentifier("levelHaptics")
+            }
+            Spacer(minLength: 0)
+        }
+        .onChange(of: hapticsOn) { _, isOn in
+            // Как в настройках: включили — сразу дать почувствовать.
+            if isOn { HapticService.shared.play(.hit) }
+        }
+    }
+}
+
+/// Круглый выключатель 44 pt. Надпись — только для VoiceOver: значок и цвет
+/// говорят сами, а три подписи в ряд на 375 pt не помещаются по-нидерландски.
+private struct SoundChipStyle: ToggleStyle {
+    let title: LocalizedStringKey
+    let on: String
+    let off: String
+    /// У значка нет перечёркнутой версии — черта рисуется поверх.
+    var strikesOff = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        let isOn = configuration.isOn
+        return Button { configuration.isOn.toggle() } label: {
+            ZStack {
+                Circle().fill(isOn ? Color.roleYou : Color.clear)
+                // Значок в рамке контрола не растёт (правило R4.5d) — вместо
+                // этого крупный просмотр по долгому нажатию.
+                Image(systemName: isOn ? on : off)
+                    .font(.system(size: symbolFontSize(inBox: 18), weight: .semibold))
+                    .foregroundStyle(isOn ? Color.inkOnBrass : Color.inkSecondary)
+                if !isOn && strikesOff {
+                    Capsule()
+                        .fill(Color.inkSecondary)
+                        .frame(width: 22, height: 1.5)
+                        .rotationEffect(.degrees(-45))
+                }
+            }
+            .frame(width: 44, height: 44)
+            .glassPanel(.g2, radius: 22)
+            .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Text(isOn ? "On" : "Off"))
+        .accessibilityAddTraits(.isToggle)
+        .accessibilityShowsLargeContentViewer {
+            Label { Text(title) } icon: { Image(systemName: isOn ? on : off) }
+        }
     }
 }
 
@@ -411,8 +600,10 @@ private struct LevelScreenDemo: View {
     @State private var selected: AppState.DifficultyLevel
     let isPremium: Bool
     let layout: LevelLayout
-    @State private var confirmShot = false
     @State private var markWater = true
+    @State private var soundOn = true
+    @State private var musicOn = false
+    @State private var hapticsOn = true
 
     init(selected: AppState.DifficultyLevel = .hard, isPremium: Bool = false,
          layout: LevelLayout = .capsules) {
@@ -426,7 +617,9 @@ private struct LevelScreenDemo: View {
             SeaBackground()
             LevelScreen(selected: selected, isPremium: isPremium,
                         onSelect: { selected = $0 }, layout: layout,
-                        confirmShot: $confirmShot, markWater: $markWater)
+                        options: LevelMatchOptions(balance: 42, markWater: $markWater,
+                                                   soundOn: $soundOn, musicOn: $musicOn,
+                                                   hapticsOn: $hapticsOn, offersHaptics: true))
         }
     }
 }

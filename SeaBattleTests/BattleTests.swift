@@ -16,10 +16,9 @@ import SwiftUI
 @Suite("Бой против компьютера")
 struct BattleTests {
 
-    private func match(confirm: Bool = false) -> (AppState, BattleController) {
+    private func match() -> (AppState, BattleController) {
         let appState = AppState()
         appState.soundOn = false
-        appState.confirmShot = confirm
         let battle = BattleController(pacing: .instant)
         battle.configure(appState: appState)
         appState.resetData(player: battle.player, enemy: battle.enemy)
@@ -103,45 +102,21 @@ struct BattleTests {
         battle.beginMatch()
         #expect(!battle.isOpponentThinking)
         #expect(battle.incoming.isEmpty)
-        #expect(battle.aim == nil)
     }
 
-    // MARK: Подтверждение выстрела
-
-    @Test("С подтверждением первое касание ставит прицел, второе стреляет")
-    func confirmationAimsThenFires() {
-        let (_, battle) = match(confirm: true)
-        let cell = shipCell(battle.enemy)
-        let other = waterCell(battle.enemy)
-
-        battle.tap(cell)
-        #expect(battle.aim == cell)
-        #expect(battle.enemy.coreBoard[cell] == .ship)
-
-        // Касание другой клетки переносит прицел, а не стреляет.
-        battle.tap(other)
-        #expect(battle.aim == other)
-        #expect(battle.enemy.coreBoard[other] == .water)
-
-        battle.tap(cell)
-        battle.tap(cell)
-        #expect(battle.aim == nil)
-        #expect(battle.enemy.coreBoard[cell].holdsKnownShip)
-    }
-
-    @Test("Без подтверждения стреляет первое касание")
-    func withoutConfirmationOneTapFires() {
+    @Test("Стреляет первое касание")
+    func oneTapFires() {
         let (_, battle) = match()
         let cell = shipCell(battle.enemy)
         battle.tap(cell)
-        #expect(battle.aim == nil)
         #expect(battle.enemy.coreBoard[cell].holdsKnownShip)
     }
 
-    @Test("Подтверждение выстрела по умолчанию выключено")
-    func confirmationIsOffByDefault() {
-        UserDefaults.standard.removeObject(forKey: "confirmShot")
-        #expect(!AppState().confirmShot)
+    @Test("Сохранённый флаг подтверждения выстрела забывается")
+    func theOldConfirmFlagIsDropped() {
+        UserDefaults.standard.set(true, forKey: "confirmShot")
+        _ = AppState()
+        #expect(UserDefaults.standard.object(forKey: "confirmShot") == nil)
     }
 
     @Test("На ходе соперника касание не стреляет и подсказка погашена")

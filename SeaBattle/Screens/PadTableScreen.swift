@@ -248,7 +248,6 @@ struct PadTableScreen: View {
                                                       reduceMotion: reduceMotion)),
                    value: editor?.wrappedValue.conflictKind)
         .animation(Motion.quick.reduced(reduceMotion), value: paper?.game.aim)
-        .animation(Motion.quick.reduced(reduceMotion), value: duel?.aim)
     }
 
     // MARK: Вертикально (21a, 23d)

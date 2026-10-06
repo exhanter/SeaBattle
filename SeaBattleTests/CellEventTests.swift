@@ -165,9 +165,6 @@ struct CellEventTests {
     private func match() -> (AppState, BattleController) {
         let appState = AppState()
         appState.soundOn = false
-        // Явно: настройка общая через `UserDefaults`, а `BattleTests` рядом
-        // её включают — первое касание поставило бы прицел вместо выстрела.
-        appState.confirmShot = false
         let battle = BattleController(pacing: .instant)
         battle.configure(appState: appState)
         appState.resetData(player: battle.player, enemy: battle.enemy)

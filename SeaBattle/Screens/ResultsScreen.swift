@@ -88,6 +88,7 @@ struct ResultsScreen: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.bottomChrome) private var bottomChrome
     @State private var hasRisen = false
     @State private var counted = 0.0
 
@@ -382,42 +383,65 @@ struct ResultsScreen: View {
 
     // MARK: Кнопки
 
-    /// Колонка у нижнего края с числами `BottomStack`, но без `NavRow`: в
-    /// кадре итогов «В меню» — второстепенная кнопка, и две строки «Меню»
-    /// друг под другом были бы одним действием дважды.
     /// Вынесено из кнопки: тернарный оператор внутри `Text` в `Button`
     /// ломает инструментирование превью (сборка при этом проходит).
     private var playAgainTitle: LocalizedStringKey {
         result.didWin ? "Play again" : "Rematch"
     }
 
+    @ViewBuilder
     private var actions: some View {
-        VStack(spacing: Geometry.Nav.stackGap) {
-            Button(action: onPlayAgain) {
-                Text(playAgainTitle)
-            }
-            .primaryButton()
-            .accessibilityIdentifier("resultPlayAgain")
-
-            // Поля после партии (решение заказчика 05.10): посмотреть, где
-            // стоял флот противника, и чем кончился последний выстрел.
-            AdaptiveRow(spacing: Geometry.Nav.stackGap, accessibilitySpacing: Geometry.Nav.stackGap) {
+        switch bottomChrome {
+        case .dock:
+            // iPhone (решение заказчика 06.10): тот же док, что на всех экранах
+            // партии, — «Меню» кругом слева, главная рядом. «Сыграть ещё»
+            // ложится туда же, где на следующем экране «Начать»: повтор —
+            // два касания в одно место. Над доком — ряд второстепенных, в
+            // нём есть место для будущих («история ходов» и т. п.).
+            BottomStack(onMenu: onMenu) {
                 if let onReview {
-                    Button(action: onReview) {
-                        Label("View boards", systemImage: "square.grid.3x3")
+                    HStack(spacing: Geometry.Nav.stackGap) {
+                        reviewButton(onReview)
+                    }
+                }
+                playAgainButton
+            }
+        case .legacy:
+            // iPad: колонка с числами `BottomStack`, но без `NavRow` — «В меню»
+            // здесь второстепенная кнопка, и две строки «Меню» друг под другом
+            // были бы одним действием дважды. Главная — внизу, как на iPhone.
+            VStack(spacing: Geometry.Nav.stackGap) {
+                AdaptiveRow(spacing: Geometry.Nav.stackGap, accessibilitySpacing: Geometry.Nav.stackGap) {
+                    if let onReview { reviewButton(onReview) }
+                    Button(action: onMenu) {
+                        Label("To menu", systemImage: "line.3.horizontal")
                     }
                     .secondaryButton()
-                    .accessibilityIdentifier("resultReview")
+                    .accessibilityIdentifier("resultMenu")
                 }
-                Button(action: onMenu) {
-                    Label("To menu", systemImage: "line.3.horizontal")
-                }
-                .secondaryButton()
-                .accessibilityIdentifier("resultMenu")
+                playAgainButton
             }
+            .padding(.horizontal, Geometry.Nav.stackInset)
+            .padBottomFrame()
         }
-        .padding(.horizontal, Geometry.Nav.stackInset)
-        .padBottomFrame()
+    }
+
+    private var playAgainButton: some View {
+        Button(action: onPlayAgain) {
+            Text(playAgainTitle)
+        }
+        .primaryButton()
+        .accessibilityIdentifier("resultPlayAgain")
+    }
+
+    /// Поля после партии (решение заказчика 05.10): посмотреть, где стоял
+    /// флот противника и чем кончился последний выстрел.
+    private func reviewButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label("View boards", systemImage: "square.grid.3x3")
+        }
+        .secondaryButton()
+        .accessibilityIdentifier("resultReview")
     }
 }
 
@@ -602,7 +626,8 @@ private struct ResultsDemo: View {
         ZStack {
             SeaBackground()
                 .ignoresSafeArea()
-            ResultsScreen(result: result)
+            // С «Посмотреть поля», как после настоящей партии.
+            ResultsScreen(result: result, onReview: {})
         }
     }
 

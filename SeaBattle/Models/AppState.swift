@@ -179,16 +179,6 @@ class AppState {
         }
     }
     private static let askLevelKey = "askLevelBeforeMatch"
-    /// «Спрашивать подтверждение выстрела» (spec 4.5, 4.11): the first tap on
-    /// the opponent's board aims, the second one fires. **Off by default**, so
-    /// a quick game stays one tap per shot. Persisted here for the same reason
-    /// as `askLevelBeforeMatch`.
-    var confirmShot: Bool {
-        didSet {
-            UserDefaults.standard.set(confirmShot, forKey: Self.confirmShotKey)
-        }
-    }
-    private static let confirmShotKey = "confirmShot"
     /// «Своё поле в горизонтальной ориентации» (spec 4.11, iPad only): which
     /// side of the landscape table holds your own board. **Left by default** —
     /// the opponent's board sits under the right hand. The feed, the hint and
@@ -307,7 +297,8 @@ class AppState {
         // not `as? Bool`: a launch argument (`-askLevelBeforeMatch NO`, the UI
         // tests) arrives as the string "NO", which `as? Bool` reads as absent.
         self.askLevelBeforeMatch = Self.flag(Self.askLevelKey, absent: true, in: defaults)
-        self.confirmShot = defaults.bool(forKey: Self.confirmShotKey)
+        // «Подтверждать выстрел» убран 06.10 — забыть сохранённый флаг.
+        defaults.removeObject(forKey: "confirmShot")
         self.ownBoardOnRight = defaults.bool(forKey: Self.ownBoardOnRightKey)
         self.soundOn = UserDefaults.standard.bool(forKey: "soundOn")
         self.musicOn = UserDefaults.standard.bool(forKey: "musicOn")

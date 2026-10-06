@@ -539,8 +539,12 @@ struct AppShell: View {
                         // iPhone — с настройками партии под списком (решение
                         // заказчика 06.10); iPad пока прежний.
                         layout: usesPadLayout ? .rows : .capsules,
-                        confirmShot: clicking(\.confirmShot),
-                        markWater: clicking(\.autoRevealAroundSunk))
+                        options: LevelMatchOptions(balance: ProgressStore.shared.points,
+                                                   markWater: clicking(\.autoRevealAroundSunk),
+                                                   soundOn: clicking(\.soundOn),
+                                                   musicOn: clicking(\.musicOn),
+                                                   hapticsOn: clicking(\.hapticsOn),
+                                                   offersHaptics: HapticService.isSupported))
                 // iPad: колонка 520 pt по центру (4.3).
                 .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
 
@@ -762,7 +766,6 @@ struct AppShell: View {
                                                 colorIndex: me.colorIndex, accountID: accountID),
                              revealsRing: appState.autoRevealAroundSunk)
         match.soundOn = appState.soundOn
-        match.confirmShot = appState.confirmShot
         match.start()
         net = match
         route = .network
@@ -854,7 +857,6 @@ struct AppShell: View {
 
     private func configure(_ match: DuelMatch) {
         match.soundOn = appState.soundOn
-        match.confirmShot = appState.confirmShot
     }
 
     private func continueHotSeat() {
@@ -966,7 +968,6 @@ struct AppShell: View {
         if appState.gameIsActive && !appState.enemysTurn {
             GameStore.save(battle.snapshot(of: appState))
         }
-        battle.leave()
         appState.selectedTab = .menu
     }
 

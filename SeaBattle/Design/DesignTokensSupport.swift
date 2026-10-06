@@ -438,6 +438,9 @@ extension EnvironmentValues {
     @Entry var shapeFamily: Geometry.ShapeFamily = .capsule
     /// Как устроен низ экранов партии (`Geometry.BottomChrome`).
     @Entry var bottomChrome: Geometry.BottomChrome = .dock
+    /// Контрол лежит в нижнем блоке iPhone (`BottomStack` в стиле `dock`) —
+    /// подписи кеглем `TypeScale.bottomLabel`, одним на весь блок.
+    @Entry var inBottomStack = false
 }
 
 extension View {

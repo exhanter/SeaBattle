@@ -279,18 +279,9 @@ struct DuelBoard: View {
         return BoardView(cells: cells, role: field, metrics: m, isActive: isActive,
                          alphabet: alphabet,
                          event: match.event(on: field),
-                         marks: field == .foe ? match.aim.map { [$0: .aim] } ?? [:] : [:],
                          onTap: field == .foe
                             ? { column, row in match.tap(Coordinate(row: row + 1, column: column + 1)) }
                             : nil)
-            .overlay(alignment: .topLeading) {
-                if field == .foe, let aim = match.aim {
-                    AimMark(at: aim, metrics: m)
-                        .frame(width: m.gridSide, height: m.gridSide, alignment: .topLeading)
-                        .offset(x: m.inset, y: m.inset)
-                        .allowsHitTesting(false)
-                }
-            }
             .frame(width: m.totalSize.width, height: m.totalSize.height)
             .accessibilityIdentifier(field == .foe ? "duelFoeBoard" : "duelOwnBoard")
     }

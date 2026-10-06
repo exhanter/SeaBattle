@@ -87,9 +87,6 @@ final class BattleController {
     let player = PlayerData(side: .you)
     let enemy = PlayerData(side: .foe)
 
-    /// Названная клетка при включённом подтверждении: первое касание ставит
-    /// прицел, второе по той же клетке стреляет.
-    private(set) var aim: Coordinate?
     /// «По вам за этот раунд» — выстрелы компьютера за его последний ход.
     private(set) var incoming: [ShotFeedEntry] = []
     /// Последний выстрел — по любому полю. Ровно одно: новое событие
@@ -127,23 +124,15 @@ final class BattleController {
 
     // MARK: Партия
 
-    /// Новая или продолженная партия: всё временное — прицел, лента, ход
-    /// компьютера, итог — сбрасывается, поля не трогаются (их готовит
-    /// вызывающий). Продолженная партия приносит свой счёт из сохранения.
+    /// Новая или продолженная партия: всё временное — лента, ход компьютера,
+    /// итог — сбрасывается, поля не трогаются (их готовит вызывающий).
+    /// Продолженная партия приносит свой счёт из сохранения.
     func beginMatch(tally: MatchTally = MatchTally()) {
         cancelOpponentTurn()
-        aim = nil
         incoming = []
         lastEvent = nil
         result = nil
         self.tally = tally
-    }
-
-    /// Выход в меню посреди партии. Ход компьютера **не** обрывается — он
-    /// доиграет и сохранит партию в стабильной точке; обрывается только
-    /// прицел, он принадлежит экрану.
-    func leave() {
-        aim = nil
     }
 
     var isPlayersTurn: Bool {
@@ -155,17 +144,9 @@ final class BattleController {
 
     // MARK: Выстрел игрока
 
-    /// Касание клетки поля противника. При подтверждении первое касание
-    /// ставит прицел, второе по той же клетке стреляет; касание другой клетки
-    /// переносит прицел.
+    /// Касание клетки поля противника — сразу выстрел.
     func tap(_ coordinate: Coordinate) {
-        guard let appState, isPlayersTurn else { return }
-        if appState.confirmShot && aim != coordinate {
-            aim = coordinate
-            if appState.soundOn { AudioService.shared.play(.click) }
-            return
-        }
-        aim = nil
+        guard isPlayersTurn else { return }
         fire(at: coordinate)
     }
 
@@ -296,7 +277,6 @@ final class BattleController {
         // его оттуда на поле посреди статистики нельзя.
         guard appState.selectedTab == .playerView || appState.selectedTab == .enemyView else { return }
         appState.selectedTab = field == .you ? .playerView : .enemyView
-        if field == .you { aim = nil }
     }
 
     // MARK: Подсказка

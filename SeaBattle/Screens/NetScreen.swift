@@ -365,11 +365,10 @@ struct NetBoard: View {
         let board = match.board(.foe)
         var result: [Coordinate: BoardMark] = [:]
         for cell in match.game.revealed where board[cell].isUnshot { result[cell] = .hint }
-        if let aim = match.aim { result[aim] = .aim }
         return result
     }
 
-    /// Прицел и клетки, открытые подсказкой, — как в бою против компьютера.
+    /// Клетки, открытые подсказкой, — как в бою против компьютера.
     private var marks: some View {
         let m = metrics
         let board = match.board(.foe)
@@ -387,9 +386,6 @@ struct NetBoard: View {
                     // Метка — значение клетки (`BoardView.marks`), картинка
                     // VoiceOver не нужна.
                     .accessibilityHidden(true)
-            }
-            if let aim = match.aim {
-                AimMark(at: aim, metrics: m)
             }
         }
     }

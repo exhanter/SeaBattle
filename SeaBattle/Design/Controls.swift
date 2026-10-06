@@ -394,6 +394,7 @@ struct SecondaryButtonStyle: ButtonStyle {
     /// `answerBtn`, решение заказчика 30.09 по В29 — до шлифовки дизайна).
     var minHeight: CGFloat = Geometry.SecondaryButton.height
     @Environment(\.bottomChrome) private var chrome
+    @Environment(\.inBottomStack) private var inBottomStack
 
     /// В новом низе (`BottomChrome`) у всех нижних кнопок одна высота.
     private var height: CGFloat {
@@ -404,7 +405,7 @@ struct SecondaryButtonStyle: ButtonStyle {
         let shape = RoundedRectangle(cornerRadius: radius ?? shapeFamily.radius(.control, legacy: Geometry.SecondaryButton.radius),
                                      style: .continuous)
         return configuration.label
-            .font(TypeScale.secondaryButton)
+            .font(inBottomStack ? TypeScale.bottomLabel : TypeScale.secondaryButton)
             .foregroundStyle(Color.inkPrimary)
             .multilineTextAlignment(.center)
             .padding(.horizontal, fillsFrame ? 0 : Geometry.SecondaryButton.padding)

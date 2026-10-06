@@ -175,6 +175,7 @@ struct BottomStack<Content: View>: View {
                 }
             }
         }
+        .environment(\.inBottomStack, chrome == .dock)
         .padding(.horizontal, Geometry.Nav.stackInset)
         .padBottomFrame()
     }
@@ -207,8 +208,9 @@ private struct MenuDockButton: View {
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: symbolFontSize(inBox: NavMetrics.menuButtonIcon), weight: .semibold))
                 .foregroundStyle(Color.inkPrimary)
-                .frame(width: Geometry.Bottom.controlHeight)
-                .frame(maxHeight: .infinity)
+                // Круг, а не столбик: с крупным шрифтом ряд дока растёт, а
+                // «Меню» остаётся кругом 50 по центру ряда.
+                .frame(width: Geometry.Bottom.controlHeight, height: Geometry.Bottom.controlHeight)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

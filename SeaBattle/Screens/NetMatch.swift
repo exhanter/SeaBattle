@@ -70,7 +70,6 @@ final class NetMatch {
     /// Поле на экране. Ожидание хода — тоже на поле противника: оно не
     /// нажимается, а лента «По вам» наполняется под ним (кадр `screen5NetWait`).
     private(set) var shownField: Side = .foe
-    private(set) var aim: Coordinate?
     private(set) var lastEvent: CellEvent?
     /// Итог на экране. При выходе соперника он готов сразу, а показывается
     /// по кнопке «К результатам» (`screen5NetLeft`).
@@ -82,7 +81,6 @@ final class NetMatch {
     var mode: GameMode { statKey.mode }
 
     @ObservationIgnored var soundOn = true
-    @ObservationIgnored var confirmShot = false
     @ObservationIgnored private let transport: any NetworkTransport
     @ObservationIgnored private let pacing: NetPacing
     /// Тесты не пишут статистику: хранилище одно на приложение.
@@ -154,22 +152,14 @@ final class NetMatch {
 
     // MARK: Выстрел
 
-    /// Касание поля противника. При подтверждении первое касание ставит
-    /// прицел, второе по той же клетке стреляет.
+    /// Касание поля противника — сразу выстрел.
     func tap(_ coordinate: Coordinate) {
         guard game.acceptsShot, shownField == .foe, !link.isLost else { return }
-        if confirmShot && aim != coordinate {
-            aim = coordinate
-            if soundOn { AudioService.shared.play(.click) }
-            return
-        }
-        aim = nil
         if let message = game.fire(at: coordinate) { transport.send(message) }
     }
 
     func show(_ field: Side) {
         shownField = field
-        if field == .you { aim = nil }
     }
 
     // MARK: Подсказка
@@ -237,7 +227,6 @@ final class NetMatch {
         result = nil
         pendingResult = nil
         lastEvent = nil
-        aim = nil
         shownField = .foe
     }
 
@@ -271,7 +260,6 @@ final class NetMatch {
         lastEvent = CellEvent(id: nextEventID, field: shot.field, target: shot.at,
                               outcome: shot.outcome, before: shot.before, after: shot.after)
         nextEventID += 1
-        if shot.field == .foe { aim = nil }
         HapticService.shared.play(outcome: shot.outcome)
         guard soundOn else { return }
         switch shot.outcome {

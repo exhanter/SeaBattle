@@ -117,10 +117,6 @@ struct SettingsScreen: View {
                           subtitle: "After a sinking the game marks the cells around the ship as misses",
                           isOn: clicking($appState.autoRevealAroundSunk))
                 .accessibilityIdentifier("settingsAutoReveal")
-            ListToggleRow(title: "Confirm each shot",
-                          subtitle: "The first tap aims, the second one fires — no shots by accident",
-                          isOn: clicking($appState.confirmShot))
-                .accessibilityIdentifier("settingsConfirmShot")
             LevelMenu(selected: appState.difficultyLevel,
                       isPremium: isPremium,
                       isLocked: levelLocked,

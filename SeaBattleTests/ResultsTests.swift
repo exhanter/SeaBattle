@@ -84,9 +84,6 @@ struct ResultsTests {
         let appState = AppState()
         appState.soundOn = false
         appState.musicOn = false
-        // Общий через `UserDefaults` с `BattleTests`: без явного значения
-        // первое касание могло бы поставить прицел вместо выстрела.
-        appState.confirmShot = false
         let battle = BattleController(pacing: .instant)
         battle.configure(appState: appState)
         appState.resetData(player: battle.player, enemy: battle.enemy)

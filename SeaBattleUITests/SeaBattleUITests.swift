@@ -33,7 +33,6 @@ final class SeaBattleUITests: XCTestCase {
             "-onboardingDone", "YES",
             "-Language", "en",
             "-askLevelBeforeMatch", "YES",
-            "-confirmShot", "NO",
             "-soundOn", "NO",
             "-musicOn", "NO",
         ]
