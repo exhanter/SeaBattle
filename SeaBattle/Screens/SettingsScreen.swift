@@ -278,5 +278,6 @@ struct LevelMenu: View {
     }
     .environment(AppState())
     .environment(\.usesPadLayout, true)
+    .phoneStyle(true)
     .preferredColorScheme(.dark)
 }

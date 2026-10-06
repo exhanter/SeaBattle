@@ -4,7 +4,7 @@
 //
 //  Спека 2.11–2.12 и правило 3.1. Таб-бар стоит **только** на корнях трёх
 //  табов; всё, что начинается с выбора режима в меню, — это партия, и там
-//  сверху `ScreenTitle`, снизу `BottomStack`, последней строкой `NavRow`.
+//  сверху `ScreenTitle`, снизу `BottomStack` с «Меню» в последнем ряду.
 //
 //  Компоненты пришли в пакет в раунде 3: в макетах они использовались 19–20
 //  раз, но в спеке их не было вовсе, поэтому R2.1 собрал меню без них.
@@ -89,6 +89,10 @@ enum NavMetrics {
     static let menuIcon: CGFloat = 21
     static let menuText: CGFloat = 13.5
     static let menuGap: CGFloat = 8
+    /// Значок кнопки-круга «Меню» в доке: кегль 19 — как у значков таб-бара
+    /// (18) и подсказки рядом. Прежние 15 строки «Меню» в круге 50 читались
+    /// мелко (замечание заказчика 06.10).
+    static let menuButtonIcon: CGFloat = 26
     /// Верх заголовка отсчитан от края экрана (68 pt под полосой состояния),
     /// а не от безопасной зоны — как в макетах. Полоса на современных iPhone
     /// ≈ 59 pt, отсюда остаток.
@@ -102,6 +106,7 @@ enum NavMetrics {
 /// а строку не перестраивают — вход вернётся на это же место.
 struct NavRow: View {
     var onMenu: () -> Void = {}
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         HStack(spacing: 0) {
@@ -135,24 +140,84 @@ struct NavRow: View {
         }
         .padding(.horizontal, Geometry.Nav.rowPadding)
         .frame(height: Geometry.Nav.rowHeight)
-        .glassPanel(.g2, radius: Geometry.Nav.rowRadius, wood: .top)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: Geometry.Nav.rowRadius), wood: .top)
     }
 }
 
 /// Колонка действий у нижнего края: вспомогательные действия фазы → главная
-/// кнопка → `NavRow`. **`NavRow` всегда последний**, поэтому он часть
+/// кнопка → «Меню». **«Меню» всегда в последнем ряду**, поэтому оно часть
 /// контейнера, а не его содержимого: забыть его или поставить не туда нельзя.
+/// iPhone — док: последний ряд в стеклянной панели размером с таб-бар,
+/// «Меню» в нём слева (06.10). iPad — строка `NavRow` под действиями.
 struct BottomStack<Content: View>: View {
     var onMenu: () -> Void = {}
     @ViewBuilder var content: Content
 
+    @Environment(\.bottomChrome) private var chrome
+    @Environment(\.shapeFamily) private var shapeFamily
+
     var body: some View {
-        VStack(spacing: Geometry.Nav.stackGap) {
-            content
-            NavRow(onMenu: onMenu)
+        Group {
+            switch chrome {
+            case .legacy:
+                VStack(spacing: Geometry.Nav.stackGap) {
+                    content
+                    NavRow(onMenu: onMenu)
+                }
+            case .dock:
+                // Последний ряд содержимого — главный: он ложится в док рядом
+                // с «Меню», остальные ряды — над доком.
+                Group(subviews: content) { rows in
+                    VStack(spacing: Geometry.Nav.stackGap) {
+                        ForEach(rows.dropLast()) { $0 }
+                        dock(rows.last)
+                    }
+                }
+            }
         }
         .padding(.horizontal, Geometry.Nav.stackInset)
         .padBottomFrame()
+    }
+
+    private func dock(_ row: Subview?) -> some View {
+        HStack(spacing: Geometry.Nav.stackGap) {
+            // Только значок, как у подсказки: подпись «Меню» в доке не
+            // помещалась (замечание заказчика 06.10).
+            MenuDockButton(onMenu: onMenu)
+            row
+        }
+        // Минимум, а не высота: с крупным шрифтом кнопки растут. Во всю
+        // ширину — и тогда, когда в ряду одно «Меню» («Рядом» во время поиска).
+        .frame(maxWidth: .infinity, minHeight: Geometry.Bottom.controlHeight, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(Geometry.Bottom.dockPadding)
+        .glassPanel(.g2, radius: shapeFamily.radius(.dock, legacy: Geometry.SizeClass.regular.tabRadius),
+                    wood: .top)
+    }
+}
+
+/// «Меню» кругом в доке. Подписи нет — её говорит VoiceOver и показывает
+/// крупный просмотр.
+private struct MenuDockButton: View {
+    var onMenu: () -> Void
+    @Environment(\.shapeFamily) private var shapeFamily
+
+    var body: some View {
+        Button(action: onMenu) {
+            Image(systemName: "line.3.horizontal")
+                .font(.system(size: symbolFontSize(inBox: NavMetrics.menuButtonIcon), weight: .semibold))
+                .foregroundStyle(Color.inkPrimary)
+                .frame(width: Geometry.Bottom.controlHeight)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: Geometry.Nav.rowRadius))
+        .accessibilityLabel(Text("Menu"))
+        .accessibilityIdentifier("navMenuButton")
+        .accessibilityShowsLargeContentViewer {
+            Label("Menu", systemImage: "line.3.horizontal")
+        }
     }
 }
 

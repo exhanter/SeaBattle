@@ -103,4 +103,28 @@ struct ControlsTests {
         #expect(ControlMetrics.Segment.minHeight == Geometry.Hit.minTarget)
         #expect(ControlMetrics.Segment.minHeight + padding * 2 == CGFloat(50))
     }
+
+    @Test("Док iPhone — ровно таб-бар, и в нём помещается нижний ряд")
+    func theDockMatchesTheTabBar() {
+        // Переход из меню в партию не должен двигать низ экрана (06.10): док и
+        // таб-бар одной высоты, а внутри — ряд высотой с главную кнопку и
+        // переключатель полей (сегмент 44 + обойма 2 × 3).
+        #expect(Geometry.Bottom.dockHeight == CGFloat(68))
+        #expect(Geometry.Bottom.dockHeight == Geometry.SizeClass.regular.tabHeight)
+        #expect(Geometry.Bottom.controlHeight == ControlMetrics.Button.minHeight)
+        #expect(Geometry.Bottom.controlHeight
+                == Geometry.Segment.height + Geometry.Segment.trackInset * 2)
+        #expect(Geometry.Bottom.controlHeight >= Geometry.Hit.minTarget)
+    }
+
+    @Test("Капсулы на iPhone, прежние радиусы на iPad")
+    func shapeFamiliesKeepTheirRadii() {
+        let capsule = Geometry.ShapeFamily.capsule
+        for role in [Geometry.ShapeRole.control, .inner, .chip, .dock] {
+            #expect(capsule.radius(role, legacy: 18) == Geometry.ShapeFamily.pill)
+        }
+        // Карточка с содержимым — не капсула: табло и заметки читаются панелью.
+        #expect(capsule.radius(.card, legacy: 18) == CGFloat(22))
+        #expect(Geometry.ShapeFamily.legacy.radius(.control, legacy: 18) == CGFloat(18))
+    }
 }

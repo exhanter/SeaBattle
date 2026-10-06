@@ -367,3 +367,84 @@ extension Geometry {
 enum PointsSymbol {
     static let name = "star.circle"
 }
+
+// MARK: - Семейство форм
+
+extension Geometry {
+    /// Семейство форм. До 05.10 радиус задавался по месту, и скруглённость
+    /// прыгала от капсулы до почти прямоугольника: панель «Меню» 44 / 20
+    /// соседствовала с переключателем полей 56 / 18 (замечание заказчика
+    /// 05.10). Решение 06.10: на iPhone всё, что нажимается, — капсула, как в
+    /// iOS 26; iPad пока на прежних радиусах (`legacy`).
+    enum ShapeFamily: Sendable {
+        /// Радиус по месту, как до 05.10, — iPad.
+        case legacy
+        /// Всё, что нажимается, — капсула; карточки с содержимым — 22. iPhone.
+        case capsule
+
+        /// Капсула через радиус: `RoundedRectangle` сам урезает его до
+        /// половины меньшей стороны.
+        static let pill: CGFloat = 1000
+
+        /// `legacy` — радиус, который стоит на этом месте у iPad.
+        func radius(_ role: ShapeRole, legacy: CGFloat) -> CGFloat {
+            switch self {
+            case .legacy: legacy
+            case .capsule:
+                switch role {
+                case .control, .inner, .chip, .dock: Self.pill
+                case .card: 22
+                }
+            }
+        }
+    }
+
+    /// Роль формы. `control` — то, что нажимается одной строкой: кнопки,
+    /// строки меню, таб-бар, переключатель, подсказка. `inner` — выбранный
+    /// сегмент внутри обоймы. `card` — панель с содержимым: табло, заметки.
+    /// `chip` — метки состояния. `dock` — нижняя панель, внутри которой стоят
+    /// контролы (`BottomChrome.dock`).
+    enum ShapeRole: Sendable {
+        case control, inner, card, chip, dock
+    }
+
+    /// Низ экранов партии. До 06.10 «Меню» занимало отдельную строку во всю
+    /// ширину ради одной кнопки, а таб-бар меню был шире строк режимов
+    /// (замечание заказчика 06.10).
+    enum BottomChrome: Sendable {
+        /// Строка «Меню» во всю ширину под действиями (`NavRow`) — iPad.
+        case legacy
+        /// iPhone: последний ряд лежит в стеклянной панели на месте и в
+        /// размер таб-бара, «Меню» в ней — круглой кнопкой-значком.
+        case dock
+    }
+
+    enum Bottom {
+        /// Одна высота у всего, что стоит внизу: главная, второстепенная,
+        /// переключатель полей, подсказка, кнопка меню.
+        static let controlHeight: CGFloat = 50
+        /// Поле дока вокруг контролов: 50 + 2 × 9 = 68 — высота таб-бара.
+        static let dockPadding: CGFloat = 9
+        /// Док и таб-бар одной высоты на любом iPhone: переход из меню в
+        /// партию не двигает низ экрана.
+        static let dockHeight: CGFloat = controlHeight + 2 * dockPadding
+    }
+}
+
+extension EnvironmentValues {
+    /// Какое семейство форм рисуют контролы (`Geometry.ShapeFamily`). По
+    /// умолчанию — iPhone, поэтому превью экранов показывают его; iPad ставит
+    /// `legacy` через `phoneStyle(_:)`.
+    @Entry var shapeFamily: Geometry.ShapeFamily = .capsule
+    /// Как устроен низ экранов партии (`Geometry.BottomChrome`).
+    @Entry var bottomChrome: Geometry.BottomChrome = .dock
+}
+
+extension View {
+    /// Стиль iPhone, выбранный заказчиком 06.10: низ — док, формы — капсулы.
+    /// iPad пока остаётся на прежнем (`legacy`): у него свой подход к низу.
+    func phoneStyle(_ isPad: Bool) -> some View {
+        environment(\.shapeFamily, isPad ? .legacy : .capsule)
+            .environment(\.bottomChrome, isPad ? .legacy : .dock)
+    }
+}

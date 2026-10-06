@@ -49,6 +49,8 @@ struct SeaTabBar: View {
     var size: Geometry.SizeClass = .regular
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.shapeFamily) private var shapeFamily
+    @Environment(\.bottomChrome) private var chrome
 
     var body: some View {
         HStack(spacing: 0) {
@@ -84,10 +86,13 @@ struct SeaTabBar: View {
                 }
             }
         }
-        .frame(height: size.tabHeight)
-        .glassPanel(.g2, radius: size.tabRadius, wood: .top)
-        .padding(.horizontal, size.tabInset)
-        .padding(.bottom, size.tabBottom)
+        // С доком таб-бар — тот же док: та же высота, поля и отступ снизу,
+        // что у `BottomStack` в партии, на любом размере iPhone.
+        .frame(height: chrome == .dock ? Geometry.Bottom.dockHeight : size.tabHeight)
+        .glassPanel(.g2, radius: shapeFamily.radius(chrome == .dock ? .dock : .control, legacy: size.tabRadius),
+                    wood: .top)
+        .padding(.horizontal, chrome == .dock ? Geometry.Nav.stackInset : size.tabInset)
+        .padding(.bottom, chrome == .dock ? Geometry.Nav.stackBottom : size.tabBottom)
     }
 }
 
@@ -508,6 +513,15 @@ struct AppShell: View {
         continueTarget == .resume ? appState.difficultyLevel : nil
     }
 
+    /// Флаг `AppState` тумблером: со щелчком, как на странице настроек.
+    private func clicking(_ key: ReferenceWritableKeyPath<AppState, Bool>) -> Binding<Bool> {
+        Binding(get: { appState[keyPath: key] },
+                set: {
+                    appState[keyPath: key] = $0
+                    if appState.soundOn { AudioService.shared.play(named: "click_sound.wav") }
+                })
+    }
+
     // MARK: Экраны партии
 
     @ViewBuilder
@@ -521,7 +535,12 @@ struct AppShell: View {
                         onStart: startAfterLevel,
                         onBack: { self.route = nil },
                         // До начала боя «Меню» выходит без вопроса (спека 3.1).
-                        onMenu: { self.route = nil })
+                        onMenu: { self.route = nil },
+                        // iPhone — с настройками партии под списком (решение
+                        // заказчика 06.10); iPad пока прежний.
+                        layout: usesPadLayout ? .rows : .capsules,
+                        confirmShot: clicking(\.confirmShot),
+                        markWater: clicking(\.autoRevealAroundSunk))
                 // iPad: колонка 520 pt по центру (4.3).
                 .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
 

@@ -2,8 +2,10 @@
 //  LevelScreen.swift
 //  Sea Battle — уровень компьютера (R2.1a, шаг 5a порядка сборки)
 //
-//  Спека 4.3. Шаг между меню и расстановкой: четыре строки выбора, «Эксперт»
-//  под замком, пояснение про сокрытие флота, главная кнопка «Начать партию».
+//  Спека 4.3. Шаг между меню и расстановкой: четыре уровня, «Эксперт» под
+//  замком, главная кнопка «Начать партию». iPhone (06.10) — капсулы с
+//  характеристикой и настройки партии под ними; iPad — строки с описанием и
+//  пояснение про сокрытие флота.
 //
 //  Капсула уровня в бою (`LevelChip`, спека 4.5) лежит здесь же, а не в
 //  дизайн-системе: значок и название уровня у списка и у капсулы одни и те же,
@@ -103,6 +105,19 @@ enum LevelMetrics {
     static let sideInset = Geometry.Nav.titleInset - Geometry.Nav.stackInset  // 8
 }
 
+// MARK: - Раскладка списка
+
+/// Как экран показывает четыре уровня.
+enum LevelLayout: Sendable {
+    /// Строки выбора с описанием поведения и пояснение плашкой — iPad.
+    case rows
+    /// iPhone (выбор заказчика 06.10): капсулы с названием и характеристикой
+    /// в два-три слова, под ними — настройки партии капсулами-тумблерами.
+    /// Строки с описанием в капсулах выходили толстыми, а пояснение
+    /// плашкой — «ни к селу».
+    case capsules
+}
+
 // MARK: - Экран
 
 struct LevelScreen: View {
@@ -114,6 +129,12 @@ struct LevelScreen: View {
     var onStart: () -> Void = {}
     var onBack: () -> Void = {}
     var onMenu: () -> Void = {}
+    var layout: LevelLayout = .rows
+    /// Настройки партии для раскладки `capsules` — те же, что в «Настройках».
+    var confirmShot: Binding<Bool> = .constant(false)
+    var markWater: Binding<Bool> = .constant(true)
+
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         VStack(spacing: 0) {
@@ -123,8 +144,14 @@ struct LevelScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
                     overline
-                    levels
-                    note
+                    switch layout {
+                    case .rows:
+                        levels
+                        note
+                    case .capsules:
+                        LevelCapsuleList(selected: selected, isPremium: isPremium, onPick: pick)
+                        LevelMatchOptions(confirmShot: confirmShot, markWater: markWater)
+                    }
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, Geometry.Nav.titleGap * 2)
@@ -142,6 +169,10 @@ struct LevelScreen: View {
                 .primaryButton()
             }
         }
+    }
+
+    private func pick(_ choice: LevelChoice) {
+        if choice.isLocked(isPremium: isPremium) { onLocked() } else { onSelect(choice.level) }
     }
 
     private var overline: some View {
@@ -179,7 +210,138 @@ struct LevelScreen: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, LevelMetrics.noteVerticalPadding)
             .padding(.horizontal, LevelMetrics.noteHorizontalPadding)
-            .glassPanel(.g2, radius: LevelMetrics.noteRadius)
+            .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: LevelMetrics.noteRadius))
+    }
+}
+
+// MARK: - Капсулы (iPhone)
+
+/// Отметка справа: галочка у выбранного, замок у закрытого, иначе пусто той
+/// же ширины.
+private struct LevelMark: View {
+    let isSelected: Bool
+    let isLocked: Bool
+
+    var body: some View {
+        Group {
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .font(.scalable(size: symbolFontSize(inBox: 18), weight: .semibold))
+                    .foregroundStyle(Color.roleYou)
+            } else if isLocked {
+                Image(systemName: "lock.fill")
+                    .font(.scalable(size: symbolFontSize(inBox: 16)))
+                    .foregroundStyle(Color.inkPrimary)
+                    .opacity(ControlMetrics.ModeRow.lockOpacity)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: 22)
+    }
+}
+
+private extension AppState.DifficultyLevel {
+    /// Характеристика в два-три слова вместо описания поведения.
+    var trait: LocalizedStringKey {
+        switch self {
+        case .easy: "A calm game"
+        case .medium: "Plays it clean"
+        case .hard: "Hides its fleet"
+        case .expert: "Counts every shot"
+        }
+    }
+}
+
+/// Капсула уровня высотой со строку меню: значок, название, характеристика.
+private struct LevelCapsuleRow: View {
+    let choice: LevelChoice
+    let isSelected: Bool
+    let isLocked: Bool
+    let action: () -> Void
+
+    @Environment(\.shapeFamily) private var shapeFamily
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ScaledSymbol(name: choice.icon, box: 26)
+                    .foregroundStyle(Color.inkPrimary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(choice.title)
+                        .font(ControlMetrics.ChoiceRow.title)
+                        .foregroundStyle(Color.inkPrimary)
+                    Text(choice.level.trait)
+                        .font(.scalable(size: 12))
+                        .foregroundStyle(Color.inkSecondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                LevelMark(isSelected: isSelected, isLocked: isLocked)
+            }
+            .padding(.leading, 18)
+            .padding(.trailing, 16)
+            .frame(minHeight: ControlMetrics.ChoiceRow.minHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: ControlMetrics.ChoiceRow.radius),
+                    highlight: isSelected ? .selected : .none)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+}
+
+private struct LevelCapsuleList: View {
+    let selected: AppState.DifficultyLevel
+    let isPremium: Bool
+    let onPick: (LevelChoice) -> Void
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ForEach(LevelChoice.all) { choice in
+                let locked = choice.isLocked(isPremium: isPremium)
+                LevelCapsuleRow(choice: choice,
+                                isSelected: choice.level == selected && !locked,
+                                isLocked: locked) { onPick(choice) }
+            }
+        }
+    }
+}
+
+/// Настройки, которые касаются именно партии, — под списком, капсулами. Это
+/// те же флаги, что в «Настройках», а не копии: переключённое здесь видно и там.
+private struct LevelMatchOptions: View {
+    @Binding var confirmShot: Bool
+    @Binding var markWater: Bool
+
+    @Environment(\.shapeFamily) private var shapeFamily
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Match")
+                .font(.scalable(size: LevelMetrics.overlineSize, weight: .bold))
+                .tracking(LevelMetrics.overlineTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(Color.inkSecondary)
+                .padding(.leading, LevelMetrics.overlineInset)
+                .padding(.top, 14)
+            option("Confirm each shot", isOn: $confirmShot)
+                .accessibilityIdentifier("levelConfirmShot")
+            option("Mark the water around sunk ships", isOn: $markWater)
+                .accessibilityIdentifier("levelAutoReveal")
+        }
+    }
+
+    private func option(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title)
+                .font(.scalable(size: 14.5, weight: .medium))
+                .foregroundStyle(Color.inkPrimary)
+        }
+        .seaToggleStyle()
+        .padding(.leading, 18)
+        .padding(.trailing, 12)
+        .frame(minHeight: Geometry.Bottom.controlHeight)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: 18))
     }
 }
 
@@ -194,6 +356,7 @@ struct LevelChip: View {
     var size: Geometry.SizeClass = .regular
 
     private var metrics: Metrics { size.isCompact ? .compact : .regular }
+    @Environment(\.shapeFamily) private var shapeFamily
 
     struct Metrics {
         let height: CGFloat
@@ -232,9 +395,11 @@ struct LevelChip: View {
         .padding(.horizontal, metrics.horizontalPadding)
         .frame(height: metrics.height)
         .background {
-            Capsule(style: .continuous)
+            let chip = RoundedRectangle(cornerRadius: shapeFamily.radius(.chip, legacy: metrics.radius),
+                                        style: .continuous)
+            chip
                 .fill(Color.boardFillFoe)
-                .overlay { Capsule(style: .continuous).strokeBorder(Color.boardStrokeFoe, lineWidth: 1) }
+                .overlay { chip.strokeBorder(Color.boardStrokeFoe, lineWidth: 1) }
         }
         .accessibilityElement(children: .combine)
     }
@@ -245,17 +410,23 @@ struct LevelChip: View {
 private struct LevelScreenDemo: View {
     @State private var selected: AppState.DifficultyLevel
     let isPremium: Bool
+    let layout: LevelLayout
+    @State private var confirmShot = false
+    @State private var markWater = true
 
-    init(selected: AppState.DifficultyLevel = .hard, isPremium: Bool = false) {
+    init(selected: AppState.DifficultyLevel = .hard, isPremium: Bool = false,
+         layout: LevelLayout = .capsules) {
         _selected = State(initialValue: selected)
         self.isPremium = isPremium
+        self.layout = layout
     }
 
     var body: some View {
         ZStack {
             SeaBackground()
             LevelScreen(selected: selected, isPremium: isPremium,
-                        onSelect: { selected = $0 })
+                        onSelect: { selected = $0 }, layout: layout,
+                        confirmShot: $confirmShot, markWater: $markWater)
         }
     }
 }
@@ -272,6 +443,17 @@ private struct LevelScreenDemo: View {
 
 #Preview("Уровень · с Pro, выбран Эксперт") {
     LevelScreenDemo(selected: .expert, isPremium: true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Уровень · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
+    LevelScreenDemo()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Уровень · iPad, строки") {
+    LevelScreenDemo(layout: .rows)
+        .phoneStyle(true)
         .preferredColorScheme(.dark)
 }
 

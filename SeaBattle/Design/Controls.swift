@@ -90,13 +90,16 @@ enum ControlMetrics {
 /// (спека 2.6 в этом месте была исправлена дизайном).
 struct PrimaryButtonStyle: ButtonStyle {
     var isEnabled = true
-    var radius: CGFloat = ControlMetrics.Button.radius
+    /// `nil` — по семейству форм; явный радиус — квадраты нижней линии iPad.
+    var radius: CGFloat? = nil
+    @Environment(\.shapeFamily) private var shapeFamily
     /// Кнопка занимает всё предложенное место по обеим осям — квадрат 104 на
     /// нижней линии iPad (спека 3). Обычная кнопка растёт только в ширину.
     var fillsFrame = false
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: radius ?? shapeFamily.radius(.control, legacy: ControlMetrics.Button.radius),
+                                     style: .continuous)
         return configuration.label
             .font(ControlMetrics.Button.font)
             .foregroundStyle(Color.inkPrimary)
@@ -188,6 +191,7 @@ struct ModeRow: View {
     var action: () -> Void = {}
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         Button(action: action) {
@@ -224,7 +228,7 @@ struct ModeRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: size.modeRowRadius)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: size.modeRowRadius))
     }
 
     private var iconView: some View {
@@ -282,6 +286,7 @@ struct ChoiceRow: View {
     var action: () -> Void = {}
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         Button(action: action) {
@@ -315,7 +320,7 @@ struct ChoiceRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: ControlMetrics.ChoiceRow.radius,
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: ControlMetrics.ChoiceRow.radius),
                     highlight: isSelected ? .selected : .none)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
@@ -380,15 +385,24 @@ struct ChoiceRow: View {
 /// главной кнопки, а видов кнопок в игре ровно два.
 struct SecondaryButtonStyle: ButtonStyle {
     var isEnabled = true
-    var radius: CGFloat = Geometry.SecondaryButton.radius
+    /// `nil` — по семейству форм; явный радиус — квадраты нижней линии iPad.
+    var radius: CGFloat? = nil
+    @Environment(\.shapeFamily) private var shapeFamily
     /// См. `PrimaryButtonStyle.fillsFrame`.
     var fillsFrame = false
     /// Высота по спеке 2.15 — 44. Ответы игры на бумаге выше (56 / 52, кадр
     /// `answerBtn`, решение заказчика 30.09 по В29 — до шлифовки дизайна).
     var minHeight: CGFloat = Geometry.SecondaryButton.height
+    @Environment(\.bottomChrome) private var chrome
+
+    /// В новом низе (`BottomChrome`) у всех нижних кнопок одна высота.
+    private var height: CGFloat {
+        chrome == .legacy ? minHeight : max(minHeight, Geometry.Bottom.controlHeight)
+    }
 
     func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: radius ?? shapeFamily.radius(.control, legacy: Geometry.SecondaryButton.radius),
+                                     style: .continuous)
         return configuration.label
             .font(TypeScale.secondaryButton)
             .foregroundStyle(Color.inkPrimary)
@@ -396,7 +410,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .padding(.horizontal, fillsFrame ? 0 : Geometry.SecondaryButton.padding)
             .padding(.vertical, fillsFrame ? 0 : ControlMetrics.Button.textInsetV)
             // В ряду кнопки делят ширину поровну (2.15).
-            .frame(maxWidth: .infinity, minHeight: minHeight,
+            .frame(maxWidth: .infinity, minHeight: height,
                    maxHeight: fillsFrame ? .infinity : nil)
             .background { shape.fill(LinearGradient.glassPanelFill) }
             .overlay { shape.strokeBorder(Color.glassStroke, lineWidth: 1) }
@@ -442,6 +456,7 @@ struct SegmentedPick<Value: Hashable>: View {
     @Binding var selection: Value
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         HStack(spacing: ControlMetrics.Segment.padding) {
@@ -455,7 +470,7 @@ struct SegmentedPick<Value: Hashable>: View {
                            minHeight: ControlMetrics.Segment.minLabelHeight)
                     .background {
                         if isSelected {
-                            RoundedRectangle(cornerRadius: ControlMetrics.Segment.radius,
+                            RoundedRectangle(cornerRadius: shapeFamily.radius(.inner, legacy: ControlMetrics.Segment.radius),
                                              style: .continuous)
                                 .fill(Color.roleYou)
                         }
@@ -471,8 +486,8 @@ struct SegmentedPick<Value: Hashable>: View {
             }
         }
         .padding(ControlMetrics.Segment.padding)
-        .glassPanel(.g2, radius: ControlMetrics.Segment.radius
-                    + ControlMetrics.Segment.padding)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: ControlMetrics.Segment.radius
+                                                        + ControlMetrics.Segment.padding))
         .accessibilityElement(children: .contain)
     }
 }

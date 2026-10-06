@@ -123,6 +123,7 @@ struct ScorePanel: View {
     private var warmStatus: Bool { statusIsWarm ?? !isArranging }
 
     private var m: BattleMetrics { isPad ? .pad : .forSize(size) }
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         HStack(spacing: isPad ? 18 : 14) {
@@ -141,7 +142,7 @@ struct ScorePanel: View {
         }
         .padding(.vertical, m.scorePaddingV)
         .padding(.horizontal, m.scorePaddingH)
-        .glassPanel(.g2, radius: m.scoreRadius, wood: .bottom)
+        .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: m.scoreRadius), wood: .bottom)
         .padding(.horizontal, m.scoreInset)
         // Не нажимается — поэтому и для VoiceOver это текст, а не кнопки.
         .accessibilityElement(children: .combine)
@@ -182,10 +183,12 @@ struct ScorePanel: View {
                 .padding(.vertical, m.statusPaddingV)
                 .padding(.horizontal, m.statusPaddingH)
                 .background {
-                    Capsule(style: .continuous)
+                    let chip = RoundedRectangle(cornerRadius: shapeFamily.radius(.chip, legacy: Geometry.ShapeFamily.pill),
+                                                style: .continuous)
+                    chip
                         .fill(warmStatus ? Color.roleYouSoft : Color.glassFill)
                         .overlay {
-                            Capsule(style: .continuous)
+                            chip
                                 .strokeBorder(warmStatus ? Color.roleYou : Color.glassStroke,
                                               lineWidth: 1)
                         }
@@ -259,6 +262,7 @@ struct FieldSwitch: View {
     var onSelect: (Side) -> Void = { _ in }
 
     private var m: BattleMetrics { .forSize(size) }
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         HStack(spacing: Geometry.Segment.trackInset) {
@@ -266,7 +270,7 @@ struct FieldSwitch: View {
             segment(.foe, title: "Opponent")
         }
         .padding(Geometry.Segment.trackInset)
-        .glassPanel(.g2, radius: m.switchRadius)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: m.switchRadius))
     }
 
     private func segment(_ side: Side, title: LocalizedStringKey) -> some View {
@@ -281,7 +285,8 @@ struct FieldSwitch: View {
                 .frame(maxWidth: .infinity, minHeight: Geometry.Segment.height)
                 .background {
                     if isSelected {
-                        RoundedRectangle(cornerRadius: m.segmentRadius, style: .continuous)
+                        RoundedRectangle(cornerRadius: shapeFamily.radius(.inner, legacy: m.segmentRadius),
+                                         style: .continuous)
                             .fill(Color.roleYou)
                     }
                 }
@@ -307,9 +312,11 @@ struct BattleHintButton: View {
     var action: () -> Void = {}
 
     private var m: BattleMetrics { .forSize(size) }
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: m.hintRadius, style: .continuous)
+        let radius = shapeFamily.radius(.control, legacy: m.hintRadius)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         Button(action: action) {
             HStack(spacing: m.hintGap) {
                 Image(systemName: "lightbulb.max")
@@ -324,7 +331,7 @@ struct BattleHintButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: m.hintRadius)
+        .glassPanel(.g2, radius: radius)
         .overlay { shape.strokeBorder(Color.roleYou, lineWidth: 1).allowsHitTesting(false) }
         // Погашенная кнопка гаснет целиком, как главная и второстепенная.
         .opacity(isEnabled ? 1 : ControlMetrics.Button.disabledOpacity)
@@ -385,9 +392,11 @@ struct ReviewResultsButton: View {
     let action: () -> Void
 
     private var m: BattleMetrics { .forSize(size) }
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: m.hintRadius, style: .continuous)
+        let radius = shapeFamily.radius(.control, legacy: m.hintRadius)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         Button(action: action) {
             HStack(spacing: m.hintGap) {
                 if !fillsFrame {
@@ -405,7 +414,7 @@ struct ReviewResultsButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: m.hintRadius)
+        .glassPanel(.g2, radius: radius)
         .overlay { shape.strokeBorder(Color.roleYou, lineWidth: 1).allowsHitTesting(false) }
         .accessibilityIdentifier("reviewResults")
         .accessibilityShowsLargeContentViewer {
@@ -528,6 +537,8 @@ struct ShotChip: View {
     /// (кадр `shotColumn`).
     var isLarge = false
 
+    @Environment(\.shapeFamily) private var shapeFamily
+
     var body: some View {
         let color: Color = entry.outcome.isDamage ? .roleYou : .inkSecondary
         HStack(alignment: .firstTextBaseline, spacing: isLarge ? 7 : 5) {
@@ -542,9 +553,11 @@ struct ShotChip: View {
         .padding(.vertical, isLarge ? 6 : 4)
         .padding(.horizontal, isLarge ? 12 : 10)
         .background {
-            Capsule(style: .continuous)
+            let chip = RoundedRectangle(cornerRadius: shapeFamily.radius(.chip, legacy: Geometry.ShapeFamily.pill),
+                                        style: .continuous)
+            chip
                 .fill(isLast ? Color.roleYouSoft : Color.clear)
-                .overlay { Capsule(style: .continuous).strokeBorder(color, lineWidth: 1) }
+                .overlay { chip.strokeBorder(color, lineWidth: 1) }
         }
     }
 

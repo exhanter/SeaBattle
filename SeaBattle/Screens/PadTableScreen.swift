@@ -692,6 +692,7 @@ private struct PadTableDemo: View {
         }
         .environment(appState)
         .environment(\.usesPadLayout, true)
+        .phoneStyle(true)
         .onAppear {
             appState.ownBoardOnRight = ownOnRight
             battle.configure(appState: appState)
@@ -731,6 +732,7 @@ private struct PadPaperDemo: View {
         }
         .environment(appState)
         .environment(\.usesPadLayout, true)
+        .phoneStyle(true)
         .onAppear { appState.ownBoardOnRight = ownOnRight }
     }
 }

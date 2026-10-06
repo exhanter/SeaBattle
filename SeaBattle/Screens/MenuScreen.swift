@@ -94,6 +94,7 @@ struct MenuScreen: View {
 
     /// Высота нижнего блока — от неё считается высота арта.
     @State private var blockHeight: CGFloat = 0
+    @Environment(\.bottomChrome) private var chrome
 
     var body: some View {
         GeometryReader { proxy in
@@ -126,8 +127,12 @@ struct MenuScreen: View {
 
     /// Название, пять строк и «Продолжить партию» — одним блоком у низа.
     private func block(_ size: Geometry.SizeClass) -> some View {
-        VStack(alignment: .leading, spacing: size.menuGap) {
+        // В новом низе строки режимов — в ширину таб-бара, а название — на
+        // отступе заголовков экранов, как над списком уровней.
+        let inset = chrome == .legacy ? size.menuInset : Geometry.Nav.stackInset
+        return VStack(alignment: .leading, spacing: size.menuGap) {
             title(size)
+                .padding(.leading, size.menuInset - inset)
             modes(size)
             // «Продолжить» — под строками, у самого таб-бара: это единственный
             // путь назад в незакрытую партию. Нет партии — строки опускаются
@@ -137,7 +142,7 @@ struct MenuScreen: View {
                     .frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal, size.menuInset)
+        .padding(.horizontal, inset)
         .padding(.bottom, size.menuGap)
     }
 
