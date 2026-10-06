@@ -212,14 +212,12 @@ extension LinearGradient {
                        startPoint: .top, endPoint: .bottom)
     }
 
-    /// Вода клетки под 160°, точно по правилу CSS — как `cellStart` / `cellEnd`
-    /// у корпуса (168°). В пакете `waterCell` задан точками (0,15; 0)→(0,85; 1):
-    /// наклон вбок почти вдвое круче, и сверка по пикселям на подложке поля
-    /// (03.10) показала левый край клетки светлее эталона на 10 единиц.
-    /// Линия: направление (sin 160°, −cos 160°), длина |sin| + |cos| через центр.
+    /// Вода клетки — строго сверху вниз, как `cellStart` / `cellEnd` у корпуса.
+    /// В макетах 160° (а в пакете `waterCell` ещё круче), но под вертикальным
+    /// бевелем косая заливка делала клетку на вид повёрнутой (05.10).
     static let waterCellCSS = LinearGradient(
         colors: [.waterTop, .waterBottom],
-        startPoint: UnitPoint(x: 0.2808, y: -0.1022), endPoint: UnitPoint(x: 0.7192, y: 1.1022))
+        startPoint: .top, endPoint: .bottom)
 }
 
 // MARK: - Reduce Motion

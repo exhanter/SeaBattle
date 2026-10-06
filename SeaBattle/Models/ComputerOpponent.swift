@@ -106,19 +106,19 @@ final class ComputerOpponent: Opponent {
             // it keeps firing into the ring around a sunk one where there
             // cannot be anything. That blind spot alone costs it about thirty
             // shots a match, which is most of what makes this level easy.
-            return finishingCandidates(on: board) ?? board.shootableCells()
+            return finishingCandidates(on: board, knowsNoTouching: false) ?? board.shootableCells()
 
         case .medium:
             // The same, plus the no-touching rule. Nothing else: everything
             // above this is worth a shot or two at most.
-            return finishingCandidates(on: board) ?? openCells(on: board)
+            return finishingCandidates(on: board, knowsNoTouching: true) ?? openCells(on: board)
 
         case .hard:
-            if let finishing = finishingCandidates(on: board) { return finishing }
+            if let finishing = finishingCandidates(on: board, knowsNoTouching: true) { return finishing }
             return checkerboardCandidates(on: board)
 
         case .expert:
-            if let finishing = finishingCandidates(on: board) { return finishing }
+            if let finishing = finishingCandidates(on: board, knowsNoTouching: true) { return finishing }
             if let peak = heatMapPeak(on: board) { return [peak] }
             return openCells(on: board)
         }
@@ -168,15 +168,33 @@ final class ComputerOpponent: Opponent {
     /// collinear hits the orientation is known, so only the cells extending
     /// that line are candidates; a single isolated hit probes its four
     /// orthogonal neighbours. RETURNS nil when there is nothing to finish.
-    private func finishingCandidates(on board: Board) -> [Coordinate]? {
+    ///
+    /// `knowsNoTouching` — every level but `.easy`: ships never touch, so a
+    /// cell in the ring around a sunk ship or diagonal to a hit cannot hold the
+    /// rest of the damaged one, and once a line is known the cells beside it
+    /// cannot either. Before 05.10 this function ignored the rule on every
+    /// level and now and then fired an "impossible" shot next to a ship.
+    private func finishingCandidates(on board: Board, knowsNoTouching: Bool) -> [Coordinate]? {
         let hits = Board.allCoordinates.filter { board[$0] == .hit }
         guard !hits.isEmpty else { return nil }
+
+        // Cells the no-touching rule rules out: the rings around sunk ships
+        // and the diagonals of every hit.
+        var ruledOut = Set<Coordinate>()
+        if knowsNoTouching {
+            for coordinate in Board.allCoordinates where board[coordinate] == .sunk {
+                ruledOut.formUnion(coordinate.neighbours)
+            }
+            for hit in hits {
+                ruledOut.formUnion(Set(hit.neighbours).subtracting(hit.orthogonalNeighbours))
+            }
+        }
 
         func isHit(_ coordinate: Coordinate) -> Bool {
             coordinate.isOnBoard && board[coordinate] == .hit
         }
         func shootable(_ coordinate: Coordinate) -> Bool {
-            coordinate.isOnBoard && board[coordinate].isUnshot
+            coordinate.isOnBoard && board[coordinate].isUnshot && !ruledOut.contains(coordinate)
         }
 
         // Extend an established line to either end.
@@ -195,8 +213,13 @@ final class ComputerOpponent: Opponent {
         }
         if !lineCandidates.isEmpty { return Array(lineCandidates) }
 
-        // No line yet — probe around the lone hit.
-        let probes = hits.flatMap(\.orthogonalNeighbours).filter(shootable)
+        // No line yet — probe around the lone hits. A hit that is part of a
+        // line is skipped: its ends are blocked, and beside it there cannot be
+        // anything (ships are straight and never touch).
+        let lone = knowsNoTouching
+            ? hits.filter { !$0.orthogonalNeighbours.contains(where: isHit) }
+            : hits
+        let probes = lone.flatMap(\.orthogonalNeighbours).filter(shootable)
         // Damage with nowhere left to extend: the hits are boxed in by earlier
         // shots, so there is nothing to finish after all.
         return probes.isEmpty ? nil : Array(Set(probes))

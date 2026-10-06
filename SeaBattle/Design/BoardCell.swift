@@ -198,6 +198,9 @@ struct BoardCell: View {
     /// у F1 нет нижней тени бевеля, зато есть полоса света сверху вдвое шире и
     /// тёплое свечение **наружу**, на подложку поля. Без свечения и с тенью
     /// горящая клетка выходила темнее эталона на четверть внизу (сверка 03.10).
+    ///
+    /// Оттенки огня — сверху вниз, как и вся клетка: под 135° клетка казалась
+    /// повёрнутой (05.10).
     private var burningHull: some View {
         shape
             .fill(LinearGradient.hullSand)
@@ -213,13 +216,13 @@ struct BoardCell: View {
             .overlay {
                 shape
                     .fill(LinearGradient(colors: [.hitTintMulTop, .hitTintMulBottom],
-                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                                         startPoint: .top, endPoint: .bottom))
                     .blendMode(.multiply)
             }
             .overlay {
                 shape
                     .fill(LinearGradient(colors: [.hitTintScrTop, .hitTintScrBottom],
-                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                                         startPoint: .top, endPoint: .bottom))
                     .blendMode(.screen)
             }
             .overlay {

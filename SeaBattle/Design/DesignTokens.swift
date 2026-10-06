@@ -190,10 +190,11 @@ extension LinearGradient {
         colors: [.waterTop, .waterBottom],
         startPoint: .init(x: 0.15, y: 0), endPoint: .init(x: 0.85, y: 1))
 
-    /// Корпус, запрет и сталь — под 168°, как в макетах. Точки посчитаны по правилу CSS
-    /// для квадратной клетки: линия градиента длиной |sin| + |cos| через центр.
-    static let cellStart = UnitPoint(x: 0.3767, y: -0.0800)
-    static let cellEnd   = UnitPoint(x: 0.6233, y: 1.0800)
+    /// Корпус, запрет и сталь — строго сверху вниз. В макетах 168°, но бевель
+    /// (свет сверху, тень снизу) вертикальный, и косая заливка под ним делала
+    /// клетку на вид повёрнутой против часовой (замечание заказчика 05.10).
+    static let cellStart = UnitPoint.top
+    static let cellEnd   = UnitPoint.bottom
 
     static let hullSand = LinearGradient(
         stops: [.init(color: .hullSandLight, location: 0),
@@ -411,7 +412,7 @@ enum Motion {
     /// Последний выстрел партии доигрывает на поле, прежде чем поля уйдут под
     /// итоги: волна потопления, затем световой вал по полю
     /// (`BoardSweepModifier`) — видно, что выстрел последний (решение заказчика 05.10).
-    static let lastShotHold: Double = 2.400
+    static let lastShotHold: Double = 1.600   // 05.10: было 2.400 — итоги ждались слишком долго
     /// Через сколько после последнего выстрела по полю идёт вал: чуть
     /// раньше, чем доиграет потопление (05.10).
     static let finaleDelay: Double = 0.300

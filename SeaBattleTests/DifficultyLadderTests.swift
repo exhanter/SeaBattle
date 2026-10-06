@@ -104,6 +104,57 @@ struct DifficultyLadderTests {
                 "Easy is not supposed to know that ships never touch")
     }
 
+    @Test("Finishing a damaged ship never fires into the ring around a sunk one")
+    func finishingRespectsTheNoTouchingRule() {
+        // A one-decker at (3,3) and a three-decker at (5,3)-(7,3): the cell
+        // (4,3) between them is in the sunk ring and cannot be the rest of the
+        // three-decker. Before 05.10 finishing ignored that on every level.
+        let single = Coordinate(row: 3, column: 3)
+        let ringCell = Coordinate(row: 4, column: 3)
+        var board = Board(ships: [
+            ShipPlacement(length: 1, origin: single, orientation: .horizontal),
+            ShipPlacement(length: 3, origin: Coordinate(row: 5, column: 3), orientation: .vertical),
+        ])
+        board.apply(shotAt: single)
+        board.apply(shotAt: Coordinate(row: 5, column: 3))
+        let lone = board.opponentView()
+        board.apply(shotAt: Coordinate(row: 6, column: 3))
+        let line = board.opponentView()
+
+        for level in [AppState.DifficultyLevel.medium, .hard, .expert] {
+            let probes = Set(opponent(at: level).targetCandidates(on: lone))
+            #expect(probes == [Coordinate(row: 5, column: 2), Coordinate(row: 5, column: 4),
+                               Coordinate(row: 6, column: 3)],
+                    "\(level) probed \(probes)")
+            let ends = opponent(at: level).targetCandidates(on: line)
+            #expect(ends == [Coordinate(row: 7, column: 3)],
+                    "\(level) extended the line to \(ends)")
+        }
+        // Easy still does not know the rule.
+        #expect(opponent(at: .easy).targetCandidates(on: line).contains(ringCell))
+    }
+
+    @Test("A probe around one damaged ship never lands diagonal to another")
+    func probesAvoidTheDiagonalsOfOtherHits() {
+        // Two damaged two-deckers: (5,5)-(5,6) and (7,4)-(8,4), one hit each.
+        // (6,4) is next to the second hit but diagonal to the first, so no
+        // ship can be there.
+        var board = Board(ships: [
+            ShipPlacement(length: 2, origin: Coordinate(row: 5, column: 5), orientation: .horizontal),
+            ShipPlacement(length: 2, origin: Coordinate(row: 7, column: 4), orientation: .vertical),
+        ])
+        board.apply(shotAt: Coordinate(row: 5, column: 5))
+        board.apply(shotAt: Coordinate(row: 7, column: 4))
+        let masked = board.opponentView()
+
+        for level in [AppState.DifficultyLevel.medium, .hard, .expert] {
+            let probes = Set(opponent(at: level).targetCandidates(on: masked))
+            #expect(!probes.contains(Coordinate(row: 6, column: 4)),
+                    "\(level) probed a cell diagonal to another hit: \(probes)")
+            #expect(!probes.isEmpty)
+        }
+    }
+
     // MARK: - Hard: the checkerboard
 
     @Test("Hard hunts one colour of the board while a multi-deck ship is afloat")
