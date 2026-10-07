@@ -18,15 +18,29 @@ import SwiftUI
 // MARK: - Уровень как строка списка
 
 /// Уровень глазами игрока: значок, название и одна строка про поведение ИИ.
+/// Значок — шкала силы (`cellularbars`, 1–4 деления; выбор заказчика 07.10
+/// вместо морских значков: по ним порядок уровней не угадать).
 /// Уровень описан **поведением**, а не шкалой «легко–сложно» — так игрок видит,
 /// чем четвёртый отличается от третьего (лог дизайна, тур 5).
 struct LevelChoice: Identifiable {
     let level: AppState.DifficultyLevel
-    let icon: String
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey
 
     var id: AppState.DifficultyLevel { level }
+
+    var icon: String { Self.icon }
+    var iconValue: Double { Self.iconValue(for: level) }
+
+    /// Один символ на все уровни — различает их заполненность.
+    static let icon = "cellularbars"
+
+    /// Деления шкалы: «Легко» — одно из четырёх, «Эксперт» — все.
+    static func iconValue(for level: AppState.DifficultyLevel) -> Double {
+        let all = AppState.DifficultyLevel.allCases
+        let index = all.firstIndex(of: level).map { all.distance(from: all.startIndex, to: $0) } ?? 0
+        return Double(index + 1) / Double(all.count)
+    }
 
     /// Замок — только у «Эксперта» и только без Pro. Строка при этом выглядит
     /// как остальные: закрытый уровень остаётся приглашением, а не запретом.
@@ -37,27 +51,23 @@ struct LevelChoice: Identifiable {
         AppState.DifficultyLevel.allCases.map { level in
             switch level {
             case .easy:
-                LevelChoice(level: level, icon: "sailboat",
+                LevelChoice(level: level,
                             title: "Easy",
                             subtitle: "Finishes off a ship it has found, but keeps shooting at the water around a sunk one")
             case .medium:
-                LevelChoice(level: level, icon: "safari",
+                LevelChoice(level: level,
                             title: "Medium",
                             subtitle: "Finishes off a ship it has found and never wastes shots on the water around it")
             case .hard:
-                LevelChoice(level: level, icon: "binoculars",
+                LevelChoice(level: level,
                             title: "Hard",
                             subtitle: "Shoots every other cell and arranges its own fleet so it takes longer to find")
             case .expert:
-                LevelChoice(level: level, icon: "scope",
+                LevelChoice(level: level,
                             title: "Expert",
                             subtitle: "Works out where the ships most likely are, and hides its own fleet even better")
             }
         }
-    }
-
-    static func icon(for level: AppState.DifficultyLevel) -> String {
-        all.first { $0.level == level }?.icon ?? "target"
     }
 
     static func title(for level: AppState.DifficultyLevel) -> LocalizedStringKey {
@@ -165,7 +175,7 @@ struct LevelScreen: View {
                 .padding(.bottom, Geometry.Nav.titleGap)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
             .onChange(of: contentHeight) { fitMarkWater() }
             .onChange(of: viewportHeight) { fitMarkWater() }
@@ -218,6 +228,7 @@ struct LevelScreen: View {
             ForEach(LevelChoice.all) { choice in
                 let locked = choice.isLocked(isPremium: isPremium)
                 ChoiceRow(icon: choice.icon,
+                          iconValue: choice.iconValue,
                           title: choice.title,
                           subtitle: choice.subtitle,
                           isSelected: choice.level == selected && !locked,
@@ -294,7 +305,7 @@ private struct LevelCapsuleRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                ScaledSymbol(name: choice.icon, box: 26)
+                ScaledSymbol(name: choice.icon, box: 26, variableValue: choice.iconValue)
                     .foregroundStyle(Color.inkPrimary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(choice.title)
@@ -457,7 +468,8 @@ private struct LevelStakeCard: View {
                 .lineLimit(stacked ? nil : 1)
                 .minimumScaleFactor(0.8)
         }
-        .frame(maxWidth: stacked ? nil : .infinity, alignment: .leading)
+        // Колонка — по центру своей трети; столбец на AX — по левому краю.
+        .frame(maxWidth: stacked ? nil : .infinity, alignment: stacked ? .leading : .center)
         .accessibilityElement(children: .combine)
     }
 }
@@ -569,7 +581,7 @@ struct LevelChip: View {
 
     var body: some View {
         HStack(spacing: metrics.spacing) {
-            Image(systemName: LevelChoice.icon(for: level))
+            Image(systemName: LevelChoice.icon, variableValue: LevelChoice.iconValue(for: level))
                 .font(.system(size: metrics.iconSize))
             Text(LevelChoice.title(for: level))
                 .font(.system(size: metrics.titleSize, weight: .semibold))

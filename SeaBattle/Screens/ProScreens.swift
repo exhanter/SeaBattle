@@ -115,12 +115,12 @@ struct ProFeature: Identifiable {
     var id: AppState.PremiumIntent { intent }
 
     static var all: [ProFeature] { [
-        ProFeature(intent: .hotSeat, icon: "person.2",
+        ProFeature(intent: .hotSeat, icon: "figure.stand.line.dotted.figure.stand",
                    title: "Two players on one device",
                    subtitle: "Play with someone on one iPhone or iPad",
                    unlocked: "Available",
                    sheetText: "This mode is part of Pro, along with nearby play, online play and the Expert level"),
-        ProFeature(intent: .nearby, icon: "wifi",
+        ProFeature(intent: .nearby, icon: "iphone.radiowaves.left.and.right",
                    title: "Nearby, no internet",
                    subtitle: "Two devices close together, no internet",
                    unlocked: "Available",
@@ -130,7 +130,7 @@ struct ProFeature: Identifiable {
                    subtitle: "Play by invite code or with a random opponent",
                    unlocked: "Available",
                    sheetText: "This mode is part of Pro, along with two players on one device, nearby play and the Expert level"),
-        ProFeature(intent: .expert, icon: "scope",
+        ProFeature(intent: .expert, icon: LevelChoice.icon,
                    title: "Expert level",
                    subtitle: "A computer that finishes off the fleet without mistakes",
                    unlocked: "Available in single player",
@@ -445,7 +445,7 @@ struct ProPaywallScreen: View {
                 .padding(.top, ProMetrics.headToFeatures)
                 .padding(.bottom, ProMetrics.plansGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
 
             bottom
                 .padding(.horizontal, Geometry.Nav.stackInset)
@@ -711,7 +711,7 @@ struct ProActiveScreen: View {
                 .padding(.top, Geometry.Nav.titleGap * 2)
                 .padding(.bottom, 12)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         }
         .manageSubscriptionsSheet(isPresented: $managing)
     }

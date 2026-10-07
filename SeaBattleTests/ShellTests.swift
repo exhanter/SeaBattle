@@ -187,13 +187,15 @@ struct ShellTests {
         #expect(!AppState.DifficultyLevel.freeFallback.isPremium)
     }
 
-    @Test("У капсулы уровня и у строки списка один значок")
-    func theChipAndTheRowAgreeOnTheIcon() {
-        // Два места, где значок уровня виден игроку. Если они разойдутся, в бою
-        // окажется «бинокль» там, где в списке стоял «прицел».
-        for choice in LevelChoice.all {
-            #expect(LevelChoice.icon(for: choice.level) == choice.icon)
-        }
+    @Test("Шкала уровня растёт от «Легко» к «Эксперту» и у «Эксперта» полная")
+    func levelBarsGrowWithStrength() {
+        // Значок уровня — шкала силы (07.10): капсула в бою, список и
+        // статистика берут деления отсюда, и порядок должен читаться сам.
+        let values = LevelChoice.all.map(\.iconValue)
+        #expect(values == values.sorted())
+        #expect(Set(values).count == values.count)
+        #expect(LevelChoice.iconValue(for: .expert) == 1)
+        #expect(LevelChoice.iconValue(for: .easy) > 0)
     }
 
     @Test("Капсула уровня не выше строки подписи поля")

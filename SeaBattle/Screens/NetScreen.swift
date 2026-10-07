@@ -83,7 +83,8 @@ struct NetScreen: View {
             .battleTypeSize()
             .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
             .animation(Motion.quick.reduced(reduceMotion), value: match.link)
-            .matchResults(match.result, onPlayAgain: match.playAgain, onMenu: exit)
+            .matchResults(match.result, onPlayAgain: match.playAgain, onMenu: exit,
+                          prepareReview: { match.show(.foe) })
             .modalDialog(isPresented: askLeave) {
                 ModalDialog.leaveMatch(.network,
                                        onStay: { askLeave = false },

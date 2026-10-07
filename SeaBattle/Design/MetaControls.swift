@@ -54,7 +54,7 @@ enum PlayerAvatar {
         case 12: "Lime"
         case 13: "Pink"
         case 14: "Sand"
-        case 15: "Grey"
+        case 15: "Gray"
         // Ноль и всё, чего нет в палитре: `color(_:)` рисует его латунью.
         default: "Brass"
         }
@@ -356,7 +356,7 @@ struct PlayerCard: View {
                         .fill(PlayerAvatar.color(colorIndex))
                         .frame(width: 24, height: 24)
                 }
-                .accessibilityLabel(Text("Colour"))
+                .accessibilityLabel(Text("Color"))
                 .accessibilityValue(Text(PlayerAvatar.colorName(colorIndex)))
                 .popover(isPresented: $showsColors, arrowEdge: .top) {
                     colorPicker

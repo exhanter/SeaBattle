@@ -121,6 +121,9 @@ struct MatchResult: Equatable, Sendable {
     /// Сетевая партия со своим же аккаунтом (свой iPhone против своего iPad)
     /// баллов не приносит — строки за победу в чеке нет (R3.3).
     let awardsPoints: Bool
+    /// Одиночная игра: все партии на этом уровне, уже с этой (заказчик,
+    /// 07.10 — на итогах видно, как идут дела на уровне). `nil` — карточки нет.
+    var levelRecord: StatRecord?
 
     /// Уровень компьютера; у других режимов его нет.
     var level: AppState.DifficultyLevel? { key.difficulty }
@@ -128,9 +131,11 @@ struct MatchResult: Equatable, Sendable {
     init(didWin: Bool, level: AppState.DifficultyLevel,
          yourLosses: Int, foeLosses: Int,
          fleetSize: Int = FleetLayout.shipCount,
-         tally: MatchTally, balance: Int) {
+         tally: MatchTally, balance: Int,
+         levelRecord: StatRecord? = nil) {
         self.init(didWin: didWin, key: .computer(level), yourLosses: yourLosses,
                   foeLosses: foeLosses, fleetSize: fleetSize, tally: tally, balance: balance)
+        self.levelRecord = levelRecord
     }
 
     init(didWin: Bool, key: StatKey,

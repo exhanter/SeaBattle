@@ -27,11 +27,10 @@ struct AboutTests {
         #expect(AboutContent.sounds[0].url.absoluteString == "https://freesound.org/s/120956/")
     }
 
-    @Test("Почта открывается письмом, сайт и LinkedIn — по https")
+    @Test("Почта открывается письмом, сайт — по https")
     func contactLinks() {
         #expect(AboutContent.emailURL.absoluteString == "mailto:request@brapps.nl")
         #expect(AboutContent.websiteURL.scheme == "https")
-        #expect(AboutContent.linkedInURL.absoluteString.hasSuffix("/in/ivan-tkachev"))
     }
 
     @Test("Версия — номер и сборка, без сборки, если они совпадают")

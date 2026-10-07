@@ -40,6 +40,19 @@ enum BattleScreenMetrics {
     static func boardTop(available: CGFloat, board: CGFloat, feed: CGFloat) -> CGFloat {
         max(minGap, ((available - board - feed) / 2).rounded())
     }
+
+    /// Верх самого поля (без подписи) от верха безопасной зоны в бою iPhone:
+    /// панель счёта, место между ней и доком, подпись. По нему расстановка
+    /// ставит своё поле, чтобы по «Начать» поле не прыгало (заказчик, 07.10).
+    static func boardY(height: CGFloat, scorePanel: CGFloat, board: CGFloat) -> CGFloat {
+        let above = scoreTop + scorePanel
+        // Низ боя — один ряд в доке: переключатель полей и подсказка.
+        let below = Geometry.Bottom.dockHeight + Geometry.Nav.stackBottom
+        let caption = captionHeight + captionGap
+        let top = boardTop(available: height - above - below, board: caption + board,
+                           feed: ShotFeed.height + Geometry.Nav.stackGap)
+        return above + top + caption
+    }
 }
 
 // MARK: - Прицел
@@ -93,7 +106,8 @@ struct BattleScreen: View {
             }
         }
         .battleTypeSize()
-        .matchResults(battle.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
+        .matchResults(battle.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
+                      prepareReview: { battle.show(.foe) })
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,
                                    onStay: { askLeave = false },
@@ -364,6 +378,12 @@ private struct BattleDemo: View {
 }
 
 #Preview("Бой · поле противника") {
+    BattleDemo(field: .foe, enemysTurn: false)
+        .preferredColorScheme(.dark)
+}
+
+/// Пара к «Расстановка · запрет · 375 × 667»: где поле стоит в бою на SE.
+#Preview("Бой · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
     BattleDemo(field: .foe, enemysTurn: false)
         .preferredColorScheme(.dark)
 }

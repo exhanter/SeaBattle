@@ -13,7 +13,7 @@
 //  which took an unbounded number of tries once the board filled up (audit
 //  finding B16).
 //
-//  R0.6 gave the four levels four different behaviours — before it, three of
+//  R0.6 gave the four levels four different behaviors — before it, three of
 //  them were the same code and only `.easy` differed at all (audit finding A6),
 //  so the player was choosing between "easy" and "one of three identical
 //  hards". Each level adds exactly one idea to the one below it:
@@ -134,13 +134,13 @@ final class ComputerOpponent: Opponent {
         board.shootableCells(excludingRingsAroundSunk: true)
     }
 
-    /// Sweeps one colour of a checkerboard. A ship of two or more decks always
-    /// covers both colours, so half the board is enough to find every one of
+    /// Sweeps one color of a checkerboard. A ship of two or more decks always
+    /// covers both colors, so half the board is enough to find every one of
     /// them — and the pattern is what makes this level *look* methodical rather
     /// than lucky, which is most of what a player notices about it.
     ///
     /// The pattern is dropped once only single-deck ships are left: a one-decker
-    /// fits on either colour, so sticking to one could never finish the match.
+    /// fits on either color, so sticking to one could never finish the match.
     /// That is the "what is left of the fleet" part, and it reads only
     /// `remainingShipLengths()`, which is derived from the sunk clusters and so
     /// is public knowledge.
@@ -151,8 +151,8 @@ final class ComputerOpponent: Opponent {
     /// a rung between "follows up its hits" and "plays as well as the board
     /// allows", and structure without arithmetic is exactly that rung.
     ///
-    /// The colour is fixed rather than chosen per shot on purpose: picking the
-    /// emptier colour each time would alternate between the two and cover the
+    /// The color is fixed rather than chosen per shot on purpose: picking the
+    /// emptier color each time would alternate between the two and cover the
     /// whole board evenly, which is the very thing the pattern avoids.
     private func checkerboardCandidates(on board: Board) -> [Coordinate] {
         let open = openCells(on: board)
@@ -160,7 +160,7 @@ final class ComputerOpponent: Opponent {
             return open
         }
         let onPattern = open.filter { ($0.row + $0.column).isMultiple(of: 2) }
-        // The colour can run out while the other still holds ships.
+        // The color can run out while the other still holds ships.
         return onPattern.isEmpty ? open : onPattern
     }
 

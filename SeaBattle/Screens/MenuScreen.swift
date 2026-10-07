@@ -44,19 +44,19 @@ struct MenuMode: Identifiable {
         GameMode.allCases.map { mode in
             switch mode {
             case .computer:
-                MenuMode(mode: mode, icon: "target",
+                MenuMode(mode: mode, icon: "cpu",
                          title: "Single player",
                          subtitle: "Against the computer, four levels")
             case .paper:
-                MenuMode(mode: mode, icon: "square.grid.2x2",
+                MenuMode(mode: mode, icon: "long.text.page.and.pencil",
                          title: "Paper game",
                          subtitle: "Call out coordinates, the app keeps score")
             case .hotSeat:
-                MenuMode(mode: mode, icon: "person.2",
+                MenuMode(mode: mode, icon: "figure.stand.line.dotted.figure.stand",
                          title: "Two players on one device",
                          subtitle: pad ? "Pass the device around" : "Pass the phone around")
             case .nearby:
-                MenuMode(mode: mode, icon: "wifi",
+                MenuMode(mode: mode, icon: "iphone.radiowaves.left.and.right",
                          title: "Nearby, no internet",
                          subtitle: "Two devices close together")
             case .online:
@@ -113,7 +113,7 @@ struct MenuScreen: View {
                     ScrollView {
                         block(size)
                     }
-                    .scrollBounceBehavior(.basedOnSize)
+                    .seaScroll()
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { blockHeight = $0 }
             }

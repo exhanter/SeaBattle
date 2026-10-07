@@ -118,7 +118,7 @@ struct WelcomeScreen: View {
                     .padding(.top, OnboardingMetrics.welcomeTop(compact: size.isCompact))
                     .padding(.bottom, OnboardingMetrics.welcomeGap)
                 }
-                .scrollBounceBehavior(.basedOnSize)
+                .seaScroll()
 
                 VStack(spacing: Geometry.Nav.stackGap) {
                     Button("Play", action: onPlay)
@@ -218,7 +218,7 @@ struct PlayerNameScreen: View {
                         .glassPanel(.g2, radius: OnboardingMetrics.cardRadius)
                         .accessibilityIdentifier("ownPlayerCard")
 
-                    Text("The colour shows in the avatar, the name and on the handoff screen. The boards look the same for everyone: warm is yours, cool is your opponent’s.")
+                    Text("The color shows in the avatar, the name and on the handoff screen. The boards look the same for everyone: warm is yours, cool is your opponent’s.")
                         .font(.scalable(size: OnboardingMetrics.note))
                         .lineSpacing(OnboardingMetrics.note * 0.5)
                         .foregroundStyle(Color.inkSecondary)
@@ -229,7 +229,7 @@ struct PlayerNameScreen: View {
                 .padding(.top, OnboardingMetrics.subtitleGap)
                 .padding(.bottom, OnboardingMetrics.cardGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
             .scrollDismissesKeyboard(.interactively)
 
             if purpose == .firstLaunch {
@@ -256,8 +256,8 @@ struct PlayerNameScreen: View {
     /// В настройках вторая фраза («поменять можно в настройках») лишняя.
     private var subtitle: some View {
         (purpose == .firstLaunch
-         ? Text("Only the people you play with see your name, icon and colour. You can change them in Settings at any time.")
-         : Text("Only the people you play with see your name, icon and colour."))
+         ? Text("Only the people you play with see your name, icon and color. You can change them in Settings at any time.")
+         : Text("Only the people you play with see your name, icon and color."))
             .font(.scalable(size: OnboardingMetrics.body))
             .lineSpacing(OnboardingMetrics.bodyLineSpacing)
             .foregroundStyle(Color.inkSecondary)

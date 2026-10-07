@@ -13,11 +13,12 @@
 //    число подсказок.
 //  - **Достижений нет** (решение 01.10) — их строки и источника «за
 //    достижения» нет.
-//  - «Витрина · скоро» — строка без шеврона: шеврон обещает переход.
+//  - Витрины и обещаний «магазин будет позже» нет (решение заказчика 07.10:
+//    это внутренние планы, а не информация для игрока).
 //  - **«За деньги не купить» не пишем** (спека 4.10 и кадр 13a говорят
 //    обратное): у заказчика в плане покупка баллов отдельно от Pro (решение
 //    01.10, `docs/REDESIGN_PLAN.md`). Пока её нет, пустой кошелёк просто
-//    говорит, откуда баллы; строка покупки встанет рядом с «Витриной».
+//    говорит, откуда баллы.
 //  - Баллы, заработанные до R4.1, истории не имеют: тогда кошелёк был одним
 //    числом. Такой баланс показывается со строкой «История начинается с
 //    этой версии» вместо списка движений.
@@ -60,15 +61,22 @@ struct WalletScreen: View {
             ScreenTitle(title: "Points", back: "Statistics", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
+            // Баланс закреплён под заголовком, прокручивается только история
+            // (заказчик, 07.10): раньше всё уезжало под заголовок, и число
+            // баллов пропадало с экрана первым.
+            if !isEmpty {
+                balance
+                    .padding(.horizontal, Geometry.Nav.stackInset)
+                    .padding(.top, Geometry.Nav.titleGap * 2)
+            }
+
             ScrollView {
                 VStack(spacing: WalletMetrics.blockGap) {
                     if isEmpty {
                         EmptyStateCard(icon: PointsSymbol.name, title: "Nothing yet",
                                        text: "Points are earned for wins in the game and spent on hints.")
                         sources
-                        ListGroup { shopRow }
                     } else {
-                        balance
                         ListGroup("Latest entries") {
                             if entries.isEmpty {
                                 ListRow(title: "No entries yet",
@@ -77,20 +85,19 @@ struct WalletScreen: View {
                                 ForEach(Array(entries.prefix(5))) { PointsEntryRow(entry: $0) }
                             }
                         }
-                        ListGroup {
-                            if !entries.isEmpty {
+                        if !entries.isEmpty {
+                            ListGroup {
                                 ListRow(title: "All entries", action: onHistory)
                                     .accessibilityIdentifier("walletHistory")
                             }
-                            shopRow
                         }
                     }
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
-                .padding(.top, Geometry.Nav.titleGap * 2)
+                .padding(.top, isEmpty ? Geometry.Nav.titleGap * 2 : WalletMetrics.blockGap)
                 .padding(.bottom, WalletMetrics.blockGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         }
     }
 
@@ -135,7 +142,7 @@ struct WalletScreen: View {
                 ScaledSymbol(name: "lightbulb.max", box: WalletMetrics.ruleIcon)
                     .foregroundStyle(Color.inkPrimary)
                     .accessibilityHidden(true)
-                Text("For now points are spent on hints: a hint costs as much as a win at the level of the match, from 1 to 10 points. A shop with icons and colours will follow.")
+                Text("For now points are spent on hints: a hint costs as much as a win at the level of the match, from 1 to 10 points.")
                     .font(.scalable(size: WalletMetrics.ruleText))
                     .lineSpacing(WalletMetrics.ruleText * 0.4)
                     .foregroundStyle(Color.inkSecondary)
@@ -156,7 +163,7 @@ struct WalletScreen: View {
         let computer = "+\(levels.min() ?? 0) … +\(levels.max() ?? 0)"
         let person = "+\(StatKey.online.pointsForWin)"
         return ListGroup("Where they come from") {
-            sourceRow(icon: "target", title: "A win over the computer", value: computer)
+            sourceRow(icon: "cpu", title: "A win over the computer", value: computer)
             sourceRow(icon: "globe", title: "A win over a person, nearby or online", value: person)
         }
     }
@@ -178,10 +185,6 @@ struct WalletScreen: View {
         .padding(.vertical, 10)
         .padding(.horizontal, ListMetrics.rowPaddingH)
         .accessibilityElement(children: .combine)
-    }
-
-    private var shopRow: some View {
-        ListRow(title: "Shop", subtitle: "Icons and colours for points", value: Text("soon"))
     }
 }
 
@@ -208,7 +211,7 @@ struct PointsHistoryScreen: View {
                 .padding(.top, Geometry.Nav.titleGap * 2)
                 .padding(.bottom, WalletMetrics.blockGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         }
     }
 }
@@ -225,7 +228,7 @@ struct PointsEntryRow: View {
 
     var body: some View {
         AdaptiveRow(spacing: 12) {
-            ScaledSymbol(name: icon, box: WalletMetrics.entryIcon)
+            ScaledSymbol(name: icon, box: WalletMetrics.entryIcon, variableValue: iconValue)
                 .foregroundStyle(Color.inkPrimary)
             VStack(alignment: .leading, spacing: 2) {
                 title
@@ -255,15 +258,21 @@ struct PointsEntryRow: View {
     private var icon: String {
         switch entry.kind {
         case .win:
-            if let level = entry.winRow?.difficulty { return LevelChoice.icon(for: level) }
+            if entry.winRow?.difficulty != nil { return LevelChoice.icon }
             switch entry.winRow?.mode {
-            case .nearby: return "wifi"
+            case .nearby: return "iphone.radiowaves.left.and.right"
             case .online: return "globe"
-            default: return "target"
+            default: return "cpu"
             }
         case .hints: return "lightbulb.max"
         case .compensation: return "lightbulb"
         }
+    }
+
+    /// Деления шкалы у победы над компьютером — по уровню партии.
+    private var iconValue: Double? {
+        guard case .win = entry.kind, let level = entry.winRow?.difficulty else { return nil }
+        return LevelChoice.iconValue(for: level)
     }
 
     private var title: Text {
@@ -341,5 +350,12 @@ private struct WalletPreview<Content: View>: View {
 
 #Preview("Все начисления") {
     WalletPreview { PointsHistoryScreen(entries: .preview) }
+        .preferredColorScheme(.dark)
+}
+
+/// iPhone 12 mini: баланс закреплён, история уходит под него и над таб-баром
+/// растворяется, а не обрезается линией.
+#Preview("Баллы · 375 × 812", traits: .fixedLayout(width: 375, height: 812)) {
+    WalletPreview { WalletScreen(points: 126, entries: .preview) }
         .preferredColorScheme(.dark)
 }

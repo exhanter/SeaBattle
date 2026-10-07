@@ -58,7 +58,7 @@ struct DuelSetupScreen: View {
                     card(0)
                     card(1)
                     options
-                    Text("The colour shows in the avatar, the name and on the handoff screen. The boards look the same for both: warm is yours, cool is your opponent’s.")
+                    Text("The color shows in the avatar, the name and on the handoff screen. The boards look the same for both: warm is yours, cool is your opponent’s.")
                         .font(.scalable(size: DuelSetupMetrics.note))
                         .lineSpacing(DuelSetupMetrics.note * 0.5)
                         .foregroundStyle(Color.inkSecondary)
@@ -68,7 +68,7 @@ struct DuelSetupScreen: View {
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.vertical, DuelSetupMetrics.blockGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
             .scrollDismissesKeyboard(.interactively)
 
             BottomStack(onMenu: onBack) {

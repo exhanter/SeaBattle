@@ -6,7 +6,7 @@
 //  `static var musicPlayer / soundPlayer` globals on `AppState`, which are an
 //  error under Swift 6 strict concurrency (mutable global state).
 //
-//  Two behavioural fixes come with the move:
+//  Two behavioral fixes come with the move:
 //    - players are created once per effect and cached, instead of decoding the
 //      file again on every shot;
 //    - each effect has its own player, so a click no longer cuts off the blast
@@ -72,7 +72,7 @@ final class AudioService {
     }
 
     /// Bridge for call sites that still pass a bundled file name. Unknown names
-    /// are ignored, which keeps the old "play nothing" behaviour for `""`.
+    /// are ignored, which keeps the old "play nothing" behavior for `""`.
     func play(named fileName: String) {
         guard let effect = Effect(rawValue: fileName) else { return }
         play(effect)

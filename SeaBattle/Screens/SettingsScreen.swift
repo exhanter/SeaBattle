@@ -91,7 +91,7 @@ struct SettingsScreen: View {
                 .padding(.top, SettingsMetrics.bodyTop)
                 .padding(.bottom, SettingsMetrics.groupGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         }
         .onChange(of: appState.musicOn) { _, isOn in
             // Музыка играет только в партии; выключатель вне партии лишь

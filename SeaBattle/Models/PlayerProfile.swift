@@ -22,8 +22,8 @@ struct PlayerProfile: Codable, Identifiable, Hashable, Sendable {
     let id: UUID
     var name: String
     var avatar: String
-    /// Avatar colour (index into `PlayerAvatar.colors`), since R3.2. `nil` on
-    /// profiles saved before — shown in the first colour.
+    /// Avatar color (index into `PlayerAvatar.colors`), since R3.2. `nil` on
+    /// profiles saved before — shown in the first color.
     var colorIndex: Int?
     /// Legacy field; no longer persisted for hot-seat (PIN is session-only).
     var pinHash: String?

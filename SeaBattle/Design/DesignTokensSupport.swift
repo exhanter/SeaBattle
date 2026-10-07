@@ -267,6 +267,9 @@ struct ScaledSymbol: View {
     /// (значок на плашке: рамка 38, символ как в 22).
     var glyphBox: CGFloat?
     var weight: Font.Weight?
+    /// Заполненность символа-шкалы (`cellularbars` у уровней), 0…1; `nil` —
+    /// обычный символ.
+    var variableValue: Double?
 
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
@@ -274,7 +277,7 @@ struct ScaledSymbol: View {
 
     var body: some View {
         let factor = min(scale, Self.maxScale)
-        Image(systemName: name)
+        Image(systemName: name, variableValue: variableValue)
             .font(.system(size: symbolFontSize(inBox: (glyphBox ?? box) * factor), weight: weight))
             .frame(width: box * factor, height: box * factor)
     }
@@ -449,5 +452,72 @@ extension View {
     func phoneStyle(_ isPad: Bool) -> some View {
         environment(\.shapeFamily, isPad ? .legacy : .capsule)
             .environment(\.bottomChrome, isPad ? .legacy : .dock)
+    }
+}
+
+// MARK: - Мягкие края прокрутки
+
+/// Насколько растворяется содержимое у края прокрутки. Снизу больше: там
+/// док или таб-бар — капсула, и прямая линия обреза над её скруглением
+/// бросалась в глаза (заказчик, 07.10).
+enum ScrollFadeMetrics {
+    static let top: CGFloat = 18
+    static let bottom: CGFloat = 30
+}
+
+/// За каким краем прокрутки ещё есть содержимое.
+private struct ScrollOverflow: Equatable {
+    var top = false
+    var bottom = false
+
+    init(top: Bool = false, bottom: Bool = false) {
+        self.top = top
+        self.bottom = bottom
+    }
+
+    init(_ geometry: ScrollGeometry) {
+        let visible = geometry.visibleRect
+        top = visible.minY > 0.5
+        bottom = visible.maxY < geometry.contentSize.height - 0.5
+    }
+}
+
+/// Прокрутка экрана: не пружинит, когда всё влезает, и вместо жёсткой
+/// линии обреза содержимое растворяется у края — только у того, за которым
+/// что-то есть. Пролистали до конца — последняя карточка видна целиком.
+private struct SeaScroll: ViewModifier {
+    @State private var overflow = ScrollOverflow()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .scrollBounceBehavior(.basedOnSize)
+            .onScrollGeometryChange(for: ScrollOverflow.self, of: ScrollOverflow.init) { _, new in
+                withAnimation(Motion.quick.reduced(reduceMotion)) { overflow = new }
+            }
+            .mask {
+                VStack(spacing: 0) {
+                    fade(hidden: overflow.top, from: .top)
+                        .frame(height: ScrollFadeMetrics.top)
+                    Rectangle()
+                    fade(hidden: overflow.bottom, from: .bottom)
+                        .frame(height: ScrollFadeMetrics.bottom)
+                }
+            }
+    }
+
+    /// Чёрное в маске — видно, прозрачное — нет: у края, за которым есть
+    /// содержимое, полоса уходит в ноль.
+    private func fade(hidden: Bool, from edge: VerticalEdge) -> some View {
+        let edgeColor = Color.black.opacity(hidden ? 0 : 1)
+        return LinearGradient(colors: edge == .top ? [edgeColor, .black] : [.black, edgeColor],
+                              startPoint: .top, endPoint: .bottom)
+    }
+}
+
+extension View {
+    /// Вертикальная прокрутка экрана — с мягкими краями (`SeaScroll`).
+    func seaScroll() -> some View {
+        modifier(SeaScroll())
     }
 }

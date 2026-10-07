@@ -202,7 +202,7 @@ struct OnlineScreen: View {
             .padding(.top, Geometry.Nav.titleGap * 2)
             .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
-        .scrollBounceBehavior(.basedOnSize)
+        .seaScroll()
     }
 
     // MARK: Низ
@@ -377,7 +377,7 @@ struct InviteBlock: View {
             .padding(.top, Geometry.Nav.titleGap * 2)
             .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
-        .scrollBounceBehavior(.basedOnSize)
+        .seaScroll()
     }
 
     private var card: some View {
@@ -553,7 +553,7 @@ struct CodeEntryBlock: View {
             .padding(.top, Geometry.Nav.titleGap * 2)
             .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
-        .scrollBounceBehavior(.basedOnSize)
+        .seaScroll()
         .onAppear { focused = true }
         .onChange(of: text) { _, typed in
             let formatted = CodeEntryBlock.format(typed)
@@ -590,7 +590,7 @@ struct OnlineErrorBlock: View {
             .padding(.top, Geometry.Nav.titleGap * 2)
             .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
-        .scrollBounceBehavior(.basedOnSize)
+        .seaScroll()
     }
 
     private var alternatives: some View {
@@ -655,7 +655,7 @@ struct OnlineNoticeCard: View {
                     .padding(.top, Geometry.Nav.titleGap * 2)
                     .padding(.bottom, Geometry.Nav.titleGap * 2)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         } else {
             card(edge: true)
         }

@@ -99,7 +99,8 @@ struct DuelScreen: View {
         .animation(.easeOut(duration: Motion.scaled(Motion.handoverIn, reduceMotion: reduceMotion)),
                    value: match.showsHandoff)
         .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
-        .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
+        .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
+                      prepareReview: { match.show(.foe) })
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,
                                    onStay: { askLeave = false },
@@ -330,7 +331,7 @@ struct DuelHandoffLayer: View {
                 phoneColumn(.regular)
                 phoneColumn(.tight)
                 ScrollView { phoneColumn(.tight) }
-                    .scrollBounceBehavior(.basedOnSize)
+                    .seaScroll()
             }
             .frame(maxHeight: .infinity, alignment: .top)
 

@@ -120,7 +120,7 @@ class AppState {
         didSet { UserDefaults.standard.set(onboardingDone, forKey: Self.onboardingDoneKey) }
     }
     private static let onboardingDoneKey = "onboardingDone"
-    /// R4.4: the device owner's name, icon and colour; `nil` until given.
+    /// R4.4: the device owner's name, icon and color; `nil` until given.
     var ownPlayer: OwnPlayer? {
         didSet {
             let data = ownPlayer.flatMap { try? JSONEncoder().encode($0) }
@@ -182,7 +182,7 @@ class AppState {
     /// «Своё поле в горизонтальной ориентации» (spec 4.11, iPad only): which
     /// side of the landscape table holds your own board. **Left by default** —
     /// the opponent's board sits under the right hand. The feed, the hint and
-    /// the score blocks move with the boards; role colours never change.
+    /// the score blocks move with the boards; role colors never change.
     var ownBoardOnRight: Bool {
         didSet {
             UserDefaults.standard.set(ownBoardOnRight, forKey: Self.ownBoardOnRightKey)

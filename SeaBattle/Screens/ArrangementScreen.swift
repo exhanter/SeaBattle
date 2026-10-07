@@ -18,8 +18,12 @@ import SwiftUI
 // MARK: - Числа экрана
 
 enum ArrangementMetrics {
-    /// Между заголовком и полем.
+    /// Между заголовком и полем — не меньше этого; обычно больше: поле стоит
+    /// там же, где в бою (`BattleScreenMetrics.boardY`).
     static let boardGap: CGFloat = 18
+    /// Место под строкой предупреждения: поле опускается к позиции боя, только
+    /// если под ним ещё влезает предупреждение — иначе оно уехало бы под низ.
+    static let warningReserve: CGFloat = Geometry.Warning.belowBoard + 22
     /// Корабль в руке «поднят» над полем: чуть крупнее и с тенью. Раньше он
     /// был полупрозрачным (спека 4.4), но тогда его цвет смешивался с цветом
     /// корабля под ним (решение заказчика 05.10).
@@ -57,6 +61,11 @@ struct ArrangementScreen: View {
 
     @Environment(\.usesPadLayout) private var usesPadLayout
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Высоты частей экрана — для того, чтобы поставить поле на место боя.
+    @State private var headerHeight: CGFloat = 0
+    @State private var actionsHeight: CGFloat = 0
+    /// Высота панели счёта боя: её на расстановке нет, она мерится невидимой.
+    @State private var scorePanelHeight: CGFloat = 0
 
     var body: some View {
         Group {
@@ -74,10 +83,22 @@ struct ArrangementScreen: View {
 
     private var phone: some View {
         GeometryReader { proxy in
-            let metrics = BoardMetrics(cell: Geometry.SizeClass.forWidth(proxy.size.width).cell)
+            let size = Geometry.SizeClass.forWidth(proxy.size.width)
+            let metrics = BoardMetrics(cell: size.cell)
+            let boardHeight = metrics.totalSize.height
+            // Где поле будет в бою — туда же оно встаёт и здесь; на низком
+            // экране — выше, чтобы под ним влезло предупреждение.
+            let battleY = BattleScreenMetrics.boardY(height: proxy.size.height,
+                                                     scorePanel: scorePanelHeight,
+                                                     board: boardHeight)
+            let viewport = proxy.size.height - headerHeight - actionsHeight
+            let boardTop = max(ArrangementMetrics.boardGap,
+                               min(battleY - headerHeight,
+                                   viewport - boardHeight - ArrangementMetrics.warningReserve))
 
             VStack(spacing: 0) {
                 header
+                    .onGeometryChange(for: CGFloat.self, of: \.size.height) { headerHeight = $0 }
 
                 ScrollView {
                     VStack(spacing: Geometry.Warning.belowBoard) {
@@ -85,11 +106,19 @@ struct ArrangementScreen: View {
                         warning
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.top, ArrangementMetrics.boardGap)
+                    .padding(.top, boardTop)
                 }
-                .scrollBounceBehavior(.basedOnSize)
+                .seaScroll()
 
                 actions
+                    .onGeometryChange(for: CGFloat.self, of: \.size.height) { actionsHeight = $0 }
+            }
+            .background(alignment: .top) {
+                ScorePanel(yourLosses: 0, foeLosses: 0, isYourTurn: true, balance: 0, size: size)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .hidden()
+                    .accessibilityHidden(true)
+                    .onGeometryChange(for: CGFloat.self, of: \.size.height) { scorePanelHeight = $0 }
             }
             // Предупреждение появляется и гаснет вместе с розовым кораблём —
             // одной анимацией на оба, иначе строка приходит после того, как
@@ -436,6 +465,14 @@ private struct ArrangementDemo: View {
 }
 
 #Preview("Расстановка · запрет") {
+    ArrangementDemo(conflict: true)
+        .preferredColorScheme(.dark)
+}
+
+/// Низкий экран (SE): место боя для поля здесь слишком низко — под полем не
+/// влезло бы предупреждение, поэтому поле встаёт выше. Сравнить с превью
+/// «Бой · 375 × 667» в `BattleScreen.swift`.
+#Preview("Расстановка · запрет · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
     ArrangementDemo(conflict: true)
         .preferredColorScheme(.dark)
 }

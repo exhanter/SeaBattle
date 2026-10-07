@@ -12,7 +12,7 @@ import Observation
 class PlayerData {
 
     /// Which role this board plays. Replaces the `name == "Player"` string
-    /// comparisons that used to decide behaviour across the engine (audit A2).
+    /// comparisons that used to decide behavior across the engine (audit A2).
     let side: Side
 
     /// Legacy identifier still written into `GameSnapshot`. Derived from `side`

@@ -240,15 +240,18 @@ final class BattleController {
     }
 
     /// Партию кончает любой выстрел — и свой, и компьютера. Баланс берётся
-    /// после `GameEngine.finish`, поэтому победа в нём уже начислена.
+    /// после `GameEngine.finish`, поэтому победа в нём уже начислена — как и
+    /// партия в счёте уровня.
     private func finishIfOver() {
         guard result == nil, let appState, appState.gameIsOver else { return }
+        let level = appState.difficultyLevel
         result = MatchResult(didWin: enemy.coreBoard.isFleetDestroyed,
-                             level: appState.difficultyLevel,
+                             level: level,
                              yourLosses: player.numberShipsDestroyed,
                              foeLosses: enemy.numberShipsDestroyed,
                              tally: tally,
-                             balance: ProgressStore.shared.points)
+                             balance: ProgressStore.shared.points,
+                             levelRecord: ProgressStore.shared.record(.computer(level)))
     }
 
     /// Событие для показанного поля; чужое поле его не получает.

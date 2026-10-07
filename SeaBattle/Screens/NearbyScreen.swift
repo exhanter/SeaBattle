@@ -53,7 +53,7 @@ struct NearbyScreen: View {
                 .padding(.top, Geometry.Nav.titleGap * 2)
                 .animation(Motion.quick.reduced(reduceMotion), value: transport.peers)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
 
             BottomStack(onMenu: onBack) {
                 EmptyView()

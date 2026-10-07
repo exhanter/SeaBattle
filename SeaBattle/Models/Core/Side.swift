@@ -7,7 +7,7 @@
 //  and pure functions, so it can be reasoned about and tested on its own.
 //
 //  `Side` replaces the `name == "Player"` / `name == "Enemy"` string comparisons
-//  that used to decide behaviour across the engine (audit finding A2). A side is
+//  that used to decide behavior across the engine (audit finding A2). A side is
 //  a ROLE, not a name: in hot-seat and network play both sides are humans with
 //  their own display names, and the redesign paints the role — warm for you,
 //  cool for the opponent — identically in every mode.

@@ -86,7 +86,11 @@ struct PaperScreen: View {
             }
         }
         .battleTypeSize()
-        .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult)
+        // Флота соперника на бумаге приложение не знает — на чужом поле только
+        // ваши выстрелы. Целиком известно своё поле: его и показываем
+        // (заказчик, 07.10).
+        .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
+                      prepareReview: { match.show(.you) })
         .modalDialog(isPresented: askLeave) {
             ModalDialog.leaveMatch(.offline,
                                    onStay: { askLeave = false },

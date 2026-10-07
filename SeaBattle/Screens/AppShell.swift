@@ -181,9 +181,6 @@ struct AppShell: View {
     @State private var tab: ShellTab = .play
     /// Экран внутри таба «Статистика»; `nil` — сама страница статистики.
     @State private var statsPage: StatsPage?
-    /// Счёт серии сохранённой партии вдвоём — читается с диска при входе в
-    /// статистику, а не на каждой перерисовке.
-    @State private var duelSeries: [Int]?
     @State private var askWhichGameToContinue = false
 
     /// Экран партии до боя, открытый поверх таба «Играть»: уровень или
@@ -445,11 +442,9 @@ struct AppShell: View {
         case nil:
             StatsScreen(stats: progress.stats,
                         isPremium: premiumManager.isPremium,
-                        duelSeries: duelSeries,
                         onPlay: { selectTab(.play) },
                         onWallet: { statsPage = .wallet },
                         onReset: { statsPage = .reset })
-                .onAppear { duelSeries = DuelStore.load()?.series }
         case .wallet:
             WalletScreen(points: progress.points,
                          entries: progress.ledger,

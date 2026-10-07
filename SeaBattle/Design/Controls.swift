@@ -279,6 +279,8 @@ struct ModeRow: View {
 /// уровня хуже, чем строка выше на 18 pt.
 struct ChoiceRow: View {
     let icon: String
+    /// Заполненность значка-шкалы (уровни); `nil` — обычный символ.
+    var iconValue: Double?
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey
     var isSelected: Bool = false
@@ -326,7 +328,7 @@ struct ChoiceRow: View {
     }
 
     private var iconView: some View {
-        ScaledSymbol(name: icon, box: ControlMetrics.ChoiceRow.iconSize)
+        ScaledSymbol(name: icon, box: ControlMetrics.ChoiceRow.iconSize, variableValue: iconValue)
             .foregroundStyle(Color.inkPrimary)
     }
 
@@ -527,9 +529,9 @@ private struct ControlsDemo: View {
                 // Оба размера строки рядом: малый отличается не только высотой,
                 // и в одиночку его отличий не видно.
                 VStack(spacing: 8) {
-                    ModeRow(icon: "target", title: "Single player",
+                    ModeRow(icon: "cpu", title: "Single player",
                             subtitle: "Against the computer, four levels")
-                    ModeRow(icon: "person.2", title: "Two players on one device",
+                    ModeRow(icon: "figure.stand.line.dotted.figure.stand", title: "Two players on one device",
                             subtitle: "Pass the phone around",
                             isLocked: true,
                             size: .compact)
@@ -538,12 +540,12 @@ private struct ControlsDemo: View {
                 // Строка выбора в трёх состояниях: подпись в две строки,
                 // латунная обводка со свечением у выбранной, замок у закрытой.
                 VStack(spacing: 8) {
-                    ChoiceRow(icon: "safari", title: "Medium",
+                    ChoiceRow(icon: LevelChoice.icon, iconValue: 0.5, title: "Medium",
                               subtitle: "Finishes off a ship it has found and never wastes shots on the water around it")
-                    ChoiceRow(icon: "binoculars", title: "Hard",
+                    ChoiceRow(icon: LevelChoice.icon, iconValue: 0.75, title: "Hard",
                               subtitle: "Shoots every other cell and arranges its own fleet so it takes longer to find",
                               isSelected: true)
-                    ChoiceRow(icon: "scope", title: "Expert",
+                    ChoiceRow(icon: LevelChoice.icon, iconValue: 1, title: "Expert",
                               subtitle: "Works out where the ships most likely are, and hides its own fleet even better",
                               isLocked: true)
                 }

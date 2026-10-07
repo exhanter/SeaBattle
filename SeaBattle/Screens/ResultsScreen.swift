@@ -104,6 +104,9 @@ struct ResultsScreen: View {
                         pointsCard
                     }
                     summaryCard
+                    if let level = result.level, let record = result.levelRecord {
+                        levelCard(level, record)
+                    }
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, ResultMetrics.top)
@@ -111,7 +114,7 @@ struct ResultsScreen: View {
             }
             // На 393 всё помещается и ничего не должно пружинить; прокрутка
             // нужна только на малых экранах и при крупном шрифте.
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
 
             actions
         }
@@ -366,6 +369,36 @@ struct ResultsScreen: View {
         .accessibilityElement(children: .combine)
     }
 
+    // MARK: Все партии на уровне
+
+    /// Одиночная игра (заказчик, 07.10): все партии на уровне этой партии —
+    /// победы, поражения и доля побед. Одной строкой, а не полосой из
+    /// статистики: с полосой итоги переставали помещаться на экран.
+    private func levelCard(_ level: AppState.DifficultyLevel, _ record: StatRecord) -> some View {
+        AdaptiveRow(spacing: ResultMetrics.metricsGap, accessibilitySpacing: ResultMetrics.rowGap) {
+            VStack(alignment: .leading, spacing: ResultMetrics.metricLabelGap + 3) {
+                Text("All games · \(Text(LevelChoice.title(for: level)))")
+                    .font(.scalable(size: ResultMetrics.capLabel, weight: .bold))
+                    .tracking(ResultMetrics.capTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Color.inkSecondary)
+                Text("\(Text("\(record.wins) wins")) · \(Text("\(record.losses) losses"))")
+                    .font(.scalable(size: ResultMetrics.rowText))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.inkPrimary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(verbatim: record.winShare.map { StatBar.percent($0) } ?? "—")
+                .font(.scalable(size: ResultMetrics.metricValue, weight: .bold, design: .rounded)
+                        .monospacedDigit())
+                .foregroundStyle(Color.roleYou)
+        }
+        .padding(ResultMetrics.cardPadding)
+        .glassPanel(.g2, radius: ResultMetrics.cardRadius)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("resultLevelStats")
+    }
+
     /// Процент по правилам языка: «41 %» по-русски, «41%» по-английски.
     /// Прочерк — выстрелов не было.
     private func accuracyText(_ value: Double?) -> Text {
@@ -479,10 +512,16 @@ extension View {
     /// Бой → итоги (14c) поверх экрана партии: пауза на поле, поля в
     /// размытие, итоги слоем сверху. Одно на бой против компьютера и игру на
     /// бумаге — у обеих партий переход одинаковый.
+    ///
+    /// `prepareReview` — переключить экран на поле, которое «Посмотреть поля»
+    /// открывает первым: обычно поле противника — смотрят, где стоял чужой
+    /// флот (заказчик, 07.10); игра на бумаге передаёт своё.
     func matchResults(_ result: MatchResult?,
                       onPlayAgain: @escaping () -> Void,
-                      onMenu: @escaping () -> Void) -> some View {
-        modifier(MatchResultsModifier(result: result, onPlayAgain: onPlayAgain, onMenu: onMenu))
+                      onMenu: @escaping () -> Void,
+                      prepareReview: @escaping () -> Void = {}) -> some View {
+        modifier(MatchResultsModifier(result: result, onPlayAgain: onPlayAgain, onMenu: onMenu,
+                                      prepareReview: prepareReview))
     }
 }
 
@@ -521,6 +560,7 @@ private struct MatchResultsModifier: ViewModifier {
     let result: MatchResult?
     let onPlayAgain: () -> Void
     let onMenu: () -> Void
+    let prepareReview: () -> Void
 
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -599,6 +639,8 @@ private struct MatchResultsModifier: ViewModifier {
     }
 
     private func review() {
+        // Поле меняется, пока итоги ещё закрывают экран.
+        prepareReview()
         withAnimation(fade) {
             showsResults = false
             fieldsHidden = false
@@ -650,7 +692,7 @@ private struct ResultsDemo: View {
     ResultsDemo(result: MatchResult(
         didWin: true, level: .hard, yourLosses: 2, foeLosses: 10,
         tally: ResultsDemo.tally(hits: 20, misses: 43, streak: 4, hints: 1, cost: 6),
-        balance: 126))
+        balance: 126, levelRecord: StatRecord(wins: 9, losses: 13)))
         .preferredColorScheme(.dark)
 }
 
@@ -658,7 +700,7 @@ private struct ResultsDemo: View {
     ResultsDemo(result: MatchResult(
         didWin: false, level: .medium, yourLosses: 10, foeLosses: 7,
         tally: ResultsDemo.tally(hits: 17, misses: 41, streak: 3, hints: 1, cost: 3),
-        balance: 76))
+        balance: 76, levelRecord: StatRecord(wins: 21, losses: 11)))
         .preferredColorScheme(.dark)
 }
 
@@ -666,7 +708,7 @@ private struct ResultsDemo: View {
     ResultsDemo(result: MatchResult(
         didWin: true, level: .expert, yourLosses: 6, foeLosses: 10,
         tally: ResultsDemo.tally(hits: 20, misses: 29, streak: 5, hints: 0, cost: 10),
-        balance: 240))
+        balance: 240, levelRecord: StatRecord(wins: 4, losses: 7)))
         .preferredColorScheme(.light)
 }
 
@@ -678,7 +720,7 @@ private struct ResultsDemo: View {
         ResultsScreen(result: MatchResult(
             didWin: true, level: .hard, yourLosses: 2, foeLosses: 10,
             tally: ResultsDemo.tally(hits: 20, misses: 43, streak: 4, hints: 1, cost: 6),
-            balance: 126))
+            balance: 126, levelRecord: StatRecord(wins: 9, losses: 13)))
             .frame(maxWidth: Geometry.Nav.padColumn)
     }
     .preferredColorScheme(.dark)

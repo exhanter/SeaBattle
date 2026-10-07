@@ -11,8 +11,13 @@
 //    заказчика 01.10); запись в хранилище идёт как прежде (`StatsSummary`).
 //  - **Достижений нет** (решение 01.10: после приложения) — строки «Достижения
 //    7 из 18» нет, место под неё не держится.
-//  - «Вдвоём на устройстве» — только счёт серии сохранённой партии; сбросить
-//    его отсюда нельзя: серия идёт, пока играют, и умирает вместе с партией.
+//  - **«Вдвоём на устройстве» нет** (решение заказчика 07.10): счёт серии
+//    «3 : 2» не говорит, у кого сколько. Возможная следующая версия — счёт по
+//    парам игроков («Аня 12 : 9 Петя»), см. `docs/STATUS.md`.
+//  - **Сводка сверху — по выбранной строке** (заказчик, 07.10): было неясно,
+//    к чему относятся «победы и поражения». Нажатие на режим или уровень
+//    показывает в сводке его, повторное — снова всё; подпись карточки
+//    говорит, что в ней.
 //  - «Общая сводка» в сбросе отмечает все режимы сразу: сводка — сумма
 //    режимов, стереть её отдельно нечем (`StatsReset`). Сразу ничего не
 //    отмечено — стирание должно быть выбором, а не согласием с подсказкой.
@@ -26,6 +31,23 @@ enum StatsPage: Hashable, Sendable {
     case wallet, history, reset
 
     var hidesTabBar: Bool { self == .reset }
+}
+
+/// Что показывает сводка наверху страницы статистики.
+enum StatsScope: Hashable, Sendable {
+    case all
+    case mode(GameMode)
+    case level(AppState.DifficultyLevel)
+
+    func record(in stats: PlayerStats) -> StatRecord {
+        switch self {
+        case .all:
+            let summary = StatsSummary(stats)
+            return StatRecord(wins: summary.wins, losses: summary.losses)
+        case .mode(let mode): return stats.record(for: mode)
+        case .level(let level): return stats.record(.computer(level))
+        }
+    }
 }
 
 enum StatsMetrics {
@@ -42,6 +64,9 @@ enum StatsMetrics {
     static let modeValueWidth: CGFloat = 46
     static let modeLock: CGFloat = 20
     static let modePaddingV: CGFloat = 4
+    /// Выбранная строка — латунная подложка внутри группы с этим полем.
+    static let selectionInset: CGFloat = 4
+    static let selectionRadius: CGFloat = ListMetrics.groupRadius - 4
     // Строка сброса (`resetLink`)
     static let resetText: CGFloat = 14
     static let resetChevron: CGFloat = 16
@@ -60,13 +85,14 @@ enum StatsMetrics {
 struct StatsScreen: View {
     let stats: PlayerStats
     let isPremium: Bool
-    /// Счёт серии сохранённой партии вдвоём; `nil` — серии нет.
-    var duelSeries: [Int]?
     var onPlay: () -> Void = {}
     var onWallet: () -> Void = {}
     var onReset: () -> Void = {}
 
     @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Не `private`: превью открывает страницу с выбранной строкой.
+    @State var scope: StatsScope = .all
 
     private var summary: StatsSummary { StatsSummary(stats) }
 
@@ -94,17 +120,77 @@ struct StatsScreen: View {
                 .padding(.top, StatsMetrics.bodyTop)
                 .padding(.bottom, StatsMetrics.blockGap)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         }
     }
 
     // MARK: Сводка
 
     private var summaryCard: some View {
-        StatBar(wins: summary.wins, losses: summary.losses)
-            .padding(.vertical, StatsMetrics.summaryPaddingV)
-            .padding(.horizontal, StatsMetrics.summaryPaddingH)
-            .glassPanel(.g2, radius: StatsMetrics.summaryRadius)
+        let record = scope.record(in: stats)
+        return VStack(alignment: .leading, spacing: StatsMetrics.summaryPaddingV) {
+            HStack(spacing: 8) {
+                scopeTitle
+                    .font(.scalable(size: ListMetrics.overline, weight: .bold))
+                    .tracking(ListMetrics.overlineTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Color.inkSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
+                if scope != .all {
+                    Button("Show all") { select(.all) }
+                        .font(.scalable(size: StatsMetrics.modeDetail, weight: .semibold))
+                        .foregroundStyle(Color.roleYou)
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("statsShowAll")
+                }
+            }
+            StatBar(wins: record.wins, losses: record.losses)
+                // Смена выбранной строки — новые числа, а не новая карточка.
+                .contentTransition(.numericText())
+        }
+        .padding(.vertical, StatsMetrics.summaryPaddingV)
+        .padding(.horizontal, StatsMetrics.summaryPaddingH)
+        .glassPanel(.g2, radius: StatsMetrics.summaryRadius)
+        .accessibilityIdentifier("statsSummary")
+    }
+
+    private var scopeTitle: Text {
+        switch scope {
+        case .all:
+            Text("All games")
+        case .mode(let mode):
+            Text(MenuMode.all(pad: usesPadLayout).first { $0.mode == mode }?.title ?? "")
+        case .level(let level):
+            Text("\(Text("Single player")) · \(Text(LevelChoice.title(for: level)))")
+        }
+    }
+
+    /// Нажатие на выбранную строку возвращает сводку ко всем партиям.
+    private func select(_ new: StatsScope) {
+        withAnimation(Motion.quick.reduced(reduceMotion)) {
+            scope = scope == new ? .all : new
+        }
+    }
+
+    /// Строка, по которой можно показать сводку.
+    private func selectable(_ row: StatModeRow, _ rowScope: StatsScope) -> some View {
+        let isSelected = scope == rowScope
+        return Button { select(rowScope) } label: {
+            row
+                .contentShape(Rectangle())
+                .background {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: StatsMetrics.selectionRadius, style: .continuous)
+                            .fill(Color.roleYouSoft)
+                            .padding(.horizontal, StatsMetrics.selectionInset)
+                            .padding(.vertical, 1)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityHint(Text("Shows this row in the summary"))
     }
 
     private var emptyCard: some View {
@@ -123,19 +209,16 @@ struct StatsScreen: View {
     private var modeRows: some View {
         ForEach(MenuMode.all(pad: usesPadLayout)) { item in
             switch item.mode {
-            case .paper:
+            case .paper, .hotSeat:
                 EmptyView()
-            case .hotSeat:
-                if let duelSeries, duelSeries.count == 2 {
-                    StatModeRow(icon: item.icon, title: item.title,
-                                detail: Text("series"),
-                                value: Text(verbatim: "\(duelSeries[0]) : \(duelSeries[1])"))
-                } else {
-                    StatModeRow(icon: item.icon, title: item.title,
-                                detail: Text("no series"), value: Text(verbatim: "—"))
-                }
             case .computer, .nearby, .online:
-                StatModeRow(icon: item.icon, title: item.title, record: stats.record(for: item.mode))
+                if summary.isEmpty {
+                    StatModeRow(icon: item.icon, title: item.title, record: stats.record(for: item.mode))
+                } else {
+                    selectable(StatModeRow(icon: item.icon, title: item.title,
+                                           record: stats.record(for: item.mode)),
+                               .mode(item.mode))
+                }
             }
         }
     }
@@ -144,10 +227,13 @@ struct StatsScreen: View {
     private var levelRows: some View {
         ForEach(LevelChoice.all) { choice in
             if choice.isLocked(isPremium: isPremium) {
-                StatModeRow(icon: choice.icon, title: choice.title, isLocked: true)
+                StatModeRow(icon: choice.icon, iconValue: choice.iconValue, title: choice.title,
+                            isLocked: true)
             } else {
-                StatModeRow(icon: choice.icon, title: choice.title,
-                            record: stats.record(.computer(choice.level)))
+                selectable(StatModeRow(icon: choice.icon, iconValue: choice.iconValue,
+                                       title: choice.title,
+                                       record: stats.record(.computer(choice.level))),
+                           .level(choice.level))
             }
         }
     }
@@ -185,14 +271,17 @@ struct StatsScreen: View {
 /// замок у закрытого уровня (`statRow10`). Строка не нажимается.
 struct StatModeRow: View {
     let icon: String
+    /// Заполненность значка-шкалы (уровни); `nil` — обычный символ.
+    var iconValue: Double?
     let title: LocalizedStringKey
     var detail: Text?
     var value: Text?
     var isLocked = false
 
-    init(icon: String, title: LocalizedStringKey, detail: Text? = nil, value: Text? = nil,
-         isLocked: Bool = false) {
+    init(icon: String, iconValue: Double? = nil, title: LocalizedStringKey,
+         detail: Text? = nil, value: Text? = nil, isLocked: Bool = false) {
         self.icon = icon
+        self.iconValue = iconValue
         self.title = title
         self.detail = detail
         self.value = value
@@ -200,13 +289,14 @@ struct StatModeRow: View {
     }
 
     /// Строка из записи режима: прочерк у непройденного, а не 0 %.
-    init(icon: String, title: LocalizedStringKey, record: StatRecord) {
+    init(icon: String, iconValue: Double? = nil, title: LocalizedStringKey, record: StatRecord) {
         if let share = record.winShare {
-            self.init(icon: icon, title: title,
+            self.init(icon: icon, iconValue: iconValue, title: title,
                       detail: Text("\(record.played) games"),
                       value: Text(verbatim: StatBar.percent(share)))
         } else {
-            self.init(icon: icon, title: title, detail: Text("no games"), value: Text(verbatim: "—"))
+            self.init(icon: icon, iconValue: iconValue, title: title, detail: Text("no games"),
+                      value: Text(verbatim: "—"))
         }
     }
 
@@ -215,12 +305,15 @@ struct StatModeRow: View {
     var body: some View {
         // На AX1–AX5 — столбцом: значок, название целиком, под ним цифры.
         AdaptiveRow(spacing: 12) {
-            ScaledSymbol(name: icon, box: StatsMetrics.modeIcon)
+            ScaledSymbol(name: icon, box: StatsMetrics.modeIcon, variableValue: iconValue)
                 .foregroundStyle(Color.inkPrimary)
             Text(title)
                 .font(.scalable(size: StatsMetrics.modeName, weight: .medium))
                 .foregroundStyle(Color.inkPrimary)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                // Две строки, а не многоточие: «Вдвоём на устройстве» рядом с
+                // «нет серии» на 375 pt в одну не влезает (заказчик, 07.10).
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if isLocked {
                 ScaledSymbol(name: "lock.fill", box: StatsMetrics.modeLock)
@@ -289,7 +382,7 @@ struct ResetScreen: View {
                 .padding(.top, Geometry.Nav.titleGap * 2)
                 .animation(Motion.quick.reduced(reduceMotion), value: selection)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
 
             // Строки «Меню» нет: это не партия, а шаг внутри таба (спека 3.1).
             VStack(spacing: Geometry.Nav.stackGap) {
@@ -385,7 +478,14 @@ private struct StatsPreview<Content: View>: View {
 
 #Preview("Статистика") {
     StatsPreview {
-        StatsScreen(stats: .preview, isPremium: false, duelSeries: [3, 2])
+        StatsScreen(stats: .preview, isPremium: false)
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Статистика · выбран «Сложно» · 375 × 812", traits: .fixedLayout(width: 375, height: 812)) {
+    StatsPreview {
+        StatsScreen(stats: .preview, isPremium: false, scope: .level(.hard))
     }
     .preferredColorScheme(.dark)
 }

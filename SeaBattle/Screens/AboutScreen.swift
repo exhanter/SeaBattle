@@ -61,8 +61,6 @@ enum AboutContent {
     static let emailURL = URL(string: "mailto:\(email)")!
     static let website = "brapps.nl"
     static let websiteURL = URL(string: "https://www.brapps.nl")!
-    static let linkedIn = "ivan-tkachev"
-    static let linkedInURL = URL(string: "https://www.linkedin.com/in/ivan-tkachev")!
 
     /// «1.4 (27)» — версия и сборка из `Info.plist`.
     static func version(in bundle: Bundle = .main) -> String {
@@ -95,7 +93,6 @@ struct AboutScreen: View {
                         link("Email", value: AboutContent.email, to: AboutContent.emailURL)
                             .accessibilityIdentifier("aboutEmail")
                         link("Website", value: AboutContent.website, to: AboutContent.websiteURL)
-                        link("LinkedIn", value: AboutContent.linkedIn, to: AboutContent.linkedInURL)
                     }
 
                     ListGroup("Credits") {
@@ -116,7 +113,7 @@ struct AboutScreen: View {
                 .padding(.top, Geometry.Nav.titleGap * 2)
                 .padding(.bottom, 12)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .seaScroll()
         }
     }
 
@@ -128,7 +125,7 @@ struct AboutScreen: View {
             Text("Version \(AboutContent.version())")
                 .font(.scalable(size: AboutMetrics.headerText))
                 .foregroundStyle(Color.inkSecondary)
-            Text("Made by Ivan Tkachev for iPhone and iPad")
+            Text("Made by Brabant Mobile Apps for iPhone and iPad")
                 .font(.scalable(size: AboutMetrics.headerText))
                 .foregroundStyle(Color.inkSecondary)
                 .multilineTextAlignment(.center)

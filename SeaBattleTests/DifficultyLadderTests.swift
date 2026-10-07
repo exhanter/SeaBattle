@@ -157,7 +157,7 @@ struct DifficultyLadderTests {
 
     // MARK: - Hard: the checkerboard
 
-    @Test("Hard hunts one colour of the board while a multi-deck ship is afloat")
+    @Test("Hard hunts one color of the board while a multi-deck ship is afloat")
     func hardUsesTheCheckerboard() {
         let board = maskedBoard()
         let candidates = opponent(at: .hard).targetCandidates(on: board)
@@ -177,7 +177,7 @@ struct DifficultyLadderTests {
 
         let candidates = opponent(at: .hard).targetCandidates(on: masked)
         // A single-deck ship fits between the cells of a checkerboard, so
-        // sticking to one colour could never finish the match.
+        // sticking to one color could never finish the match.
         #expect(candidates.contains { !($0.row + $0.column).isMultiple(of: 2) },
                 "Hard would never be able to find the last single-deck ships")
     }
@@ -304,7 +304,7 @@ struct DifficultyLadderTests {
         // Clearing the whole board is what decides a real match, so that is the
         // column the ladder has to be monotone in. It is also the harder test:
         // an early version of `.hard` beat medium to the multi-deck ships and
-        // still lost the match on total shots, because sweeping one colour of
+        // still lost the match on total shots, because sweeping one color of
         // the board leaves the single-deck ships hidden for the endgame.
         // THIS TEST ONLY MEASURES ATTACK. Measured at roughly 88 · 59 · 58 · 56
         // shots to clear the board, so the only large step here is easy to
