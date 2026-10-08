@@ -76,6 +76,12 @@ class AppState {
             }
         }
 
+        /// The reverse of `storedValue`; anything unknown reads as hard, the
+        /// default level.
+        init(storedValue: Int) {
+            self = Self.allCases.first { $0.storedValue == storedValue } ?? .hard
+        }
+
         /// Only the expert is behind Pro (design log, "Уровни одиночной игры").
         var isPremium: Bool { self == .expert }
 
@@ -179,6 +185,13 @@ class AppState {
         }
     }
     private static let askLevelKey = "askLevelBeforeMatch"
+    /// «Подтверждать завершение партии» (заказчик 08.10): второй вопрос у
+    /// «Завершить партию» в окне выхода и «Удалить» у корзины в меню.
+    /// **Вкл. по умолчанию**; выключенный — удаляет с первого нажатия.
+    var confirmEndMatch: Bool {
+        didSet { UserDefaults.standard.set(confirmEndMatch, forKey: Self.confirmEndMatchKey) }
+    }
+    private static let confirmEndMatchKey = "confirmEndMatch"
     /// «Своё поле в горизонтальной ориентации» (spec 4.11, iPad only): which
     /// side of the landscape table holds your own board. **Left by default** —
     /// the opponent's board sits under the right hand. The feed, the hint and
@@ -247,15 +260,7 @@ class AppState {
     /// remembered between matches (spec 4.3), and having every screen remember
     /// to write `UserDefaults` itself is how one of them forgets.
     var difficultyLevel: DifficultyLevel {
-        get {
-            switch self.difficulty {
-            case 2: return .easy
-            case 1: return .medium
-            case 0: return .hard
-            case 3: return .expert
-            default: return .hard
-            }
-        }
+        get { DifficultyLevel(storedValue: difficulty) }
         set {
             difficulty = newValue.storedValue
             UserDefaults.standard.set(difficulty, forKey: "difficulty")
@@ -297,6 +302,7 @@ class AppState {
         // not `as? Bool`: a launch argument (`-askLevelBeforeMatch NO`, the UI
         // tests) arrives as the string "NO", which `as? Bool` reads as absent.
         self.askLevelBeforeMatch = Self.flag(Self.askLevelKey, absent: true, in: defaults)
+        self.confirmEndMatch = Self.flag(Self.confirmEndMatchKey, absent: true, in: defaults)
         // «Подтверждать выстрел» убран 06.10 — забыть сохранённый флаг.
         defaults.removeObject(forKey: "confirmShot")
         self.ownBoardOnRight = defaults.bool(forKey: Self.ownBoardOnRightKey)

@@ -220,8 +220,14 @@ struct AppShell: View {
     /// или конец связи, поэтому она живёт ровно столько, сколько экран.
     @State private var net: NetMatch?
 
+    /// Файлы сохранений SwiftUI не наблюдает: удалённая из меню партия,
+    /// которой не было в памяти, исчезла бы с диска, но не с карточки.
+    /// Счётчик меняется при удалении и заставляет меню перечитать файлы.
+    @State private var savesRevision = 0
+
     private var continueTarget: ContinueTarget {
-        .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
+        _ = savesRevision
+        return .resolve(isPlaying: appState.gameIsActive && !appState.gameIsOver,
                  hasVsComputer: GameStore.hasSavedGame,
                  hasHotSeat: hasHotSeatGame,
                  hasPaper: hasPaperGame)
@@ -233,6 +239,69 @@ struct AppShell: View {
     private var hasPaperGame: Bool {
         if let paper { return !paper.game.isOver }
         return PaperStore.hasSavedGame
+    }
+
+    /// Незакрытые партии для карточки в меню — в том же порядке, что режимы.
+    /// Сохранения читаются с диска, только если партии нет в памяти; меню
+    /// перерисовывается редко, а файлы маленькие.
+    private var savedGames: [SavedGameSummary] {
+        _ = savesRevision
+        var games: [SavedGameSummary] = []
+        if let computer = computerSummary { games.append(computer) }
+        if hasPaperGame, let game = paper.map(\.game) ?? PaperStore.load(), !game.isOver {
+            let turn: Text = switch game.turn {
+            case nil: Text("Who starts?")
+            case .you: Text("Your turn")
+            case .foe: Text("Opponent's turn")
+            }
+            games.append(SavedGameSummary(
+                mode: .paper,
+                detail: turn + Text(verbatim: " · ")
+                    + SavedGameSummary.sunk(game.foe.sunkShipCount, game.own.sunkShipCount),
+                // На карточке коротко: «Beurt van de tegenstander» не
+                // вмещался в строку на 375 pt.
+                short: game.turn == .foe ? Text("Their turn") : turn,
+                cells: Board.allCoordinates.map { BoardCellState.forDisplay(game.foe[$0], on: .foe) }))
+        }
+        if hasHotSeatGame, let game = duel.map(\.game) ?? DuelStore.load(), !game.isOver,
+           game.players.count == 2, game.boards.count == 2 {
+            // «Аня 4 : 3 Петя»: у каждого — сколько он потопил у другого.
+            games.append(SavedGameSummary(
+                mode: .hotSeat,
+                detail: Text(verbatim: "\(game.players[0].name) \(game.boards[1].sunkShipCount) : "
+                             + "\(game.boards[0].sunkShipCount) \(game.players[1].name)"),
+                short: Text(verbatim: "\(game.players[0].name) – \(game.players[1].name)")))
+        }
+        return games
+    }
+
+    /// Партия против компьютера: идущая в памяти свежее сохранения.
+    private var computerSummary: SavedGameSummary? {
+        let level: AppState.DifficultyLevel
+        let foe: Board
+        let own: Board
+        if appState.gameIsActive && !appState.gameIsOver {
+            level = appState.difficultyLevel
+            foe = enemy.coreBoard
+            own = player.coreBoard
+        } else if GameStore.hasSavedGame, let snapshot = GameStore.load() {
+            let enemyData = PlayerData(side: .foe)
+            let playerData = PlayerData(side: .you)
+            snapshot.enemy.restore(into: enemyData)
+            snapshot.player.restore(into: playerData)
+            level = AppState.DifficultyLevel(storedValue: snapshot.difficulty)
+            foe = enemyData.coreBoard
+            own = playerData.coreBoard
+        } else {
+            return nil
+        }
+        let view = foe.opponentView()
+        return SavedGameSummary(
+            mode: .computer,
+            detail: Text(LevelChoice.title(for: level)) + Text(verbatim: " · ")
+                + SavedGameSummary.sunk(foe.sunkShipCount, own.sunkShipCount),
+            short: Text(LevelChoice.title(for: level)),
+            cells: Board.allCoordinates.map { BoardCellState.forDisplay(view[$0], on: .foe) })
     }
 
     private var hasHotSeatGame: Bool {
@@ -260,6 +329,7 @@ struct AppShell: View {
                         .ignoresSafeArea()
                     BattleScreen(battle: battle,
                                  onLeave: leaveBattle,
+                                 onEnd: { discardGame(.computer) },
                                  onPlayAgain: playAgain,
                                  onMenuAfterResult: closeFinishedMatch)
                 }
@@ -400,7 +470,10 @@ struct AppShell: View {
             MenuScreen(isPremium: premiumManager.isPremium,
                        canContinue: continueTarget.isAvailable,
                        onMode: open(_:),
-                       onContinue: continueGame)
+                       onContinue: continueGame,
+                       savedGames: savedGames,
+                       onContinueMode: continueGame(_:),
+                       onDiscard: discardGame(_:))
         case .statistics:
             statistics
         case .settings:
@@ -562,6 +635,7 @@ struct AppShell: View {
             if let paper {
                 PaperScreen(match: paper,
                             onLeave: { self.route = nil },
+                            onEnd: { discardGame(.paper) },
                             onPlayAgain: {
                                 self.paper = nil
                                 openPaperArrangement()
@@ -595,6 +669,7 @@ struct AppShell: View {
                                duel.relock()
                                self.route = nil
                            },
+                           onEnd: { discardGame(.hotSeat) },
                            onPlayAgain: { duel.playAgain() },
                            onMenuAfterResult: {
                                // «В меню» после итогов кончает серию (4.9).
@@ -976,6 +1051,39 @@ struct AppShell: View {
     private func closeFinishedMatch() {
         battle.beginMatch()
         appState.resetData(player: player, enemy: enemy)
+    }
+
+    /// Партия удаляется без результата — «Завершить партию» в окне выхода и
+    /// корзина в окне выбора (заказчик 08.10). Статистика и баллы не
+    /// трогаются: потраченное на подсказки остаётся потраченным.
+    private func discardGame(_ mode: GameMode) {
+        switch mode {
+        case .computer:
+            // Ход компьютера отменяется, сохранение стирается, вкладка — меню.
+            closeFinishedMatch()
+        case .paper:
+            paper = nil
+            PaperStore.clear()
+            route = nil
+        case .hotSeat:
+            duel = nil
+            DuelStore.clear()
+            route = nil
+        case .nearby, .online:
+            break
+        }
+        savesRevision += 1
+    }
+
+    /// Выбор в меню карточки «Продолжить партию» (iPhone, партий несколько).
+    private func continueGame(_ mode: GameMode) {
+        if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        switch mode {
+        case .computer: continueComputerGame()
+        case .hotSeat: continueHotSeat()
+        case .paper: continuePaper()
+        case .nearby, .online: break
+        }
     }
 
     private func continueGame() {

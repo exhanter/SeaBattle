@@ -66,6 +66,8 @@ struct DuelScreen: View {
     var onBackToSetup: () -> Void = {}
     /// Выйти в меню. Идущая партия сохранена и закрыта слоем.
     var onLeave: () -> Void = {}
+    /// «Завершить партию» в окне выхода: партия удаляется без результата.
+    var onEnd: () -> Void = {}
     var onPlayAgain: () -> Void = {}
     var onMenuAfterResult: () -> Void = {}
 
@@ -102,12 +104,15 @@ struct DuelScreen: View {
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
                       prepareReview: { match.show(.foe) })
         .modalDialog(isPresented: askLeave) {
-            ModalDialog.leaveMatch(.offline,
-                                   onStay: { askLeave = false },
-                                   onLeave: {
-                                       askLeave = false
-                                       onLeave()
-                                   })
+            LeaveMatchDialog(onStay: { askLeave = false },
+                             onLeave: {
+                                 askLeave = false
+                                 onLeave()
+                             },
+                             onEnd: {
+                                 askLeave = false
+                                 onEnd()
+                             })
         }
     }
 

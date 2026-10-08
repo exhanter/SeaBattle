@@ -90,6 +90,110 @@ final class SeaBattleUITests: XCTestCase {
                       "A match left halfway can be continued from the menu")
     }
 
+    /// Two unfinished games: the menu card lists both, opens the chooser
+    /// under itself, and the chooser opens the picked game (08.10).
+    @MainActor
+    func testTwoUnfinishedGamesAreChosenFromTheContinueCard() throws {
+        launch()
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+
+        // A single-player match, one shot, back to the menu.
+        modeButton("Single player").tap()
+        let medium = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Medium")).firstMatch
+        XCTAssertTrue(medium.waitForExistence(timeout: 5))
+        medium.tap()
+        app.buttons["Start match"].tap()
+        XCTAssertTrue(app.buttons["Start"].waitForExistence(timeout: 5))
+        app.buttons["Start"].tap()
+        XCTAssertTrue(app.buttons["A1"].firstMatch.waitForExistence(timeout: 5))
+        app.buttons["A1"].firstMatch.tap()
+        leaveToMenu()
+
+        // A paper game is saved the moment it starts.
+        modeButton("Paper game").tap()
+        XCTAssertTrue(app.buttons["Start"].waitForExistence(timeout: 5))
+        app.buttons["Start"].tap()
+        XCTAssertTrue(app.buttons["paperUndo"].waitForExistence(timeout: 5))
+        leaveToMenu()
+
+        let card = app.buttons["continueGameButton"]
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        card.tap()
+        let paperRow = modeButton("Paper game")
+        XCTAssertTrue(paperRow.waitForExistence(timeout: 5))
+        XCTAssertTrue(modeButton("Single player").exists)
+
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Continue chooser"
+        shot.lifetime = .keepAlways
+        add(shot)
+
+        paperRow.tap()
+        XCTAssertTrue(app.buttons["paperUndo"].waitForExistence(timeout: 5),
+                      "The chooser opens the paper game")
+    }
+
+    /// Deleting from the chooser and ending from the leave dialog (08.10):
+    /// a paper game goes from the chooser's trash, then the single-player
+    /// match is ended in its own leave dialog — and nothing is left to continue.
+    @MainActor
+    func testUnfinishedGamesAreDeletedAndEnded() throws {
+        launch()
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+        modeButton("Single player").tap()
+        let medium = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Medium")).firstMatch
+        XCTAssertTrue(medium.waitForExistence(timeout: 5))
+        medium.tap()
+        app.buttons["Start match"].tap()
+        XCTAssertTrue(app.buttons["Start"].waitForExistence(timeout: 5))
+        app.buttons["Start"].tap()
+        XCTAssertTrue(app.buttons["A1"].firstMatch.waitForExistence(timeout: 5))
+        leaveToMenu()
+        modeButton("Paper game").tap()
+        XCTAssertTrue(app.buttons["Start"].waitForExistence(timeout: 5))
+        app.buttons["Start"].tap()
+        XCTAssertTrue(app.buttons["paperUndo"].waitForExistence(timeout: 5))
+        leaveToMenu()
+
+        // The chooser: trash on the paper row, confirm in the row.
+        app.buttons["continueGameButton"].tap()
+        let trash = app.buttons["continueDelete_paper"]
+        XCTAssertTrue(trash.waitForExistence(timeout: 5))
+        trash.tap()
+        let confirm = app.buttons["continueDeleteConfirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+
+        // One game left: the card now continues it straight away.
+        let card = app.buttons["continueGameButton"]
+        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        XCTAssertTrue(card.label.contains("Single player"), "Card label: \(card.label)")
+        card.tap()
+        XCTAssertTrue(app.buttons["navMenuButton"].waitForExistence(timeout: 5))
+
+        // End it from the leave dialog, with the second question.
+        app.buttons["navMenuButton"].tap()
+        let end = app.buttons["modalEnd"]
+        XCTAssertTrue(end.waitForExistence(timeout: 5))
+        end.tap()
+        let endConfirm = app.buttons["modalEndConfirm"]
+        XCTAssertTrue(endConfirm.waitForExistence(timeout: 5))
+        endConfirm.tap()
+
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["continueGameButton"].exists,
+                       "Nothing is left to continue")
+    }
+
+    @MainActor
+    private func leaveToMenu() {
+        app.buttons["navMenuButton"].tap()
+        let leave = app.buttons["modalSecondary"]
+        XCTAssertTrue(leave.waitForExistence(timeout: 5))
+        leave.tap()
+        XCTAssertTrue(app.staticTexts["titleMainText"].waitForExistence(timeout: 5))
+    }
+
     @MainActor
     func testLaunchPerformance() throws {
         measure(metrics: [XCTApplicationLaunchMetric()]) {

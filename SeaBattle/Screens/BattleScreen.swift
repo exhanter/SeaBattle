@@ -27,8 +27,6 @@ enum BattleScreenMetrics {
     static let scoreTop: CGFloat = 4
     /// Минимальный зазор над полем.
     static let minGap: CGFloat = 10
-    /// Метка подсказки — доля клетки.
-    static let hintMark: CGFloat = 0.6
 
     /// Верх поля от верха области между панелью счёта и низом экрана.
     ///
@@ -82,6 +80,8 @@ struct BattleScreen: View {
     let battle: BattleController
     /// Выйти в меню. Вопрос «Выйти из партии?» задаёт сам экран.
     var onLeave: () -> Void = {}
+    /// «Завершить партию» в окне выхода: партия удаляется без результата.
+    var onEnd: () -> Void = {}
     /// Кнопки итогов: «Ещё партия» / «Отыграться» и «В меню».
     var onPlayAgain: () -> Void = {}
     var onMenuAfterResult: () -> Void = {}
@@ -109,12 +109,15 @@ struct BattleScreen: View {
         .matchResults(battle.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
                       prepareReview: { battle.show(.foe) })
         .modalDialog(isPresented: askLeave) {
-            ModalDialog.leaveMatch(.offline,
-                                   onStay: { askLeave = false },
-                                   onLeave: {
-                                       askLeave = false
-                                       onLeave()
-                                   })
+            LeaveMatchDialog(onStay: { askLeave = false },
+                             onLeave: {
+                                 askLeave = false
+                                 onLeave()
+                             },
+                             onEnd: {
+                                 askLeave = false
+                                 onEnd()
+                             })
         }
         .animation(Motion.quick.reduced(reduceMotion), value: battle.shownField)
     }
@@ -281,22 +284,17 @@ struct BattleBoard: View {
 
     /// Открытые подсказкой клетки — поверх сетки, как корабли на
     /// расстановке: у `BoardCell` таких состояний нет, это не правила.
+    /// Клетка, по которой только что выстрелили, ещё держит метку — та
+    /// уходит, пока клетка становится «ранен» или «убит».
     private var marks: some View {
         let unshot = Set(Board.allCoordinates.filter { battle.enemy.coreBoard[$0].isUnshot })
+        let event = battle.event(on: .foe)
         return ZStack(alignment: .topLeading) {
-            ForEach(Array(battle.hintCells.filter { unshot.contains($0) }), id: \.self) { cell in
+            ForEach(Array(battle.hintCells.filter { unshot.contains($0) || $0 == event?.target }),
+                    id: \.self) { cell in
                 let origin = m.cellOrigin(cell)
-                Image(systemName: "target")
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color.roleYou)
-                    .frame(width: m.cell * BattleScreenMetrics.hintMark,
-                           height: m.cell * BattleScreenMetrics.hintMark)
-                    .frame(width: m.cell, height: m.cell)
+                HintMark(cell: m.cell, shotAt: unshot.contains(cell) ? nil : event?.start)
                     .offset(x: origin.x, y: origin.y)
-                    // Метка — значение клетки (`BoardView.marks`), картинка
-                    // VoiceOver не нужна.
-                    .accessibilityHidden(true)
             }
         }
     }

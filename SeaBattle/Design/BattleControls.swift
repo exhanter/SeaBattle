@@ -442,7 +442,7 @@ struct ShotFeed: View {
 
     /// Высота панели постоянна — пустая лента и полная занимают одно место,
     /// поэтому поле над ней не прыгает, когда компьютер начинает стрелять.
-    static let height: CGFloat = 72
+    nonisolated static let height: CGFloat = 72
     static let fadeWidth: CGFloat = 34
     /// Подпись чуть отступает от края колонки — по кромке поля над ней.
     static let leadingInset: CGFloat = 4

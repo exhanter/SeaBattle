@@ -213,6 +213,84 @@ extension ModalDialog {
     }
 }
 
+// MARK: - Выход с завершением
+
+/// «Выйти из партии?» для партий, которые сохраняются (против компьютера, на
+/// бумаге, вдвоём): под «Остаться» и «Выйти» — тихая огненная строка
+/// «Завершить партию» (заказчик 08.10: недоигранную партию иначе приходилось
+/// доигрывать). Завершение спрашивается ещё раз в том же окне — партию
+/// можно потерять одним случайным касанием; в настройках вопрос
+/// выключается («Подтверждать завершение партии»).
+struct LeaveMatchDialog: View {
+    var onStay: () -> Void = {}
+    var onLeave: () -> Void = {}
+    var onEnd: () -> Void = {}
+    /// Только превью: сразу второй шаг.
+    var startsConfirming = false
+
+    @State private var confirming = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Настройка «Подтверждать завершение партии»; без неё (превью) — да.
+    @Environment(AppState.self) private var appState: AppState?
+
+    var body: some View {
+        VStack(spacing: ModalMetrics.buttonsGap) {
+            VStack(spacing: ModalMetrics.titleGap) {
+                Text(confirming ? "End the match?" : LeaveMatchKind.offline.title)
+                    .font(TypeScale.headline)
+                    .foregroundStyle(Color.inkPrimary)
+                    .multilineTextAlignment(.center)
+                Text(confirming ? "The game will be deleted and won't count in your statistics."
+                                : LeaveMatchKind.offline.message)
+                    .font(TypeScale.footnote)
+                    .lineSpacing(ModalMetrics.messageLineSpacing)
+                    .foregroundStyle(Color.inkSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            VStack(spacing: Geometry.Nav.stackGap) {
+                if confirming {
+                    Button { setConfirming(false) } label: { Text("Back") }
+                        .primaryButton()
+                        .accessibilityIdentifier("modalPrimary")
+                    Button(action: onEnd) {
+                        Text("End match").foregroundStyle(Color.fire)
+                    }
+                    .secondaryButton()
+                    .accessibilityIdentifier("modalEndConfirm")
+                } else {
+                    Button(action: onStay) { Text("Stay") }
+                        .primaryButton()
+                        .accessibilityIdentifier("modalPrimary")
+                    Button(action: onLeave) { Text(LeaveMatchKind.offline.confirm) }
+                        .secondaryButton()
+                        .accessibilityIdentifier("modalSecondary")
+                    Button {
+                        if appState?.confirmEndMatch ?? true { setConfirming(true) } else { onEnd() }
+                    } label: {
+                        Text("End match")
+                            .font(TypeScale.footnote.weight(.semibold))
+                            .foregroundStyle(Color.fire)
+                            .frame(maxWidth: .infinity, minHeight: Geometry.Hit.minTarget)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("modalEnd")
+                }
+            }
+        }
+        .padding(ModalMetrics.padding)
+        .glassPanel(.g3, radius: ModalMetrics.radius)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .onAppear { if startsConfirming { confirming = true } }
+    }
+
+    private func setConfirming(_ value: Bool) {
+        withAnimation(Motion.quick.reduced(reduceMotion)) { confirming = value }
+    }
+}
+
 // MARK: - Превью
 
 private struct ModalDemo: View {
@@ -232,6 +310,18 @@ private struct ModalDemo: View {
 
 #Preview("Окно · выход · тёмная") {
     ModalDemo(kind: .offline)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Окно · выход с завершением") {
+    ZStack { SeaBackground() }
+        .modalDialog(isPresented: true) { LeaveMatchDialog() }
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Окно · завершить партию?") {
+    ZStack { SeaBackground() }
+        .modalDialog(isPresented: true) { LeaveMatchDialog(startsConfirming: true) }
         .preferredColorScheme(.dark)
 }
 

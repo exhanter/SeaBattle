@@ -177,9 +177,11 @@ struct GlassPanelModifier: ViewModifier {
     var highlight: GlassHighlight = .none
     var treatment: GlassTreatment = .automatic
 
+    @Environment(\.glassForcesMaterial) private var forcesMaterial
+
     func body(content: Content) -> some View {
         Group {
-            if #available(iOS 26, *),
+            if #available(iOS 26, *), !forcesMaterial,
                GlassTreatment.usesSystemGlass(treatment, level: level,
                                               systemGlassAvailable: true) {
                 systemGlass(content)

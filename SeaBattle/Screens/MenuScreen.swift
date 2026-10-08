@@ -2,8 +2,8 @@
 //  MenuScreen.swift
 //  Sea Battle — главный экран (R2.1, шаг 5 порядка сборки)
 //
-//  Спека 4.2: один список из пяти равных строк по 58 pt, без групп; под
-//  списком — «Продолжить партию», если есть незакрытая. Фото в деревянном мате
+//  Спека 4.2: один список из пяти равных строк по 58 pt, без групп; над
+//  списком — карточка «Продолжить партию», если есть незакрытая (07.10). Фото в деревянном мате
 //  заменено артом во всю ширину по образцу iPad (решение заказчика 05.10).
 //
 //  Экран ничего не делает сам: он получает готовые ответы («куплен ли Pro»,
@@ -91,6 +91,20 @@ struct MenuScreen: View {
     let canContinue: Bool
     var onMode: (MenuMode) -> Void = { _ in }
     var onContinue: () -> Void = {}
+    /// Незакрытые партии — для карточки «Продолжить партию».
+    var savedGames: [SavedGameSummary] = []
+    /// Выбор в меню карточки, когда незакрытых партий несколько.
+    var onContinueMode: (GameMode) -> Void = { _ in }
+    /// Удалить незакрытую партию — корзина в окне выбора или долгое нажатие.
+    var onDiscard: (GameMode) -> Void = { _ in }
+    /// Только превью: окно выбора открыто сразу.
+    var startsChoosing = false
+
+    /// Окно выбора партии под карточкой открыто.
+    @State private var choosing = false
+    /// Высота карточки — окно встаёт сразу под ней.
+    @State private var cardHeight: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Высота нижнего блока — от неё считается высота арта.
     @State private var blockHeight: CGFloat = 0
@@ -133,17 +147,62 @@ struct MenuScreen: View {
         return VStack(alignment: .leading, spacing: size.menuGap) {
             title(size)
                 .padding(.leading, size.menuInset - inset)
-            modes(size)
-            // «Продолжить» — под строками, у самого таб-бара: это единственный
-            // путь назад в незакрытую партию. Нет партии — строки опускаются
-            // к таб-бару, а не висят над пустым местом.
+            // «Продолжить» — карточкой над строками (выбор заказчика 07.10):
+            // ссылка под ними терялась. Нет партии — строки опускаются к
+            // таб-бару, а не висят над пустым местом.
             if canContinue {
-                continueLink(size)
-                    .frame(maxWidth: .infinity)
+                ContinueCard(games: savedGames, size: size,
+                             onContinue: onContinue, isChoosing: choosing,
+                             onToggleChoosing: { setChoosing(!choosing) },
+                             onDiscard: discard)
+                    // Окно выбора — под карточкой, во всю её ширину, поверх
+                    // строк режимов: блок не меняет высоту, арт не прыгает.
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
+                    .overlay(alignment: .top) {
+                        if choosing {
+                            ContinuePopover(games: savedGames, size: size, onPick: pick, onDiscard: discard)
+                                .offset(y: cardHeight + Self.popoverGap)
+                                // VoiceOver: «назад» двумя пальцами закрывает окно.
+                                .accessibilityAction(.escape) { setChoosing(false) }
+                                .transition(.scale(scale: 0.96, anchor: .top).combined(with: .opacity))
+                        }
+                    }
+                    .zIndex(1)
             }
+            // Под открытым окном строки гаснут, касание мимо окна закрывает его.
+            modes(size)
+                .opacity(choosing ? 0.35 : 1)
+                .overlay {
+                    if choosing {
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture { setChoosing(false) }
+                    }
+                }
+                .accessibilityHidden(choosing)
         }
+        .onAppear { if startsChoosing { choosing = true } }
         .padding(.horizontal, inset)
         .padding(.bottom, size.menuGap)
+    }
+
+    /// Зазор между карточкой и окном выбора.
+    static let popoverGap: CGFloat = 8
+
+    private func setChoosing(_ open: Bool) {
+        withAnimation(Motion.quick.reduced(reduceMotion)) { choosing = open }
+    }
+
+    /// Осталась одна партия — окно выбора больше не нужно, карточка сама
+    /// её продолжает.
+    private func discard(_ mode: GameMode) {
+        if savedGames.count <= 2 { setChoosing(false) }
+        onDiscard(mode)
+    }
+
+    private func pick(_ mode: GameMode) {
+        choosing = false
+        onContinueMode(mode)
     }
 
     // MARK: Заголовок
@@ -176,21 +235,6 @@ struct MenuScreen: View {
                 }
             }
         }
-    }
-
-    // MARK: «Продолжить партию»
-
-    private func continueLink(_ size: Geometry.SizeClass) -> some View {
-        Button(action: onContinue) {
-            Text("Continue game")
-                .font(.scalable(size: size.continueText, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.roleYou)
-                .underline()
-                .frame(minHeight: Geometry.Hit.minTarget)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("continueGameButton")
     }
 }
 
@@ -277,56 +321,85 @@ struct MenuHero: View {
 
 // MARK: - Превью
 
-#Preview("Меню · тёмная") {
-    ZStack {
-        SeaBackground()
-        MenuScreen(isPremium: false, canContinue: true)
+/// Меню, как его ставит оболочка: экран и под ним таб-бар.
+struct MenuShellPreview: View {
+    var isPremium = false
+    var games: [SavedGameSummary] = [.previewComputer]
+    var startsChoosing = false
+
+    var body: some View {
+        ZStack {
+            SeaBackground()
+                .ignoresSafeArea()
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    MenuScreen(isPremium: isPremium, canContinue: !games.isEmpty,
+                               savedGames: games, startsChoosing: startsChoosing)
+                    SeaTabBar(selection: .constant(.play), size: .forWidth(proxy.size.width))
+                }
+            }
+        }
     }
-    .preferredColorScheme(.dark)
+}
+
+#Preview("Меню · тёмная") {
+    MenuShellPreview()
+        .preferredColorScheme(.dark)
 }
 
 #Preview("Меню · светлая") {
-    ZStack {
-        SeaBackground()
-        MenuScreen(isPremium: false, canContinue: true)
-    }
-    .preferredColorScheme(.light)
+    MenuShellPreview()
+        .preferredColorScheme(.light)
 }
 
 #Preview("Меню · Pro, без сохранённой партии") {
-    ZStack {
-        SeaBackground()
-        MenuScreen(isPremium: true, canContinue: false)
-    }
-    .preferredColorScheme(.dark)
+    MenuShellPreview(isPremium: true, games: [])
+        .preferredColorScheme(.dark)
 }
 
 /// Малый экран в его настоящем размере — единственный способ увидеть вторую
 /// раскладку: на канве большого телефона она не включается, а отличается в ней
-/// всё, от полей до кегля подписей.
-#Preview("Меню · 375 × 667") {
-    ZStack {
-        SeaBackground()
-        MenuScreen(isPremium: false, canContinue: true)
-    }
-    .frame(width: 375, height: 667)
-    .clipShape(RoundedRectangle(cornerRadius: Geometry.Radius.sheet, style: .continuous))
-    .preferredColorScheme(.dark)
+/// всё, от полей до кегля подписей. Сверху — полоса состояния SE (20 pt).
+#Preview("Меню · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
+    MenuShellPreview()
+        .padding(.top, 20)
+        .background(Color.black)
+        .preferredColorScheme(.dark)
 }
 
-/// iPhone 12 / 13 mini вместе с таб-баром: компактная раскладка на высоком
-/// экране — тот случай, где фото в мате оставляло пустой низ.
-#Preview("Меню · 375 × 812 с таб-баром") {
-    ZStack {
-        SeaBackground()
-        VStack(spacing: 0) {
-            MenuScreen(isPremium: false, canContinue: true)
-            SeaTabBar(selection: .constant(.play), size: .compact)
-        }
+/// iPhone 12 / 13 mini: компактная раскладка на высоком экране.
+#Preview("Меню · 375 × 812", traits: .fixedLayout(width: 375, height: 812)) {
+    MenuShellPreview()
         .padding(.top, 50)
         .padding(.bottom, 34)
-    }
-    .frame(width: 375, height: 812)
-    .clipShape(RoundedRectangle(cornerRadius: Geometry.Radius.sheet, style: .continuous))
-    .preferredColorScheme(.dark)
+        .background(Color.black)
+        .preferredColorScheme(.dark)
+}
+
+private let previewGames: [SavedGameSummary] = [.previewComputer, .previewPaper, .previewDuel]
+
+/// Незакрытых партий три: в карточке их режимы и число, нажатие — окно.
+#Preview("Меню · три партии, окно выбора") {
+    MenuShellPreview(games: previewGames, startsChoosing: true)
+        .preferredColorScheme(.dark)
+}
+
+/// Окно выбора без системного стекла — так его рисует iOS 18.
+#Preview("Меню · окно выбора, как на iOS 18") {
+    MenuShellPreview(games: previewGames, startsChoosing: true)
+        .environment(\.glassForcesMaterial, true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Меню · окно выбора, светлая") {
+    MenuShellPreview(games: previewGames, startsChoosing: true)
+        .preferredColorScheme(.light)
+}
+
+/// Самая длинная подпись карточки — бумага на узком экране.
+#Preview("Меню · партия на бумаге · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
+    MenuShellPreview(games: [.previewPaper])
+        .padding(.top, 20)
+        .background(Color.black)
+        .preferredColorScheme(.dark)
 }

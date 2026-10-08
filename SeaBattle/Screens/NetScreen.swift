@@ -373,20 +373,13 @@ struct NetBoard: View {
     private var marks: some View {
         let m = metrics
         let board = match.board(.foe)
+        let event = match.event(on: .foe)
         return ZStack(alignment: .topLeading) {
-            ForEach(Array(match.game.revealed.filter { board[$0].isUnshot }), id: \.self) { cell in
+            ForEach(Array(match.game.revealed.filter { board[$0].isUnshot || $0 == event?.target }),
+                    id: \.self) { cell in
                 let origin = m.cellOrigin(cell)
-                Image(systemName: "target")
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color.roleYou)
-                    .frame(width: m.cell * BattleScreenMetrics.hintMark,
-                           height: m.cell * BattleScreenMetrics.hintMark)
-                    .frame(width: m.cell, height: m.cell)
+                HintMark(cell: m.cell, shotAt: board[cell].isUnshot ? nil : event?.start)
                     .offset(x: origin.x, y: origin.y)
-                    // Метка — значение клетки (`BoardView.marks`), картинка
-                    // VoiceOver не нужна.
-                    .accessibilityHidden(true)
             }
         }
     }

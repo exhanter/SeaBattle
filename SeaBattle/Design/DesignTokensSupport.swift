@@ -444,6 +444,9 @@ extension EnvironmentValues {
     /// Контрол лежит в нижнем блоке iPhone (`BottomStack` в стиле `dock`) —
     /// подписи кеглем `TypeScale.bottomLabel`, одним на весь блок.
     @Entry var inBottomStack = false
+    /// Стекло рисуется материалами, как на iOS 18, даже на iOS 26 — чтобы
+    /// превью показывало, как экран выглядит без системного стекла.
+    @Entry var glassForcesMaterial = false
 }
 
 extension View {

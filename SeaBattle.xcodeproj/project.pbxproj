@@ -84,6 +84,9 @@
 		CAD0023D306EE683006405DC /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CAD0023C306EE683006405DC /* InfoPlist.xcstrings */; };
 		CAD0023F30707218006405DC /* AboutScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0023E30707218006405DC /* AboutScreen.swift */; };
 		CAD002893073F374006405DC /* BoardRipple.metal in Sources */ = {isa = PBXBuildFile; fileRef = CAD002883073F374006405DC /* BoardRipple.metal */; };
+		CAD002953076E714006405DC /* HintMark.metal in Sources */ = {isa = PBXBuildFile; fileRef = CAD002943076E714006405DC /* HintMark.metal */; };
+		CAD002973076E733006405DC /* HintMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD002963076E733006405DC /* HintMark.swift */; };
+		CAD0029B3076E82E006405DC /* ContinueGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0029A3076E82E006405DC /* ContinueGame.swift */; };
 		CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */; };
 		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
 		CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
@@ -203,6 +206,9 @@
 		CAD0023C306EE683006405DC /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		CAD0023E30707218006405DC /* AboutScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutScreen.swift; sourceTree = "<group>"; };
 		CAD002883073F374006405DC /* BoardRipple.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BoardRipple.metal; sourceTree = "<group>"; };
+		CAD002943076E714006405DC /* HintMark.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = HintMark.metal; sourceTree = "<group>"; };
+		CAD002963076E733006405DC /* HintMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintMark.swift; sourceTree = "<group>"; };
+		CAD0029A3076E82E006405DC /* ContinueGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueGame.swift; sourceTree = "<group>"; };
 		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
 		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
 		CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GameCenterResources.gamekit; sourceTree = "<group>"; };
@@ -392,6 +398,7 @@
 				CAD720EE306E934E00F6E49F /* ProScreens.swift */,
 				CAD00238306EDD3D006405DC /* OnboardingScreens.swift */,
 				CAD0023E30707218006405DC /* AboutScreen.swift */,
+				CAD0029A3076E82E006405DC /* ContinueGame.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -435,6 +442,8 @@
 				CAA32FD03064042800469335 /* GlassPanel.swift */,
 				CAD720E2306E735000F6E49F /* ListControls.swift */,
 				CAD002883073F374006405DC /* BoardRipple.metal */,
+				CAD002943076E714006405DC /* HintMark.metal */,
+				CAD002963076E733006405DC /* HintMark.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -609,6 +618,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAD0029B3076E82E006405DC /* ContinueGame.swift in Sources */,
 				A584E62AB77D1A8B2AADC8D3 /* BoardCell.swift in Sources */,
 				9773F3093B5E225E9BA64CC7 /* CellEvent.swift in Sources */,
 				FA9587FC6C8A65C22385A0A5 /* BoardView.swift in Sources */,
@@ -672,6 +682,7 @@
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
 				CA4F06353061DB140083DE5C /* AudioService.swift in Sources */,
 				CA4F063A3061E1E20083DE5C /* Side.swift in Sources */,
+				CAD002973076E733006405DC /* HintMark.swift in Sources */,
 				CA17D7C8302CB294007A33B0 /* PremiumManager.swift in Sources */,
 				CA17D7D1302D27C9007A33B0 /* ProgressStore.swift in Sources */,
 				CA17D7BA302C90C6007A33B0 /* Coordinate.swift in Sources */,
@@ -687,6 +698,7 @@
 				CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */,
 				CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */,
 				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
+				CAD002953076E714006405DC /* HintMark.metal in Sources */,
 				CAD720E5306E73AE00F6E49F /* StatsScreen.swift in Sources */,
 				CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */,
 			);

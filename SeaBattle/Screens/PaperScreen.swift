@@ -62,6 +62,8 @@ struct PaperScreen: View {
 
     let match: PaperMatch
     var onLeave: () -> Void = {}
+    /// «Завершить партию» в окне выхода: партия удаляется без результата.
+    var onEnd: () -> Void = {}
     var onPlayAgain: () -> Void = {}
     var onMenuAfterResult: () -> Void = {}
 
@@ -92,12 +94,15 @@ struct PaperScreen: View {
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
                       prepareReview: { match.show(.you) })
         .modalDialog(isPresented: askLeave) {
-            ModalDialog.leaveMatch(.offline,
-                                   onStay: { askLeave = false },
-                                   onLeave: {
-                                       askLeave = false
-                                       onLeave()
-                                   })
+            LeaveMatchDialog(onStay: { askLeave = false },
+                             onLeave: {
+                                 askLeave = false
+                                 onLeave()
+                             },
+                             onEnd: {
+                                 askLeave = false
+                                 onEnd()
+                             })
         }
         .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
         .animation(Motion.quick.reduced(reduceMotion), value: game.aim)
@@ -110,7 +115,7 @@ struct PaperScreen: View {
             let field = match.shownField
 
             VStack(spacing: 0) {
-                PaperScorePanel(match: match, alphabet: alphabet, size: size)
+                PaperScorePanel(match: match, alphabet: alphabet, size: size, callsInPanel: false)
                     .padding(.top, BattleScreenMetrics.scoreTop)
 
                 GeometryReader { area in
@@ -139,7 +144,21 @@ struct PaperScreen: View {
         }
     }
 
+    /// Клетка названа — вместо подписи поля крупно её координата (заказчик
+    /// 08.10: в шапке её приходилось искать глазами). Высота строки та же,
+    /// поле не сдвигается.
+    @ViewBuilder
     private func fieldCaption(_ field: Side, size: Geometry.SizeClass) -> some View {
+        if field == .foe, let aim = game.aim {
+            PaperCallCaption(label: ShotChip.label(aim, alphabet: alphabet))
+                .frame(height: BattleScreenMetrics.captionHeight)
+                .transition(.opacity)
+        } else {
+            plainCaption(field, size: size)
+        }
+    }
+
+    private func plainCaption(_ field: Side, size: Geometry.SizeClass) -> some View {
         Text(field == .foe ? "Opponent's board" : "Your fleet")
             .font(.system(size: BattleMetrics.forSize(size).caption,
                           weight: .semibold, design: .rounded))
@@ -215,6 +234,10 @@ struct PaperScorePanel: View {
     var size: Geometry.SizeClass = .regular
     var isPad = false
     var yoursOnTrailing = false
+    /// «Скажите: Д7» в центре панели — только iPad. На iPhone координата
+    /// с 08.10 стоит над полем, а панель пишет «Ваш ход» (заказчик: «Ждём
+    /// ответа» врёт, пока игрок ещё думает, называть ли клетку).
+    var callsInPanel = true
 
     private var game: PaperGame { match.game }
 
@@ -235,7 +258,7 @@ struct PaperScorePanel: View {
 
     private var status: Text {
         if let aim = game.aim {
-            return Text("Say: \(ShotChip.label(aim, alphabet: alphabet))")
+            return callsInPanel ? Text("Say: \(ShotChip.label(aim, alphabet: alphabet))") : Text("Your turn")
         }
         switch game.turn {
         case nil: return Text("Who starts?")
@@ -326,6 +349,31 @@ struct PaperBoard: View {
     }
 }
 
+/// Названная клетка над полем — латунная капсула с координатой. Строка
+/// подписи 22 pt, капсула выше и выходит в зазоры над и под ней.
+struct PaperCallCaption: View {
+    let label: String
+
+    var body: some View {
+        Text(verbatim: label)
+            .font(.system(size: 22, weight: .bold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(Color.roleYou)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 2)
+            .background {
+                Capsule(style: .continuous)
+                    .fill(Color.glassFill)
+                    .overlay { Capsule(style: .continuous).strokeBorder(Color.roleYou, lineWidth: 1) }
+            }
+            .shadow(color: .roleYouSoft, radius: 10)
+            .contentTransition(.numericText())
+            .fixedSize()
+            .accessibilityLabel(Text("Say: \(label)"))
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
 /// Метка последнего попадания соперника (4.6, раунд 8): рамка прицела 2.18 в
 /// цвете соперника, наружу на 3 pt, радиус клетки + 3, со свечением снаружи и
 /// внутри.
@@ -383,6 +431,9 @@ struct PaperAnswerRow: View {
                         Text(PaperAnswerLabel.title(answer))
                             .font(.system(size: PaperMetrics.answerText(size),
                                           weight: .semibold, design: .rounded))
+                            // «Gezonken» на 375 pt не влезал и переносился.
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
                 .buttonStyle(SecondaryButtonStyle(minHeight: PaperMetrics.answerHeight(size)))
@@ -489,6 +540,15 @@ struct PaperUndoButton: View {
     var action: () -> Void = {}
 
     @Environment(\.inBottomStack) private var inBottomStack
+    @Environment(\.locale) private var locale
+
+    /// Длинная подпись («Ongedaan maken») на узком экране сжимала
+    /// переключатель полей до многоточий — там остаётся только значок.
+    static let longLabel = 10
+
+    private var showsLabel: Bool {
+        !size.isCompact || String(game: "Undo", locale: locale).count <= Self.longLabel
+    }
 
     var body: some View {
         let compact = size.isCompact
@@ -497,11 +557,13 @@ struct PaperUndoButton: View {
                 Image(systemName: "arrow.uturn.backward")
                     .font(.system(size: symbolFontSize(inBox: compact ? 18 : 20)))
                     .frame(height: compact ? 18 : 20)
-                Text("Undo")
-                    .font(inBottomStack ? TypeScale.bottomLabelFixed
-                                        : .system(size: compact ? 12 : 12.5, weight: .semibold, design: .rounded))
+                if showsLabel {
+                    Text("Undo")
+                        .font(inBottomStack ? TypeScale.bottomLabelFixed
+                                            : .system(size: compact ? 12 : 12.5, weight: .semibold, design: .rounded))
+                }
             }
-            .padding(.horizontal, compact ? 11 : 14)
+            .padding(.horizontal, showsLabel ? (compact ? 11 : 14) : 16)
         }
         .buttonStyle(SecondaryButtonStyle(isEnabled: isEnabled,
                                           radius: BattleMetrics.forSize(size).hintRadius,

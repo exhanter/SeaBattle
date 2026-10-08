@@ -126,6 +126,10 @@ struct SettingsScreen: View {
                           subtitle: "If off, a single-player match starts right away at the chosen level",
                           isOn: clicking($appState.askLevelBeforeMatch))
                 .accessibilityIdentifier("settingsAskLevel")
+            ListToggleRow(title: "Confirm ending a match",
+                          subtitle: "Ask again before an unfinished match is ended or deleted",
+                          isOn: clicking($appState.confirmEndMatch))
+                .accessibilityIdentifier("settingsConfirmEnd")
         }
     }
 
