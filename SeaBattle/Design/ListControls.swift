@@ -48,10 +48,14 @@ enum ListMetrics {
 /// знает, первая ли она.
 struct ListGroup<Content: View>: View {
     let title: LocalizedStringKey?
+    /// В группе есть выпадающий список (`Menu`) — см. `GlassPanelModifier.hostsMenus`.
+    var hostsMenus = false
     @ViewBuilder var content: Content
 
-    init(_ title: LocalizedStringKey? = nil, @ViewBuilder content: () -> Content) {
+    init(_ title: LocalizedStringKey? = nil, hostsMenus: Bool = false,
+         @ViewBuilder content: () -> Content) {
         self.title = title
+        self.hostsMenus = hostsMenus
         self.content = content()
     }
 
@@ -75,7 +79,7 @@ struct ListGroup<Content: View>: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .glassPanel(.g2, radius: ListMetrics.groupRadius)
+            .glassPanel(.g2, radius: ListMetrics.groupRadius, hostsMenus: hostsMenus)
         }
     }
 }

@@ -132,8 +132,12 @@ struct ScorePanel: View {
             } else {
                 side("Your fleet", color: .roleYou, sunk: yourLosses, alignment: .leading)
             }
+            // Приоритет, а не `fixedSize`: длинный статус (на нидерландском
+            // «Beurt van de tegenstander») с `fixedSize` делал панель шире
+            // экрана, и она раздвигала весь экран вправо. Теперь центр берёт
+            // своё первым, а не влезающий статус ужимается.
             center
-                .fixedSize()
+                .layoutPriority(1)
             if yoursOnTrailing {
                 side("Your fleet", color: .roleYou, sunk: yourLosses, alignment: .trailing)
             } else {
@@ -180,6 +184,7 @@ struct ScorePanel: View {
                 .font(.system(size: m.statusText, weight: .bold))
                 .foregroundStyle(Color.inkPrimary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .padding(.vertical, m.statusPaddingV)
                 .padding(.horizontal, m.statusPaddingH)
                 .background {

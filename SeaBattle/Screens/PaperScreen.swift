@@ -82,7 +82,7 @@ struct PaperScreen: View {
         Group {
             if usesPadLayout {
                 // iPad: третья фаза стола на два поля (23d, 23e).
-                PadTableScreen(phase: .paper(match), onMenu: menuTapped)
+                PadTableScreen(phase: .paper(match), onMenu: { menuTapped() })
             } else {
                 phone
             }
@@ -202,7 +202,7 @@ struct PaperScreen: View {
     // MARK: Низ
 
     private func actions(_ field: Side, size: Geometry.SizeClass) -> some View {
-        BottomStack(onMenu: menuTapped) {
+        BottomStack(onMenu: { menuTapped() }) {
             HStack(spacing: Geometry.Nav.stackGap) {
                 FieldSwitch(selection: field, size: size) { match.show($0) }
                 ReviewSlot(size: size) {
@@ -534,36 +534,22 @@ struct PaperResultCapsule: View {
 
 /// «Отменить последний ход» — ровно один ход (4.6). В ряду переключателя
 /// полей, на месте подсказки боя и той же высоты (кадр `undoBtn`).
+///
+/// Только значок (заказчик 08.10): подпись («Отменить», «Ongedaan maken»)
+/// отнимала ширину у переключателя полей, и «Противник» обрезался. Подпись
+/// говорят VoiceOver и крупный просмотр.
 struct PaperUndoButton: View {
     let isEnabled: Bool
     var size: Geometry.SizeClass = .regular
     var action: () -> Void = {}
 
-    @Environment(\.inBottomStack) private var inBottomStack
-    @Environment(\.locale) private var locale
-
-    /// Длинная подпись («Ongedaan maken») на узком экране сжимала
-    /// переключатель полей до многоточий — там остаётся только значок.
-    static let longLabel = 10
-
-    private var showsLabel: Bool {
-        !size.isCompact || String(game: "Undo", locale: locale).count <= Self.longLabel
-    }
-
     var body: some View {
         let compact = size.isCompact
         Button(action: action) {
-            HStack(spacing: 7) {
-                Image(systemName: "arrow.uturn.backward")
-                    .font(.system(size: symbolFontSize(inBox: compact ? 18 : 20)))
-                    .frame(height: compact ? 18 : 20)
-                if showsLabel {
-                    Text("Undo")
-                        .font(inBottomStack ? TypeScale.bottomLabelFixed
-                                            : .system(size: compact ? 12 : 12.5, weight: .semibold, design: .rounded))
-                }
-            }
-            .padding(.horizontal, showsLabel ? (compact ? 11 : 14) : 16)
+            Image(systemName: "arrow.uturn.backward")
+                .font(.system(size: symbolFontSize(inBox: compact ? 18 : 20)))
+                .frame(height: compact ? 18 : 20)
+                .padding(.horizontal, 16)
         }
         .buttonStyle(SecondaryButtonStyle(isEnabled: isEnabled,
                                           radius: BattleMetrics.forSize(size).hintRadius,
@@ -572,6 +558,9 @@ struct PaperUndoButton: View {
         .disabled(!isEnabled)
         .accessibilityLabel(Text("Undo last move"))
         .accessibilityIdentifier("paperUndo")
+        .accessibilityShowsLargeContentViewer {
+            Label("Undo", systemImage: "arrow.uturn.backward")
+        }
     }
 }
 
@@ -645,5 +634,12 @@ private struct PaperDemo: View {
 
 #Preview("Бумага · 375", traits: .fixedLayout(width: 375, height: 667)) {
     PaperDemo(.aim)
+        .preferredColorScheme(.dark)
+}
+
+/// Самые длинные подписи — нидерландские: панель счёта не шире экрана.
+#Preview("Бумага · 375 · NL", traits: .fixedLayout(width: 375, height: 667)) {
+    PaperDemo(.theirs)
+        .environment(\.locale, Locale(identifier: "nl"))
         .preferredColorScheme(.dark)
 }

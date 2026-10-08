@@ -112,7 +112,7 @@ struct SettingsScreen: View {
 
     private var gameGroup: some View {
         @Bindable var appState = appState
-        return ListGroup("Game") {
+        return ListGroup("Game", hostsMenus: true) {
             ListToggleRow(title: "Mark the water around sunk ships",
                           subtitle: "After a sinking the game marks the cells around the ship as misses",
                           isOn: clicking($appState.autoRevealAroundSunk))
@@ -164,7 +164,7 @@ struct SettingsScreen: View {
 
     private var moreGroup: some View {
         @Bindable var appState = appState
-        return ListGroup("More") {
+        return ListGroup("More", hostsMenus: true) {
             ListRow(title: "Your name", value: playerName, action: onPlayer)
                 .accessibilityIdentifier("settingsPlayer")
             LanguageMenu(selection: $appState.language)

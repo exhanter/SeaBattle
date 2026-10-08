@@ -163,10 +163,11 @@ extension View {
                     radius: CGFloat = Geometry.Radius.panel,
                     wood: WoodEdge = .none,
                     highlight: GlassHighlight = .none,
-                    treatment: GlassTreatment = .automatic) -> some View {
+                    treatment: GlassTreatment = .automatic,
+                    hostsMenus: Bool = false) -> some View {
         modifier(GlassPanelModifier(level: level, radius: radius,
                                     wood: wood, highlight: highlight,
-                                    treatment: treatment))
+                                    treatment: treatment, hostsMenus: hostsMenus))
     }
 }
 
@@ -176,6 +177,12 @@ struct GlassPanelModifier: ViewModifier {
     let wood: WoodEdge
     var highlight: GlassHighlight = .none
     var treatment: GlassTreatment = .automatic
+    /// В панели есть `Menu`. Меню iOS 26+ раскрывается из ближайшего
+    /// системного стекла, в которое вложено, и на время меню забирает его
+    /// себе — на iPhone вся панель под «Ещё» становилась чёрной (заказчик
+    /// 08.10). Тогда стекло ставится слоем под содержимым, а не на него:
+    /// меню среди предков стекла не находит.
+    var hostsMenus = false
 
     @Environment(\.glassForcesMaterial) private var forcesMaterial
 
@@ -200,11 +207,18 @@ struct GlassPanelModifier: ViewModifier {
     @available(iOS 26, *)
     private func systemGlass(_ content: Content) -> some View {
         let tint: Color = level == .g3 ? .glassRaisedFill : .glassFill
-        return content
-            .glassEffect(.regular.tint(tint), in: shape)
-            .overlay { woodEdge }
-            .overlay { selectedStroke }
-            .shadow(color: highlight.glow, radius: highlight.glowRadius)
+        return Group {
+            if hostsMenus {
+                content.background {
+                    Color.clear.glassEffect(.regular.tint(tint), in: shape)
+                }
+            } else {
+                content.glassEffect(.regular.tint(tint), in: shape)
+            }
+        }
+        .overlay { woodEdge }
+        .overlay { selectedStroke }
+        .shadow(color: highlight.glow, radius: highlight.glowRadius)
     }
 
     /// Латунная обводка выбранной панели. Рисуется поверх и на ветке системного
