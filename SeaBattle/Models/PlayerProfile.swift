@@ -89,8 +89,13 @@ struct PlayerStats: Codable, Hashable, Sendable {
     /// Wins and losses per row, keyed by `StatKey.storageKey`.
     var records: [String: StatRecord]
     /// Losses recorded before R0.7, when a loss was one global counter with no
-    /// mode and no level attached. They still count in the summary, and they
-    /// belong to no row — guessing a level for them would be inventing history.
+    /// mode and no level attached. Back then that counter was the computer
+    /// game's, so they are shown in the single-player row and cleared with it
+    /// — but in no level row: guessing a level would be inventing history.
+    ///
+    /// Until 09.10 they belonged to no row at all and only to the summary, so
+    /// resetting single player left "34 games, 0 wins" there with nothing on
+    /// the screen to explain it.
     var unattributedLosses: Int
     /// Single shared points wallet (Phase 6). The win reward and the hint cost
     /// vary by difficulty, but points themselves are fungible across levels.
@@ -112,15 +117,18 @@ struct PlayerStats: Codable, Hashable, Sendable {
     func record(_ key: StatKey) -> StatRecord { records[key.storageKey] ?? StatRecord() }
 
     /// The whole mode as one row: for `.computer` that is the four levels added
-    /// up, for the rest it is the single row itself.
+    /// up plus the losses from before R0.7 (`unattributedLosses`), for the rest
+    /// it is the single row itself.
     func record(for mode: GameMode) -> StatRecord {
-        StatKey.tracked
+        var total = StatKey.tracked
             .filter { $0.mode == mode }
             .reduce(into: StatRecord()) { sum, key in
                 let row = record(key)
                 sum.wins += row.wins
                 sum.losses += row.losses
             }
+        if mode == .computer { total.losses += unattributedLosses }
+        return total
     }
 
     var totalWins: Int { records.values.reduce(0) { $0 + $1.wins } }
@@ -173,6 +181,8 @@ struct PlayerStats: Codable, Hashable, Sendable {
             for key in StatKey.tracked where key.mode == mode {
                 records[key.storageKey] = nil
             }
+            // They are shown in this row, so they go with it.
+            if mode == .computer { unattributedLosses = 0 }
         }
     }
 

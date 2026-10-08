@@ -543,10 +543,10 @@ private struct ControlsDemo: View {
                     ChoiceRow(icon: LevelChoice.icon, iconValue: 0.5, title: "Medium",
                               subtitle: "Finishes off a ship it has found and never wastes shots on the water around it")
                     ChoiceRow(icon: LevelChoice.icon, iconValue: 0.75, title: "Hard",
-                              subtitle: "Shoots every other cell and arranges its own fleet so it takes longer to find",
+                              subtitle: "Shoots every other cell, so it finds the big ships sooner",
                               isSelected: true)
                     ChoiceRow(icon: LevelChoice.icon, iconValue: 1, title: "Expert",
-                              subtitle: "Works out where the ships most likely are, and hides its own fleet even better",
+                              subtitle: "Works out where the ships most likely are, and now and then hides its own fleet",
                               isLocked: true)
                 }
 

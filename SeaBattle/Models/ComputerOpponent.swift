@@ -50,12 +50,10 @@ final class ComputerOpponent: Opponent {
 
     /// Arranges a fleet the way `level` does.
     ///
-    /// The two top levels hide their ships deliberately; the two lower ones take
-    /// a plain random layout. That is the other half of what makes the levels
-    /// differ — measured at about twenty shots, against two or three for every
-    /// targeting improvement in the ladder put together. See
-    /// `DifficultyLevel.fleetExposureTarget` for what "deliberately" means and
-    /// why it does not make the computer predictable.
+    /// The expert hides its ships in a random share of matches and arranges
+    /// them at random in the rest; every other level always arranges at
+    /// random. See `DifficultyLevel.hiddenFleetShare` for why only sometimes —
+    /// a fleet that is always hidden is one the player learns to look for.
     ///
     /// Synchronous and static on purpose. It used to exist only as the body of
     /// the `async` `provideFleet()` below, **which nothing ever called** — every
@@ -64,11 +62,22 @@ final class ComputerOpponent: Opponent {
     /// than the numbers in `docs/STATUS.md`. The win-rate tests did not catch it
     /// because they arranged the hidden fleet themselves; they now call this.
     static func arrangeFleet(for level: AppState.DifficultyLevel, on board: PlayerData) {
-        if let target = level.fleetExposureTarget {
-            board.place(FleetLayout.arrangement(givingAwayAtMost: target))
-        } else {
-            board.shipsRandomArrangement()
-        }
+        var generator = SystemRandomNumberGenerator()
+        board.place(fleet(for: level, using: &generator).ships)
+    }
+
+    /// The fleet `level` would arrange, and whether this was one of the
+    /// matches it hides in. The flag is for tests; nothing in a match may show
+    /// it, or the player would know which kind of match they are in.
+    static func fleet<G: RandomNumberGenerator>(
+        for level: AppState.DifficultyLevel,
+        using generator: inout G
+    ) -> (ships: [ShipPlacement], isHidden: Bool) {
+        let hides = Double.random(in: 0..<1, using: &generator) < level.hiddenFleetShare
+        let ships = hides
+            ? FleetLayout.hiddenArrangement(using: &generator)
+            : FleetLayout.random(using: &generator)
+        return (ships, hides)
     }
 
     func provideFleet() async -> [Ship] {

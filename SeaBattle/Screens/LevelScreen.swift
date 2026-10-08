@@ -61,11 +61,11 @@ struct LevelChoice: Identifiable {
             case .hard:
                 LevelChoice(level: level,
                             title: "Hard",
-                            subtitle: "Shoots every other cell and arranges its own fleet so it takes longer to find")
+                            subtitle: "Shoots every other cell, so it finds the big ships sooner")
             case .expert:
                 LevelChoice(level: level,
                             title: "Expert",
-                            subtitle: "Works out where the ships most likely are, and hides its own fleet even better")
+                            subtitle: "Works out where the ships most likely are, and now and then hides its own fleet")
             }
         }
     }
@@ -243,7 +243,7 @@ struct LevelScreen: View {
         // Пояснение говорит про сокрытие флота: это самая сильная ручка в игре
         // и единственное настоящее отличие двух верхних уровней, а в одну
         // строку подписи оно не влезает.
-        Text("On Hard and Expert the computer does not just shoot better — it also hides its fleet, so finding its ships takes more shots.")
+        Text("On Expert the computer also hides its fleet now and then. There is no telling in which match, so there is no pattern to learn.")
             .font(.scalable(size: LevelMetrics.noteSize))
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -287,7 +287,7 @@ private extension AppState.DifficultyLevel {
         switch self {
         case .easy: "A calm game"
         case .medium: "Plays it clean"
-        case .hard: "Hides its fleet"
+        case .hard: "Shoots methodically"
         case .expert: "Counts every shot"
         }
     }

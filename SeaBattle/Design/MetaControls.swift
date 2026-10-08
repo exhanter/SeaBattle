@@ -134,6 +134,7 @@ struct StatBar: View {
     var winShare: Double { total == 0 ? 0 : Double(wins) / Double(total) }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: StatBarMetrics.gap) {
@@ -141,9 +142,13 @@ struct StatBar: View {
             // переносились по слогам.
             AdaptiveRow(spacing: StatBarMetrics.columnGap,
                                   accessibilitySpacing: StatBarMetrics.gap) {
-                figure("games", "\(total)")
-                figure("wins", "\(wins)")
-                figure("win rate", total == 0 ? "—" : Self.percent(winShare))
+                // Подписи согласуются с числом над ними: «34 партии», но
+                // «0 побед», «1 победа» (09.10: было «0 победы»).
+                figure(Text(verbatim: Self.caption("\(total) games, caption", count: total, locale: locale)),
+                       "\(total)")
+                figure(Text(verbatim: Self.caption("\(wins) wins, caption", count: wins, locale: locale)),
+                       "\(wins)")
+                figure(Text("win rate"), total == 0 ? "—" : Self.percent(winShare))
             }
             bar
             AdaptiveRow(spacing: 8, accessibilitySpacing: 2) {
@@ -160,6 +165,15 @@ struct StatBar: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// Подпись под крупным числом в форме, согласованной с ним. Каталог не
+    /// пускает формы числа без самого числа в строке, поэтому строка —
+    /// «34 партии», а число из неё убирается: оно уже стоит над подписью.
+    static func caption(_ resource: LocalizedStringResource, count: Int, locale: Locale) -> String {
+        String(game: resource, locale: locale)
+            .replacingOccurrences(of: String(count), with: "")
+            .trimmingCharacters(in: .whitespaces)
+    }
+
     /// «58 %» по правилам языка: где ставится пробел перед знаком, решает
     /// формат, а не строка.
     static func percent(_ share: Double, locale: Locale = AppState.gameLocale) -> String {
@@ -167,7 +181,7 @@ struct StatBar: View {
     }
 
     /// Значение над подписью, три колонки поровну (`metric10` в макете).
-    private func figure(_ caption: LocalizedStringKey, _ value: String) -> some View {
+    private func figure(_ caption: Text, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(verbatim: value)
                 .font(.scalable(size: StatBarMetrics.value, weight: .bold, design: .rounded))
@@ -176,7 +190,7 @@ struct StatBar: View {
                 // Число не переносится посередине («59 / %»).
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            Text(caption)
+            caption
                 .font(.scalable(size: StatBarMetrics.caption))
                 .foregroundStyle(Color.inkSecondary)
         }

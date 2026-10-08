@@ -137,11 +137,15 @@ struct StatsResetTests {
         ]))
     }
 
-    @Test("Сводка без бумаги, но с потерями до R0.7")
+    @Test("Сводка без бумаги, но с потерями до R0.7 — в строке компьютера")
     func theSummaryLeavesThePaperGameOut() {
         let summary = StatsSummary(stats)
         #expect(summary.wins == 3 + 1 + 2)
         #expect(summary.losses == 1 + 2 + 4)
+        // The summary is the rows on the screen added up, nothing hidden in it.
+        let rows = StatsSummary.shownModes.map { stats.record(for: $0) }
+        #expect(summary.wins == rows.reduce(0) { $0 + $1.wins })
+        #expect(summary.losses == rows.reduce(0) { $0 + $1.losses })
         #expect(summary.isEmpty == false)
         // Одна бумага — для экрана «партий пока нет».
         let paperOnly = PlayerStats(records: [StatKey.paper.storageKey: StatRecord(wins: 1, losses: 0)])
@@ -163,6 +167,14 @@ struct StatsResetTests {
         #expect(selection.isEmpty)
     }
 
+    @Test("Старые потери видны в строке «Одиночная игра», не в уровнях")
+    func legacyLossesShowInTheComputerRow() {
+        #expect(stats.record(for: .computer) == StatRecord(wins: 3 + 1, losses: 1 + 2 + 4))
+        let levels = AppState.DifficultyLevel.allCases.map { stats.record(.computer($0)) }
+        #expect(levels.reduce(0) { $0 + $1.losses } == 1 + 2)
+        #expect(stats.record(for: .online) == StatRecord(wins: 2, losses: 0))
+    }
+
     @Test("Сброс режима стирает только его, баллы и история остаются")
     func resettingAModeKeepsTheRest() {
         var stats = stats
@@ -170,7 +182,11 @@ struct StatsResetTests {
         #expect(stats.record(for: .computer) == StatRecord())
         #expect(stats.record(.online) == StatRecord(wins: 2, losses: 0))
         #expect(stats.record(.paper) == StatRecord(wins: 9, losses: 9))
-        #expect(stats.unattributedLosses == 4)
+        // Старые потери показаны в этой строке и уходят вместе с ней: иначе
+        // после сброса «Одиночной игры» в сводке оставалось «34 партии,
+        // 0 побед» без единой строки, которая это объясняла бы (09.10).
+        #expect(stats.unattributedLosses == 0)
+        #expect(StatsSummary(stats).losses == 0)
         #expect(stats.points == 50)
         #expect(stats.ledger.entries.count == 1)
     }

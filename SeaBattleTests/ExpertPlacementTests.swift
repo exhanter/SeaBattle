@@ -2,16 +2,17 @@
 //  ExpertPlacementTests.swift
 //  SeaBattleTests
 //
-//  The expert level does not only shoot well, it also HIDES well: it arranges
-//  its own fleet to give away as little water as possible. Sinking a ship tells
-//  the other player that everything touching it is water, and that gift shrinks
-//  when a ship sits against an edge (part of its ring is off the board) or one
-//  cell from another ship (they share the cells between them).
+//  The expert level does not only shoot well, it also hides its fleet — in a
+//  random share of matches. A hidden fleet gives away less water: sinking a
+//  ship tells the other player that everything touching it is water, and that
+//  gift shrinks when a ship sits against an edge (part of its ring is off the
+//  board) or one cell from another ship (they share the cells between them).
 //
-//  Two things have to hold, and the second is the one that matters: the layout
-//  must really be less exposed, and being less exposed must really cost the
-//  attacker shots. It also must not become predictable — a fleet that hides in
-//  the same corner every game is worse than a random one.
+//  Three things have to hold: the hidden layout must really be less exposed,
+//  being less exposed must really cost the attacker shots, and it must NOT be
+//  readable. The last one is the one that went wrong before 09.10 — the old
+//  hill climb put the four-decker on an edge in 87% of matches, and a player
+//  who fired there first beat the expert 72% of the time.
 //
 
 import Foundation
@@ -21,12 +22,10 @@ import Testing
 @MainActor
 struct ExpertPlacementTests {
 
-    /// A fleet arranged the way the expert level arranges its own.
+    /// A fleet arranged the way the expert arranges its own when it hides.
     private func hiddenFleet() -> [ShipPlacement] {
-        FleetLayout.arrangement(givingAwayAtMost: expertTarget)
+        FleetLayout.hiddenArrangement()
     }
-
-    private var expertTarget: Int { AppState.DifficultyLevel.expert.fleetExposureTarget! }
 
     // MARK: - The layout itself
 
@@ -39,11 +38,14 @@ struct ExpertPlacementTests {
         #expect(layout.count == FleetLayout.shipCount)
         #expect(lengths == FleetLayout.deckCounts)
         #expect(layout.allSatisfy { $0.isOnBoard })
+        // Longest-first, the order `PlayerData.place` numbers ships in.
+        #expect(layout.map(\.length) == FleetLayout.deckCounts)
+        #expect(Set(layout.map(\.id)).count == FleetLayout.shipCount)
     }
 
-    @Test("It gives away much less water than a random layout")
+    @Test("It gives away clearly less water than a random layout")
     func exposureIsLower() {
-        let samples = 60
+        let samples = 100
         let random = (0..<samples).map { _ in FleetLayout.ringExposure(of: FleetLayout.random()) }
         let hidden = (0..<samples).map { _ in FleetLayout.ringExposure(of: hiddenFleet()) }
 
@@ -52,28 +54,72 @@ struct ExpertPlacementTests {
         print(String(format: "Ring exposure: random %.1f cells, hidden %.1f cells",
                      randomAverage, hiddenAverage))
 
-        #expect(hiddenAverage < randomAverage - 5)
-        // Every hidden layout should beat the average random one, not just the
-        // average of them.
-        #expect(hidden.max()! < Int(randomAverage))
+        // Measured at 62 and 55. A weighting, not a target, so single layouts
+        // vary on both sides of the average — that variety is the point.
+        #expect(hiddenAverage < randomAverage - 4)
+        #expect(hiddenAverage > 50, "Hiding this hard packs the fleet into the edges again")
     }
 
-    @Test("Hiding does not settle into one corner")
-    func layoutsStayVaried() {
-        // Twenty layouts, looking at where the four-decker ends up. A fleet
-        // that always packs the same way would be learned in two matches, so
-        // variety is a requirement, not a nice-to-have.
-        let fourDeckers = (0..<20).map { _ in
-            hiddenFleet().first { $0.length == 4 }!
+    @Test("Strength 0 is a plain random layout")
+    func zeroStrengthIsRandom() {
+        let samples = 100
+        let exposure = (0..<samples).map { _ in
+            FleetLayout.ringExposure(of: FleetLayout.hiddenArrangement(strength: 0))
         }
-        let distinctPositions = Set(fourDeckers.map { "\($0.origin)-\($0.orientation)" })
-        #expect(distinctPositions.count >= 5,
-                "The four-decker only ever landed in \(distinctPositions.count) positions")
+        let average = Double(exposure.reduce(0, +)) / Double(samples)
+        #expect(abs(average - Double(FleetLayout.randomExposure)) < 2.5)
+    }
 
-        // And it should not always be the same edge of the board either.
-        let rows = Set(fourDeckers.map(\.origin.row))
-        let columns = Set(fourDeckers.map(\.origin.column))
-        #expect(rows.count + columns.count >= 6)
+    @Test("Hiding does not give the big ships away")
+    func layoutsAreNotReadable() {
+        // What the old hill climb got wrong: the least exposed spot for a long
+        // ship is almost always on an edge or in a corner, so a player who
+        // fired there first found it at once. Measured, per four-decker:
+        //
+        //                     on an edge   in a corner
+        //     random              55%          11%
+        //     hidden now          72%          22%
+        //     old hill climb      87%          42%
+        let samples = 300
+        let corners: Set<Coordinate> = [
+            Coordinate(row: 1, column: 1), Coordinate(row: 1, column: Board.size),
+            Coordinate(row: Board.size, column: 1), Coordinate(row: Board.size, column: Board.size)
+        ]
+        var onEdge = 0
+        var inCorner = 0
+        var positions = Set<String>()
+        for _ in 0..<samples {
+            let fourDecker = hiddenFleet().first { $0.length == 4 }!
+            let cells = fourDecker.cells
+            if cells.contains(where: { [1, Board.size].contains($0.row) || [1, Board.size].contains($0.column) }) {
+                onEdge += 1
+            }
+            if cells.contains(where: corners.contains) { inCorner += 1 }
+            positions.insert("\(fourDecker.origin)-\(fourDecker.orientation)")
+        }
+        let text = "Four-decker on an edge \(onEdge * 100 / samples)%, in a corner \(inCorner * 100 / samples)%, \(positions.count) distinct positions"
+        print(text)
+        #expect(onEdge * 100 < samples * 80, Comment(rawValue: text))
+        #expect(inCorner * 100 < samples * 32, Comment(rawValue: text))
+        #expect(positions.count > 60, Comment(rawValue: text))
+    }
+
+    @Test("Only the expert hides, in about one match in six")
+    func hidingShare() {
+        var generator = SystemRandomNumberGenerator()
+        for level in [AppState.DifficultyLevel.easy, .medium, .hard] {
+            #expect(level.hiddenFleetShare == 0)
+            #expect((0..<200).allSatisfy { _ in
+                !ComputerOpponent.fleet(for: level, using: &generator).isHidden
+            })
+        }
+
+        let matches = 3000
+        let hidden = (0..<matches).count { _ in
+            ComputerOpponent.fleet(for: .expert, using: &generator).isHidden
+        }
+        // 16% of 3000 is 480, with a standard deviation of 20.
+        #expect((400...560).contains(hidden), "Hid in \(hidden) of \(matches) matches")
     }
 
     // MARK: - Does hiding actually cost the attacker anything?
@@ -123,10 +169,10 @@ struct ExpertPlacementTests {
             """, matches, againstRandom, againstHidden, againstHidden - againstRandom)
         print(text)
 
-        // The whole point of arranging the fleet this way, and by far the
-        // largest single effect in the AI: even at the deliberately mild
-        // setting the level uses, it is worth more than every targeting
-        // improvement in the ladder put together.
+        // Measured at about +6 against an attacker that does not expect it —
+        // the reason a hidden match is worth having at all. Against one that
+        // does, a hidden fleet is no harder than a random one, which is why the
+        // expert hides only now and then (`hiddenFleetShare`).
         #expect(againstHidden > againstRandom + 3, Comment(rawValue: text))
     }
 
@@ -168,60 +214,29 @@ struct ExpertPlacementTests {
         return false
     }
 
-    @Test("Calibration: what each setting of the hiding dial is worth",
+    @Test("Calibration: what each strength of hiding is worth",
           .disabled("A calibration run, not a check. Enable it when retuning the dial."))
     func calibrateTheDial() async {
+        // Against an attacker that does NOT expect the hiding — the share in
+        // `hiddenFleetShare` is what protects against one that does, and that
+        // was measured outside the app (see the comment there).
         let matches = 60
-        var lines: [String] = ["Expert win rate by how much water its fleet gives away:"]
-        for target in [FleetLayout.randomExposure, 58, 54, 50, 46, 42, 34] {
+        var lines: [String] = ["Expert win rate by hiding strength, every match hidden:"]
+        for strength in [0, 0.15, FleetLayout.hidingStrength, 0.5] {
             var wins = 0
             var exposure = 0
             for _ in 0..<matches {
-                let fleet = FleetLayout.arrangement(givingAwayAtMost: target)
+                let fleet = FleetLayout.hiddenArrangement(strength: strength)
                 exposure += FleetLayout.ringExposure(of: fleet)
                 if await computerWinsMatch(computerFleet: fleet,
                                            playerFleet: FleetLayout.random()) {
                     wins += 1
                 }
             }
-            lines.append(String(format: "  target %3d -> actual %5.1f cells, wins %3d%%",
-                                target, Double(exposure) / Double(matches),
+            lines.append(String(format: "  strength %.2f -> %5.1f cells, wins %3d%%",
+                                strength, Double(exposure) / Double(matches),
                                 wins * 100 / matches))
         }
         print(lines.joined(separator: "\n"))
-    }
-
-    @Test("Hiding its fleet is what wins the expert its matches")
-    func hidingDecidesMatches() async {
-        let matches = 100
-        var winsWithHiding = 0
-        var winsWithRandom = 0
-        for _ in 0..<matches {
-            // Same conditions both times, changing only how the computer's own
-            // fleet was arranged. The player always gets a random layout,
-            // which is what the app's auto-arrange produces.
-            if await computerWinsMatch(computerFleet: hiddenFleet(),
-                                       playerFleet: FleetLayout.random()) {
-                winsWithHiding += 1
-            }
-            if await computerWinsMatch(computerFleet: FleetLayout.random(),
-                                       playerFleet: FleetLayout.random()) {
-                winsWithRandom += 1
-            }
-        }
-        let text = """
-            Expert win rate over \(matches) matches, both sides shooting as expert,
-            player opens: hiding its own fleet \(winsWithHiding)%, random layout \(winsWithRandom)%
-            """
-        print(text)
-
-        // Wide margin on purpose: this is the step from "wins about half its
-        // matches" to "the hardest thing in the app", and it is the only
-        // reason the expert is meaningfully harder than hard, whose shooting
-        // is a shot or two behind it (see `DifficultyLadderTests`).
-        #expect(winsWithHiding > winsWithRandom + 10, Comment(rawValue: text))
-        // And it must still lose sometimes, or the 10 points for beating it
-        // and the hints priced against it are unreachable.
-        #expect(winsWithHiding < 95, Comment(rawValue: text))
     }
 }

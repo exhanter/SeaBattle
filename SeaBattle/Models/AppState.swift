@@ -26,40 +26,43 @@ class AppState {
             }
         }
 
-        /// How much water this level lets its own fleet give away, in cells, or
-        /// `nil` to arrange at random and not care.
+        /// The share of matches in which this level hides its own fleet
+        /// (`FleetLayout.hiddenArrangement`); in the rest it arranges at random.
+        /// Which matches those are is drawn afresh every time and never shown.
         ///
-        /// Sinking a ship reveals that everything touching it is water, so a
-        /// fleet packed against the edges and into each other's gaps hands the
-        /// player far fewer free cells. This is by far the strongest lever in
-        /// the game: every targeting improvement in the ladder put together is
-        /// worth about three shots a match, and this one is worth twenty.
+        /// Hiding is the strongest lever in the game against a player who does
+        /// not expect it — sinking a ship reveals the water around it, and a
+        /// hidden fleet gives away about 55 cells of it instead of 62 — and it
+        /// works AGAINST the computer once the player does expect it: hidden
+        /// ships favour the edges and each other's gaps, and a player who fires
+        /// there first finds them sooner. Before 09.10 the expert hid in every
+        /// match, and a player who had worked that out beat it 72% of the time
+        /// on attack alone.
         ///
-        /// **It is therefore a difficulty dial, not something to maximise.**
-        /// Measured win rates against an opponent shooting as well as the
-        /// expert does, with the player opening (`ExpertPlacementTests`):
+        /// Hiding only sometimes is what fixes that: the player cannot know
+        /// whether this match is one of them. Shots the best-responding player
+        /// needs to clear the fleet, by share (16 000 matches per point, so
+        /// ±0.04; the player's best strategy changes along the table):
         ///
-        ///     62 cells (as random)  60%
-        ///     58 cells              65%   <- expert
-        ///     54 cells              80%
-        ///     50 cells              81%
-        ///     42 cells              96%
-        ///     34 cells (the floor) 100%
+        ///     never      56.19
+        ///     10%        56.81
+        ///     15.5%      57.15   <- the peak
+        ///     20%        57.04
+        ///     30%        56.75
+        ///     40%        56.43
+        ///     always     53.1  (the old hill climb, readable on top)
         ///
-        /// A live player is weaker than that opponent, so the real rate is
-        /// higher than the table. 58 leaves the expert clearly the hardest
-        /// thing in the app while still losing often enough that the 10 points
-        /// for beating it, and the hints priced against it, mean something.
-        /// Hiding as well as possible wins literally every match, and a level
-        /// nobody can beat pays out nothing.
+        /// At the peak, expecting the hiding and ignoring it cost the player the
+        /// same, so there is nothing left to learn: the best adjustment for it
+        /// saves 0.06 shots a match. Above it, expecting it pays and the level
+        /// gets easier; below it, the hiding is too rare to cost anything.
         ///
-        /// Only the expert hides, and that is now the main thing separating it
-        /// from `.hard`, whose shooting is only a shot or two behind.
-        var fleetExposureTarget: Int? {
+        /// Only the expert hides. `.hard` used to as well (always, to 58 cells),
+        /// and that was the readable kind, so it now arranges at random.
+        var hiddenFleetShare: Double {
             switch self {
-            case .easy, .medium: return nil
-            case .hard: return 58
-            case .expert: return 54
+            case .easy, .medium, .hard: return 0
+            case .expert: return 0.16
             }
         }
 

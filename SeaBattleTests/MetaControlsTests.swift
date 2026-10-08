@@ -48,6 +48,28 @@ struct MetaControlsTests {
         #expect(perfect.winShare == 1)
     }
 
+    @Test("Подписи сводки согласуются с числом над ними",
+          arguments: [(0, "партий", "побед"), (1, "партия", "победа"), (2, "партии", "победы"),
+                      (5, "партий", "побед"), (21, "партия", "победа"), (34, "партии", "победы")])
+    func theSummaryCaptionsAgreeWithTheirNumber(_ count: Int, _ games: String, _ wins: String) throws {
+        // 09.10: под крупным «0» стояло «победы» — подпись была одним словом
+        // на все числа. Проверяется через настоящий каталог приложения.
+        let russian = Locale(identifier: "ru")
+        #expect(StatBar.caption("\(count) games, caption", count: count, locale: russian) == games)
+        #expect(StatBar.caption("\(count) wins, caption", count: count, locale: russian) == wins)
+    }
+
+    @Test("По-английски и по-нидерландски подписи тоже без числа")
+    func theCaptionsDropTheNumberInEveryLanguage() {
+        let english = Locale(identifier: "en")
+        #expect(StatBar.caption("\(1) games, caption", count: 1, locale: english) == "game")
+        #expect(StatBar.caption("\(34) games, caption", count: 34, locale: english) == "games")
+        #expect(StatBar.caption("\(0) wins, caption", count: 0, locale: english) == "wins")
+        let dutch = Locale(identifier: "nl")
+        #expect(StatBar.caption("\(1) games, caption", count: 1, locale: dutch) == "potje")
+        #expect(StatBar.caption("\(12) wins, caption", count: 12, locale: dutch) == "gewonnen")
+    }
+
     @Test("Язык определяет буквы поля, и это видно до переключения")
     func theLanguageDecidesTheBoardLetters() {
         let languages = LanguageMenu.languages

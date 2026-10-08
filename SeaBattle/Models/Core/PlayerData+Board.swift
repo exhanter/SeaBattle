@@ -103,7 +103,7 @@ extension PlayerData {
     /// Replaces this side's fleet with a layout produced by the core.
     ///
     /// Every way a fleet gets onto a board ends here: a chosen layout (the
-    /// arranging screen, `FleetLayout.arrangement(givingAwayAtMost:)`) as well
+    /// arranging screen, `ComputerOpponent.arrangeFleet(for:on:)`) as well
     /// as `shipsRandomArrangement()`.
     func place(_ layout: [ShipPlacement]) {
         clearShips()

@@ -142,8 +142,10 @@ struct StatsSummary: Equatable, Sendable {
 
     init(_ stats: PlayerStats) {
         let rows = Self.shownModes.map { stats.record(for: $0) }
+        // The losses from before R0.7 are inside the computer row — the
+        // summary is exactly the rows on the screen added up.
         wins = rows.reduce(0) { $0 + $1.wins }
-        losses = rows.reduce(0) { $0 + $1.losses } + stats.unattributedLosses
+        losses = rows.reduce(0) { $0 + $1.losses }
     }
 
     var games: Int { wins + losses }

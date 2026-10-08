@@ -105,10 +105,12 @@ struct StatisticsTests {
         #expect(stats.totalWins == 7)
         // Those 5 expert wins may well have been network wins, but there is no
         // way to tell now, so they stay where they were written.
-        // The losses had no level, so they belong to no row and only to the
-        // summary — inventing a level for them would be inventing history.
+        // The losses had no level, so they belong to no level row — inventing
+        // a level for them would be inventing history. They are shown in the
+        // single-player row, whose counter that was.
         #expect(stats.unattributedLosses == 7)
         #expect(stats.record(.computer(.expert)).losses == 0)
+        #expect(stats.record(for: .computer) == StatRecord(wins: 7, losses: 7))
         #expect(stats.totalLosses == 7)
         #expect(stats.totalGames == 14)
     }

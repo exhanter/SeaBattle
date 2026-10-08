@@ -313,9 +313,11 @@ struct DifficultyLadderTests {
         // already near the floor: the four single-deck ships are invisible to
         // any amount of cleverness, and hunting them down is most of a match.
         //
-        // The step from medium to hard is DEFENCE, not attack — hard hides its
-        // own fleet — and it does not show up here at all. The difficulty
-        // ladder as a player experiences it is in `LadderWinRateTests`.
+        // Since 09.10 these shots are most of what separates the upper levels:
+        // hard no longer hides its own fleet, and the expert hides it only now
+        // and then (`DifficultyLevel.hiddenFleetShare`) — that part does not
+        // show up here at all. The difficulty ladder as a player experiences it
+        // is in `LadderWinRateTests`.
         #expect(medium.total < easy.total - 15, report)
         #expect(hard.total < medium.total + 2, report)
         #expect(expert.total < medium.total, report)

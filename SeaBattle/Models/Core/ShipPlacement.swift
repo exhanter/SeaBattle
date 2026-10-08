@@ -232,90 +232,143 @@ enum FleetLayout {
     }
 
     /// How exposed a random layout is, on average — about 62 of the 80 water
-    /// cells. The reference point for `arrangement(givingAwayAtMost:)`.
+    /// cells. The reference point for `hiddenArrangement(strength:)`.
     static let randomExposure = 62
 
-    /// A legal layout that gives away no more than `target` cells of water, for
-    /// the computer to hide its own fleet behind.
+    /// How hard a hidden fleet leans towards layouts that give away little
+    /// water: about 55 cells on average instead of 62. See
+    /// `hiddenArrangement(strength:)` for why it is a weighting and not a goal,
+    /// and `AppState.DifficultyLevel.hiddenFleetShare` for how often it is used.
+    static let hidingStrength = 0.3
+
+    /// A legal layout for the computer to hide its fleet behind. Still drawn at
+    /// random, but every legal layout is weighted by
+    /// `exp(-strength × ringExposure)`, so the less water it gives away the
+    /// likelier it is — and every legal layout stays possible.
     ///
-    /// Random layouts, each improved by moving one ship at a time to wherever
-    /// it is least exposed, stopping as soon as the target is met. Hill
-    /// climbing rather than an exhaustive search: the space is far too large to
-    /// solve, but one ship at a time converges in a few passes.
+    /// It replaced (09.10) a hill climb that moved one ship at a time to its
+    /// single least exposed position. That hid better on paper and much worse
+    /// in play: the least exposed position is nearly always one of the same
+    /// few, so the four-decker landed on an edge in 87% of matches and in a
+    /// corner in 42% (55% and 11% at random). A player who learned to fire
+    /// along the edges and around sunk ships needed 53 shots to clear it,
+    /// against 56 for a fleet that was not hidden at all — the hiding helped
+    /// the player. At `hidingStrength` this one gives away about 55 cells, with
+    /// the four-decker on an edge in 72% of matches and in a corner in 22%.
     ///
-    /// - Parameter target: the exposure to aim for, in cells. `randomExposure`
-    ///   or more means "don't bother hiding"; the floor reachable by this
-    ///   search is around 34. **This is a difficulty dial, not an optimisation
-    ///   target** — hiding as well as possible makes the computer unbeatable
-    ///   (measured at 100 matches out of 100 against an opponent playing as
-    ///   well as it does), so the level picks a value it can still lose with.
-    /// - Parameter attempts: how many random starts to try before settling for
-    ///   the best found. A few milliseconds once per match.
+    /// Gibbs sampling: from a random start, every ship in turn is re-drawn from
+    /// all its legal positions with the rest of the fleet held still, each
+    /// position weighted by how many NEW cells of water its ring would give
+    /// away. That is exactly the conditional of the weighting above, so after
+    /// enough passes the layout is drawn from it; thirty is well past the point
+    /// where the random start still shows. A few milliseconds once per match.
     ///
-    /// Stopping at the target rather than at the optimum is also what keeps the
-    /// fleet unpredictable: hill climbing from a random start stops somewhere
-    /// different every time. That matters as much as the exposure itself — a
-    /// fleet that packed into the same corner every game would be learned in
-    /// two matches, and then the whole idea would be worth less than nothing.
-    static func arrangement<G: RandomNumberGenerator>(
-        givingAwayAtMost target: Int,
-        attempts: Int = 8,
+    /// - Parameter strength: 0 is a plain random layout. Much above
+    ///   `hidingStrength` the fleet packs into the edges again and becomes
+    ///   readable — measured, it then costs a player who expects it fewer
+    ///   shots than a random fleet would.
+    static func hiddenArrangement<G: RandomNumberGenerator>(
+        strength: Double = hidingStrength,
+        passes: Int = 30,
         using generator: inout G
     ) -> [ShipPlacement] {
-        var best: [ShipPlacement] = []
-        var bestExposure = Int.max
+        var ships = random(using: &generator)
+        guard strength > 0 else { return ships }
 
-        for _ in 0..<max(1, attempts) {
-            let candidate = improve(random(using: &generator), stoppingAt: target)
-            let exposure = ringExposure(of: candidate)
-            if exposure <= target { return candidate }
-            if exposure < bestExposure {
-                bestExposure = exposure
-                best = candidate
-            }
+        // The slot each ship is in, so the sampler only does array lookups.
+        var current = ships.map { ship in
+            slots[ship.length]!.firstIndex {
+                $0.placement.origin == ship.origin && $0.placement.orientation == ship.orientation
+            }!
         }
-        return best.isEmpty ? random(using: &generator) : best
-    }
 
-    static func arrangement(givingAwayAtMost target: Int, attempts: Int = 8) -> [ShipPlacement] {
-        var generator = SystemRandomNumberGenerator()
-        return arrangement(givingAwayAtMost: target, attempts: attempts, using: &generator)
-    }
-
-    /// Moves one ship at a time to its least exposed legal position, repeating
-    /// until the target is met or a whole pass changes nothing. RETURNS a layout
-    /// that is still legal and still the standard fleet.
-    private static func improve(_ layout: [ShipPlacement], stoppingAt target: Int) -> [ShipPlacement] {
-        var ships = layout
-        if ringExposure(of: ships) <= target { return ships }
-        // Three passes is well past the point where anything still moves; the
-        // bound is only here so a pathological case cannot spin.
-        for _ in 0..<3 {
-            var moved = false
-            for index in ships.indices {
-                if ringExposure(of: ships) <= target { return ships }
-                let others = ships.enumerated().filter { $0.offset != index }.map(\.element)
-                let blocked = others.reduce(into: Set<Coordinate>()) { $0.formUnion($1.footprint) }
-                let othersExposure = others.reduce(into: Set<Coordinate>()) { $0.formUnion($1.ring) }
-
-                var bestPosition = ships[index]
-                var bestExposure = Int.max
-                for candidate in positions(for: ships[index], avoiding: blocked) {
-                    let exposure = othersExposure.union(candidate.ring).count
-                    if exposure < bestExposure {
-                        bestExposure = exposure
-                        bestPosition = candidate
+        for _ in 0..<max(0, passes) {
+            for index in ships.indices.shuffled(using: &generator) {
+                // What the rest of the fleet occupies (cells and rings — ships
+                // may not touch) and what it already gives away (rings).
+                var blocked = [Bool](repeating: false, count: Board.cellCount)
+                var givenAway = [Bool](repeating: false, count: Board.cellCount)
+                for other in ships.indices where other != index {
+                    let slot = slots[ships[other].length]![current[other]]
+                    for cell in slot.cells { blocked[cell] = true }
+                    for cell in slot.ring {
+                        blocked[cell] = true
+                        givenAway[cell] = true
                     }
                 }
-                if bestPosition.origin != ships[index].origin
-                    || bestPosition.orientation != ships[index].orientation {
-                    ships[index] = bestPosition
-                    moved = true
+
+                let options = slots[ships[index].length]!
+                var candidates: [Int] = []
+                var weights: [Double] = []
+                for (offset, slot) in options.enumerated()
+                where !slot.cells.contains(where: { blocked[$0] }) {
+                    let newlyGivenAway = slot.ring.count { !givenAway[$0] }
+                    candidates.append(offset)
+                    weights.append(exp(-strength * Double(newlyGivenAway)))
                 }
+                // The ship's own position is always among the candidates, so
+                // the list is never empty.
+                guard let chosen = weightedPick(candidates, weights: weights, using: &generator) else {
+                    continue
+                }
+                current[index] = chosen
+                let placement = options[chosen].placement
+                ships[index] = ShipPlacement(id: ships[index].id,
+                                             length: placement.length,
+                                             origin: placement.origin,
+                                             orientation: placement.orientation)
             }
-            if !moved { break }
         }
         return ships
+    }
+
+    static func hiddenArrangement(strength: Double = hidingStrength) -> [ShipPlacement] {
+        var generator = SystemRandomNumberGenerator()
+        return hiddenArrangement(strength: strength, using: &generator)
+    }
+
+    /// One on-board position of a ship, with its cells and its ring as board
+    /// indices (`(row - 1) * size + column - 1`).
+    private struct Slot {
+        let placement: ShipPlacement
+        let cells: [Int]
+        let ring: [Int]
+    }
+
+    /// Every on-board position for every ship length in the fleet.
+    private static let slots: [Int: [Slot]] = {
+        func index(_ coordinate: Coordinate) -> Int {
+            (coordinate.row - 1) * Board.size + coordinate.column - 1
+        }
+        var result: [Int: [Slot]] = [:]
+        for length in Set(deckCounts) {
+            let template = ShipPlacement(length: length,
+                                         origin: Coordinate(row: 1, column: 1),
+                                         orientation: .horizontal)
+            result[length] = positions(for: template, avoiding: []).map { placement in
+                Slot(placement: placement,
+                     cells: placement.cells.map(index),
+                     ring: placement.ring.map(index))
+            }
+        }
+        return result
+    }()
+
+    /// One of `items`, each with the chance of its weight. RETURNS nil only for
+    /// an empty list.
+    private static func weightedPick<G: RandomNumberGenerator>(
+        _ items: [Int],
+        weights: [Double],
+        using generator: inout G
+    ) -> Int? {
+        let total = weights.reduce(0, +)
+        guard !items.isEmpty, total > 0 else { return items.first }
+        var remainder = Double.random(in: 0..<total, using: &generator)
+        for (item, weight) in zip(items, weights) {
+            remainder -= weight
+            if remainder < 0 { return item }
+        }
+        return items.last
     }
 
     /// Every legal position for one ship with the rest of the fleet fixed,
