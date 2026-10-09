@@ -104,7 +104,7 @@ struct SettingsScreen: View {
         }
         .onChange(of: appState.hapticsOn) { _, isOn in
             // Включили — сразу дать почувствовать, как щелчок у звука.
-            if isOn { HapticService.shared.play(.hit) }
+            if isOn { HapticService.shared.play(.ownHit) }
         }
     }
 
@@ -155,7 +155,7 @@ struct SettingsScreen: View {
                 .accessibilityIdentifier("settingsMusic")
             if offersHaptics {
                 ListToggleRow(title: "Vibration",
-                              subtitle: "Shots, sinkings, victory and defeat",
+                              subtitle: "Shots, victory, defeat and buttons",
                               isOn: clicking($appState.hapticsOn))
                     .accessibilityIdentifier("settingsHaptics")
             }
@@ -204,6 +204,7 @@ struct SettingsScreen: View {
 
     private func click() {
         if appState.soundOn { AudioService.shared.play(named: "click_sound.wav") }
+        HapticService.shared.play(.button)
     }
 }
 

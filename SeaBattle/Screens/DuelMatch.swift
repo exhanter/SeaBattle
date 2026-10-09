@@ -113,6 +113,7 @@ final class DuelMatch {
         lastEvent = nil
         save()
         if soundOn { AudioService.shared.play(.click) }
+        HapticService.shared.play(.button)
     }
 
     // MARK: Выстрел
@@ -133,7 +134,7 @@ final class DuelMatch {
             nextEventID += 1
         }
         if soundOn { play(shot) }
-        HapticService.shared.play(shot: shot)
+        HapticService.shared.play(shot: shot, incoming: false)
 
         if finishIfOver() { return }
         save()

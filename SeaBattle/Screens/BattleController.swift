@@ -154,7 +154,7 @@ final class BattleController {
         guard let appState else { return }
         let result = shoot(at: coordinate, on: enemy)
         if appState.soundOn { playOwnShot(result) }
-        HapticService.shared.play(shot: result)
+        HapticService.shared.play(shot: result, incoming: false)
         autosave()
         if appState.gameIsActive && appState.enemysTurn {
             startOpponentTurn()
@@ -301,6 +301,7 @@ final class BattleController {
         appState.revealedHintCells.append(pick.tuple)
         tally.recordHint(cost: hintCost)
         if appState.soundOn { AudioService.shared.play(.click) }
+        HapticService.shared.play(.button)
         return true
     }
 

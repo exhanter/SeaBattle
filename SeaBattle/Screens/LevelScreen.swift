@@ -501,7 +501,7 @@ private struct LevelSoundRow: View {
         }
         .onChange(of: hapticsOn) { _, isOn in
             // Как в настройках: включили — сразу дать почувствовать.
-            if isOn { HapticService.shared.play(.hit) }
+            if isOn { HapticService.shared.play(.ownHit) }
         }
     }
 }

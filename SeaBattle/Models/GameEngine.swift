@@ -68,7 +68,7 @@ final class GameEngine {
     /// knows whether the shot came from a tap.
     private func play(_ result: Board.ShotResult, on target: PlayerData) {
         guard target.side == .you else { return }
-        HapticService.shared.play(shot: result)
+        HapticService.shared.play(shot: result, incoming: true)
         guard appState.soundOn else { return }
         switch result {
         case .miss:

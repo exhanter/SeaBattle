@@ -568,6 +568,7 @@ struct AppShell: View {
 
     private func selectTab(_ newTab: ShellTab) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        HapticService.shared.play(.button)
         withAnimation(Motion.quick.reduced(reduceMotion)) { tab = newTab }
         // Нажатие на таб возвращает на его корень, как в системных табах.
         statsPage = nil
@@ -587,6 +588,7 @@ struct AppShell: View {
                 set: {
                     appState[keyPath: key] = $0
                     if appState.soundOn { AudioService.shared.play(named: "click_sound.wav") }
+                    HapticService.shared.play(.button)
                 })
     }
 
@@ -873,6 +875,7 @@ struct AppShell: View {
 
     private func open(_ item: MenuMode) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        HapticService.shared.play(.button)
 
         if item.isLocked(isPremium: premiumManager.isPremium) {
             openPro(intent: intent(for: item.mode))
@@ -1078,6 +1081,7 @@ struct AppShell: View {
     /// Выбор в меню карточки «Продолжить партию» (iPhone, партий несколько).
     private func continueGame(_ mode: GameMode) {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        HapticService.shared.play(.button)
         switch mode {
         case .computer: continueComputerGame()
         case .hotSeat: continueHotSeat()
@@ -1088,6 +1092,7 @@ struct AppShell: View {
 
     private func continueGame() {
         if appState.soundOn { AppState.playSound(sound: "click_sound.wav") }
+        HapticService.shared.play(.button)
         switch continueTarget {
         case .none: break
         case .resume: resumeBattle()

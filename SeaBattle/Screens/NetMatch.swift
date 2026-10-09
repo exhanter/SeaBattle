@@ -147,6 +147,7 @@ final class NetMatch {
         let before = game.stage
         send(game.ready(fleet: editor.ships))
         if soundOn { AudioService.shared.play(.click) }
+        HapticService.shared.play(.button)
         if before != game.stage { battleBegan() }
     }
 
@@ -182,6 +183,7 @@ final class NetMatch {
         game.recordHint(cost: hintCost)
         transport.send(message)
         if soundOn { AudioService.shared.play(.click) }
+        HapticService.shared.play(.button)
     }
 
     // MARK: Выход, итоги, серия
@@ -260,7 +262,7 @@ final class NetMatch {
         lastEvent = CellEvent(id: nextEventID, field: shot.field, target: shot.at,
                               outcome: shot.outcome, before: shot.before, after: shot.after)
         nextEventID += 1
-        HapticService.shared.play(outcome: shot.outcome)
+        HapticService.shared.play(outcome: shot.outcome, incoming: shot.field == .you)
         guard soundOn else { return }
         switch shot.outcome {
         case .miss, .repeatHit, .repeatMiss: AudioService.shared.play(.missed)

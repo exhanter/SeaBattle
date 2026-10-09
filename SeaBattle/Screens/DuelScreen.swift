@@ -562,6 +562,7 @@ struct DuelHandoffLayer: View {
         problem = nil
         digits += digit
         if match.soundOn { AudioService.shared.play(.click) }
+        HapticService.shared.play(.button)
         guard digits.count == DuelGame.codeLength else { return }
 
         switch game.codeStep {
