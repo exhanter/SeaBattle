@@ -29,13 +29,14 @@ struct DifficultyLadderTests {
         (.easy, 2), (.medium, 1), (.hard, 0), (.expert, 3)
     ]
 
-    private func opponent(at level: AppState.DifficultyLevel) -> ComputerOpponent {
+    private func opponent(at level: AppState.DifficultyLevel,
+                          targeting target: PlayerData = PlayerData(side: .you)) -> ComputerOpponent {
         let appState = AppState()
         appState.difficulty = Self.settings.first { $0.level == level }!.difficulty
         #expect(appState.difficultyLevel == level, "The difficulty mapping moved")
         return ComputerOpponent(appState: appState,
                                 ownFleet: PlayerData(side: .foe),
-                                targetBoard: PlayerData(side: .you))
+                                targetBoard: target)
     }
 
     /// The canonical fleet as the shooter sees it, with `shots` already fired.
@@ -244,6 +245,53 @@ struct DifficultyLadderTests {
             if board.isFleetDestroyed { return (multiDeck ?? shot, shot) }
         }
         return nil
+    }
+
+    @Test("In a live match every shot is one a computer blind to the fleet would fire too",
+          arguments: [AppState.DifficultyLevel.hard, .expert])
+    func theComputerDoesNotPeek(at level: AppState.DifficultyLevel) async {
+        // 10.10: the player asked whether the expert peeks — it seemed to find
+        // the single-deck ships too often. Checked end to end, through the same
+        // `nextShot()` a match uses: next to the real computer stands a "blind"
+        // one whose target board holds ONLY what the player's board shows the
+        // shooter — no ships at all — and every real shot must be among the
+        // cells the blind one considers. A computer that read the fleet would
+        // step outside that set the first time it used what it saw.
+        //
+        // And by the numbers: a fair expert hits about one search shot in four
+        // (one in five in the single-deck endgame); a peeking one, every time.
+        var searchShots = 0
+        var searchHits = 0
+        for _ in 0..<40 {
+            let target = PlayerData(side: .you)
+            target.shipsRandomArrangement()
+            let computer = opponent(at: level, targeting: target)
+            let blindTarget = PlayerData(side: .you)
+            let blind = opponent(at: level, targeting: blindTarget)
+
+            for _ in 0..<Board.cellCount {
+                let visible = target.coreBoard.opponentView()
+                blindTarget.apply(visible)
+                let blindChoice = Set(blind.targetCandidates(on: blindTarget.coreBoard.opponentView()))
+                let searching = !Board.allCoordinates.contains { visible[$0] == .hit }
+
+                let shot = await computer.nextShot()
+                #expect(blindChoice.contains(shot), "\(level) fired at \(shot), which it could not have chosen blind")
+
+                var board = target.coreBoard
+                let result = board.apply(shotAt: shot)
+                target.apply(board)
+                if searching {
+                    searchShots += 1
+                    if result.isHit { searchHits += 1 }
+                }
+                if board.isFleetDestroyed { break }
+            }
+        }
+        let rate = Double(searchHits) / Double(searchShots)
+        print(String(format: "%@: %.0f%% of search shots hit (%d of %d)",
+                     "\(level)", rate * 100, searchHits, searchShots))
+        #expect(rate < 0.4, "A fair computer hits about 25% of its search shots")
     }
 
     /// One random fleet per match, and every level plays the SAME fleets.
