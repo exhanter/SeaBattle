@@ -27,6 +27,13 @@ enum DuelSetupMetrics {
     static let optionRowPadding: CGFloat = 11
     static let firstMoveGap: CGFloat = 9
     static let note: CGFloat = 11.5
+
+    // iPad (этап 1, 13.10): сетка экрана уровня.
+    /// Вся раскладка не шире этого, по центру экрана.
+    static let padMaxWidth: CGFloat = 1000
+    static let padColumnGap: CGFloat = 24
+    static let padRowGap: CGFloat = 18
+    static let nextAvatar: CGFloat = 52
 }
 
 // MARK: - Экран
@@ -41,8 +48,20 @@ struct DuelSetupScreen: View {
 
     @Environment(\.usesPadLayout) private var usesPadLayout
     @Environment(\.locale) private var locale
+    /// iPad: высота прокрутки — блок стоит по центру неё.
+    @State private var viewportHeight: CGFloat = 0
 
     var body: some View {
+        if usesPadLayout {
+            padBody
+                // iPad: квадраты по углам, как на уровне и итогах.
+                .environment(\.bottomChrome, .tiles)
+        } else {
+            phoneBody
+        }
+    }
+
+    private var phoneBody: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Two players on one device",
                         back: "Play",
@@ -72,13 +91,114 @@ struct DuelSetupScreen: View {
             .scrollDismissesKeyboard(.interactively)
 
             BottomStack(onMenu: onBack) {
-                Button(action: onStart) {
+                Button { onStart() } label: {
                     startTitle
                 }
                 .primaryButton(enabled: setup.namesDiffer)
                 .accessibilityIdentifier("duelStart")
             }
         }
+    }
+
+    // MARK: iPad
+
+    /// iPad: сетка 2 × 2 из блоков одной высоты, как экран уровня. Сверху
+    /// карточки игроков рядом, под ними настройки партии и «кто расставляет
+    /// первым». Имя ушло из главной кнопки в этот блок: в квадрат 104
+    /// «Аня расставляет флот» не помещается, на кнопке — «Начать».
+    private var padBody: some View {
+        VStack(spacing: 0) {
+            ScreenTitle(title: "Two players on one device", back: "Play",
+                        subtitle: "Two players, one device in turns", onBack: onBack)
+                .padding(.top, NavMetrics.titleTopBelowSafeArea)
+                .frame(maxWidth: DuelSetupMetrics.padMaxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: DuelSetupMetrics.padRowGap) {
+                    padRow {
+                        column("Players") { card(0, stretches: true) }
+                    } right: {
+                        column(nil) { card(1, stretches: true) }
+                    }
+                    padRow {
+                        column("Match") { options(stretches: true) }
+                    } right: {
+                        column(nil) { nextStep }
+                    }
+                }
+                .frame(maxWidth: DuelSetupMetrics.padMaxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
+                .padding(.top, Geometry.Nav.titleGap * 2)
+                .padding(.bottom, Geometry.Nav.titleGap)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+                // Блок по центру высоты, как на экране уровня.
+                .frame(minHeight: viewportHeight, alignment: .center)
+            }
+            .seaScroll()
+            .scrollDismissesKeyboard(.interactively)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+
+            BottomStack(onMenu: onBack) {
+                Button { onStart() } label: { Text("Start") }
+                    .primaryButton(enabled: setup.namesDiffer)
+                    .accessibilityIdentifier("duelStart")
+            }
+        }
+    }
+
+    /// Две колонки одной ширины, блоки в ряду одной высоты.
+    private func padRow<Left: View, Right: View>(@ViewBuilder _ left: () -> Left,
+                                                 @ViewBuilder right: () -> Right) -> some View {
+        HStack(alignment: .top, spacing: DuelSetupMetrics.padColumnGap) {
+            left().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            right().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// Надзаголовок над колонкой; у правой его нет — место держится, чтобы
+    /// блоки ряда начинались вровень.
+    private func column<Content: View>(_ title: LocalizedStringKey?,
+                                       @ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: DuelSetupMetrics.blockGap) {
+            sectionLabel(title ?? "Players")
+                .opacity(title == nil ? 0 : 1)
+                .accessibilityHidden(title == nil)
+            content()
+                .frame(maxHeight: .infinity)
+        }
+    }
+
+    /// Кто расставляет флот первым — то, что на iPhone написано на главной
+    /// кнопке. Ниже — пояснение про цвета (на iPhone оно под настройками).
+    private var nextStep: some View {
+        let first = setup.players[0]
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 14) {
+                AvatarDot(glyph: first.glyph, colorIndex: first.colorIndex,
+                          size: DuelSetupMetrics.nextAvatar)
+                startTitle
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.inkPrimary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            }
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: 0)
+            Rectangle()
+                .fill(Color.glassStroke)
+                .frame(height: 1)
+            Text("The color shows in the avatar, the name and on the handoff screen. The boards look the same for both: warm is yours, cool is your opponent’s.")
+                .font(.scalable(size: DuelSetupMetrics.note))
+                .lineSpacing(DuelSetupMetrics.note * 0.5)
+                .foregroundStyle(Color.inkSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .glassPanel(.g2, radius: DuelSetupMetrics.cardRadius, highlight: .selected)
     }
 
     /// Вынесено из кнопки: интерполяция внутри `Text` в `Button` ломает
@@ -99,13 +219,15 @@ struct DuelSetupScreen: View {
 
     // MARK: Игроки
 
-    private func card(_ index: Int) -> some View {
+    /// `stretches` — iPad: карточка тянется до высоты соседней в ряду.
+    private func card(_ index: Int, stretches: Bool = false) -> some View {
         PlayerCard(name: $setup.players[index].name,
                    glyph: $setup.players[index].glyph,
                    colorIndex: $setup.players[index].colorIndex,
                    recent: recentChips(for: index),
                    placeholder: "Player \(index + 1)")
             .padding(DuelSetupMetrics.cardPadding)
+            .frame(maxHeight: stretches ? .infinity : nil, alignment: .top)
             .glassPanel(.g2, radius: DuelSetupMetrics.cardRadius)
             .accessibilityIdentifier("duelPlayer\(index)")
             // Карточек две и устроены одинаково — без имени VoiceOver не
@@ -122,7 +244,9 @@ struct DuelSetupScreen: View {
 
     // MARK: Код и первый ход
 
-    private var options: some View {
+    private var options: some View { options(stretches: false) }
+
+    private func options(stretches: Bool) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Toggle(isOn: $setup.locksWithCode) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -158,6 +282,7 @@ struct DuelSetupScreen: View {
             .padding(.top, DuelSetupMetrics.optionRowPadding)
         }
         .padding(DuelSetupMetrics.optionsPadding)
+        .frame(maxHeight: stretches ? .infinity : nil, alignment: .top)
         .glassPanel(.g2, radius: DuelSetupMetrics.cardRadius)
     }
 }
@@ -194,4 +319,40 @@ private struct DuelSetupDemo: View {
 #Preview("Вдвоём · настройка · 375", traits: .fixedLayout(width: 375, height: 667)) {
     DuelSetupDemo()
         .preferredColorScheme(.dark)
+}
+
+// MARK: - Превью iPad
+
+private struct DuelSetupPadDemo: View {
+    var mirrored = false
+    @State private var appState = AppState()
+
+    var body: some View {
+        DuelSetupDemo()
+            .environment(appState)
+            .environment(\.usesPadLayout, true)
+            .environment(\.mirrorsBottomTiles, mirrored)
+            .preferredColorScheme(.dark)
+    }
+}
+
+struct DuelSetupPadPreview1: PreviewProvider {
+    static var previews: some View {
+        DuelSetupPadDemo()
+            .padPreview(.portrait, "Вдвоём · настройка · iPad · вертикально")
+    }
+}
+
+struct DuelSetupPadPreview2: PreviewProvider {
+    static var previews: some View {
+        DuelSetupPadDemo()
+            .padPreview(.landscapeLeft, "Вдвоём · настройка · iPad · горизонтально")
+    }
+}
+
+struct DuelSetupPadPreview3: PreviewProvider {
+    static var previews: some View {
+        DuelSetupPadDemo(mirrored: true)
+            .padPreview(.landscapeLeft, "Вдвоём · настройка · iPad · своё поле справа")
+    }
 }
