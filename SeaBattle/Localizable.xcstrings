@@ -293,77 +293,77 @@
       }
     },
     "%lld games, caption" : {
-      "comment" : "Caption under the big number of games in the statistics summary. The number itself is NOT part of the text \u2014 it is shown above it \u2014 but the noun must agree with it.",
+      "comment" : "Caption under the big number of games in the statistics summary. The number itself is NOT part of the text — it is shown above it — but the noun must agree with it.",
       "localizations" : {
         "en" : {
           "variations" : {
             "plural" : {
-                "one" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld game"
-                  }
-                },
-                "other" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld games"
-                  }
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld game"
                 }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld games"
+                }
+              }
             }
           }
         },
         "nl" : {
           "variations" : {
             "plural" : {
-                "one" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld potje"
-                  }
-                },
-                "other" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld potjes"
-                  }
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld potje"
                 }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld potjes"
+                }
+              }
             }
           }
         },
         "ru" : {
           "variations" : {
             "plural" : {
-                "few" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld партии"
-                  }
-                },
-                "many" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld партий"
-                  }
-                },
-                "one" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld партия"
-                  }
-                },
-                "other" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld партии"
-                  }
-                },
-                "zero" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld партий"
-                  }
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld партии"
                 }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld партий"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld партия"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld партии"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld партий"
+                }
+              }
             }
           }
         }
@@ -772,77 +772,77 @@
       }
     },
     "%lld wins, caption" : {
-      "comment" : "Caption under the big number of wins in the statistics summary. The number itself is NOT part of the text \u2014 it is shown above it \u2014 but the noun must agree with it.",
+      "comment" : "Caption under the big number of wins in the statistics summary. The number itself is NOT part of the text — it is shown above it — but the noun must agree with it.",
       "localizations" : {
         "en" : {
           "variations" : {
             "plural" : {
-                "one" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld win"
-                  }
-                },
-                "other" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld wins"
-                  }
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld win"
                 }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld wins"
+                }
+              }
             }
           }
         },
         "nl" : {
           "variations" : {
             "plural" : {
-                "one" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld gewonnen"
-                  }
-                },
-                "other" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld gewonnen"
-                  }
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gewonnen"
                 }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gewonnen"
+                }
+              }
             }
           }
         },
         "ru" : {
           "variations" : {
             "plural" : {
-                "few" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld победы"
-                  }
-                },
-                "many" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld побед"
-                  }
-                },
-                "one" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld победа"
-                  }
-                },
-                "other" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld победы"
-                  }
-                },
-                "zero" : {
-                  "stringUnit" : {
-                    "state" : "translated",
-                    "value" : "%lld побед"
-                  }
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld победы"
                 }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld побед"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld победа"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld победы"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld побед"
+                }
+              }
             }
           }
         }
@@ -4600,6 +4600,7 @@
     },
     "Open the boards" : {
       "comment" : "A button that opens the game board.",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "nl" : {
@@ -5406,6 +5407,23 @@
           "stringUnit" : {
             "state" : "machine_translated",
             "value" : "Случайный соперник"
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "comment" : "Two players on one device, handoff screen: the player who now holds the device is ready and opens their boards.",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klaar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Готов"
           }
         }
       }

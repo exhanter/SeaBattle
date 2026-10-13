@@ -89,6 +89,15 @@ final class MultipeerTransport: NSObject, NetworkTransport {
         browser?.stopBrowsingForPeers()
     }
 
+    #if DEBUG
+    /// Previews only: devices "found" without a radio, and optionally the one
+    /// being connected to.
+    func showForPreview(_ found: [(name: String, model: String)], connectingTo index: Int? = nil) {
+        peers = found.map { NearbyPeer(peerID: MCPeerID(displayName: $0.name), model: $0.model) }
+        partner = index.map { peers[$0].peerID }
+    }
+    #endif
+
     /// Tapped a device in the list.
     func invite(_ peer: NearbyPeer) {
         guard partner == nil else { return }

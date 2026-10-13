@@ -30,6 +30,15 @@ enum NearbyMetrics {
     static let scanText: CGFloat = 13.5
     static let note: CGFloat = 12.5
     static let dot: CGFloat = 6
+
+    // iPad (этап 3, 14.10): сетка экрана уровня.
+    static let padMaxWidth: CGFloat = 1000
+    static let padColumnGap: CGFloat = 24
+    /// Высота панели устройств и пояснения — одна и та же, пока идёт поиск
+    /// и когда устройства нашлись: блоки не прыгают (заказчик 14.10). Много
+    /// устройств — список прокручивается внутри.
+    static let padPanelHeight: CGFloat = 340
+    static let padScanIcon: CGFloat = 44
 }
 
 struct NearbyScreen: View {
@@ -37,8 +46,23 @@ struct NearbyScreen: View {
     var onBack: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
+    @State private var viewportHeight: CGFloat = 0
 
     var body: some View {
+        Group {
+            if usesPadLayout {
+                padBody
+                    // iPad: квадраты по углам, как на уровне и итогах.
+                    .environment(\.bottomChrome, .tiles)
+            } else {
+                phoneBody
+            }
+        }
+        .onAppear { transport.startDiscovery() }
+    }
+
+    private var phoneBody: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Nearby, no internet", back: "Play", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
@@ -59,7 +83,135 @@ struct NearbyScreen: View {
                 EmptyView()
             }
         }
-        .onAppear { transport.startDiscovery() }
+    }
+
+    // MARK: iPad
+
+    /// iPad: две колонки одной высоты по центру экрана, как экран уровня.
+    /// Слева панель устройств — пока никого нет, в ней поиск по центру, потом
+    /// список и строка «Ищем ещё…» внизу; справа — как это работает.
+    private var padBody: some View {
+        VStack(spacing: 0) {
+            ScreenTitle(title: "Nearby, no internet", back: "Play", onBack: onBack)
+                .padding(.top, NavMetrics.titleTopBelowSafeArea)
+                .frame(maxWidth: NearbyMetrics.padMaxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame)
+
+            ScrollView {
+                HStack(alignment: .top, spacing: NearbyMetrics.padColumnGap) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        overline("Devices nearby")
+                        padDevices
+                            .frame(maxHeight: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Надзаголовка у пояснения нет — место держится, чтобы
+                        // блоки начинались вровень.
+                        overline("Devices nearby")
+                            .hidden()
+                            .accessibilityHidden(true)
+                        padNote
+                            .frame(maxHeight: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: NearbyMetrics.padMaxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
+                .padding(.top, Geometry.Nav.titleGap * 2)
+                .padding(.bottom, Geometry.Nav.titleGap)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: viewportHeight, alignment: .center)
+                .animation(Motion.quick.reduced(reduceMotion), value: transport.peers)
+            }
+            .seaScroll()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+
+            BottomStack(onMenu: onBack) {
+                EmptyView()
+            }
+        }
+    }
+
+    private var padDevices: some View {
+        VStack(spacing: 0) {
+            if transport.peers.isEmpty {
+                VStack(spacing: 14) {
+                    ScaledSymbol(name: "antenna.radiowaves.left.and.right",
+                                 box: NearbyMetrics.padScanIcon)
+                        .foregroundStyle(Color.roleYou)
+                    Text("Searching for devices…")
+                        .font(.scalable(size: 16, weight: .medium))
+                        .foregroundStyle(Color.inkPrimary)
+                    SearchDots()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(transport.peers) { peer in
+                            if peer.id != transport.peers.first?.id {
+                                Rectangle()
+                                    .fill(Color.glassStroke)
+                                    .frame(height: 1)
+                                    .padding(.horizontal, NearbyMetrics.rowPaddingH)
+                            }
+                            row(peer)
+                        }
+                    }
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .frame(maxHeight: .infinity, alignment: .top)
+                Rectangle()
+                    .fill(Color.glassStroke)
+                    .frame(height: 1)
+                HStack(spacing: 11) {
+                    Text("Still searching…")
+                        .font(.scalable(size: NearbyMetrics.scanText))
+                        .foregroundStyle(Color.inkSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    SearchDots()
+                }
+                .padding(.vertical, 13)
+                .padding(.horizontal, NearbyMetrics.rowPaddingH)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: NearbyMetrics.padPanelHeight)
+        .glassPanel(.g2, radius: NearbyMetrics.groupRadius)
+    }
+
+    /// Пояснение — на iPad карточкой той же высоты, что панель устройств:
+    /// значки Bluetooth и Wi-Fi над текстом.
+    private var padNote: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 14) {
+                ScaledSymbol(name: "dot.radiowaves.left.and.right", box: 28)
+                ScaledSymbol(name: "wifi", box: 28)
+            }
+            .foregroundStyle(Color.inkSecondary)
+            .accessibilityHidden(true)
+            Text("Works over Bluetooth and a shared Wi-Fi network, no internet needed. The other player must open the same mode — then the device appears in the list.")
+                .font(.scalable(size: 15))
+                .lineSpacing(15 * 0.4)
+                .foregroundStyle(Color.inkSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .glassPanel(.g2, radius: NearbyMetrics.groupRadius)
+    }
+
+    private func overline(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.scalable(size: NearbyMetrics.overline, weight: .bold))
+            .tracking(NearbyMetrics.overline * 0.09)
+            .textCase(.uppercase)
+            .foregroundStyle(Color.inkSecondary)
+            .padding(.leading, NearbyMetrics.overlineInset)
     }
 
     // MARK: Устройства
@@ -188,4 +340,64 @@ struct SearchDots: View {
         NearbyScreen(transport: MultipeerTransport(displayName: "Превью", model: "iPhone"))
     }
     .preferredColorScheme(.dark)
+}
+
+// MARK: - Превью iPad
+
+private struct NearbyPadDemo: View {
+    var found: [(name: String, model: String)] = []
+    var connecting: Int?
+    var mirrored = false
+    @State private var transport = MultipeerTransport(displayName: "Превью", model: "iPad")
+
+    var body: some View {
+        ZStack {
+            SeaBackground()
+                .ignoresSafeArea()
+            NearbyScreen(transport: transport)
+        }
+        .environment(\.usesPadLayout, true)
+        .environment(\.mirrorsBottomTiles, mirrored)
+        .preferredColorScheme(.dark)
+        .onAppear { transport.showForPreview(found, connectingTo: connecting) }
+    }
+}
+
+private let nearbyDemoPeers: [(name: String, model: String)] =
+    [("iPhone Бориса", "iPhone"), ("iPad Ксюши", "iPad"), ("Мамин iPhone", "iPhone")]
+
+struct NearbyPadPreview1: PreviewProvider {
+    static var previews: some View {
+        NearbyPadDemo()
+            .padPreview(.portrait, "Рядом · iPad · поиск · вертикально")
+    }
+}
+
+struct NearbyPadPreview2: PreviewProvider {
+    static var previews: some View {
+        NearbyPadDemo(found: nearbyDemoPeers)
+            .padPreview(.portrait, "Рядом · iPad · нашлись · вертикально")
+    }
+}
+
+struct NearbyPadPreview3: PreviewProvider {
+    static var previews: some View {
+        NearbyPadDemo()
+            .padPreview(.landscapeLeft, "Рядом · iPad · поиск · горизонтально")
+    }
+}
+
+struct NearbyPadPreview4: PreviewProvider {
+    static var previews: some View {
+        NearbyPadDemo(found: nearbyDemoPeers, connecting: 0, mirrored: true)
+            .padPreview(.landscapeLeft, "Рядом · iPad · подключение · своё поле справа")
+    }
+}
+
+struct NearbyPadPreview5: PreviewProvider {
+    static var previews: some View {
+        NearbyPadDemo(found: nearbyDemoPeers + [("iPad Пети", "iPad"), ("iPhone Гостя", "iPhone"),
+                                                ("Папин iPad", "iPad")])
+            .padPreview(.landscapeLeft, "Рядом · iPad · много устройств · горизонтально")
+    }
 }

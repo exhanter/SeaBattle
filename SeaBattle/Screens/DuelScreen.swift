@@ -412,7 +412,9 @@ struct DuelHandoffLayer: View {
 
     private var openButton: some View {
         Button { match.open() } label: {
-            Text("Open the boards")
+            // «Готов» — новый держатель взял устройство и готов; «Открыть
+            // поля» читалось как «посмотреть поля обоих» (заказчик 14.10).
+            Text("Ready")
         }
         .primaryButton()
         .accessibilityIdentifier("duelOpen")
