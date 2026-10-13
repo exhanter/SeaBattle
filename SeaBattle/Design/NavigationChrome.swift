@@ -173,10 +173,24 @@ struct BottomStack<Content: View>: View {
                         dock(rows.last)
                     }
                 }
+            case .tiles:
+                // iPad: «Меню» квадратом в левом углу, ряды — квадратами в
+                // правом, главный (последний) у самой кромки, как «Начать» на
+                // столе.
+                Group(subviews: content) { rows in
+                    HStack(alignment: .bottom, spacing: PadTileMetrics.pairGap) {
+                        PadNavTile.menu(onMenu)
+                        Spacer(minLength: 0)
+                        ForEach(rows) { row in
+                            row.frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+                        }
+                    }
+                }
+                .environment(\.inBottomTile, true)
             }
         }
         .environment(\.inBottomStack, chrome == .dock)
-        .padding(.horizontal, Geometry.Nav.stackInset)
+        .padding(.horizontal, chrome == .tiles ? Geometry.Inset.padFrame : Geometry.Nav.stackInset)
         .padBottomFrame()
     }
 

@@ -35,6 +35,20 @@ enum PadOrientation: Equatable, Sendable {
     }
 }
 
+// MARK: - Превью на iPad
+
+extension View {
+    /// Превью экрана iPad на самом iPad. У `#Preview` нет трейта устройства:
+    /// `.portrait` / `.landscapeLeft` берут устройство канваса, а оно идёт за
+    /// целью запуска — при iPhone в схеме iPad-превью открывались на iPhone
+    /// (13.10). `previewDevice` действует только в `PreviewProvider`.
+    func padPreview(_ orientation: InterfaceOrientation, _ name: String) -> some View {
+        previewDevice(PreviewDevice(rawValue: "iPad Pro 11-inch (M5)"))
+            .previewInterfaceOrientation(orientation)
+            .previewDisplayName(name)
+    }
+}
+
 // MARK: - Квадрат
 
 /// Числа квадрата — кадр `tile21` (тур 21) и спека 3.

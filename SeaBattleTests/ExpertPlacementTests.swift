@@ -124,23 +124,23 @@ struct ExpertPlacementTests {
 
     // MARK: - Does hiding actually cost the attacker anything?
 
-    /// Plays the strongest attacker the app has against `fleet` and RETURNS how
-    /// many shots it needed to clear it.
+    /// Plays an attacker that shoots as well as the app can against a random
+    /// fleet but does not expect hiding — the expert's heat map from before
+    /// 13.10 — against `fleet`, and RETURNS how many shots it needed.
+    ///
+    /// Not today's expert: it reads hiding off the board (`LayoutPosterior`),
+    /// so against it a hidden fleet is no harder than a random one, which is
+    /// the point of it. What this measures is what the hiding is for: a player
+    /// who does not see it coming. (Hard is no use here either: its
+    /// checkerboard covers the edges as evenly as the middle and loses only
+    /// about two shots to the hiding.)
     private func shotsToClear(_ fleet: [ShipPlacement]) async -> Int {
-        let appState = AppState()
-        appState.difficulty = 3   // expert; see DifficultyLadderTests for the mapping
-        #expect(appState.difficultyLevel == .expert)
-
-        let target = PlayerData(side: .you)
-        target.place(fleet)
-        let attacker = ComputerOpponent(appState: appState,
-                                        ownFleet: PlayerData(side: .foe),
-                                        targetBoard: target)
+        var board = Board(ships: fleet)
         for shot in 1...Board.cellCount {
-            let coordinate = await attacker.nextShot()
-            var board = target.coreBoard
+            let candidates = ComputerOpponent.candidates(for: .expert, on: board.opponentView(),
+                                                         seed: 0, prior: nil)
+            guard let coordinate = candidates.randomElement() else { break }
             board.apply(shotAt: coordinate)
-            target.apply(board)
             if board.isFleetDestroyed { return shot }
         }
         Issue.record("The attacker failed to clear a fleet in \(Board.cellCount) shots")
@@ -155,7 +155,7 @@ struct ExpertPlacementTests {
         return Double(total) / Double(layouts.count)
     }
 
-    @Test("A hidden fleet takes the best attacker longer to clear")
+    @Test("A hidden fleet takes an attacker who does not expect it longer to clear")
     func hidingCostsTheAttackerShots() async {
         let matches = 150
         let randomFleets = (0..<matches).map { _ in FleetLayout.random() }
@@ -164,7 +164,7 @@ struct ExpertPlacementTests {
         let againstRandom = await averageShotsToClear(randomFleets)
         let againstHidden = await averageShotsToClear(hiddenFleets)
         let text = String(format: """
-            Expert attacker against %d fleets of each kind.
+            Heat-map attacker against %d fleets of each kind.
             Average shots to clear: random layout %.2f, hidden layout %.2f (+%.2f)
             """, matches, againstRandom, againstHidden, againstHidden - againstRandom)
         print(text)

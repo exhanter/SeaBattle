@@ -291,29 +291,44 @@ private struct ModeTile: View {
 
 // MARK: - Превью
 
-#Preview("Меню iPad · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
-    ZStack {
-        SeaBackground()
-            .ignoresSafeArea()
-        PadMenuScreen(isPremium: false, canContinue: true, continueLevel: .hard)
+struct PadMenuPadPreview1: PreviewProvider {
+    static var previews: some View {
+        Group {
+            ZStack {
+                SeaBackground()
+                    .ignoresSafeArea()
+                PadMenuScreen(isPremium: false, canContinue: true, continueLevel: .hard)
+            }
+            .preferredColorScheme(.dark)
+        }
+        .padPreview(.portrait, "Меню iPad · вертикально")
     }
-    .preferredColorScheme(.dark)
 }
 
-#Preview("Меню iPad · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
-    ZStack {
-        SeaBackground()
-            .ignoresSafeArea()
-        PadMenuScreen(isPremium: false, canContinue: false)
+struct PadMenuPadPreview2: PreviewProvider {
+    static var previews: some View {
+        Group {
+            ZStack {
+                SeaBackground()
+                    .ignoresSafeArea()
+                PadMenuScreen(isPremium: false, canContinue: false)
+            }
+            .preferredColorScheme(.dark)
+        }
+        .padPreview(.landscapeLeft, "Меню iPad · горизонтально")
     }
-    .preferredColorScheme(.dark)
 }
 
-#Preview("Меню iPad · светлая", traits: .fixedLayout(width: 834, height: 1194)) {
-    ZStack {
-        SeaBackground()
-            .ignoresSafeArea()
-        PadMenuScreen(isPremium: true, canContinue: true, continueLevel: .medium)
+struct PadMenuPadPreview3: PreviewProvider {
+    static var previews: some View {
+        Group {
+            ZStack {
+                SeaBackground()
+                    .ignoresSafeArea()
+                PadMenuScreen(isPremium: true, canContinue: true, continueLevel: .medium)
+            }
+            .preferredColorScheme(.light)
+        }
+        .padPreview(.portrait, "Меню iPad · светлая")
     }
-    .preferredColorScheme(.light)
 }

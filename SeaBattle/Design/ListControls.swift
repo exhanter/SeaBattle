@@ -170,10 +170,50 @@ struct ListToggleRow: View {
     let title: LocalizedStringKey
     var subtitle: LocalizedStringKey?
     @Binding var isOn: Bool
+    /// Опция Pro у игрока без Pro (заказчик 13.10): строка видна как одно из
+    /// преимуществ, тумблер погашен и выключен, рядом замок — как у «Эксперта»
+    /// в списке уровней. Нажатие по строке зовёт это вместо переключения.
+    var onLocked: (() -> Void)?
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
+        if let onLocked {
+            lockedRow(onLocked)
+        } else {
+            toggleRow
+        }
+    }
+
+    private func lockedRow(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            AdaptiveRow(spacing: 12) {
+                ListRowText(title: title, subtitle: subtitle)
+                HStack(spacing: 8) {
+                    Image(systemName: "lock.fill")
+                        .font(.scalable(size: symbolFontSize(inBox: ListMetrics.chevron)))
+                        .foregroundStyle(Color.inkPrimary)
+                        .opacity(ControlMetrics.ModeRow.lockOpacity)
+                    Toggle(isOn: .constant(false)) { Text(title) }
+                        .labelsHidden()
+                        .disabled(true)
+                        .allowsHitTesting(false)
+                }
+            }
+            .padding(.vertical, ListMetrics.rowPaddingV)
+            .padding(.horizontal, ListMetrics.rowPaddingH)
+            .frame(minHeight: Geometry.Hit.minTarget)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Text("Pro"))
+        .accessibilityHint(subtitle.map { Text($0) } ?? Text(verbatim: ""))
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var toggleRow: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 // AX1–AX5: тумблер под текстом. Системный `Toggle` держит его

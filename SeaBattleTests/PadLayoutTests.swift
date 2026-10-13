@@ -40,17 +40,19 @@ struct PadLayoutTests {
 
     // MARK: Клетка
 
-    @Test("iPad 11\": клетка 42 в обеих ориентациях (раунд 7)")
-    func theEleveninchPadGetsTheTokenCell() {
-        #expect(table(CGSize(width: 834, height: 1194)).cell == 42)
-        #expect(table(CGSize(width: 1194, height: 834)).cell == 42)
-        #expect(Geometry.Cell.iPadLandscape == Geometry.Cell.iPadPortrait)
+    @Test("iPad 11\": клетка растёт от места, а не стоит на токене (10.10)")
+    func theEleveninchPadGrowsTheCellToFit() {
+        // Вертикально место отдают воздуху под полем противника: клетка 39.
+        #expect(table(CGSize(width: 834, height: 1194)).cell == 39)
+        // Горизонтально высоты больше — клетка крупнее.
+        #expect(table(CGSize(width: 1194, height: 834)).cell == 43)
     }
 
-    @Test("Токен — потолок: большой iPad не раздувает клетку")
-    func theTokenIsACeiling() {
-        #expect(table(CGSize(width: 1032, height: 1376)).cell == Geometry.Cell.iPadPortrait)
-        #expect(table(CGSize(width: 1376, height: 1032)).cell == Geometry.Cell.iPadLandscape)
+    @Test("Потолок — maxCell: 13\" горизонтально упирается в него")
+    func theCeilingIsMaxCell() {
+        #expect(table(CGSize(width: 1376, height: 1032)).cell == PadTableGeometry.maxCell)
+        // 13" вертикально: поля крупнее, чем на 11".
+        #expect(table(CGSize(width: 1032, height: 1376)).cell > table(CGSize(width: 834, height: 1194)).cell)
     }
 
     @Test("iPad mini: клетка меньше токена, но не меньше минимума")
@@ -62,10 +64,10 @@ struct PadLayoutTests {
 
     // MARK: Отступы
 
-    @Test("Горизонтально три равных отступа: 86 · 86 · 86 на 1194")
+    @Test("Горизонтально три равных отступа, остаток — середине")
     func landscapeMarginsAreEqual() {
         let g = table(CGSize(width: 1194, height: 834))
-        #expect(g.sideMargin == g.middleMargin)
+        #expect(g.middleMargin >= g.sideMargin && g.middleMargin <= g.sideMargin + 2)
         #expect(2 * g.sideMargin + g.middleMargin + 2 * g.boardSide == 1194)
     }
 
@@ -83,12 +85,12 @@ struct PadLayoutTests {
 
     // MARK: Всё помещается
 
-    @Test("Вертикально: два поля и названия помещаются на любом iPad",
+    @Test("Вертикально: два поля, названия и воздух под полем противника помещаются на любом iPad",
           arguments: PadLayoutTests.portraits)
     func portraitTableFits(_ size: CGSize) {
         let g = table(size)
-        let used = g.top + PadTableGeometry.topPanelHeight + PadTableGeometry.topGap
-            + 2 * (PadTableGeometry.titleBlock + g.boardSide) + PadTableGeometry.blockGap
+        let used = g.top + PadTableGeometry.topPanelHeight
+            + 2 * (PadTableGeometry.titleBlock + g.boardSide) + 3 * PadTableGeometry.breathing
             + g.bottom
         #expect(used <= size.height, "\(size): \(used)")
         // Поле не заходит под ленту справа (128 + зазор 14) и под квадраты.
@@ -106,7 +108,7 @@ struct PadLayoutTests {
         let under = max(PadTableGeometry.feedHeight, PadTableGeometry.tile)
         let height = g.top + PadTableGeometry.topPanelHeight + PadTableGeometry.topGap
             + PadTableGeometry.titleBlock + g.boardSide
-            + PadTableGeometry.feedClearance + under + g.bottom
+            + PadTableGeometry.breathing + under + g.bottom
         #expect(height <= size.height, "\(size): \(height)")
     }
 
@@ -175,21 +177,30 @@ struct PadLayoutTests {
 
     // MARK: Игра на бумаге (раунд 8)
 
-    @Test("Стол игры на бумаге: клетка 40 в обеих ориентациях, координаты влезают")
-    func thePaperTableUsesCellForty() {
+    @Test("Стол игры на бумаге: два поля с координатами помещаются вертикально",
+          arguments: PadLayoutTests.portraits)
+    func thePaperTableFitsCoordinates(_ size: CGSize) {
+        let g = PadTableGeometry(size: size, safeTop: 24, safeBottom: 20, coordinates: true)
+        let letters = g.metrics.lettersHeight + g.metrics.axisGap
+        let used = g.top + PadTableGeometry.topPanelHeight
+            + 2 * (PadTableGeometry.titleBlock + letters + g.boardSide) + 3 * PadTableGeometry.breathing
+            + g.bottom
+        #expect(used <= size.height, "\(size): \(used)")
+    }
+
+    @Test("Стол игры на бумаге: цифры висят в отступе слева от сетки")
+    func thePaperTableHangsTheDigits() {
         for size in [CGSize(width: 834, height: 1194), CGSize(width: 1194, height: 834)] {
             let g = PadTableGeometry(size: size, safeTop: 24, safeBottom: 20, coordinates: true)
-            #expect(g.cell == PadTableGeometry.paperCell)
             #expect(g.metrics.showsCoordinates)
             // Цифры висят в отступе слева от сетки — он шире столбика цифр.
             if g.orientation == .landscape { #expect(g.sideMargin > g.axisWidth) }
         }
     }
 
-    @Test("Без координат стол прежний: клетка 42")
-    func theBattleTableKeepsItsCell() {
+    @Test("Без координат у стола нет столбика цифр")
+    func theBattleTableHasNoAxis() {
         let g = PadTableGeometry(size: CGSize(width: 1194, height: 834), coordinates: false)
-        #expect(g.cell == 42)
         #expect(g.axisWidth == 0)
     }
 }

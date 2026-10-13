@@ -122,6 +122,14 @@ struct SettingsScreen: View {
                       isLocked: levelLocked,
                       onSelect: select(_:),
                       onLocked: onLevelLocked)
+            // Без Pro строка видна, но закрыта (заказчик 13.10): это одно из
+            // преимуществ Pro, а не скрытая опция. Нажатие поднимает Pro так же,
+            // как закрытый «Эксперт» в списке уровней.
+            ListToggleRow(title: "Expert remembers my fleets",
+                          subtitle: "Harder: the Expert learns how you usually arrange your ships. Turning it off erases what it has learned",
+                          isOn: clicking($appState.expertRemembersLayouts),
+                          onLocked: isPremium ? nil : onLevelLocked)
+                .accessibilityIdentifier("settingsExpertMemory")
             ListToggleRow(title: "Ask for the level before a match",
                           subtitle: "If off, a single-player match starts right away at the chosen level",
                           isOn: clicking($appState.askLevelBeforeMatch))
@@ -221,6 +229,11 @@ struct LevelMenu: View {
     var isLocked: Bool = false
     var onSelect: (AppState.DifficultyLevel) -> Void = { _ in }
     var onLocked: () -> Void = {}
+    /// Пояснение строки — как играет выбранный уровень (13.10), а посреди
+    /// партии — почему список не раскрывается.
+    private var subtitle: LocalizedStringKey {
+        isLocked ? "Changes once the current match is over" : selected.blurb
+    }
 
     var body: some View {
         Menu {
@@ -239,7 +252,7 @@ struct LevelMenu: View {
             }
         } label: {
             ListMenuLabel(title: "Computer level",
-                          subtitle: isLocked ? "Changes once the current match is over" : nil,
+                          subtitle: subtitle,
                           value: Text(LevelChoice.title(for: selected)))
         }
         .buttonStyle(.plain)
@@ -270,15 +283,20 @@ struct LevelMenu: View {
     .preferredColorScheme(.light)
 }
 
-#Preview("Настройки · iPad", traits: .fixedLayout(width: 834, height: 1194)) {
-    ZStack {
-        SeaBackground()
-            .ignoresSafeArea()
-        SettingsScreen(isPremium: true, onPro: {})
-            .frame(maxWidth: SettingsMetrics.padWidth)
+struct SettingsScreenPadPreview1: PreviewProvider {
+    static var previews: some View {
+        Group {
+            ZStack {
+                SeaBackground()
+                    .ignoresSafeArea()
+                SettingsScreen(isPremium: true, onPro: {})
+                    .frame(maxWidth: SettingsMetrics.padWidth)
+            }
+            .environment(AppState())
+            .environment(\.usesPadLayout, true)
+            .phoneStyle(true)
+            .preferredColorScheme(.dark)
+        }
+        .padPreview(.portrait, "Настройки · iPad")
     }
-    .environment(AppState())
-    .environment(\.usesPadLayout, true)
-    .phoneStyle(true)
-    .preferredColorScheme(.dark)
 }

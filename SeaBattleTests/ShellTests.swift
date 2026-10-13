@@ -231,15 +231,15 @@ struct ShellTests {
                                        hasVsComputer: true, hasHotSeat: true) == .resume)
     }
 
-    @Test("Экран уровня: тумблер обводки уходит, когда не помещается, и возвращается без дёрганья")
-    func markWaterTogglesByRoom() {
-        // Показан, всё влезает — остаётся; на 1 pt больше — уходит.
-        #expect(LevelScreen.markWaterFits(isShown: true, content: 600, slot: 58, viewport: 600))
-        #expect(!LevelScreen.markWaterFits(isShown: true, content: 601, slot: 58, viewport: 600))
-        // Скрыт: возвращается, только если влезет вместе со своим местом.
-        #expect(!LevelScreen.markWaterFits(isShown: false, content: 543, slot: 58, viewport: 600))
-        #expect(LevelScreen.markWaterFits(isShown: false, content: 542, slot: 58, viewport: 600))
-        // Скрыли при 601 → без него 543 → снова не влезает: решение устойчиво.
-        #expect(!LevelScreen.markWaterFits(isShown: false, content: 601 - 58, slot: 58, viewport: 600))
+    @Test("Экран уровня: описание и тумблер обводки уходят, когда не помещаются, описание первым")
+    func optionalRowsByRoom() {
+        // Всё влезает — всё на месте; на 1 pt больше — уходит описание.
+        #expect(LevelScreen.optionalRows(full: 600, blurbSlot: 70, viewport: 600) == (true, true))
+        #expect(LevelScreen.optionalRows(full: 601, blurbSlot: 70, viewport: 600) == (false, true))
+        // Без описания влезает ровно — тумблер остаётся; на 1 pt больше — уходит и он.
+        #expect(LevelScreen.optionalRows(full: 670, blurbSlot: 70, viewport: 600) == (false, true))
+        #expect(LevelScreen.optionalRows(full: 671, blurbSlot: 70, viewport: 600) == (false, false))
+        // Решение — по высоте со всем показанным, поэтому одно и то же, что
+        // бы ни было на экране сейчас: туда-обратно не дёргается.
     }
 }

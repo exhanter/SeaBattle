@@ -27,9 +27,9 @@ import SwiftUI
 
 /// Размер клетки и отступы стола — чистая функция от области, под тестом.
 ///
-/// Клетка из токенов — **потолок**: клетка = min(потолок, сколько помещается).
-/// iPad бывает от mini до 13", и на mini два поля по 42 в вертикали не
-/// помещаются физически. Считается один раз на ориентацию и **от фазы не
+/// Клетка = min(`maxCell`, сколько помещается вместе с воздухом `breathing`).
+/// iPad бывает от mini до 13": на mini клетка ≈ 36, на 13" — до 52.
+/// Считается один раз на ориентацию и **от фазы не
 /// зависит**: в расчёт берётся самое тесное из обеих фаз, поэтому поля по
 /// «Начать» не прыгают.
 struct PadTableGeometry: Equatable, Sendable {
@@ -47,8 +47,15 @@ struct PadTableGeometry: Equatable, Sendable {
 
     static let frame = Geometry.Inset.padFrame
     static let gap = Geometry.Cell.gapPad
-    /// Игра на бумаге: клетка 40 — координаты съедают по 2 pt (23d, 23e).
-    static let paperCell: CGFloat = 40
+    /// Потолок клетки (10.10). До 10.10 потолком был токен 42, и на 13" поля
+    /// оставались маленькими посреди пустого стола. Теперь клетка растёт,
+    /// пока поля помещаются с воздухом `breathing` вокруг.
+    static let maxCell: CGFloat = 52
+    /// Наименьший зазор над полями, между ними и под полем противника
+    /// (вертикально) и между полями и нижней линией (горизонтально).
+    /// Раньше нижняя кромка поля стояла на рамке 24, вровень с квадратами, —
+    /// снизу было тесно (заказчик 10.10).
+    static let breathing: CGFloat = 32
     /// Верхняя панель — одна высота до старта и в бою.
     static let topPanelHeight: CGFloat = 86
     /// Между верхней панелью и первым полем.
@@ -101,23 +108,23 @@ struct PadTableGeometry: Equatable, Sendable {
         let fit: CGFloat
         switch orientation {
         case .portrait:
-            // Два поля друг над другом; нижняя кромка поля противника на общей
-            // нижней линии, рядом — квадраты. По бокам поля — лента (128 + 14)
-            // и квадраты (104): поле не должно под них заходить.
-            let height = (body - (Self.titleBlock + axis) * 2 - Self.blockGap) / 2
+            // Два поля друг над другом, воздух поровну: над полями, между ними
+            // и под полем противника. Квадраты на рамке, сбоку от поля. По
+            // бокам поля — лента (128 + 14) и квадраты (104): поле не должно
+            // под них заходить.
+            let height = (body + Self.topGap - (Self.titleBlock + axis) * 2 - 3 * Self.breathing) / 2
             let width = size.width - 2 * (frame + Geometry.Inset.feedWidthPortrait + Self.feedClearance)
             fit = Self.cell(fitting: min(height, width))
         case .landscape:
             // Два поля рядом. Под своим полем в бою лента, она выше квадратов
             // до старта — считаем от неё в обеих фазах. На бумаге ленты нет.
-            let under = (coordinates ? Self.tile : max(Self.feedHeight, Self.tile)) + Self.feedClearance
+            let under = (coordinates ? Self.tile : max(Self.feedHeight, Self.tile)) + Self.breathing
             let height = body - Self.titleBlock - axis - under
             let width = (size.width - 3 * frame) / 2
             fit = Self.cell(fitting: min(height, width))
         }
 
-        let ceiling = coordinates ? Self.paperCell : Geometry.Cell.iPadPortrait
-        let cell = max(Self.minCell, min(ceiling, fit))
+        let cell = max(Self.minCell, min(Self.maxCell, fit))
         let margins = Self.margins(width: size.width, boardSide: Self.boardSide(cell: cell))
         self.orientation = orientation
         self.cell = cell
@@ -256,6 +263,9 @@ struct PadTableScreen: View {
         VStack(spacing: 0) {
             topPanel(g)
                 .padding(.horizontal, PadTableGeometry.frame)
+            // Три зазора поровну — над полями, между ними и под полем
+            // противника (10.10): раньше всё свободное уходило вверх, а поле
+            // противника стояло на самой рамке.
             Spacer(minLength: PadTableGeometry.topGap)
             // Лента — справа, нижняя кромка по нижней кромке своего поля.
             ZStack(alignment: .bottomTrailing) {
@@ -268,25 +278,27 @@ struct PadTableScreen: View {
                 }
             }
             .padding(.horizontal, PadTableGeometry.frame)
-            Spacer(minLength: PadTableGeometry.blockGap)
+            Spacer(minLength: PadTableGeometry.topGap)
                 .overlay { warning }
-            // Нижняя кромка поля противника и квадраты кончаются на одной
-            // линии: «Меню» слева (на бумаге над ним «Отменить»), справа
-            // кнопки фазы. Своё поле справа — квадраты меняются сторонами, поля
-            // стоят на месте (решение заказчика 30.09, В28).
-            ZStack(alignment: .bottom) {
-                block(.foe, g)
-                    .frame(maxWidth: .infinity)
-                HStack(alignment: .bottom) {
-                    if mirrored {
-                        phaseTiles(stacked: true)
-                        Spacer()
-                        menuColumn
-                    } else {
-                        menuColumn
-                        Spacer()
-                        phaseTiles(stacked: true)
-                    }
+            block(.foe, g)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, PadTableGeometry.frame)
+            Spacer(minLength: PadTableGeometry.topGap)
+        }
+        // Квадраты — на рамке, по бокам поля противника: «Меню» слева (на
+        // бумаге над ним «Отменить»), справа кнопки фазы. Своё поле справа —
+        // квадраты меняются сторонами, поля стоят на месте (решение заказчика
+        // 30.09, В28).
+        .overlay(alignment: .bottom) {
+            HStack(alignment: .bottom) {
+                if mirrored {
+                    phaseTiles(stacked: true)
+                    Spacer()
+                    menuColumn
+                } else {
+                    menuColumn
+                    Spacer()
+                    phaseTiles(stacked: true)
                 }
             }
             .padding(.horizontal, PadTableGeometry.frame)
@@ -317,14 +329,16 @@ struct PadTableScreen: View {
         return VStack(spacing: 0) {
             topPanel(g)
                 .padding(.horizontal, PadTableGeometry.frame)
-                .padding(.bottom, PadTableGeometry.topGap)
+            // Поля по центру между верхней панелью и нижней линией (13.10):
+            // раньше всё свободное уходило вниз и поля стояли выше середины.
+            Spacer(minLength: PadTableGeometry.topGap)
             HStack(alignment: .top, spacing: g.middleMargin - axis) {
                 block(left, g)
                 block(right, g)
             }
             .padding(.leading, g.sideMargin - axis)
             .frame(maxWidth: .infinity, alignment: .leading)
-            Spacer(minLength: PadTableGeometry.blockGap)
+            Spacer(minLength: PadTableGeometry.breathing)
                 .overlay { warning }
             // Нижняя линия: «Меню» слева (на бумаге рядом «Отменить»), лента
             // под центром своего поля, кнопки фазы у дальней кромки поля
@@ -343,6 +357,11 @@ struct PadTableScreen: View {
                 }
                 .padding(ownOnRight ? .trailing : .leading, PadTableGeometry.frame)
             }
+            // Лента висит наложением и места не занимает — держим под неё
+            // высоту, как в расчёте клетки, иначе поля по центру наедут на неё.
+            .frame(minHeight: isPaperTable ? PadTableGeometry.tile
+                       : max(PadTableGeometry.feedHeight, PadTableGeometry.tile),
+                   alignment: ownOnRight ? .bottomTrailing : .bottomLeading)
             .frame(maxWidth: .infinity, alignment: ownOnRight ? .bottomTrailing : .bottomLeading)
         }
     }
@@ -397,7 +416,7 @@ struct PadTableScreen: View {
         Group {
             if let paper {
                 PaperScorePanel(match: paper, alphabet: alphabet,
-                                isPad: true, yoursOnTrailing: trailing)
+                                isPad: true, yoursOnTrailing: trailing, callsInPanel: false)
             } else if let net {
                 if net.link.isLost {
                     NetLostBanner(match: net, isPad: true)
@@ -436,7 +455,17 @@ struct PadTableScreen: View {
 
     private func block(_ side: Side, _ g: PadTableGeometry) -> some View {
         VStack(spacing: PadTableGeometry.titleGap) {
-            title(side)
+            Group {
+                // Бумага: названная клетка — латунной капсулой на месте
+                // подписи поля, как на iPhone (заказчик 10.10); в шапке тогда
+                // «Ваш ход».
+                if side == .foe, let paper, let aim = paper.game.aim {
+                    PaperCallCaption(label: ShotChip.label(aim, alphabet: alphabet))
+                        .transition(.opacity)
+                } else {
+                    title(side)
+                }
+            }
                 .frame(height: PadTableGeometry.titleHeight)
                 // Горизонтально сетки на равных отступах, цифры висят слева —
                 // название стоит над сеткой, а не над сеткой с цифрами.
@@ -521,7 +550,9 @@ struct PadTableScreen: View {
     private func phaseTiles(stacked: Bool) -> some View {
         if let review {
             // Просмотр полей после партии: вместо кнопок фазы — «Итоги».
-            Button(action: review.backToResults) {
+            // Замыкание, а не ссылка на метод: так спотыкается
+            // инструментирование превью («ambiguous __designTimeSelection»).
+            Button { review.backToResults() } label: {
                 PadTileLabel(title: "Results", icon: "flag.checkered")
             }
             .buttonStyle(SecondaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
@@ -736,52 +767,82 @@ private struct PadPaperDemo: View {
     }
 }
 
-#Preview("Стол · бой · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
-    PadTableDemo(placement: false)
-        .preferredColorScheme(.dark)
+struct PadTable1_Previews: PreviewProvider {
+    static var previews: some View {
+        PadTableDemo(placement: false)
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "Стол · бой · вертикально")
+    }
 }
 
-#Preview("Стол · бой · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
-    PadTableDemo(placement: false)
-        .preferredColorScheme(.dark)
+struct PadTable2_Previews: PreviewProvider {
+    static var previews: some View {
+        PadTableDemo(placement: false)
+            .preferredColorScheme(.dark)
+            .padPreview(.landscapeLeft, "Стол · бой · горизонтально")
+    }
 }
 
-#Preview("Стол · до старта · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
-    PadTableDemo(placement: true)
-        .preferredColorScheme(.dark)
+struct PadTable3_Previews: PreviewProvider {
+    static var previews: some View {
+        PadTableDemo(placement: true)
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "Стол · до старта · вертикально")
+    }
 }
 
-#Preview("Стол · до старта · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
-    PadTableDemo(placement: true)
-        .preferredColorScheme(.dark)
+struct PadTable4_Previews: PreviewProvider {
+    static var previews: some View {
+        PadTableDemo(placement: true)
+            .preferredColorScheme(.dark)
+            .padPreview(.landscapeLeft, "Стол · до старта · горизонтально")
+    }
 }
 
-#Preview("Стол · своё справа · светлая", traits: .fixedLayout(width: 1194, height: 834)) {
-    PadTableDemo(placement: false, ownOnRight: true)
-        .preferredColorScheme(.light)
+struct PadTable5_Previews: PreviewProvider {
+    static var previews: some View {
+        PadTableDemo(placement: false, ownOnRight: true)
+            .preferredColorScheme(.light)
+            .padPreview(.landscapeLeft, "Стол · своё справа · светлая")
+    }
 }
 
-#Preview("Стол · бумага · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
-    PadPaperDemo(.aim)
-        .preferredColorScheme(.dark)
+struct PadTable6_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaperDemo(.aim)
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "Стол · бумага · вертикально")
+    }
 }
 
-#Preview("Стол · бумага · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
-    PadPaperDemo(.aim)
-        .preferredColorScheme(.dark)
+struct PadTable7_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaperDemo(.aim)
+            .preferredColorScheme(.dark)
+            .padPreview(.landscapeLeft, "Стол · бумага · горизонтально")
+    }
 }
 
-#Preview("Стол · бумага · ход соперника", traits: .fixedLayout(width: 1194, height: 834)) {
-    PadPaperDemo(.theirs)
-        .preferredColorScheme(.dark)
+struct PadTable8_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaperDemo(.theirs)
+            .preferredColorScheme(.dark)
+            .padPreview(.landscapeLeft, "Стол · бумага · ход соперника")
+    }
 }
 
-#Preview("Стол · бумага · своё справа", traits: .fixedLayout(width: 1194, height: 834)) {
-    PadPaperDemo(.aim, ownOnRight: true)
-        .preferredColorScheme(.light)
+struct PadTable9_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaperDemo(.aim, ownOnRight: true)
+            .preferredColorScheme(.light)
+            .padPreview(.landscapeLeft, "Стол · бумага · своё справа")
+    }
 }
 
-#Preview("Стол · бумага · вертикально · своё справа", traits: .fixedLayout(width: 834, height: 1194)) {
-    PadPaperDemo(.aim, ownOnRight: true)
-        .preferredColorScheme(.dark)
+struct PadTable10_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaperDemo(.aim, ownOnRight: true)
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "Стол · бумага · вертикально · своё справа")
+    }
 }

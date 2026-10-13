@@ -420,6 +420,9 @@ extension Geometry {
         /// iPhone: последний ряд лежит в стеклянной панели на месте и в
         /// размер таб-бара, «Меню» в ней — круглой кнопкой-значком.
         case dock
+        /// iPad (вариант 10.10): квадраты 104 на рамке 24, как на столе и в
+        /// меню, — «Меню» в левом углу, действия в правом.
+        case tiles
     }
 
     enum Bottom {
@@ -444,6 +447,9 @@ extension EnvironmentValues {
     /// Контрол лежит в нижнем блоке iPhone (`BottomStack` в стиле `dock`) —
     /// подписи кеглем `TypeScale.bottomLabel`, одним на весь блок.
     @Entry var inBottomStack = false
+    /// Кнопка стоит квадратом 104 в нижнем ряду iPad (`BottomChrome.tiles`):
+    /// главная и второстепенная заполняют квадрат и берут его радиус.
+    @Entry var inBottomTile = false
     /// Стекло рисуется материалами, как на iOS 18, даже на iOS 26 — чтобы
     /// превью показывало, как экран выглядит без системного стекла.
     @Entry var glassForcesMaterial = false
@@ -451,9 +457,10 @@ extension EnvironmentValues {
 
 extension View {
     /// Стиль iPhone, выбранный заказчиком 06.10: низ — док, формы — капсулы.
-    /// iPad пока остаётся на прежнем (`legacy`): у него свой подход к низу.
+    /// iPad с 10.10 тоже на капсулах (квадраты 104 рисуются своим радиусом и
+    /// остаются квадратами); низ у него пока свой (`legacy`).
     func phoneStyle(_ isPad: Bool) -> some View {
-        environment(\.shapeFamily, isPad ? .legacy : .capsule)
+        environment(\.shapeFamily, .capsule)
             .environment(\.bottomChrome, isPad ? .legacy : .dock)
     }
 }

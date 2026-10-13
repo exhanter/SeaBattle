@@ -22,11 +22,14 @@
 //    medium  finishes a ship it has damaged, and stops wasting shots in the
 //            ring around a sunk one.
 //    hard    hunts on a checkerboard while a ship of 2+ decks is still afloat.
-//    expert  hunts by probability density (a heat map) instead.
+//    expert  hunts by probability instead: samples whole fleets that fit the
+//            board, and reads from the board how hidden they are likely to be
+//            (`LayoutPosterior`, 13.10; a heat map before that).
 //
-//  The whole decision is a pure function of the board — there is no per-shot
-//  state to keep in sync, and `targetCandidates(on:)` can be asked what a level
-//  would consider without firing anything.
+//  The whole decision is a pure function of the board (and, for the expert, of
+//  a seed drawn once per match) — there is no per-shot state to keep in sync,
+//  and `targetCandidates(on:)` can be asked what a level would consider
+//  without firing anything.
 //
 
 import Foundation
@@ -42,10 +45,38 @@ final class ComputerOpponent: Opponent {
     private let ownFleet: PlayerData
     private let appState: AppState
 
-    init(appState: AppState, ownFleet: PlayerData, targetBoard: PlayerData) {
+    /// Drawn anew for every match (`beginMatch()`). `.expert` samples fleets,
+    /// and the sampling is seeded from this and the board, so the same board
+    /// always gets the same shot within a match — and a different one in the
+    /// next, or the opening shots would repeat from match to match and could
+    /// be learned.
+    private var seed: UInt64
+    /// What `.expert` expects of the player's fleet before the first shot:
+    /// the ordinary prior, or — with the opt-in layout memory on — one shaped
+    /// by this player's earlier fleets. Fixed for the match.
+    private var prior: LayoutPosterior = .standard
+
+    /// - Parameter seed: for tests that need two computers to agree.
+    init(appState: AppState, ownFleet: PlayerData, targetBoard: PlayerData,
+         seed: UInt64 = .random(in: .min ... .max)) {
         self.appState = appState
         self.ownFleet = ownFleet
         self.targetBoard = targetBoard
+        self.seed = seed
+        readMemory()
+    }
+
+    /// A new match against the same player: a fresh seed, and the memory read
+    /// again, since the last match may have added a fleet to it.
+    func beginMatch() {
+        seed = .random(in: .min ... .max)
+        readMemory()
+    }
+
+    private func readMemory() {
+        prior = appState.expertRemembersLayouts
+            ? LayoutMemory.posterior(remembering: LayoutMemoryStore.layouts())
+            : .standard
     }
 
     /// Arranges a fleet the way `level` does.
@@ -87,7 +118,15 @@ final class ComputerOpponent: Opponent {
 
     func nextShot() async -> Coordinate {
         let board = targetBoard.coreBoard.opponentView()
-        return targetCandidates(on: board).randomElement()
+        let level = appState.difficultyLevel
+        let seed = seed
+        let prior = prior
+        // Off the main actor: the expert's sampling takes a few milliseconds on
+        // a Mac and more on a phone, which is too long to hold up the UI.
+        let candidates = await Task.detached(priority: .userInitiated) {
+            Self.candidates(for: level, on: board, seed: seed, prior: prior)
+        }.value
+        return candidates.randomElement()
             // Every candidate list can in principle come out empty — the
             // exclusions are allowed to rule out everything that is left — so
             // fall back to "anything unshot" before giving up.
@@ -108,7 +147,16 @@ final class ComputerOpponent: Opponent {
     /// level that got the real board would be cheating, and the tests pass the
     /// masked one for exactly that reason.
     func targetCandidates(on board: Board) -> [Coordinate] {
-        switch appState.difficultyLevel {
+        Self.candidates(for: appState.difficultyLevel, on: board, seed: seed, prior: prior)
+    }
+
+    /// `targetCandidates(on:)` without the instance, so it can run off the
+    /// main actor. Everything below is static for the same reason.
+    nonisolated static func candidates(for level: AppState.DifficultyLevel,
+                                       on board: Board,
+                                       seed: UInt64,
+                                       prior: LayoutPosterior? = .standard) -> [Coordinate] {
+        switch level {
         case .easy:
             // Finishes a ship it has damaged — otherwise it looks broken rather
             // than easy — but does not use the rule that ships never touch, so
@@ -128,6 +176,13 @@ final class ComputerOpponent: Opponent {
 
         case .expert:
             if let finishing = finishingCandidates(on: board, knowsNoTouching: true) { return finishing }
+            // Whole fleets, weighted by how hidden the board suggests they
+            // are — see `LayoutPosterior`. The heat map stays as the fallback
+            // for the rare board the sampler cannot start on.
+            var generator = SeededGenerator(seed: seed ^ LayoutPosterior.fingerprint(of: board))
+            // `prior: nil` is the expert as it was before 13.10, heat map only —
+            // kept for tests that need an attacker who does not expect hiding.
+            if let prior, let peak = prior.peak(on: board, using: &generator) { return [peak] }
             if let peak = heatMapPeak(on: board) { return [peak] }
             return openCells(on: board)
         }
@@ -139,7 +194,7 @@ final class ComputerOpponent: Opponent {
     /// out — ships never touch, so no ship can be there. That is exactly the
     /// distinction the old `defineSafeAreaNearShip` call made, now derived from
     /// the board instead of cached as a per-cell flag.
-    private func openCells(on board: Board) -> [Coordinate] {
+    nonisolated private static func openCells(on board: Board) -> [Coordinate] {
         board.shootableCells(excludingRingsAroundSunk: true)
     }
 
@@ -163,7 +218,7 @@ final class ComputerOpponent: Opponent {
     /// The color is fixed rather than chosen per shot on purpose: picking the
     /// emptier color each time would alternate between the two and cover the
     /// whole board evenly, which is the very thing the pattern avoids.
-    private func checkerboardCandidates(on board: Board) -> [Coordinate] {
+    nonisolated private static func checkerboardCandidates(on board: Board) -> [Coordinate] {
         let open = openCells(on: board)
         guard board.remainingShipLengths().contains(where: { $0 >= 2 }) else {
             return open
@@ -183,7 +238,7 @@ final class ComputerOpponent: Opponent {
     /// rest of the damaged one, and once a line is known the cells beside it
     /// cannot either. Before 05.10 this function ignored the rule on every
     /// level and now and then fired an "impossible" shot next to a ship.
-    private func finishingCandidates(on board: Board, knowsNoTouching: Bool) -> [Coordinate]? {
+    nonisolated private static func finishingCandidates(on board: Board, knowsNoTouching: Bool) -> [Coordinate]? {
         let hits = Board.allCoordinates.filter { board[$0] == .hit }
         guard !hits.isEmpty else { return nil }
 
@@ -236,7 +291,7 @@ final class ComputerOpponent: Opponent {
 
     /// Walks off both ends of the run of hits through `origin` along one axis
     /// and returns whichever ends can still be fired at.
-    private func ends(from origin: Coordinate,
+    nonisolated private static func ends(from origin: Coordinate,
                       rowStep: Int,
                       columnStep: Int,
                       isHit: (Coordinate) -> Bool,
@@ -268,7 +323,7 @@ final class ComputerOpponent: Opponent {
     /// the longest-ship-only version this replaced and it needed the same
     /// number of shots as `.medium` — a heat map drawn from one four-decker
     /// says little once that ship is sunk, which is most of the match.
-    private func heatMapPeak(on board: Board) -> Coordinate? {
+    nonisolated private static func heatMapPeak(on board: Board) -> Coordinate? {
         let heat = placementCounts(on: board, lengths: board.remainingShipLengths())
         guard let peak = heat.values.max() else { return nil }
         let open = Set(openCells(on: board))
@@ -290,7 +345,7 @@ final class ComputerOpponent: Opponent {
     /// in and what they do with the answer. Derived only from public knowledge:
     /// the lengths come from `remainingShipLengths()`, which reads the sunk
     /// clusters, and the open cells from what has been fired at.
-    private func placementCounts(on board: Board, lengths: [Int]) -> [Coordinate: Int] {
+    nonisolated private static func placementCounts(on board: Board, lengths: [Int]) -> [Coordinate: Int] {
         let open = Set(openCells(on: board))
         guard !lengths.isEmpty, !open.isEmpty else { return [:] }
 
@@ -318,7 +373,7 @@ final class ComputerOpponent: Opponent {
     }
 
     /// How many still-shootable cells surround `coordinate`.
-    private func openNeighbours(_ coordinate: Coordinate, _ open: Set<Coordinate>) -> Int {
+    nonisolated private static func openNeighbours(_ coordinate: Coordinate, _ open: Set<Coordinate>) -> Int {
         coordinate.neighbours.count { open.contains($0) }
     }
 }

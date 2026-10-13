@@ -606,17 +606,14 @@ struct AppShell: View {
                         onBack: { self.route = nil },
                         // До начала боя «Меню» выходит без вопроса (спека 3.1).
                         onMenu: { self.route = nil },
-                        // iPhone — с настройками партии под списком (решение
-                        // заказчика 06.10); iPad пока прежний.
-                        layout: usesPadLayout ? .rows : .capsules,
+                        // Колонку на iPad (520 или две горизонтально) экран
+                        // ставит сам: низ у него бывает во всю ширину.
                         options: LevelMatchOptions(balance: ProgressStore.shared.points,
                                                    markWater: clicking(\.autoRevealAroundSunk),
                                                    soundOn: clicking(\.soundOn),
                                                    musicOn: clicking(\.musicOn),
                                                    hapticsOn: clicking(\.hapticsOn),
                                                    offersHaptics: HapticService.isSupported))
-                // iPad: колонка 520 pt по центру (4.3).
-                .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
 
         case .arrangement(let cameFromLevel):
             ArrangementScreen(editor: $fleet,

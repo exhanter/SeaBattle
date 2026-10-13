@@ -102,7 +102,10 @@ struct DuelScreen: View {
                    value: match.showsHandoff)
         .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
-                      prepareReview: { match.show(.foe) })
+                      prepareReview: { match.show(.foe) },
+                      // Вдвоём известны оба флота целиком.
+                      boards: { ResultBoards(own: match.game.boards[match.game.viewer],
+                                             foe: match.game.boards[match.opponent]) })
         .modalDialog(isPresented: askLeave) {
             LeaveMatchDialog(onStay: { askLeave = false },
                              onLeave: {
@@ -648,29 +651,54 @@ private struct DuelDemo: View {
     }
 }
 
-#Preview("Вдвоём · iPad · бой · вертикально", traits: .fixedLayout(width: 834, height: 1194)) {
-    DuelDemo(duelDemoMatch(), pad: true)
-        .preferredColorScheme(.dark)
+struct DuelScreenPadPreview1: PreviewProvider {
+    static var previews: some View {
+        Group {
+            DuelDemo(duelDemoMatch(), pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.portrait, "Вдвоём · iPad · бой · вертикально")
+    }
 }
 
-#Preview("Вдвоём · iPad · бой · горизонтально", traits: .fixedLayout(width: 1194, height: 834)) {
-    DuelDemo(duelDemoMatch(), pad: true)
-        .preferredColorScheme(.dark)
+struct DuelScreenPadPreview2: PreviewProvider {
+    static var previews: some View {
+        Group {
+            DuelDemo(duelDemoMatch(), pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.landscapeLeft, "Вдвоём · iPad · бой · горизонтально")
+    }
 }
 
-#Preview("Вдвоём · iPad · передача с кодом", traits: .fixedLayout(width: 1194, height: 834)) {
-    DuelDemo(duelDemoMatch(locks: true, handoff: true), pad: true)
-        .preferredColorScheme(.dark)
+struct DuelScreenPadPreview3: PreviewProvider {
+    static var previews: some View {
+        Group {
+            DuelDemo(duelDemoMatch(locks: true, handoff: true), pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.landscapeLeft, "Вдвоём · iPad · передача с кодом")
+    }
 }
 
-#Preview("Вдвоём · iPad · передача без кода", traits: .fixedLayout(width: 834, height: 1194)) {
-    DuelDemo(duelDemoMatch(handoff: true), pad: true, ownOnRight: true)
-        .preferredColorScheme(.light)
+struct DuelScreenPadPreview4: PreviewProvider {
+    static var previews: some View {
+        Group {
+            DuelDemo(duelDemoMatch(handoff: true), pad: true, ownOnRight: true)
+                .preferredColorScheme(.light)
+        }
+        .padPreview(.portrait, "Вдвоём · iPad · передача без кода")
+    }
 }
 
-#Preview("Вдвоём · iPad · расстановка", traits: .fixedLayout(width: 1194, height: 834)) {
-    DuelDemo(duelDemoMatch(battle: false), pad: true)
-        .preferredColorScheme(.dark)
+struct DuelScreenPadPreview5: PreviewProvider {
+    static var previews: some View {
+        Group {
+            DuelDemo(duelDemoMatch(battle: false), pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.landscapeLeft, "Вдвоём · iPad · расстановка")
+    }
 }
 
 #Preview("Вдвоём · поле противника") {

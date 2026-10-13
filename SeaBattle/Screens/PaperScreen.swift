@@ -92,7 +92,8 @@ struct PaperScreen: View {
         // ваши выстрелы. Целиком известно своё поле: его и показываем
         // (заказчик, 07.10).
         .matchResults(match.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
-                      prepareReview: { match.show(.you) })
+                      prepareReview: { match.show(.you) },
+                      boards: { ResultBoards(own: match.game.own, foe: match.game.foe) })
         .modalDialog(isPresented: askLeave) {
             LeaveMatchDialog(onStay: { askLeave = false },
                              onLeave: {
@@ -234,8 +235,8 @@ struct PaperScorePanel: View {
     var size: Geometry.SizeClass = .regular
     var isPad = false
     var yoursOnTrailing = false
-    /// «Скажите: Д7» в центре панели — только iPad. На iPhone координата
-    /// с 08.10 стоит над полем, а панель пишет «Ваш ход» (заказчик: «Ждём
+    /// «Скажите: Д7» в центре панели. С 08.10 на iPhone, с 10.10 и на iPad
+    /// координата стоит над полем, а панель пишет «Ваш ход» (заказчик: «Ждём
     /// ответа» врёт, пока игрок ещё думает, называть ли клетку).
     var callsInPanel = true
 

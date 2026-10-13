@@ -84,7 +84,8 @@ struct NetScreen: View {
             .animation(Motion.quick.reduced(reduceMotion), value: match.shownField)
             .animation(Motion.quick.reduced(reduceMotion), value: match.link)
             .matchResults(match.result, onPlayAgain: match.playAgain, onMenu: exit,
-                          prepareReview: { match.show(.foe) })
+                          prepareReview: { match.show(.foe) },
+                          boards: { ResultBoards(own: match.board(.you), foe: match.board(.foe)) })
             .modalDialog(isPresented: askLeave) {
                 ModalDialog.leaveMatch(.network,
                                        onStay: { askLeave = false },
@@ -650,12 +651,22 @@ private struct NetDemo: View {
         .preferredColorScheme(.dark)
 }
 
-#Preview("Сеть · iPad · ожидание", traits: .fixedLayout(width: 1194, height: 834)) {
-    NetDemo(netDemoMatch(waiting: true), pad: true)
-        .preferredColorScheme(.dark)
+struct NetScreenPadPreview1: PreviewProvider {
+    static var previews: some View {
+        Group {
+            NetDemo(netDemoMatch(waiting: true), pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.landscapeLeft, "Сеть · iPad · ожидание")
+    }
 }
 
-#Preview("Сеть · iPad · обрыв", traits: .fixedLayout(width: 834, height: 1194)) {
-    NetDemo(netDemoMatch(lost: true), pad: true)
-        .preferredColorScheme(.dark)
+struct NetScreenPadPreview2: PreviewProvider {
+    static var previews: some View {
+        Group {
+            NetDemo(netDemoMatch(lost: true), pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.portrait, "Сеть · iPad · обрыв")
+    }
 }

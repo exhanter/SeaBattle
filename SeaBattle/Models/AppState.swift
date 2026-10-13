@@ -174,6 +174,18 @@ class AppState {
     var autoRevealAroundSunk: Bool {
         didSet { UserDefaults.standard.set(autoRevealAroundSunk, forKey: "autoRevealAroundSunk") }
     }
+    /// «„Эксперт“ запоминает мои расстановки» (заказчик 13.10): для тех, кому
+    /// мало. **Выкл. по умолчанию.** Пока включено, флот игрока после каждой
+    /// доигранной партии с компьютером запоминается (`LayoutMemoryStore`), и
+    /// «Эксперт» ищет по его привычкам (`LayoutMemory`). Выключили — память
+    /// стирается: это обещание опции, а не побочный эффект.
+    var expertRemembersLayouts: Bool {
+        didSet {
+            UserDefaults.standard.set(expertRemembersLayouts, forKey: Self.expertRemembersLayoutsKey)
+            if !expertRemembersLayouts { LayoutMemoryStore.forget() }
+        }
+    }
+    private static let expertRemembersLayoutsKey = "expertRemembersLayouts"
     /// Whether picking the computer's level is a step before a single-player
     /// match (spec 4.3 and the setting in 4.11). **On by default**; off starts
     /// the match straight away at the remembered level.
@@ -321,6 +333,7 @@ class AppState {
         self.language = Self.supportedLanguage(defaults.string(forKey: Self.languageKey)
                                                ?? Locale.preferredLanguages.first)
         self.autoRevealAroundSunk = UserDefaults.standard.bool(forKey: "autoRevealAroundSunk")
+        self.expertRemembersLayouts = defaults.bool(forKey: Self.expertRemembersLayoutsKey)
         // Touching the service configures the audio session (playback category,
         // so the game is heard with the mute switch on).
         _ = AudioService.shared

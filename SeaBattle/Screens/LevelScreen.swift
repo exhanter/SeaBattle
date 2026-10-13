@@ -3,9 +3,8 @@
 //  Sea Battle — уровень компьютера (R2.1a, шаг 5a порядка сборки)
 //
 //  Спека 4.3. Шаг между меню и расстановкой: четыре уровня, «Эксперт» под
-//  замком, главная кнопка «Начать партию». iPhone (06.10) — капсулы с
-//  характеристикой и настройки партии под ними; iPad — строки с описанием и
-//  пояснение про сокрытие флота.
+//  замком, главная кнопка «Начать партию». Капсулы с характеристикой и
+//  настройки партии под ними — iPhone с 06.10, iPad с 10.10.
 //
 //  Капсула уровня в бою (`LevelChip`, спека 4.5) лежит здесь же, а не в
 //  дизайн-системе: значок и название уровня у списка и у капсулы одни и те же,
@@ -17,15 +16,13 @@ import SwiftUI
 
 // MARK: - Уровень как строка списка
 
-/// Уровень глазами игрока: значок, название и одна строка про поведение ИИ.
-/// Значок — шкала силы (`cellularbars`, 1–4 деления; выбор заказчика 07.10
-/// вместо морских значков: по ним порядок уровней не угадать).
-/// Уровень описан **поведением**, а не шкалой «легко–сложно» — так игрок видит,
-/// чем четвёртый отличается от третьего (лог дизайна, тур 5).
+/// Уровень глазами игрока: значок и название; характеристика в два-три
+/// слова — `DifficultyLevel.trait`. Значок — шкала силы (`cellularbars`, 1–4
+/// деления; выбор заказчика 07.10 вместо морских значков: по ним порядок
+/// уровней не угадать).
 struct LevelChoice: Identifiable {
     let level: AppState.DifficultyLevel
     let title: LocalizedStringKey
-    let subtitle: LocalizedStringKey
 
     var id: AppState.DifficultyLevel { level }
 
@@ -50,28 +47,32 @@ struct LevelChoice: Identifiable {
     static var all: [LevelChoice] {
         AppState.DifficultyLevel.allCases.map { level in
             switch level {
-            case .easy:
-                LevelChoice(level: level,
-                            title: "Easy",
-                            subtitle: "Finishes off a ship it has found, but keeps shooting at the water around a sunk one")
-            case .medium:
-                LevelChoice(level: level,
-                            title: "Medium",
-                            subtitle: "Finishes off a ship it has found and never wastes shots on the water around it")
-            case .hard:
-                LevelChoice(level: level,
-                            title: "Hard",
-                            subtitle: "Shoots every other cell, so it finds the big ships sooner")
-            case .expert:
-                LevelChoice(level: level,
-                            title: "Expert",
-                            subtitle: "Works out where the ships most likely are, and now and then hides its own fleet")
+            case .easy: LevelChoice(level: level, title: "Easy")
+            case .medium: LevelChoice(level: level, title: "Medium")
+            case .hard: LevelChoice(level: level, title: "Hard")
+            case .expert: LevelChoice(level: level, title: "Expert")
             }
         }
     }
 
     static func title(for level: AppState.DifficultyLevel) -> LocalizedStringKey {
         all.first { $0.level == level }?.title ?? ""
+    }
+}
+
+// MARK: - Как играет уровень
+
+extension AppState.DifficultyLevel {
+    /// Как играет уровень, одной-двумя фразами — под капсулами (выбор
+    /// заказчика 13.10) и в «Настройках». В капсуле место на два-три слова, а
+    /// «Эксперту» с 13.10 есть что сказать: он замечает, что флот спрятан.
+    var blurb: LocalizedStringKey {
+        switch self {
+        case .easy: "Finishes off a ship it has found, but keeps shooting at the water around a sunk one"
+        case .medium: "Finishes off a ship it has found and never wastes shots on the water around it"
+        case .hard: "Shoots every other cell, so it finds the big ships sooner"
+        case .expert: "Works out where your ships can still be and notices when you hide them along the edges. Now and then hides its own fleet"
+        }
     }
 }
 
@@ -107,29 +108,22 @@ enum LevelMetrics {
     static let overlineTracking: CGFloat = 11 * 0.11
     static let overlineInset: CGFloat = 4
     static let listGap: CGFloat = 10
-    /// Пояснение под списком.
+    /// Отступ надзаголовка «Партия» над ставкой.
+    static let matchTop: CGFloat = 14
+    /// iPad горизонтально: уровни и «Партия» двумя колонками.
+    static let padWideColumn: CGFloat = 940
+    /// Радиус карточки ставки в семействе форм `legacy`.
     static let noteRadius: CGFloat = 16
-    static let noteVerticalPadding: CGFloat = 12
-    static let noteHorizontalPadding: CGFloat = 13
-    static let noteSize: CGFloat = 12
     static let sideInset = Geometry.Nav.titleInset - Geometry.Nav.stackInset  // 8
-}
-
-// MARK: - Раскладка списка
-
-/// Как экран показывает четыре уровня.
-enum LevelLayout: Sendable {
-    /// Строки выбора с описанием поведения и пояснение плашкой — iPad.
-    case rows
-    /// iPhone (выбор заказчика 06.10): капсулы с названием и характеристикой
-    /// в два-три слова, под ними — настройки партии капсулами-тумблерами.
-    /// Строки с описанием в капсулах выходили толстыми, а пояснение
-    /// плашкой — «ни к селу».
-    case capsules
 }
 
 // MARK: - Экран
 
+/// iPhone (выбор заказчика 06.10) и iPad (10.10, вариант 3): капсулы с
+/// названием и характеристикой в два-три слова, под ними — настройки партии.
+/// Строки с описанием поведения в капсулах выходили толстыми, а пояснение
+/// плашкой — «ни к селу». На iPad блок стоит по центру высоты, горизонтально —
+/// уровни и «Партия» двумя колонками.
 struct LevelScreen: View {
     let selected: AppState.DifficultyLevel
     let isPremium: Bool
@@ -139,79 +133,149 @@ struct LevelScreen: View {
     var onStart: () -> Void = {}
     var onBack: () -> Void = {}
     var onMenu: () -> Void = {}
-    var layout: LevelLayout = .rows
-    /// Ставка, обводка и звук для раскладки `capsules`.
+    /// Ставка, обводка и звук.
     var options = LevelMatchOptions()
 
-    @Environment(\.shapeFamily) private var shapeFamily
+    @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.bottomChrome) private var bottomChrome
     /// Высота области прокрутки и содержимого в ней — чтобы убрать тумблер
     /// обводки, когда всё не помещается без прокрутки.
     @State private var viewportHeight: CGFloat = 0
     @State private var contentHeight: CGFloat = 0
     @State private var markWaterSlot: CGFloat = Geometry.Bottom.controlHeight + 8
     @State private var showsMarkWater = true
+    /// Описание выбранного уровня под капсулами и его место (с отступом).
+    /// Уходит первым, раньше тумблера обводки: на iPhone SE его нет.
+    @State private var blurbSlot: CGFloat = 72
+    @State private var showsBlurb = true
+    /// iPad горизонтально: две колонки.
+    @State private var isWide = false
+
+    /// Пока выключено (13.10): горизонтальная раскладка заказчику не
+    /// понравилась, iPad горизонтально — одна колонка, как вертикально.
+    private var twoColumns: Bool { false && usesPadLayout && isWide }
+
+    /// Ширина колонки содержимого: iPhone — весь экран, iPad — 520 по центру,
+    /// горизонтально — две колонки.
+    private var column: CGFloat {
+        guard usesPadLayout else { return .infinity }
+        return twoColumns ? LevelMetrics.padWideColumn : Geometry.Nav.padColumn
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Single player", back: "Play", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
+                .frame(maxWidth: column)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
-                    overline
-                    switch layout {
-                    case .rows:
-                        levels
-                        note
-                    case .capsules:
-                        LevelCapsuleList(selected: selected, isPremium: isPremium, onPick: pick)
-                        LevelMatchSection(level: selected, options: options,
-                                          showsMarkWater: showsMarkWater,
-                                          onMarkWaterHeight: { markWaterSlot = $0 + 8 })
+                Group {
+                    if twoColumns {
+                        HStack(alignment: .top, spacing: Geometry.Nav.stackInset * 2) {
+                            VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
+                                overline
+                                capsuleList
+                            }
+                            // «Партия» начинается вровень с «Уровнем соперника».
+                            matchSection
+                                .padding(.top, -LevelMetrics.matchTop)
+                        }
+                    } else {
+                        VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
+                            overline
+                            capsuleList
+                            matchSection
+                        }
                     }
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, Geometry.Nav.titleGap * 2)
                 .padding(.bottom, Geometry.Nav.titleGap)
+                // Своя высота, а не предложенная: иначе рамка по центру
+                // растягивает строки на весь экран.
+                .fixedSize(horizontal: false, vertical: true)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+                .frame(maxWidth: column)
+                .frame(maxWidth: .infinity)
+                // iPad: блок по центру высоты — сверху он оставлял полэкрана
+                // пустым (заказчик 10.10).
+                .frame(minHeight: usesPadLayout ? viewportHeight : nil, alignment: .center)
             }
             .seaScroll()
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
-            .onChange(of: contentHeight) { fitMarkWater() }
-            .onChange(of: viewportHeight) { fitMarkWater() }
+            .onChange(of: contentHeight) { fitOptionalRows() }
+            .onChange(of: viewportHeight) { fitOptionalRows() }
 
             BottomStack(onMenu: onMenu) {
                 // Форма с явной надписью, а не `Button("…", action:)`:
                 // инструментирование превью на второй спотыкается внутри
                 // своего `@ViewBuilder` («ambiguous use of
                 // `__designTimeSelection`»), хотя сборка проходит.
-                Button(action: onStart) {
-                    Text("Start match")
+                // «Эксперт» без Pro можно выбрать, чтобы прочесть, как он
+                // играет (заказчик 13.10), но не начать: кнопка зовёт Pro.
+                if selectedIsLocked {
+                    Button(action: onLocked) {
+                        Text("Unlock with Pro")
+                    }
+                    .primaryButton()
+                } else {
+                    Button(action: onStart) {
+                        Text("Start match")
+                    }
+                    .primaryButton()
                 }
-                .primaryButton()
             }
+            // Квадраты стоят по углам экрана, док — под колонкой.
+            .frame(maxWidth: bottomChrome == .tiles ? .infinity : column)
+        }
+        .frame(maxWidth: .infinity)
+        .onGeometryChange(for: Bool.self) { $0.size.width > $0.size.height } action: { isWide = $0 }
+    }
+
+    private var selectedIsLocked: Bool { selected.isPremium && !isPremium }
+
+    /// Описание уровня и тумблер обводки прячутся, если с ними экран
+    /// прокручивался бы, и возвращаются, когда для них снова есть место.
+    /// Первым уходит описание. Решение — по высоте со всем показанным, одной и
+    /// той же в обе стороны, поэтому туда-обратно не дёргается.
+    private func fitOptionalRows() {
+        guard viewportHeight > 0, contentHeight > 0 else { return }
+        let full = contentHeight
+            + (showsBlurb ? 0 : blurbSlot)
+            + (showsMarkWater ? 0 : markWaterSlot)
+        let fits = Self.optionalRows(full: full, blurbSlot: blurbSlot, viewport: viewportHeight)
+        if fits.blurb != showsBlurb { showsBlurb = fits.blurb }
+        if fits.markWater != showsMarkWater { showsMarkWater = fits.markWater }
+    }
+
+    /// Что из необязательного помещается. `full` — высота содержимого со
+    /// всем показанным.
+    static func optionalRows(full: CGFloat, blurbSlot: CGFloat,
+                             viewport: CGFloat) -> (blurb: Bool, markWater: Bool) {
+        (blurb: full <= viewport, markWater: full - blurbSlot <= viewport)
+    }
+
+    @ViewBuilder
+    private var capsuleList: some View {
+        LevelCapsuleList(selected: selected, isPremium: isPremium, onPick: pick)
+        if showsBlurb {
+            LevelBlurb(selected: selected)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+                    blurbSlot = $0 + LevelMetrics.listGap
+                }
         }
     }
 
-    /// Тумблер прячется, если с ним экран прокручивался бы, и возвращается,
-    /// когда для него снова есть место. Решение по одной и той же сумме в обе
-    /// стороны, поэтому туда-обратно не дёргается.
-    private func fitMarkWater() {
-        guard layout == .capsules, viewportHeight > 0, contentHeight > 0 else { return }
-        let fits = Self.markWaterFits(isShown: showsMarkWater, content: contentHeight,
-                                      slot: markWaterSlot, viewport: viewportHeight)
-        if fits != showsMarkWater { showsMarkWater = fits }
+    private var matchSection: some View {
+        LevelMatchSection(level: selected, options: options,
+                          showsMarkWater: showsMarkWater,
+                          onMarkWaterHeight: { markWaterSlot = $0 + 8 })
     }
 
-    /// Помещается ли содержимое вместе с тумблером. `content` — как сейчас
-    /// на экране: с тумблером, если он показан, без него — если нет.
-    static func markWaterFits(isShown: Bool, content: CGFloat, slot: CGFloat,
-                              viewport: CGFloat) -> Bool {
-        (isShown ? content : content + slot) <= viewport
-    }
-
+    /// Закрытый «Эксперт» тоже выбирается — ради описания; начать на нём без
+    /// Pro не даёт кнопка внизу.
     private func pick(_ choice: LevelChoice) {
-        if choice.isLocked(isPremium: isPremium) { onLocked() } else { onSelect(choice.level) }
+        onSelect(choice.level)
     }
 
     private var overline: some View {
@@ -222,41 +286,42 @@ struct LevelScreen: View {
             .foregroundStyle(Color.inkSecondary)
             .padding(.leading, LevelMetrics.overlineInset)
     }
+}
 
-    private var levels: some View {
-        VStack(spacing: LevelMetrics.listGap) {
-            ForEach(LevelChoice.all) { choice in
-                let locked = choice.isLocked(isPremium: isPremium)
-                ChoiceRow(icon: choice.icon,
-                          iconValue: choice.iconValue,
-                          title: choice.title,
-                          subtitle: choice.subtitle,
-                          isSelected: choice.level == selected && !locked,
-                          isLocked: locked) {
-                    if locked { onLocked() } else { onSelect(choice.level) }
-                }
+// MARK: - Описание выбранного уровня
+
+/// Как играет выбранный уровень — под капсулами. Место всегда по самому
+/// длинному из четырёх описаний (на этой ширине и этом кегле): иначе при смене
+/// уровня всё ниже прыгало бы (заказчик 13.10).
+private struct LevelBlurb: View {
+    let selected: AppState.DifficultyLevel
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(AppState.DifficultyLevel.allCases, id: \.self) { level in
+                text(level)
+                    .hidden()
+                    .accessibilityHidden(true)
             }
+            text(selected)
+                .accessibilityIdentifier("levelBlurb")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, LevelMetrics.overlineInset)
     }
 
-    private var note: some View {
-        // Пояснение говорит про сокрытие флота: это самая сильная ручка в игре
-        // и единственное настоящее отличие двух верхних уровней, а в одну
-        // строку подписи оно не влезает.
-        Text("On Expert the computer also hides its fleet now and then. There is no telling in which match, so there is no pattern to learn.")
-            .font(.scalable(size: LevelMetrics.noteSize))
+    private func text(_ level: AppState.DifficultyLevel) -> some View {
+        Text(level.blurb)
+            .font(.scalable(size: 13))
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, LevelMetrics.noteVerticalPadding)
-            .padding(.horizontal, LevelMetrics.noteHorizontalPadding)
-            .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: LevelMetrics.noteRadius))
     }
 }
 
 // MARK: - Капсулы (iPhone)
 
-/// Отметка справа: галочка у выбранного, замок у закрытого, иначе пусто той
+/// Отметка справа: замок у закрытого, галочка у выбранного, иначе пусто той
 /// же ширины.
 private struct LevelMark: View {
     let isSelected: Bool
@@ -264,15 +329,17 @@ private struct LevelMark: View {
 
     var body: some View {
         Group {
-            if isSelected {
-                Image(systemName: "checkmark")
-                    .font(.scalable(size: symbolFontSize(inBox: 18), weight: .semibold))
-                    .foregroundStyle(Color.roleYou)
-            } else if isLocked {
+            // Замок важнее галочки: закрытый «Эксперт» выбирают, чтобы
+            // прочесть описание, а не чтобы на нём играть.
+            if isLocked {
                 Image(systemName: "lock.fill")
                     .font(.scalable(size: symbolFontSize(inBox: 16)))
                     .foregroundStyle(Color.inkPrimary)
                     .opacity(ControlMetrics.ModeRow.lockOpacity)
+            } else if isSelected {
+                Image(systemName: "checkmark")
+                    .font(.scalable(size: symbolFontSize(inBox: 18), weight: .semibold))
+                    .foregroundStyle(Color.roleYou)
             } else {
                 Color.clear
             }
@@ -288,7 +355,7 @@ private extension AppState.DifficultyLevel {
         case .easy: "A calm game"
         case .medium: "Plays it clean"
         case .hard: "Shoots methodically"
-        case .expert: "Counts every shot"
+        case .expert: "Sees through hiding"
         }
     }
 }
@@ -340,7 +407,7 @@ private struct LevelCapsuleList: View {
             ForEach(LevelChoice.all) { choice in
                 let locked = choice.isLocked(isPremium: isPremium)
                 LevelCapsuleRow(choice: choice,
-                                isSelected: choice.level == selected && !locked,
+                                isSelected: choice.level == selected,
                                 isLocked: locked) { onPick(choice) }
             }
         }
@@ -379,7 +446,7 @@ private struct LevelMatchSection: View {
                 .textCase(.uppercase)
                 .foregroundStyle(Color.inkSecondary)
                 .padding(.leading, LevelMetrics.overlineInset)
-                .padding(.top, 14)
+                .padding(.top, LevelMetrics.matchTop)
             LevelStakeCard(level: level, balance: options.balance)
             if showsMarkWater {
                 markWater
@@ -611,24 +678,21 @@ struct LevelChip: View {
 private struct LevelScreenDemo: View {
     @State private var selected: AppState.DifficultyLevel
     let isPremium: Bool
-    let layout: LevelLayout
     @State private var markWater = true
     @State private var soundOn = true
     @State private var musicOn = false
     @State private var hapticsOn = true
 
-    init(selected: AppState.DifficultyLevel = .hard, isPremium: Bool = false,
-         layout: LevelLayout = .capsules) {
+    init(selected: AppState.DifficultyLevel = .hard, isPremium: Bool = false) {
         _selected = State(initialValue: selected)
         self.isPremium = isPremium
-        self.layout = layout
     }
 
     var body: some View {
         ZStack {
             SeaBackground()
             LevelScreen(selected: selected, isPremium: isPremium,
-                        onSelect: { selected = $0 }, layout: layout,
+                        onSelect: { selected = $0 },
                         options: LevelMatchOptions(balance: 42, markWater: $markWater,
                                                    soundOn: $soundOn, musicOn: $musicOn,
                                                    hapticsOn: $hapticsOn, offersHaptics: true))
@@ -656,11 +720,12 @@ private struct LevelScreenDemo: View {
         .preferredColorScheme(.dark)
 }
 
-#Preview("Уровень · iPad, строки") {
-    LevelScreenDemo(layout: .rows)
-        .phoneStyle(true)
+#Preview("Уровень · 375 × 812, без Pro, выбран Эксперт",
+         traits: .fixedLayout(width: 375, height: 812)) {
+    LevelScreenDemo(selected: .expert)
         .preferredColorScheme(.dark)
 }
+
 
 /// Капсула в той строке, в которой она стоит в бою: подпись поля плюс капсула,
 /// пара по центру. Так видно главное — что капсула не выше подписи и ничего не

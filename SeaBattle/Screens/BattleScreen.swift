@@ -107,7 +107,11 @@ struct BattleScreen: View {
         }
         .battleTypeSize()
         .matchResults(battle.result, onPlayAgain: onPlayAgain, onMenu: onMenuAfterResult,
-                      prepareReview: { battle.show(.foe) })
+                      prepareReview: { battle.show(.foe) },
+                      // Флот компьютера — целиком: видно, где стояли
+                      // непотопленные корабли.
+                      boards: { ResultBoards(own: battle.player.coreBoard,
+                                             foe: battle.enemy.coreBoard) })
         .modalDialog(isPresented: askLeave) {
             LeaveMatchDialog(onStay: { askLeave = false },
                              onLeave: {
@@ -429,9 +433,14 @@ private struct FinishDemo: View {
 }
 
 /// Живой переход на столе iPad; сами итоги в колонке — превью «Итоги · iPad».
-#Preview("Бой → итоги · iPad", traits: .fixedLayout(width: 1194, height: 834)) {
-    FinishDemo(pad: true)
-        .preferredColorScheme(.dark)
+struct BattleScreenPadPreview1: PreviewProvider {
+    static var previews: some View {
+        Group {
+            FinishDemo(pad: true)
+                .preferredColorScheme(.dark)
+        }
+        .padPreview(.landscapeLeft, "Бой → итоги · iPad")
+    }
 }
 
 #Preview("Бой · светлая") {

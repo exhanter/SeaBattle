@@ -96,8 +96,11 @@ struct PrimaryButtonStyle: ButtonStyle {
     /// Кнопка занимает всё предложенное место по обеим осям — квадрат 104 на
     /// нижней линии iPad (спека 3). Обычная кнопка растёт только в ширину.
     var fillsFrame = false
+    @Environment(\.inBottomTile) private var inBottomTile
 
     func makeBody(configuration: Configuration) -> some View {
+        let fillsFrame = fillsFrame || inBottomTile
+        let radius = inBottomTile ? PadTileMetrics.radius : radius
         let shape = RoundedRectangle(cornerRadius: radius ?? shapeFamily.radius(.control, legacy: ControlMetrics.Button.radius),
                                      style: .continuous)
         return configuration.label
@@ -397,6 +400,7 @@ struct SecondaryButtonStyle: ButtonStyle {
     var minHeight: CGFloat = Geometry.SecondaryButton.height
     @Environment(\.bottomChrome) private var chrome
     @Environment(\.inBottomStack) private var inBottomStack
+    @Environment(\.inBottomTile) private var inBottomTile
 
     /// В новом низе (`BottomChrome`) у всех нижних кнопок одна высота.
     private var height: CGFloat {
@@ -404,6 +408,8 @@ struct SecondaryButtonStyle: ButtonStyle {
     }
 
     func makeBody(configuration: Configuration) -> some View {
+        let fillsFrame = fillsFrame || inBottomTile
+        let radius = inBottomTile ? PadTileMetrics.radius : radius
         let shape = RoundedRectangle(cornerRadius: radius ?? shapeFamily.radius(.control, legacy: Geometry.SecondaryButton.radius),
                                      style: .continuous)
         return configuration.label

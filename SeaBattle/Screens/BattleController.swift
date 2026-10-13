@@ -129,6 +129,7 @@ final class BattleController {
     /// Продолженная партия приносит свой счёт из сохранения.
     func beginMatch(tally: MatchTally = MatchTally()) {
         cancelOpponentTurn()
+        opponent?.beginMatch()
         incoming = []
         lastEvent = nil
         result = nil
@@ -245,6 +246,11 @@ final class BattleController {
     private func finishIfOver() {
         guard result == nil, let appState, appState.gameIsOver else { return }
         let level = appState.difficultyLevel
+        // Опция «„Эксперт“ запоминает мои расстановки»: флот — только в конце
+        // доигранной партии, чтобы в этой же партии его никто не прочёл.
+        if appState.expertRemembersLayouts {
+            LayoutMemoryStore.remember(player.coreBoard.ships)
+        }
         result = MatchResult(didWin: enemy.coreBoard.isFleetDestroyed,
                              level: level,
                              yourLosses: player.numberShipsDestroyed,

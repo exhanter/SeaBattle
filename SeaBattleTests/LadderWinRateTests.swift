@@ -124,7 +124,10 @@ struct LadderWinRateTests {
         // Measured outside the app at roughly 1 · 39 · 43 · 52 per cent (09.10,
         // after hard stopped hiding and the expert started hiding only now and
         // then). Only the bottom step is large enough to assert with room to
-        // spare.
+        // spare. 13.10: the expert's sampler left this rate where it was — it
+        // is measured against a random fleet, and against one the sampler and
+        // the heat map it replaced are level. Its gain is against a hidden
+        // fleet, which `ExpertInferenceTests.packedFleetIsFound` checks.
         #expect(rates[.medium]! > rates[.easy]! + 15, report)
 
         // The upper steps are four to nine points — a shot or so each, which

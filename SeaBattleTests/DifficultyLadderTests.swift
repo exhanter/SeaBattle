@@ -34,9 +34,13 @@ struct DifficultyLadderTests {
         let appState = AppState()
         appState.difficulty = Self.settings.first { $0.level == level }!.difficulty
         #expect(appState.difficultyLevel == level, "The difficulty mapping moved")
+        // One seed for every computer a test makes: the expert samples, and two
+        // computers asked about the same board must give the same answer — the
+        // blind-computer check below depends on it.
         return ComputerOpponent(appState: appState,
                                 ownFleet: PlayerData(side: .foe),
-                                targetBoard: target)
+                                targetBoard: target,
+                                seed: 0x5EA_BA77)
     }
 
     /// The canonical fleet as the shooter sees it, with `shots` already fired.
@@ -193,7 +197,7 @@ struct DifficultyLadderTests {
         }
     }
 
-    // MARK: - Expert: the heat map
+    // MARK: - Expert: whole fleets
 
     @Test("Expert commits to a single best cell rather than a set")
     func expertPicksThePeak() {
@@ -201,11 +205,13 @@ struct DifficultyLadderTests {
         let candidates = opponent(at: .expert).targetCandidates(on: board)
 
         #expect(candidates.count == 1)
-        // The four-decker fits through the middle in the most ways, so the peak
-        // is never on the edge of an untouched board.
+        // Before 13.10 the peak of an untouched board was in the middle, where
+        // a four-decker fits in the most ways. The expert now also reckons with
+        // a fleet packed against the edges — most players who think about it
+        // hide that way — so it opens along an edge, and moves inwards only if
+        // the misses there say the fleet was not hidden.
         let peak = candidates[0]
-        #expect((2...9).contains(peak.row))
-        #expect((2...9).contains(peak.column))
+        #expect(peak.row == 1 || peak.row == Board.size || peak.column == 1 || peak.column == Board.size)
     }
 
     // MARK: - Does the ladder actually climb?
