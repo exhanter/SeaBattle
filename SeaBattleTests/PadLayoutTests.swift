@@ -44,8 +44,9 @@ struct PadLayoutTests {
     func theEleveninchPadGrowsTheCellToFit() {
         // Вертикально место отдают воздуху под полем противника: клетка 39.
         #expect(table(CGSize(width: 834, height: 1194)).cell == 39)
-        // Горизонтально высоты больше — клетка крупнее.
-        #expect(table(CGSize(width: 1194, height: 834)).cell == 43)
+        // Горизонтально высоты больше — клетка крупнее (41: с 13.10 поля по
+        // центру между панелью и квадратами, лента висит в нижнем зазоре).
+        #expect(table(CGSize(width: 1194, height: 834)).cell == 41)
     }
 
     @Test("Потолок — maxCell: 13\" горизонтально упирается в него")
@@ -105,11 +106,15 @@ struct PadLayoutTests {
         let size = CGSize(width: portrait.height, height: portrait.width)
         let g = table(size)
         #expect(g.sideMargin >= PadTableGeometry.frame, "\(size): \(g.sideMargin)")
-        let under = max(PadTableGeometry.feedHeight, PadTableGeometry.tile)
-        let height = g.top + PadTableGeometry.topPanelHeight + PadTableGeometry.topGap
+        // Поля по центру между панелью и квадратами, зазоры равны; лента
+        // висит в нижнем и не касается поля (зазор 14).
+        let gap = PadTableGeometry.landscapeGap(coordinates: false)
+        let height = g.top + PadTableGeometry.topPanelHeight + gap
             + PadTableGeometry.titleBlock + g.boardSide
-            + PadTableGeometry.breathing + under + g.bottom
+            + gap + PadTableGeometry.tile + g.bottom
         #expect(height <= size.height, "\(size): \(height)")
+        #expect(gap + PadTableGeometry.tile
+                    >= PadTableGeometry.feedHeight + PadTableGeometry.feedClearance)
     }
 
     @Test("Рамка 24 pt, но не под полосой состояния и не под полоской «домой»")

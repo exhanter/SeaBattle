@@ -354,6 +354,8 @@ struct PaperBoard: View {
 /// подписи 22 pt, капсула выше и выходит в зазоры над и под ней.
 struct PaperCallCaption: View {
     let label: String
+    /// Своя высота капсулы — на столе iPad она ровно в ряд клеток (13.10).
+    var height: CGFloat?
 
     var body: some View {
         Text(verbatim: label)
@@ -362,6 +364,7 @@ struct PaperCallCaption: View {
             .foregroundStyle(Color.roleYou)
             .padding(.horizontal, 18)
             .padding(.vertical, 2)
+            .frame(height: height)
             .background {
                 Capsule(style: .continuous)
                     .fill(Color.glassFill)

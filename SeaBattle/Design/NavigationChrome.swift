@@ -149,11 +149,19 @@ struct NavRow: View {
 /// контейнера, а не его содержимого: забыть его или поставить не туда нельзя.
 /// iPhone — док: последний ряд в стеклянной панели размером с таб-бар,
 /// «Меню» в нём слева (06.10). iPad — строка `NavRow` под действиями.
+extension EnvironmentValues {
+    /// iPad: своё поле справа (настройка «Ваше поле горизонтально») —
+    /// квадраты нижнего ряда меняются сторонами на всех экранах партии, как на
+    /// столе: «Меню» справа, действия слева (13.10).
+    @Entry var mirrorsBottomTiles = false
+}
+
 struct BottomStack<Content: View>: View {
     var onMenu: () -> Void = {}
     @ViewBuilder var content: Content
 
     @Environment(\.bottomChrome) private var chrome
+    @Environment(\.mirrorsBottomTiles) private var mirrored
     @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
@@ -177,12 +185,21 @@ struct BottomStack<Content: View>: View {
                 // iPad: «Меню» квадратом в левом углу, ряды — квадратами в
                 // правом, главный (последний) у самой кромки, как «Начать» на
                 // столе.
+                // Своё поле справа — зеркально: главный у левой кромки.
                 Group(subviews: content) { rows in
                     HStack(alignment: .bottom, spacing: PadTileMetrics.pairGap) {
-                        PadNavTile.menu(onMenu)
-                        Spacer(minLength: 0)
-                        ForEach(rows) { row in
-                            row.frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+                        if mirrored {
+                            ForEach(rows.reversed()) { row in
+                                row.frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+                            }
+                            Spacer(minLength: 0)
+                            PadNavTile.menu(onMenu)
+                        } else {
+                            PadNavTile.menu(onMenu)
+                            Spacer(minLength: 0)
+                            ForEach(rows) { row in
+                                row.frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+                            }
                         }
                     }
                 }

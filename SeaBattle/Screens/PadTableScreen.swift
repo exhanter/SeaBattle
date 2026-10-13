@@ -74,6 +74,13 @@ struct PadTableGeometry: Equatable, Sendable {
     static let feedClearance: CGFloat = 14
     static let minCell: CGFloat = 24
 
+    /// Горизонтально: наименьший зазор над полями и под ними до верха
+    /// квадратов (они равны). В бою в нижнем зазоре висит лента — она выше
+    /// квадрата на 33 и стоит в 14 от поля; на бумаге ленты нет.
+    static func landscapeGap(coordinates: Bool) -> CGFloat {
+        coordinates ? 24 : max(feedHeight - tile + feedClearance, breathing)
+    }
+
     /// Сторона поля с подложкой при такой клетке.
     static func boardSide(cell: CGFloat) -> CGFloat {
         BoardMetrics(cell: cell, gap: gap).boardSide
@@ -94,7 +101,10 @@ struct PadTableGeometry: Equatable, Sendable {
         return (side, rest - 2 * side)
     }
 
-    init(size: CGSize, safeTop: CGFloat = 0, safeBottom: CGFloat = 0, coordinates: Bool = false) {
+    /// `titleRows` — сколько строк названия над полями вертикально: 2, на
+    /// бумаге 1 (у поля противника вместо названия — клетка сбоку).
+    init(size: CGSize, safeTop: CGFloat = 0, safeBottom: CGFloat = 0, coordinates: Bool = false,
+         titleRows: CGFloat = 2) {
         let orientation = PadOrientation.of(size)
         let top = max(Self.frame, safeTop)
         let bottom = max(Self.frame, safeBottom)
@@ -112,14 +122,17 @@ struct PadTableGeometry: Equatable, Sendable {
             // и под полем противника. Квадраты на рамке, сбоку от поля. По
             // бокам поля — лента (128 + 14) и квадраты (104): поле не должно
             // под них заходить.
-            let height = (body + Self.topGap - (Self.titleBlock + axis) * 2 - 3 * Self.breathing) / 2
+            let height = (body + Self.topGap - Self.titleBlock * titleRows - axis * 2
+                          - 3 * Self.breathing) / 2
             let width = size.width - 2 * (frame + Geometry.Inset.feedWidthPortrait + Self.feedClearance)
             fit = Self.cell(fitting: min(height, width))
         case .landscape:
-            // Два поля рядом. Под своим полем в бою лента, она выше квадратов
-            // до старта — считаем от неё в обеих фазах. На бумаге ленты нет.
-            let under = (coordinates ? Self.tile : max(Self.feedHeight, Self.tile)) + Self.breathing
-            let height = body - Self.titleBlock - axis - under
+            // Два поля рядом, по центру между верхней панелью и верхом
+            // квадратов: зазоры над и под полями равны (13.10). Лента под
+            // своим полем выше квадратов и висит в нижнем зазоре — зазор
+            // считается от неё в обеих фазах, чтобы поля не прыгали.
+            let free = size.height - top - bottom - Self.topPanelHeight - Self.tile
+            let height = free - 2 * Self.landscapeGap(coordinates: coordinates) - Self.titleBlock - axis
             let width = (size.width - 3 * frame) / 2
             fit = Self.cell(fitting: min(height, width))
         }
@@ -238,7 +251,8 @@ struct PadTableScreen: View {
             let g = PadTableGeometry(size: size,
                                      safeTop: proxy.safeAreaInsets.top,
                                      safeBottom: proxy.safeAreaInsets.bottom,
-                                     coordinates: isPaperTable)
+                                     coordinates: isPaperTable,
+                                     titleRows: portraitTitleRows)
             Group {
                 if g.orientation == .portrait {
                     portrait(g)
@@ -282,6 +296,7 @@ struct PadTableScreen: View {
                 .overlay { warning }
             block(.foe, g)
                 .frame(maxWidth: .infinity)
+                .overlay(alignment: mirrored ? .topTrailing : .topLeading) { sideCall(g) }
                 .padding(.horizontal, PadTableGeometry.frame)
             Spacer(minLength: PadTableGeometry.topGap)
         }
@@ -310,6 +325,28 @@ struct PadTableScreen: View {
     /// 30.09 по В28, в обеих ориентациях).
     private var mirrored: Bool { appState.ownBoardOnRight }
 
+    /// Сколько строк названия над полями вертикально: на бумаге у поля
+    /// противника строки нет — названная клетка стоит сбоку (13.10).
+    private var portraitTitleRows: CGFloat { paper != nil ? 1 : 2 }
+
+    /// Бумага вертикально: названная клетка сбоку — над «Меню» и «Отменить»
+    /// (выбор заказчика 13.10; над ответами она терялась). Капсула высотой в
+    /// клетку и стоит ровно в первом ряду поля противника: верх и низ — по
+    /// кромкам верхних клеток.
+    private var callBeside: Bool { paper != nil }
+
+    @ViewBuilder
+    private func sideCall(_ g: PadTableGeometry) -> some View {
+        if callBeside, let paper, let aim = paper.game.aim {
+            let m = g.metrics
+            PaperCallCaption(label: ShotChip.label(aim, alphabet: alphabet), height: m.cell)
+                .frame(width: PadTileMetrics.side)
+                .padding(.top, (showsTitle(.foe, g) ? PadTableGeometry.titleBlock : 0)
+                         + m.lettersHeight + m.axisGap + m.inset)
+                .transition(.opacity)
+        }
+    }
+
     private var menuColumn: some View {
         VStack(spacing: PadTileMetrics.pairGap) {
             if let paper { undoTile(paper) }
@@ -329,66 +366,59 @@ struct PadTableScreen: View {
         return VStack(spacing: 0) {
             topPanel(g)
                 .padding(.horizontal, PadTableGeometry.frame)
-            // Поля по центру между верхней панелью и нижней линией (13.10):
+            // Поля по центру между верхней панелью и верхом квадратов (13.10):
             // раньше всё свободное уходило вниз и поля стояли выше середины.
-            Spacer(minLength: PadTableGeometry.topGap)
+            Spacer(minLength: PadTableGeometry.landscapeGap(coordinates: isPaperTable))
             HStack(alignment: .top, spacing: g.middleMargin - axis) {
                 block(left, g)
                 block(right, g)
             }
             .padding(.leading, g.sideMargin - axis)
             .frame(maxWidth: .infinity, alignment: .leading)
-            Spacer(minLength: PadTableGeometry.breathing)
+            Spacer(minLength: PadTableGeometry.landscapeGap(coordinates: isPaperTable))
                 .overlay { warning }
-            // Нижняя линия: «Меню» слева (на бумаге рядом «Отменить»), лента
-            // под центром своего поля, кнопки фазы у дальней кромки поля
-            // противника (21c, 23e). Своё поле справа — всё зеркально.
-            ZStack(alignment: ownOnRight ? .bottomTrailing : .bottomLeading) {
+            // Нижняя линия: «Меню» в углу на рамке (на бумаге рядом
+            // «Отменить»), лента под центром своего поля, кнопки фазы в
+            // противоположном углу на той же рамке — симметрично «Меню», а не
+            // по кромке поля (заказчик 13.10). Своё поле справа — всё зеркально.
+            ZStack(alignment: .bottom) {
                 HStack(alignment: .bottom, spacing: g.middleMargin) {
-                    underBoard(left, farEdge: .leading, g)
-                    underBoard(right, farEdge: .trailing, g)
+                    underBoard(left, g)
+                    underBoard(right, g)
                 }
                 .padding(.leading, g.sideMargin)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: PadTileMetrics.pairGap) {
-                    if ownOnRight, let paper { undoTile(paper) }
-                    PadNavTile.menu(onMenu)
-                    if !ownOnRight, let paper { undoTile(paper) }
+                HStack(alignment: .bottom, spacing: PadTileMetrics.pairGap) {
+                    if ownOnRight {
+                        phaseTiles(stacked: false)
+                        Spacer(minLength: 0)
+                        if let paper { undoTile(paper) }
+                        PadNavTile.menu(onMenu)
+                    } else {
+                        PadNavTile.menu(onMenu)
+                        if let paper { undoTile(paper) }
+                        Spacer(minLength: 0)
+                        phaseTiles(stacked: false)
+                    }
                 }
-                .padding(ownOnRight ? .trailing : .leading, PadTableGeometry.frame)
+                .padding(.horizontal, PadTableGeometry.frame)
             }
-            // Лента висит наложением и места не занимает — держим под неё
-            // высоту, как в расчёте клетки, иначе поля по центру наедут на неё.
-            .frame(minHeight: isPaperTable ? PadTableGeometry.tile
-                       : max(PadTableGeometry.feedHeight, PadTableGeometry.tile),
-                   alignment: ownOnRight ? .bottomTrailing : .bottomLeading)
+            // Высота нижней линии — квадрат; лента висит наложением в зазоре
+            // над ней, место под неё заложено в `landscapeGap`.
+            .frame(height: PadTableGeometry.tile, alignment: ownOnRight ? .bottomTrailing : .bottomLeading)
             .frame(maxWidth: .infinity, alignment: ownOnRight ? .bottomTrailing : .bottomLeading)
         }
     }
 
     /// Что стоит под полем на нижней линии: под своим — лента по центру, под
-    /// полем противника — кнопки фазы у его дальней кромки. «Меню» всегда в
-    /// углу своего поля, поэтому кнопкам фазы с ним не встретиться.
-    private func underBoard(_ side: Side, farEdge: HorizontalAlignment,
-                            _ g: PadTableGeometry) -> some View {
-        Group {
-            if side == .you {
-                // Колонка держит ширину и без ленты (на бумаге её нет), иначе
-                // кнопки фазы съехали бы под своё поле.
-                Color.clear
-                    .frame(width: g.boardSide, height: 1)
-                    .overlay(alignment: .bottom) { feed }
-            } else {
-                // Колонка держит ширину и без кнопок (вдвоём, ожидание хода по
-                // сети): пустая схлопывалась, и лента своего поля справа
-                // уезжала под поле противника.
-                Color.clear
-                    .frame(width: g.boardSide, height: 1)
-                    .overlay(alignment: farEdge == .leading ? .bottomLeading : .bottomTrailing) {
-                        phaseTiles(stacked: false)
-                    }
+    /// полем противника пусто. Колонка держит ширину поля и пустой: иначе
+    /// лента своего поля справа уезжала бы под поле противника.
+    private func underBoard(_ side: Side, _ g: PadTableGeometry) -> some View {
+        Color.clear
+            .frame(width: g.boardSide, height: 1)
+            .overlay(alignment: .bottom) {
+                if side == .you { feed }
             }
-        }
     }
 
     @ViewBuilder
@@ -455,26 +485,35 @@ struct PadTableScreen: View {
 
     private func block(_ side: Side, _ g: PadTableGeometry) -> some View {
         VStack(spacing: PadTableGeometry.titleGap) {
-            Group {
-                // Бумага: названная клетка — латунной капсулой на месте
-                // подписи поля, как на iPhone (заказчик 10.10); в шапке тогда
-                // «Ваш ход».
-                if side == .foe, let paper, let aim = paper.game.aim {
-                    PaperCallCaption(label: ShotChip.label(aim, alphabet: alphabet))
-                        .transition(.opacity)
-                } else {
-                    title(side)
+            if showsTitle(side, g) {
+                Group {
+                    // Бумага: названная клетка — латунной капсулой на месте
+                    // подписи поля, как на iPhone (заказчик 10.10); в шапке тогда
+                    // «Ваш ход».
+                    if side == .foe, let paper, let aim = paper.game.aim {
+                        PaperCallCaption(label: ShotChip.label(aim, alphabet: alphabet))
+                            .transition(.opacity)
+                    } else {
+                        title(side)
+                    }
                 }
+                    .frame(height: PadTableGeometry.titleHeight)
+                    // Горизонтально сетки на равных отступах, цифры висят слева —
+                    // название стоит над сеткой, а не над сеткой с цифрами.
+                    .padding(.leading, isPaperTable && g.orientation == .landscape ? g.axisWidth : 0)
             }
-                .frame(height: PadTableGeometry.titleHeight)
-                // Горизонтально сетки на равных отступах, цифры висят слева —
-                // название стоит над сеткой, а не над сеткой с цифрами.
-                .padding(.leading, isPaperTable && g.orientation == .landscape ? g.axisWidth : 0)
             board(side, g)
         }
         // До старта поле противника приглушено — это непрозрачность всего
         // элемента как состояние (правило 8). Оборванная связь гасит оба.
         .opacity(isLost ? NetMetrics.lostDim : side == .foe && !isPlaying ? 0.5 : 1)
+    }
+
+    /// Строка названия над полем. Вертикально на бумаге её нет у поля
+    /// противника: там названная клетка сбоку.
+    private func showsTitle(_ side: Side, _ g: PadTableGeometry) -> Bool {
+        guard g.orientation == .portrait, paper != nil else { return true }
+        return side == .you
     }
 
     /// Над полем противника — имя соперника; у компьютера имени нет, поэтому

@@ -606,14 +606,18 @@ struct AppShell: View {
                         onBack: { self.route = nil },
                         // До начала боя «Меню» выходит без вопроса (спека 3.1).
                         onMenu: { self.route = nil },
-                        // Колонку на iPad (520 или две горизонтально) экран
-                        // ставит сам: низ у него бывает во всю ширину.
+                        // Раскладку iPad (две колонки, квадраты) экран
+                        // ставит сам.
                         options: LevelMatchOptions(balance: ProgressStore.shared.points,
                                                    markWater: clicking(\.autoRevealAroundSunk),
                                                    soundOn: clicking(\.soundOn),
                                                    musicOn: clicking(\.musicOn),
                                                    hapticsOn: clicking(\.hapticsOn),
-                                                   offersHaptics: HapticService.isSupported))
+                                                   offersHaptics: HapticService.isSupported,
+                                                   expertRemembers: clicking(\.expertRemembersLayouts),
+                                                   askLevel: clicking(\.askLevelBeforeMatch),
+                                                   ownBoardOnRight: clicking(\.ownBoardOnRight),
+                                                   record: { ProgressStore.shared.record(.computer($0)) }))
 
         case .arrangement(let cameFromLevel):
             ArrangementScreen(editor: $fleet,

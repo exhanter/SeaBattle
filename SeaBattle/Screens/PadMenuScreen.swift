@@ -165,7 +165,9 @@ struct PadMenuScreen: View {
     }
 
     private var continueTile: some View {
-        Button(action: onContinue) {
+        // Замыкание, а не ссылка: на `Button(action:)` спотыкается
+        // инструментирование превью («ambiguous __designTimeSelection»).
+        Button { onContinue() } label: {
             HStack(spacing: 14) {
                 Image(systemName: "arrow.uturn.backward.circle")
                     .font(.system(size: symbolFontSize(inBox: 30)))
@@ -211,7 +213,7 @@ private struct ModeTile: View {
     typealias M = Geometry.PadMenu
 
     var body: some View {
-        Button(action: action) {
+        Button { action() } label: {
             Group {
                 if isWide {
                     HStack(spacing: 16) {

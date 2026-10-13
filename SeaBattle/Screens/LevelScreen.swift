@@ -110,8 +110,6 @@ enum LevelMetrics {
     static let listGap: CGFloat = 10
     /// Отступ надзаголовка «Партия» над ставкой.
     static let matchTop: CGFloat = 14
-    /// iPad горизонтально: уровни и «Партия» двумя колонками.
-    static let padWideColumn: CGFloat = 940
     /// Радиус карточки ставки в семействе форм `legacy`.
     static let noteRadius: CGFloat = 16
     static let sideInset = Geometry.Nav.titleInset - Geometry.Nav.stackInset  // 8
@@ -119,11 +117,10 @@ enum LevelMetrics {
 
 // MARK: - Экран
 
-/// iPhone (выбор заказчика 06.10) и iPad (10.10, вариант 3): капсулы с
-/// названием и характеристикой в два-три слова, под ними — настройки партии.
-/// Строки с описанием поведения в капсулах выходили толстыми, а пояснение
-/// плашкой — «ни к селу». На iPad блок стоит по центру высоты, горизонтально —
-/// уровни и «Партия» двумя колонками.
+/// iPhone (выбор заказчика 06.10): капсулы с названием и характеристикой в
+/// два-три слова, под ними — настройки партии. Строки с описанием поведения в
+/// капсулах выходили толстыми, а пояснение плашкой — «ни к селу». На iPad —
+/// свой экран двумя колонками (`PadLevelScreen`, выбор заказчика 13.10).
 struct LevelScreen: View {
     let selected: AppState.DifficultyLevel
     let isPremium: Bool
@@ -137,7 +134,6 @@ struct LevelScreen: View {
     var options = LevelMatchOptions()
 
     @Environment(\.usesPadLayout) private var usesPadLayout
-    @Environment(\.bottomChrome) private var bottomChrome
     /// Высота области прокрутки и содержимого в ней — чтобы убрать тумблер
     /// обводки, когда всё не помещается без прокрутки.
     @State private var viewportHeight: CGFloat = 0
@@ -148,45 +144,29 @@ struct LevelScreen: View {
     /// Уходит первым, раньше тумблера обводки: на iPhone SE его нет.
     @State private var blurbSlot: CGFloat = 72
     @State private var showsBlurb = true
-    /// iPad горизонтально: две колонки.
-    @State private var isWide = false
-
-    /// Пока выключено (13.10): горизонтальная раскладка заказчику не
-    /// понравилась, iPad горизонтально — одна колонка, как вертикально.
-    private var twoColumns: Bool { false && usesPadLayout && isWide }
-
-    /// Ширина колонки содержимого: iPhone — весь экран, iPad — 520 по центру,
-    /// горизонтально — две колонки.
-    private var column: CGFloat {
-        guard usesPadLayout else { return .infinity }
-        return twoColumns ? LevelMetrics.padWideColumn : Geometry.Nav.padColumn
-    }
 
     var body: some View {
+        if usesPadLayout {
+            PadLevelScreen(selected: selected, isPremium: isPremium, onSelect: onSelect,
+                           onLocked: onLocked, onStart: onStart, onBack: onBack,
+                           onMenu: onMenu, options: options)
+                // iPad: квадраты по углам (выбор заказчика 13.10).
+                .environment(\.bottomChrome, .tiles)
+        } else {
+            phoneBody
+        }
+    }
+
+    private var phoneBody: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Single player", back: "Play", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
-                .frame(maxWidth: column)
 
             ScrollView {
-                Group {
-                    if twoColumns {
-                        HStack(alignment: .top, spacing: Geometry.Nav.stackInset * 2) {
-                            VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
-                                overline
-                                capsuleList
-                            }
-                            // «Партия» начинается вровень с «Уровнем соперника».
-                            matchSection
-                                .padding(.top, -LevelMetrics.matchTop)
-                        }
-                    } else {
-                        VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
-                            overline
-                            capsuleList
-                            matchSection
-                        }
-                    }
+                VStack(alignment: .leading, spacing: LevelMetrics.listGap) {
+                    overline
+                    capsuleList
+                    matchSection
                 }
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, Geometry.Nav.titleGap * 2)
@@ -195,11 +175,7 @@ struct LevelScreen: View {
                 // растягивает строки на весь экран.
                 .fixedSize(horizontal: false, vertical: true)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
-                .frame(maxWidth: column)
                 .frame(maxWidth: .infinity)
-                // iPad: блок по центру высоты — сверху он оставлял полэкрана
-                // пустым (заказчик 10.10).
-                .frame(minHeight: usesPadLayout ? viewportHeight : nil, alignment: .center)
             }
             .seaScroll()
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
@@ -225,11 +201,8 @@ struct LevelScreen: View {
                     .primaryButton()
                 }
             }
-            // Квадраты стоят по углам экрана, док — под колонкой.
-            .frame(maxWidth: bottomChrome == .tiles ? .infinity : column)
         }
         .frame(maxWidth: .infinity)
-        .onGeometryChange(for: Bool.self) { $0.size.width > $0.size.height } action: { isWide = $0 }
     }
 
     private var selectedIsLocked: Bool { selected.isPremium && !isPremium }
@@ -348,7 +321,7 @@ private struct LevelMark: View {
     }
 }
 
-private extension AppState.DifficultyLevel {
+extension AppState.DifficultyLevel {
     /// Характеристика в два-три слова вместо описания поведения.
     var trait: LocalizedStringKey {
         switch self {
@@ -426,6 +399,12 @@ struct LevelMatchOptions {
     /// Кружка вибрации нет там, где её нет и в настройках: iPad, симулятор
     /// (`HapticService.isSupported`).
     var offersHaptics = true
+    /// Только iPad (`PadLevelScreen`): настройки из «Настроек», нужные перед
+    /// партией, и статистика выбранного уровня.
+    var expertRemembers: Binding<Bool> = .constant(false)
+    var askLevel: Binding<Bool> = .constant(true)
+    var ownBoardOnRight: Binding<Bool> = .constant(false)
+    var record: (AppState.DifficultyLevel) -> StatRecord = { _ in StatRecord(wins: 0, losses: 0) }
 }
 
 private struct LevelMatchSection: View {
@@ -544,7 +523,7 @@ private struct LevelStakeCard: View {
 /// Звук, музыка и вибрация кружками: латунный — включено, стеклянный с
 /// перечёркнутым значком — выключено. Перехода в настройки рядом нет — он
 /// в меню (решение заказчика 06.10).
-private struct LevelSoundRow: View {
+struct LevelSoundRow: View {
     @Binding var soundOn: Bool
     @Binding var musicOn: Bool
     @Binding var hapticsOn: Bool

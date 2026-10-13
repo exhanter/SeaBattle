@@ -90,8 +90,6 @@
 		CAD002953076E714006405DC /* HintMark.metal in Sources */ = {isa = PBXBuildFile; fileRef = CAD002943076E714006405DC /* HintMark.metal */; };
 		CAD002973076E733006405DC /* HintMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD002963076E733006405DC /* HintMark.swift */; };
 		CAD0029B3076E82E006405DC /* ContinueGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0029A3076E82E006405DC /* ContinueGame.swift */; };
-		CAD002E1307A72E5006405DC /* PadLevelVariants.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD002E0307A72E5006405DC /* PadLevelVariants.swift */; };
-		CAD002E3307A7377006405DC /* PadResultsVariants.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD002E2307A7377006405DC /* PadResultsVariants.swift */; };
 		CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */; };
 		CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */; };
 		CAD720DE306E427700F6E49F /* GameCenterResources.gamekit in Resources */ = {isa = PBXBuildFile; fileRef = CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */; };
@@ -107,6 +105,7 @@
 		CADF48B5306DA87100974A1B /* NetMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B4306DA87100974A1B /* NetMatch.swift */; };
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
 		CADF48BB306DAA7A00974A1B /* NearbyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48BA306DAA7A00974A1B /* NearbyScreen.swift */; };
+		CAF2D7AD307EC63F00D32059 /* PadLevelScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */; };
 		CECFA2E0D5E595C15AFECC9C /* DuelMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F9AE6E7E8530E90B5A21D3 /* DuelMatch.swift */; };
 		D96588F346224ACA66AB3676 /* PadBattleControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5AA3A20D930F074DBD8821 /* PadBattleControls.swift */; };
 		DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D010F06F87A6B505F978D212 /* ResultsScreen.swift */; };
@@ -217,8 +216,6 @@
 		CAD002943076E714006405DC /* HintMark.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = HintMark.metal; sourceTree = "<group>"; };
 		CAD002963076E733006405DC /* HintMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintMark.swift; sourceTree = "<group>"; };
 		CAD0029A3076E82E006405DC /* ContinueGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueGame.swift; sourceTree = "<group>"; };
-		CAD002E0307A72E5006405DC /* PadLevelVariants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadLevelVariants.swift; sourceTree = "<group>"; };
-		CAD002E2307A7377006405DC /* PadResultsVariants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadResultsVariants.swift; sourceTree = "<group>"; };
 		CAD720D7306DBFF000F6E49F /* OnlineLobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineLobby.swift; sourceTree = "<group>"; };
 		CAD720D9306DC07A00F6E49F /* OnlineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineScreen.swift; sourceTree = "<group>"; };
 		CAD720DD306E427700F6E49F /* GameCenterResources.gamekit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GameCenterResources.gamekit; sourceTree = "<group>"; };
@@ -234,6 +231,7 @@
 		CADF48B8306DAA4500974A1B /* NetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetScreen.swift; sourceTree = "<group>"; };
 		CADF48BA306DAA7A00974A1B /* NearbyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyScreen.swift; sourceTree = "<group>"; };
 		CAF192BF6D393AA1F62C6346 /* LevelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelScreen.swift; sourceTree = "<group>"; };
+		CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadLevelScreen.swift; sourceTree = "<group>"; };
 		CE9D2DABD6826E32CD5CA684 /* ArrangementScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangementScreen.swift; sourceTree = "<group>"; };
 		D010F06F87A6B505F978D212 /* ResultsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsScreen.swift; sourceTree = "<group>"; };
 		D6706CEC1CE3B54D2471BAF0 /* BattleScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleScreen.swift; sourceTree = "<group>"; };
@@ -410,8 +408,7 @@
 				CAD00238306EDD3D006405DC /* OnboardingScreens.swift */,
 				CAD0023E30707218006405DC /* AboutScreen.swift */,
 				CAD0029A3076E82E006405DC /* ContinueGame.swift */,
-				CAD002E0307A72E5006405DC /* PadLevelVariants.swift */,
-				CAD002E2307A7377006405DC /* PadResultsVariants.swift */,
+				CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -660,7 +657,6 @@
 				83A972A6B11E12CE0C2AB4A0 /* BattleScreen.swift in Sources */,
 				7D1924F01014B1CFCBFB72E7 /* FleetEditor.swift in Sources */,
 				288F1D73B8350925B60CC7A0 /* ArrangementScreen.swift in Sources */,
-				CAD002E3307A7377006405DC /* PadResultsVariants.swift in Sources */,
 				2B7940ED380293E06C5620B3 /* DuelSetupScreen.swift in Sources */,
 				726963E0ADFB564E2EEFC336 /* MatchResult.swift in Sources */,
 				836A6A73EAF5A113B7C5DAFB /* DuelGame.swift in Sources */,
@@ -668,7 +664,6 @@
 				2C2A961F615A3D905AF983A0 /* AppShell.swift in Sources */,
 				CECFA2E0D5E595C15AFECC9C /* DuelMatch.swift in Sources */,
 				DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */,
-				CAD002E1307A72E5006405DC /* PadLevelVariants.swift in Sources */,
 				E6B6658BCC70C76953BDC2F7 /* DuelScreen.swift in Sources */,
 				CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */,
 				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,
@@ -699,6 +694,7 @@
 				CA4F06373061DB170083DE5C /* Log.swift in Sources */,
 				CAD720EF306E934E00F6E49F /* ProScreens.swift in Sources */,
 				CAD00239306EDD3D006405DC /* OnboardingScreens.swift in Sources */,
+				CAF2D7AD307EC63F00D32059 /* PadLevelScreen.swift in Sources */,
 				CA17D7D7302D9B8B007A33B0 /* ProfileStore.swift in Sources */,
 				CA4F06353061DB140083DE5C /* AudioService.swift in Sources */,
 				CA4F063A3061E1E20083DE5C /* Side.swift in Sources */,

@@ -17,6 +17,7 @@ struct SeaBattleApp: App {
             // на два поля, колонки) она включает по этому флагу.
             AppShell()
                 .environment(\.usesPadLayout, UIDevice.current.userInterfaceIdiom == .pad)
+                .environment(\.mirrorsBottomTiles, appState.ownBoardOnRight)
                 .phoneStyle(UIDevice.current.userInterfaceIdiom == .pad)
                 .environment(appState)
                 .environment(premiumManager)

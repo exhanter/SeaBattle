@@ -27,10 +27,8 @@ enum ResultMetrics {
     /// состояния (≈ 59 pt).
     static let top: CGFloat = 19
     static let cardGap: CGFloat = 14
-    /// iPad: между карточками и полями.
+    /// iPad: между карточками и полем.
     static let boardsGap: CGFloat = 24
-    /// iPad горизонтально: ширина колонки карточек слева от полей.
-    static let padBesideCards: CGFloat = 460
 
     // Карточка результата
     static let frameRadius: CGFloat = 24
@@ -89,9 +87,9 @@ struct ResultsScreen: View {
     /// «Посмотреть поля»: итоги уходят, поля партии снова видны. `nil` —
     /// кнопки нет.
     var onReview: (() -> Void)?
-    /// Оба поля партии — на iPad вместо «Посмотреть поля» (выбор заказчика
-    /// 10.10): под карточками, горизонтально — справа от них, крупно, сколько
-    /// позволяет экран. `nil` — полей нет.
+    /// Поля партии — на iPad вместо «Посмотреть поля»: одно поле размером
+    /// как на столе, под ним переключатель «Моё поле / Противник» (выбор
+    /// заказчика 13.10). `nil` — полей нет.
     var boards: ResultBoards?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -105,32 +103,42 @@ struct ResultsScreen: View {
     /// поля рядом с карточками шире прокрутки, и та начинала считать себя
     /// горизонтальной.
     @State private var screen: CGSize = .zero
+    @State private var safeArea = EdgeInsets()
     @State private var actionsHeight: CGFloat = 0
-    @State private var cardsHeight: CGFloat = 0
+    /// Какое поле видно на iPad: по умолчанию противника.
+    @State private var shownBoard: Side = .foe
 
     /// Область прокрутки — экран без нижнего ряда.
     private var viewport: CGSize {
         CGSize(width: screen.width, height: max(0, screen.height - actionsHeight))
     }
 
-    /// Поля стоят справа от карточек: iPad горизонтально.
+    /// iPad горизонтально: карточки и поле одним рядом.
     private var boardsBeside: Bool { boards != nil && screen.width > screen.height }
+
+    /// Низ: на iPad — квадраты по углам (выбор заказчика 13.10).
+    private var chrome: Geometry.BottomChrome { usesPadLayout ? .tiles : bottomChrome }
 
     /// Поле по бокам: на iPad рамка 24, как у квадратов в углах.
     private var sideInset: CGFloat { usesPadLayout ? Geometry.Inset.padFrame : Geometry.Nav.stackInset }
 
-    /// Колонка карточек на iPad; iPhone — весь экран.
+    /// Колонка карточек на iPad без полей; iPhone — весь экран.
     private var cardsWidth: CGFloat {
-        guard usesPadLayout else { return .infinity }
-        return boardsBeside ? ResultMetrics.padBesideCards : Geometry.Nav.padColumn
+        usesPadLayout ? Geometry.Nav.padColumn : .infinity
     }
 
     var body: some View {
         GeometryReader { proxy in
             content
                 .frame(width: proxy.size.width, height: proxy.size.height)
-                .onAppear { screen = proxy.size }
-                .onChange(of: proxy.size) { _, size in screen = size }
+                .onAppear {
+                    screen = proxy.size
+                    safeArea = proxy.safeAreaInsets
+                }
+                .onChange(of: proxy.size) { _, size in
+                    screen = size
+                    safeArea = proxy.safeAreaInsets
+                }
         }
     }
 
@@ -138,18 +146,11 @@ struct ResultsScreen: View {
         VStack(spacing: 0) {
             ScrollView {
                 Group {
-                    if boardsBeside, let boards {
-                        HStack(alignment: .center, spacing: ResultMetrics.boardsGap) {
-                            cards
-                                .frame(width: cardsWidth)
-                            boardsView(boards)
-                        }
+                    if usesPadLayout, let boards {
+                        padLayout(boards)
                     } else {
-                        VStack(spacing: ResultMetrics.boardsGap) {
-                            cards
-                                .frame(maxWidth: cardsWidth)
-                            if let boards { boardsView(boards) }
-                        }
+                        cards
+                            .frame(maxWidth: cardsWidth)
                     }
                 }
                 .padding(.horizontal, sideInset)
@@ -166,8 +167,9 @@ struct ResultsScreen: View {
             .seaScroll()
 
             actions
+                .environment(\.bottomChrome, chrome)
                 // Квадраты — по углам экрана, док и колонка — под карточками.
-                .frame(maxWidth: bottomChrome == .tiles || boardsBeside ? .infinity : cardsWidth)
+                .frame(maxWidth: chrome == .tiles ? .infinity : cardsWidth)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { actionsHeight = $0 }
         }
         // Карточки поднимаются; при Reduce Motion — только прозрачность.
@@ -201,41 +203,93 @@ struct ResultsScreen: View {
                 levelCard(level, record)
             }
         }
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardsHeight = $0 }
     }
 
-    // MARK: Поля партии
+    // MARK: iPad — одно поле
 
-    /// Клетка полей — наибольшая, при которой оба поля помещаются рядом без
-    /// прокрутки: по ширине экрана и по высоте, что осталась от карточек.
-    private var boardCell: CGFloat {
-        ResultBoards.cell(viewport: viewport, cardsHeight: cardsHeight,
-                          beside: boardsBeside, cardsWidth: ResultMetrics.padBesideCards,
-                          inset: sideInset)
+    /// Карточки тянутся по высоте, чтобы их низ совпал с низом блока поля.
+    private var stretchesCards: Bool { usesPadLayout && boards != nil }
+
+    /// Поле того же размера, что на столе в этой ориентации: та же клетка и
+    /// тот же зазор (заказчик 13.10).
+    private var tableMetrics: BoardMetrics {
+        let size = CGSize(width: screen.width,
+                          height: screen.height + safeArea.top + safeArea.bottom)
+        let g = PadTableGeometry(size: size, safeTop: safeArea.top, safeBottom: safeArea.bottom)
+        return BoardMetrics(cell: g.cell, gap: PadTableGeometry.gap)
     }
 
-    private func boardsView(_ boards: ResultBoards) -> some View {
-        HStack(alignment: .top, spacing: ResultBoards.pairGap) {
-            resultBoard("Your fleet", cells: boards.own, role: .you)
-            resultBoard("Opponent's board", cells: boards.foe, role: .foe)
+    /// Одна композиция на обе ориентации, поле справа, низ всего вровень:
+    /// вертикально результат во всю ширину, под ним карточки столбиком слева
+    /// от поля; горизонтально слева результат, под ним баллы и «Как шла
+    /// партия» парой, ниже уровень, справа поле. Карточки растягиваются до
+    /// высоты блока «поле + переключатель».
+    @ViewBuilder
+    private func padLayout(_ boards: ResultBoards) -> some View {
+        let gap = ResultMetrics.cardGap
+        let boardBlock = singleBoardBlock(boards)
+        if boardsBeside {
+            HStack(alignment: .top, spacing: ResultMetrics.boardsGap) {
+                StretchColumn(spacing: gap) {
+                    outcomeCard
+                    HStack(alignment: .top, spacing: gap) {
+                        moneyCard
+                        summaryCard
+                    }
+                    levelCardIfAny
+                }
+                boardBlock
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        } else {
+            VStack(spacing: ResultMetrics.boardsGap) {
+                outcomeCard
+                HStack(alignment: .top, spacing: ResultMetrics.boardsGap) {
+                    StretchColumn(spacing: gap) {
+                        moneyCard
+                        summaryCard
+                        levelCardIfAny
+                    }
+                    boardBlock
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
-    private func resultBoard(_ title: LocalizedStringKey, cells: [BoardCellState],
-                             role: Side) -> some View {
-        VStack(spacing: ResultBoards.captionGap) {
-            Text(title)
-                .font(.system(size: ResultMetrics.capLabel, weight: .bold))
-                .tracking(ResultMetrics.capTracking)
-                .textCase(.uppercase)
-                .foregroundStyle(Color.inkSecondary)
-                .lineLimit(1)
-                .frame(height: ResultBoards.captionHeight)
-            BoardView(cells: cells, role: role,
-                      metrics: BoardMetrics(cell: boardCell, gap: ResultBoards.cellGap))
+    private func singleBoardBlock(_ boards: ResultBoards) -> some View {
+        let metrics = tableMetrics
+        // Переключатель под полем, шириной в поле, — там же, где он в бою на
+        // iPhone (заказчик 13.10).
+        return VStack(spacing: ResultBoards.captionGap + 4) {
+            BoardView(cells: shownBoard == .you ? boards.own : boards.foe, role: shownBoard,
+                      metrics: metrics)
                 .allowsHitTesting(false)
+                .id(shownBoard)
+                .transition(.opacity)
+            FieldSwitch(selection: shownBoard) { side in
+                withAnimation(Motion.quick.reduced(reduceMotion)) { shownBoard = side }
+            }
+            .frame(width: metrics.boardSide)
         }
-        .accessibilityElement(children: .contain)
+        .fixedSize()
+    }
+
+    /// Баллы, а вдвоём — счёт серии.
+    @ViewBuilder
+    private var moneyCard: some View {
+        if let duel = result.duel {
+            seriesCard(duel)
+        } else {
+            pointsCard
+        }
+    }
+
+    @ViewBuilder
+    private var levelCardIfAny: some View {
+        if let level = result.level, let record = result.levelRecord {
+            levelCard(level, record)
+        }
     }
 
     // MARK: Результат и счёт по флотам
@@ -294,6 +348,7 @@ struct ResultsScreen: View {
         }
         .frame(maxWidth: .infinity)
         .padding(ResultMetrics.framePadding)
+        .frame(maxHeight: stretchesCards ? .infinity : nil)
         .glassPanel(.g2, radius: ResultMetrics.frameRadius,
                     highlight: .outcome(result.didWin ? .you : .foe))
         .accessibilityElement(children: .combine)
@@ -352,6 +407,7 @@ struct ResultsScreen: View {
             .accessibilityElement(children: .combine)
         }
         .padding(ResultMetrics.cardPadding)
+        .frame(maxHeight: stretchesCards ? .infinity : nil)
         .glassPanel(.g2, radius: ResultMetrics.cardRadius)
         .accessibilityIdentifier("resultPoints")
     }
@@ -378,6 +434,7 @@ struct ResultsScreen: View {
             .fixedSize(horizontal: false, vertical: true)
         }
         .padding(ResultMetrics.cardPadding)
+        .frame(maxHeight: stretchesCards ? .infinity : nil)
         .glassPanel(.g2, radius: ResultMetrics.cardRadius)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("resultSeries")
@@ -452,6 +509,7 @@ struct ResultsScreen: View {
             .overlay(alignment: .top) { divider }
         }
         .padding(ResultMetrics.cardPadding)
+        .frame(maxHeight: stretchesCards ? .infinity : nil)
         .glassPanel(.g2, radius: ResultMetrics.cardRadius)
         .accessibilityIdentifier("resultSummary")
     }
@@ -497,6 +555,7 @@ struct ResultsScreen: View {
                 .foregroundStyle(Color.roleYou)
         }
         .padding(ResultMetrics.cardPadding)
+        .frame(maxHeight: stretchesCards ? .infinity : nil)
         .glassPanel(.g2, radius: ResultMetrics.cardRadius)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("resultLevelStats")
@@ -527,7 +586,7 @@ struct ResultsScreen: View {
 
     @ViewBuilder
     private var actions: some View {
-        switch bottomChrome {
+        switch chrome {
         case .dock, .tiles:
             // Тот же низ, что на всех экранах партии: «Меню» слева, главная
             // рядом (док iPhone) или квадратом в правом углу (iPad). «Сыграть
@@ -536,7 +595,7 @@ struct ResultsScreen: View {
             // есть место для будущих («история ходов» и т. п.). На iPad вместо
             // «Посмотреть поля» поля стоят прямо на итогах.
             BottomStack(onMenu: onMenu) {
-                if let onReview, boards == nil, bottomChrome == .dock {
+                if let onReview, boards == nil, chrome == .dock {
                     HStack(spacing: Geometry.Nav.stackGap) {
                         reviewButton(onReview)
                     }
@@ -547,7 +606,7 @@ struct ResultsScreen: View {
             VStack(spacing: Geometry.Nav.stackGap) {
                 AdaptiveRow(spacing: Geometry.Nav.stackGap, accessibilitySpacing: Geometry.Nav.stackGap) {
                     if let onReview, boards == nil { reviewButton(onReview) }
-                    Button(action: onMenu) {
+                    Button { onMenu() } label: {
                         Label("To menu", systemImage: "line.3.horizontal")
                     }
                     .secondaryButton()
@@ -561,7 +620,7 @@ struct ResultsScreen: View {
     }
 
     private var playAgainButton: some View {
-        Button(action: onPlayAgain) {
+        Button { onPlayAgain() } label: {
             Text(playAgainTitle)
         }
         .primaryButton()
@@ -571,7 +630,7 @@ struct ResultsScreen: View {
     /// Поля после партии (решение заказчика 05.10): посмотреть, где стоял
     /// флот противника и чем кончился последний выстрел.
     private func reviewButton(_ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button { action() } label: {
             Label("View boards", systemImage: "square.grid.3x3")
         }
         .secondaryButton()
@@ -595,32 +654,42 @@ struct ResultBoards: Equatable {
         self.foe = Board.allCoordinates.map { BoardCellState.forDisplay(foe[$0], on: .foe) }
     }
 
-    static let cellGap: CGFloat = 3
-    static let pairGap: CGFloat = 20
-    static let captionHeight: CGFloat = 14
+    /// Между полем и переключателем под ним.
     static let captionGap: CGFloat = 8
-    static let minCell: CGFloat = 16
-    static let maxCell: CGFloat = 44
+}
 
-    /// Наибольшая клетка, при которой два поля помещаются рядом: по ширине
-    /// области и по высоте, что осталась от карточек (вертикально) или вся
-    /// (горизонтально, поля справа от карточек колонкой `cardsWidth`).
-    static func cell(viewport: CGSize, cardsHeight: CGFloat, beside: Bool,
-                     cardsWidth: CGFloat, inset: CGFloat) -> CGFloat {
-        let caption = captionHeight + captionGap
-        let vertical = ResultMetrics.top + ResultMetrics.cardGap
-        let width: CGFloat
-        let height: CGFloat
-        if beside {
-            width = viewport.width - 2 * inset - cardsWidth - ResultMetrics.boardsGap
-            height = viewport.height - vertical - caption
-        } else {
-            width = viewport.width - 2 * inset
-            height = viewport.height - vertical - cardsHeight - ResultMetrics.boardsGap - caption
+// MARK: - Столбик карточек по высоте поля
+
+/// Столбик карточек, растянутый до предложенной высоты: прибавка делится
+/// пропорционально собственной высоте карточек — однострочная карточка уровня
+/// не раздувается, а большие получают больше воздуха (варианты 13.10).
+struct StretchColumn: Layout {
+    var spacing: CGFloat
+
+    private func heights(_ width: CGFloat?, _ subviews: Subviews) -> [CGFloat] {
+        subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height }
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width
+            ?? subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+        let natural = heights(width, subviews).reduce(0, +)
+            + spacing * CGFloat(max(0, subviews.count - 1))
+        return CGSize(width: width, height: max(natural, proposal.height ?? natural))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
+                       cache: inout ()) {
+        let own = heights(bounds.width, subviews)
+        let sum = own.reduce(0, +)
+        let extra = max(0, bounds.height - sum - spacing * CGFloat(max(0, subviews.count - 1)))
+        var y = bounds.minY
+        for (subview, height) in zip(subviews, own) {
+            let grown = height + (sum > 0 ? extra * height / sum : 0)
+            subview.place(at: CGPoint(x: bounds.minX, y: y), anchor: .topLeading,
+                          proposal: ProposedViewSize(width: bounds.width, height: grown))
+            y += grown + spacing
         }
-        let side = min((width - pairGap) / 2, height)
-        let cell = floor((side - cellGap * 9 - Geometry.boardInset * 2) / 10)
-        return min(maxCell, max(minCell, cell))
     }
 }
 
@@ -742,7 +811,7 @@ private struct MatchResultsModifier: ViewModifier {
             .allowsHitTesting(result == nil || reviewing)
             // Под итогами поля невидимы — и для VoiceOver тоже.
             .accessibilityHidden(fieldsHidden)
-            .environment(\.matchReview, reviewing ? MatchReview(backToResults: backToResults) : nil)
+            .environment(\.matchReview, reviewing ? MatchReview(backToResults: { backToResults() }) : nil)
             .environment(\.matchFinale, finale)
             .overlay { overlay }
             .task(id: result) { await present() }
@@ -862,21 +931,85 @@ private struct ResultsDemo: View {
         .preferredColorScheme(.light)
 }
 
-/// iPad: колонка 520 pt по центру — так итоги кладёт на стол `BattleScreen`.
+private enum PadResultsSample {
+    /// Поражение на «Среднем»: свой флот потоплен целиком, у противника
+    /// потоплено 7 из 10, остальные три корабля видны открытыми.
+    static let result: MatchResult = {
+        var tally = MatchTally()
+        for _ in 0..<3 { tally.record(.hit(shipID: nil)) }
+        for _ in 0..<14 {
+            tally.record(.miss)
+            tally.record(.hit(shipID: nil))
+        }
+        for _ in 0..<27 { tally.record(.miss) }
+        tally.recordHint(cost: 3)
+        return MatchResult(didWin: false, level: .medium, yourLosses: 10, foeLosses: 7,
+                           tally: tally, balance: 76,
+                           levelRecord: StatRecord(wins: 21, losses: 11))
+    }()
+
+    static let boards: ResultBoards = {
+        var own = Board(ships: FleetLayout.canonicalLayout())
+        for ship in FleetLayout.canonicalLayout() {
+            for cell in ship.cells { _ = own.apply(shotAt: cell) }
+        }
+        var foe = Board.randomFleet()
+        let ships = Board.allCoordinates.compactMap { foe.ship(at: $0) }
+        var seen: [ShipPlacement] = []
+        for ship in ships where !seen.contains(ship) { seen.append(ship) }
+        for ship in seen.prefix(7) {
+            for cell in ship.cells { _ = foe.apply(shotAt: cell) }
+        }
+        var misses = 0
+        for cell in Board.allCoordinates where misses < 30 && foe[cell] == .water {
+            if (cell.row * 7 + cell.column * 3) % 4 == 0 {
+                _ = foe.apply(shotAt: cell)
+                misses += 1
+            }
+        }
+        for cell in Board.allCoordinates where own[cell] == .water
+            && (cell.row * 5 + cell.column) % 3 == 0 {
+            _ = own.apply(shotAt: cell)
+        }
+        return ResultBoards(own: own, foe: foe)
+    }()
+}
+
+/// iPad: поражение на «Среднем» — одно поле размером как на столе, под ним
+/// переключатель.
+private struct PadResultsDemo: View {
+    var mirrored = false
+
+    var body: some View {
+        ZStack {
+            SeaBackground()
+                .ignoresSafeArea()
+            ResultsScreen(result: PadResultsSample.result, onReview: {},
+                          boards: PadResultsSample.boards)
+        }
+        .environment(\.usesPadLayout, true)
+        .environment(\.mirrorsBottomTiles, mirrored)
+        .preferredColorScheme(.dark)
+    }
+}
+
 struct ResultsScreenPadPreview1: PreviewProvider {
     static var previews: some View {
-        Group {
-            ZStack {
-                SeaBackground()
-                    .ignoresSafeArea()
-                ResultsScreen(result: MatchResult(
-                    didWin: true, level: .hard, yourLosses: 2, foeLosses: 10,
-                    tally: ResultsDemo.tally(hits: 20, misses: 43, streak: 4, hints: 1, cost: 6),
-                    balance: 126, levelRecord: StatRecord(wins: 9, losses: 13)))
-                    .frame(maxWidth: Geometry.Nav.padColumn)
-            }
-            .preferredColorScheme(.dark)
-        }
-        .padPreview(.landscapeLeft, "Итоги · iPad")
+        PadResultsDemo()
+            .padPreview(.portrait, "Итоги · iPad · вертикально")
+    }
+}
+
+struct ResultsScreenPadPreview2: PreviewProvider {
+    static var previews: some View {
+        PadResultsDemo()
+            .padPreview(.landscapeLeft, "Итоги · iPad · горизонтально")
+    }
+}
+
+struct ResultsScreenPadPreview3: PreviewProvider {
+    static var previews: some View {
+        PadResultsDemo(mirrored: true)
+            .padPreview(.landscapeLeft, "Итоги · iPad · своё поле справа")
     }
 }
