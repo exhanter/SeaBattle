@@ -3453,7 +3453,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "machine_translated",
-            "value" : "Присоединиться"
+            "value" : "Войти"
           }
         }
       }
@@ -5423,7 +5423,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Готов"
+            "value" : "Играть"
           }
         }
       }

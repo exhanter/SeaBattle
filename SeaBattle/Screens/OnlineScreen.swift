@@ -63,6 +63,31 @@ enum OnlineMetrics {
     static let errorTextWidth: CGFloat = 280
     static let alternativesRadius: CGFloat = 18
     static let blockGap: CGFloat = 12
+
+    // iPad (этап 4, 14.10): все состояния — в одной рамке одного размера,
+    // как экран уровня: колонка не шире 1000, по центру экрана.
+    static let padMaxWidth: CGFloat = 1000
+    static let padFrameHeight: CGFloat = 380
+    static let padColumnGap: CGFloat = 24
+    static let padPanelRadius: CGFloat = 24
+    static let padRadar: CGFloat = 260
+}
+
+extension EnvironmentValues {
+    /// Блок «По сети» стоит в рамке iPad: тянется на неё и без своей прокрутки.
+    @Entry var onlinePadFrame = false
+}
+
+/// Панель рамки iPad: стекло во всю ячейку.
+private struct OnlinePadPanel<Content: View>: View {
+    var edge: Bool = false
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .glassPanel(.g2, radius: OnlineMetrics.padPanelRadius)
+    }
 }
 
 // MARK: - Экран
@@ -79,16 +104,25 @@ struct OnlineScreen: View {
     var onBack: () -> Void = {}
 
     @State private var gameCenter = GameCenterManager.shared
+    /// iPad: высота прокрутки — рамка стоит по центру неё.
+    @State private var padViewport: CGFloat = 0
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
 
     var body: some View {
-        VStack(spacing: 0) {
-            title
-                .padding(.top, NavMetrics.titleTopBelowSafeArea)
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            bottom
+        Group {
+            if usesPadLayout {
+                padBody
+            } else {
+                VStack(spacing: 0) {
+                    title
+                        .padding(.top, NavMetrics.titleTopBelowSafeArea)
+                    content
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    bottom
+                }
+            }
         }
         .animation(Motion.quick.reduced(reduceMotion), value: lobby.stage)
         .task { if lobby.stage == .checking { await lobby.enter() } }
@@ -96,6 +130,56 @@ struct OnlineScreen: View {
             if let controller = gameCenter.authViewController {
                 GameCenterSheet(viewController: controller)
             }
+        }
+    }
+
+    // MARK: iPad
+
+    /// iPad: каждое состояние — в одной и той же рамке по центру экрана
+    /// (1000 × 380): выбор, поиск, код и ошибки сменяют друг друга на месте,
+    /// ничего не прыгает (заказчик 14.10). Низ — квадраты по углам.
+    private var padBody: some View {
+        VStack(spacing: 0) {
+            title
+                .padding(.top, NavMetrics.titleTopBelowSafeArea)
+                .frame(maxWidth: OnlineMetrics.padMaxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame)
+            ScrollView {
+                padContent
+                    .environment(\.onlinePadFrame, true)
+                    .frame(height: OnlineMetrics.padFrameHeight)
+                    .frame(maxWidth: OnlineMetrics.padMaxWidth)
+                    .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
+                    .padding(.vertical, Geometry.Nav.titleGap)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: padViewport, alignment: .center)
+            }
+            .seaScroll()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { padViewport = $0 }
+            bottom
+                .environment(\.bottomChrome, .tiles)
+        }
+    }
+
+    @ViewBuilder
+    private var padContent: some View {
+        switch lobby.stage {
+        case .choosing:
+            HStack(spacing: OnlineMetrics.padColumnGap) {
+                OnlineChoiceTile(icon: "dice", title: "Random opponent",
+                                 subtitle: "Game Center finds a player") { lobby.findRandom() }
+                    .accessibilityIdentifier("onlineRandom")
+                OnlineChoiceTile(icon: "person.badge.plus", title: "Invite with a code",
+                                 subtitle: "Six digits for a friend") { lobby.host() }
+                    .accessibilityIdentifier("onlineHost")
+                OnlineChoiceTile(icon: "number", title: "Enter a code",
+                                 subtitle: "A friend sent you one") { lobby.beginEntering() }
+                    .accessibilityIdentifier("onlineJoin")
+            }
+        case .checking, .signingIn:
+            OnlinePadPanel { checking }
+        default:
+            content
         }
     }
 
@@ -265,6 +349,57 @@ struct OnlineScreen: View {
     }
 }
 
+// MARK: - Выбор на iPad
+
+/// Плитка способа игры — как плитка режима в меню iPad: значок сверху,
+/// внизу название и подпись.
+private struct OnlineChoiceTile: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+    var action: () -> Void = {}
+
+    var body: some View {
+        Button { action() } label: {
+            // Содержимое по центру плитки: значок в латунном круге, как
+            // сердцевина радара, — плитка не пустая (заказчик 14.10).
+            VStack(spacing: 18) {
+                ZStack {
+                    Circle()
+                        .fill(RadialGradient(colors: [Color.roleYou.opacity(0.55), Color.roleYou.opacity(0.1)],
+                                             center: UnitPoint(x: 0.5, y: 0.35),
+                                             startRadius: 0, endRadius: 56))
+                        .overlay { Circle().strokeBorder(Color.roleYou, lineWidth: 1) }
+                        .shadow(color: .roleYouSoft, radius: OnlineMetrics.radarGlow)
+                    ScaledSymbol(name: icon, box: 40)
+                        .foregroundStyle(Color.inkPrimary)
+                }
+                .frame(width: 96, height: 96)
+                VStack(spacing: 6) {
+                    Text(title)
+                        .font(.system(size: 21, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.inkPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.inkSecondary)
+                }
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                // Место под текст одно на все плитки — круги и названия
+                // стоят вровень, сколько бы строк ни заняла подпись.
+                .frame(height: 104, alignment: .top)
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .glassPanel(.g2, radius: OnlineMetrics.padPanelRadius)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 // MARK: - Радар
 
 /// `screen5NetSearch`: одна фигура на экране, время идёт вслух. Радар
@@ -274,7 +409,42 @@ struct RadarBlock: View {
     let since: Date
     let note: LocalizedStringKey
 
+    @Environment(\.onlinePadFrame) private var padFrame
+
     var body: some View {
+        if padFrame { pad } else { phone }
+    }
+
+    /// iPad: радар и текст — двумя панелями рамки.
+    private var pad: some View {
+        HStack(spacing: OnlineMetrics.padColumnGap) {
+            OnlinePadPanel { Radar(side: OnlineMetrics.padRadar) }
+            OnlinePadPanel { text.padding(.horizontal, 24) }
+        }
+    }
+
+    private var text: some View {
+        TimelineView(.periodic(from: since, by: 1)) { context in
+            VStack(spacing: 8) {
+                Text(title)
+                    .font(.scalable(size: OnlineMetrics.searchTitle, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.inkPrimary)
+                    .multilineTextAlignment(.center)
+                Text(verbatim: netClock(.seconds(context.date.timeIntervalSince(since))))
+                    .font(.scalable(size: OnlineMetrics.searchClock, design: .monospaced))
+                    .foregroundStyle(Color.roleYou)
+                Text(note)
+                    .font(.scalable(size: OnlineMetrics.searchNote))
+                    .lineSpacing(OnlineMetrics.searchNote * 0.5)
+                    .foregroundStyle(Color.inkSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private var phone: some View {
         GeometryReader { proxy in
             let side = min(OnlineMetrics.radar, proxy.size.height - 120, proxy.size.width - 48)
             VStack(spacing: 18) {
@@ -365,8 +535,26 @@ struct InviteBlock: View {
 
     @State private var copied = false
     @Environment(\.locale) private var locale
+    @Environment(\.onlinePadFrame) private var padFrame
 
     var body: some View {
+        if padFrame { pad } else { phone }
+    }
+
+    /// iPad: код — левой панелью рамки, ожидание и «Расставить флот заранее»
+    /// — правой колонкой из двух.
+    private var pad: some View {
+        HStack(spacing: OnlineMetrics.padColumnGap) {
+            card
+            VStack(spacing: OnlineMetrics.blockGap) {
+                if !expired { waiting }
+                arrangeRow
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var phone: some View {
         ScrollView {
             VStack(spacing: OnlineMetrics.blockGap) {
                 card
@@ -414,7 +602,7 @@ struct InviteBlock: View {
         }
         .padding(.vertical, OnlineMetrics.cardPaddingV)
         .padding(.horizontal, OnlineMetrics.cardPaddingH)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: padFrame ? .infinity : nil)
         .glassPanel(.g2, radius: OnlineMetrics.cardRadius)
         .onChange(of: code) { copied = false }
     }
@@ -450,6 +638,7 @@ struct InviteBlock: View {
         }
         .padding(.vertical, 15)
         .padding(.horizontal, 16)
+        .frame(maxHeight: padFrame ? .infinity : nil)
         .glassPanel(.g2, radius: OnlineMetrics.rowRadius)
         .accessibilityElement(children: .combine)
     }
@@ -472,6 +661,7 @@ struct InviteBlock: View {
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
             .frame(minHeight: Geometry.Hit.minTarget)
+            .frame(maxHeight: padFrame ? .infinity : nil)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -521,8 +711,149 @@ struct CodeEntryBlock: View {
     var onSubmit: () -> Void = {}
 
     @FocusState private var focused: Bool
+    @Environment(\.onlinePadFrame) private var padFrame
 
     var body: some View {
+        Group {
+            if padFrame { pad } else { phone }
+        }
+        // На iPad фокус держит сама рамка (для внешней клавиатуры), системная
+        // клавиатура не всплывает: своя — справа.
+        .onAppear { focused = true }
+        .onChange(of: text) { _, typed in
+            let formatted = CodeEntryBlock.format(typed)
+            if formatted != typed { text = formatted }
+        }
+    }
+
+    /// iPad: код ячейками и пояснение — левой панелью рамки, цифровая
+    /// клавиатура — правой (заказчик 14.10). Системная клавиатура в
+    /// горизонтальном iPad закрывала полэкрана и обрезала рамку под кодом,
+    /// поэтому её нет: цифры с экранных клавиш, а с внешней клавиатуры —
+    /// через `onKeyPress`.
+    private var pad: some View {
+        HStack(spacing: OnlineMetrics.padColumnGap) {
+            OnlinePadPanel {
+                VStack(spacing: OnlineMetrics.cardGap) {
+                    OnlineOverline(text: "Match code")
+                    slots
+                    note
+                        .padding(.top, 8)
+                }
+                .padding(.horizontal, 28)
+            }
+            OnlinePadPanel { keypad }
+        }
+        .focusable()
+        .focused($focused)
+        .focusEffectDisabled()
+        .onKeyPress(characters: .decimalDigits) { press in
+            type(press.characters)
+            return .handled
+        }
+        .onKeyPress(.delete) {
+            deleteDigit()
+            return .handled
+        }
+        .onKeyPress(.return) {
+            onSubmit()
+            return .handled
+        }
+    }
+
+    private var digits: String { text.filter { $0.isASCII && $0.isNumber } }
+
+    private func type(_ typed: String) {
+        text = CodeEntryBlock.format(digits + typed)
+    }
+
+    private func deleteDigit() {
+        text = CodeEntryBlock.format(String(digits.dropLast()))
+    }
+
+    /// Клавиши как у кода на передаче устройства: 1–9, 0 и стереть.
+    private var keypad: some View {
+        let columns = Array(repeating: GridItem(.fixed(HandoffMetrics.keyWidth),
+                                                spacing: HandoffMetrics.keyGap), count: 3)
+        return LazyVGrid(columns: columns, spacing: HandoffMetrics.keyGap) {
+            ForEach(1...9, id: \.self) { key(String($0)) }
+            Color.clear.frame(height: HandoffMetrics.keyHeight)
+            key("0")
+            Button { deleteDigit() } label: {
+                Image(systemName: "delete.left")
+                    .font(.system(size: symbolFontSize(inBox: HandoffMetrics.deleteIcon)))
+                    .foregroundStyle(Color.inkPrimary)
+                    .frame(width: HandoffMetrics.keyWidth, height: HandoffMetrics.keyHeight)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Delete"))
+        }
+        .frame(width: HandoffMetrics.keyWidth * 3 + HandoffMetrics.keyGap * 2)
+    }
+
+    private func key(_ digit: String) -> some View {
+        Button { type(digit) } label: {
+            Text(verbatim: digit)
+                .font(.system(size: HandoffMetrics.keyText, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.inkPrimary)
+                .frame(width: HandoffMetrics.keyWidth, height: HandoffMetrics.keyHeight)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .glassPanel(.g2, radius: HandoffMetrics.keyRadius, treatment: .material)
+        .accessibilityIdentifier("onlineKey\(digit)")
+    }
+
+    /// «000-000»: набранные цифры яркие, пустые — бледные, следующая
+    /// ячейка подчёркнута латунью.
+    private var slots: some View {
+        let digits = Array(text.filter { $0.isASCII && $0.isNumber })
+        return HStack(spacing: 10) {
+            ForEach(0..<6, id: \.self) { index in
+                if index == 3 {
+                    Text(verbatim: "–")
+                        .foregroundStyle(Color.inkTertiary)
+                }
+                VStack(spacing: 6) {
+                    Text(verbatim: index < digits.count ? String(digits[index]) : "0")
+                        .foregroundStyle(index < digits.count ? Color.inkPrimary : Color.inkTertiary)
+                    Capsule()
+                        .fill(index == digits.count ? Color.roleYou : Color.glassStroke)
+                        .frame(height: 2)
+                }
+                .frame(width: OnlineMetrics.code * 0.75)
+            }
+        }
+        .font(.scalable(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
+        .accessibilityHidden(true)
+    }
+
+    private var field: some View {
+        TextField(text: $text, prompt: Text(verbatim: "000-000").foregroundStyle(Color.inkTertiary)) {
+            Text("Match code")
+        }
+        .font(.scalable(size: OnlineMetrics.code, weight: .medium, design: .monospaced))
+        .tracking(OnlineMetrics.code * 0.08)
+        .foregroundStyle(Color.inkPrimary)
+        .multilineTextAlignment(.center)
+        .keyboardType(.numberPad)
+        .textContentType(.oneTimeCode)
+        .focused($focused)
+        .onSubmit(onSubmit)
+        .accessibilityIdentifier("onlineCodeField")
+    }
+
+    private var note: some View {
+        Text("Your friend sees the code on their screen. It lives for 10 minutes.")
+            .font(.scalable(size: OnlineMetrics.cardNote))
+            .lineSpacing(OnlineMetrics.cardNote * 0.45)
+            .foregroundStyle(Color.inkSecondary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var phone: some View {
         ScrollView {
             VStack(spacing: OnlineMetrics.cardGap) {
                 OnlineOverline(text: "Match code")
@@ -554,11 +885,6 @@ struct CodeEntryBlock: View {
             .padding(.bottom, Geometry.Nav.titleGap * 2)
         }
         .seaScroll()
-        .onAppear { focused = true }
-        .onChange(of: text) { _, typed in
-            let formatted = CodeEntryBlock.format(typed)
-            if formatted != typed { text = formatted }
-        }
     }
 
     /// Не больше шести цифр, дефис после третьей — как код показан у друга.
@@ -580,7 +906,21 @@ struct OnlineErrorBlock: View {
     var onNearby: () -> Void = {}
     var onSinglePlayer: () -> Void = {}
 
+    @Environment(\.onlinePadFrame) private var padFrame
+
     var body: some View {
+        if padFrame {
+            // iPad: ошибка — левой панелью рамки, режимы без сети — правой.
+            HStack(spacing: OnlineMetrics.padColumnGap) {
+                OnlineNoticeCard(icon: icon, title: title, message: message, framed: false)
+                alternatives
+            }
+        } else {
+            phone
+        }
+    }
+
+    private var phone: some View {
         ScrollView {
             VStack(spacing: OnlineMetrics.blockGap) {
                 OnlineNoticeCard(icon: icon, title: title, message: message, framed: false)
@@ -597,15 +937,18 @@ struct OnlineErrorBlock: View {
         VStack(spacing: 0) {
             row("Nearby, no internet", detail: "Two devices side by side, no internet needed",
                 action: onNearby)
+                .frame(maxHeight: padFrame ? .infinity : nil)
                 .accessibilityIdentifier("onlineOfflineNearby")
             Rectangle()
                 .fill(Color.glassStroke)
                 .frame(height: 1)
                 .padding(.horizontal, 14)
             row("Single player", detail: "Against the computer, four levels", action: onSinglePlayer)
+                .frame(maxHeight: padFrame ? .infinity : nil)
                 .accessibilityIdentifier("onlineOfflineSingle")
         }
-        .glassPanel(.g2, radius: OnlineMetrics.alternativesRadius)
+        .frame(maxHeight: padFrame ? .infinity : nil)
+        .glassPanel(.g2, radius: padFrame ? OnlineMetrics.padPanelRadius : OnlineMetrics.alternativesRadius)
     }
 
     private func row(_ title: LocalizedStringKey, detail: LocalizedStringKey,
@@ -631,6 +974,7 @@ struct OnlineErrorBlock: View {
             .padding(.vertical, 13)
             .padding(.horizontal, 14)
             .frame(minHeight: Geometry.Hit.minTarget)
+            .frame(maxHeight: padFrame ? .infinity : nil)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -647,8 +991,13 @@ struct OnlineNoticeCard: View {
     /// `false` — карточка стоит в прокрутке родителя, отступы его.
     var framed = true
 
+    @Environment(\.onlinePadFrame) private var padFrame
+
     var body: some View {
-        if framed {
+        if padFrame {
+            // iPad: на всю рамку или на её половину — без своей прокрутки.
+            card(edge: !framed)
+        } else if framed {
             ScrollView {
                 card(edge: false)
                     .padding(.horizontal, Geometry.Nav.stackInset)
@@ -689,8 +1038,8 @@ struct OnlineNoticeCard: View {
         }
         .padding(.vertical, 26)
         .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity)
-        .glassPanel(.g2, radius: OnlineMetrics.errorRadius)
+        .frame(maxWidth: .infinity, maxHeight: padFrame ? .infinity : nil)
+        .glassPanel(.g2, radius: padFrame ? OnlineMetrics.padPanelRadius : OnlineMetrics.errorRadius)
         .overlay {
             if edge { shape.strokeBorder(Color.roleFoe, lineWidth: 1) }
         }
@@ -739,6 +1088,8 @@ final class PreviewOnlineService: OnlineService {
 private struct OnlineDemo: View {
     @State private var lobby: OnlineLobby
     private let setup: (OnlineLobby) -> Void
+    var pad = false
+    var mirrored = false
 
     init(online: Bool = true, signedIn: Bool = true, setup: @escaping (OnlineLobby) -> Void = { _ in }) {
         _lobby = State(initialValue: OnlineLobby(service: PreviewOnlineService(online: online,
@@ -752,6 +1103,8 @@ private struct OnlineDemo: View {
                 .ignoresSafeArea()
             OnlineScreen(lobby: lobby)
         }
+        .environment(\.usesPadLayout, pad)
+        .environment(\.mirrorsBottomTiles, mirrored)
         .task {
             await lobby.enter()
             setup(lobby)
@@ -795,4 +1148,67 @@ private struct OnlineDemo: View {
 #Preview("По сети · поиск · 375", traits: .fixedLayout(width: 375, height: 667)) {
     OnlineDemo { $0.findRandom() }
         .preferredColorScheme(.dark)
+}
+
+// MARK: - Превью iPad
+
+private extension OnlineDemo {
+    func iPad(mirrored: Bool = false) -> OnlineDemo {
+        var demo = self
+        demo.pad = true
+        demo.mirrored = mirrored
+        return demo
+    }
+}
+
+struct OnlinePadPreview1: PreviewProvider {
+    static var previews: some View {
+        OnlineDemo().iPad()
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "По сети · iPad · выбор · вертикально")
+    }
+}
+
+struct OnlinePadPreview2: PreviewProvider {
+    static var previews: some View {
+        OnlineDemo { $0.findRandom() }.iPad()
+            .preferredColorScheme(.dark)
+            .padPreview(.landscapeLeft, "По сети · iPad · поиск · горизонтально")
+    }
+}
+
+struct OnlinePadPreview3: PreviewProvider {
+    static var previews: some View {
+        OnlineDemo { $0.host() }.iPad()
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "По сети · iPad · код для друга · вертикально")
+    }
+}
+
+struct OnlinePadPreview4: PreviewProvider {
+    static var previews: some View {
+        OnlineDemo {
+            $0.beginEntering()
+            $0.typedCode = "472-91"
+        }
+        .iPad()
+        .preferredColorScheme(.dark)
+        .padPreview(.landscapeLeft, "По сети · iPad · ввод кода · горизонтально")
+    }
+}
+
+struct OnlinePadPreview5: PreviewProvider {
+    static var previews: some View {
+        OnlineDemo(online: false).iPad()
+            .preferredColorScheme(.dark)
+            .padPreview(.portrait, "По сети · iPad · нет соединения · вертикально")
+    }
+}
+
+struct OnlinePadPreview6: PreviewProvider {
+    static var previews: some View {
+        OnlineDemo { $0.findRandom() }.iPad(mirrored: true)
+            .preferredColorScheme(.dark)
+            .padPreview(.landscapeLeft, "По сети · iPad · поиск · своё поле справа")
+    }
 }
