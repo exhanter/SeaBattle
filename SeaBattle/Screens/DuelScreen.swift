@@ -92,7 +92,7 @@ struct DuelScreen: View {
                 .allowsHitTesting(!match.showsHandoff)
 
             if match.showsHandoff {
-                DuelHandoffLayer(match: match, onMenu: menuTapped)
+                DuelHandoffLayer(match: match, onMenu: { menuTapped() })
                     .id(handoffID)
                     .transition(handoffTransition)
                     .zIndex(1)
@@ -155,8 +155,8 @@ struct DuelScreen: View {
         if usesPadLayout {
             // iPad: стол до старта, напротив — пустое поле соперника (4.4).
             // Возврата нет: «Меню» у первого игрока ведёт к настройке.
-            PadTableScreen(phase: .placement(editor: $match.editor, onStart: match.finishArrangement),
-                           onMenu: menuTapped,
+            PadTableScreen(phase: .placement(editor: $match.editor, onStart: { match.finishArrangement() }),
+                           onMenu: { menuTapped() },
                            duelPlacement: PadDuelPlacement(ownTitle: "Fleet: \(name)",
                                                            foeName: next,
                                                            startTitle: startTitle))
@@ -166,9 +166,9 @@ struct DuelScreen: View {
                               backTitle: player == 0 ? "Two players" : nil,
                               title: "Fleet: \(name)",
                               startTitle: startTitle,
-                              onStart: match.finishArrangement,
+                              onStart: { match.finishArrangement() },
                               onBack: onBackToSetup,
-                              onMenu: menuTapped)
+                              onMenu: { menuTapped() })
         }
     }
 
@@ -178,7 +178,7 @@ struct DuelScreen: View {
     private var battle: some View {
         if usesPadLayout {
             // iPad: оба поля сразу, переключателя нет (4.4).
-            PadTableScreen(phase: .duel(match), onMenu: menuTapped)
+            PadTableScreen(phase: .duel(match), onMenu: { menuTapped() })
         } else {
             phoneBattle
         }
@@ -226,7 +226,7 @@ struct DuelScreen: View {
                     .frame(width: area.size.width, height: area.size.height)
                 }
 
-                BottomStack(onMenu: menuTapped) {
+                BottomStack(onMenu: { menuTapped() }) {
                     HStack(spacing: Geometry.Nav.stackGap) {
                         FieldSwitch(selection: field, size: size) { match.show($0) }
                         // Подсказок вдвоём нет — место занимает только
@@ -364,28 +364,26 @@ struct DuelHandoffLayer: View {
         .padding(.horizontal, HandoffMetrics.footnoteInset)
     }
 
-    /// iPad: кадра нет. Та же колонка шириной 520 по центру экрана, сноска и
-    /// «Открыть поля» — сразу под ней; «Меню» — квадрат в том же углу, что и
-    /// на столе под слоем (при своём поле справа — в правом).
+    /// iPad: колонка шириной 520 по центру экрана; низ — квадраты по углам,
+    /// как на всех экранах iPad (`BottomStack`, выбор заказчика 14.10):
+    /// «Меню» и напротив него «Открыть поля» — то же, что «Начать» на столе.
+    /// При своём поле справа — зеркально. С кодом квадрата действия нет:
+    /// поля открывает код.
     private var pad: some View {
-        let mirrored = appState.ownBoardOnRight
-        return ZStack(alignment: mirrored ? .bottomTrailing : .bottomLeading) {
+        VStack(spacing: 0) {
             VStack(spacing: HandoffMetrics.gap) {
                 column(.regular)
-                if game.codeStep != .none {
-                    footnoteText
-                } else {
-                    openButton
-                        .padding(.top, HandoffMetrics.gap)
-                }
+                if game.codeStep != .none { footnoteText }
             }
             .padding(.horizontal, HandoffMetrics.footnoteInset)
             .frame(maxWidth: Geometry.Nav.padColumn)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            PadNavTile.menu(onMenu)
-                .padding(.horizontal, Geometry.Inset.padFrame)
-                .padBottomFrame()
+            BottomStack(onMenu: onMenu) {
+                if game.codeStep == .none { openButton }
+            }
+            .environment(\.bottomChrome, .tiles)
+            .environment(\.mirrorsBottomTiles, appState.ownBoardOnRight)
         }
     }
 
@@ -527,7 +525,7 @@ struct DuelHandoffLayer: View {
             ForEach(1...9, id: \.self) { key(String($0), height: keyHeight) }
             Color.clear.frame(height: keyHeight)
             key("0", height: keyHeight)
-            Button(action: deleteDigit) {
+            Button { deleteDigit() } label: {
                 Image(systemName: "delete.left")
                     .font(.system(size: symbolFontSize(inBox: HandoffMetrics.deleteIcon)))
                     .foregroundStyle(Color.inkPrimary)
