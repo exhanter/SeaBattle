@@ -159,7 +159,7 @@ struct LevelScreen: View {
 
     private var phoneBody: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Single player", back: "Play", onBack: onBack)
+            ScreenTitle(title: "Single player", back: "Home", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
             ScrollView {

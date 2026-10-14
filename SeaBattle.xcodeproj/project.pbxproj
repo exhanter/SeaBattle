@@ -106,6 +106,7 @@
 		CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48B8306DAA4500974A1B /* NetScreen.swift */; };
 		CADF48BB306DAA7A00974A1B /* NearbyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADF48BA306DAA7A00974A1B /* NearbyScreen.swift */; };
 		CAF2D7AD307EC63F00D32059 /* PadLevelScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */; };
+		CAF2D7B9307F8BAD00D32059 /* PadWelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF2D7B8307F8BAD00D32059 /* PadWelcomeScreen.swift */; };
 		CECFA2E0D5E595C15AFECC9C /* DuelMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F9AE6E7E8530E90B5A21D3 /* DuelMatch.swift */; };
 		D96588F346224ACA66AB3676 /* PadBattleControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5AA3A20D930F074DBD8821 /* PadBattleControls.swift */; };
 		DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D010F06F87A6B505F978D212 /* ResultsScreen.swift */; };
@@ -232,6 +233,7 @@
 		CADF48BA306DAA7A00974A1B /* NearbyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyScreen.swift; sourceTree = "<group>"; };
 		CAF192BF6D393AA1F62C6346 /* LevelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelScreen.swift; sourceTree = "<group>"; };
 		CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadLevelScreen.swift; sourceTree = "<group>"; };
+		CAF2D7B8307F8BAD00D32059 /* PadWelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadWelcomeScreen.swift; sourceTree = "<group>"; };
 		CE9D2DABD6826E32CD5CA684 /* ArrangementScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangementScreen.swift; sourceTree = "<group>"; };
 		D010F06F87A6B505F978D212 /* ResultsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsScreen.swift; sourceTree = "<group>"; };
 		D6706CEC1CE3B54D2471BAF0 /* BattleScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleScreen.swift; sourceTree = "<group>"; };
@@ -409,6 +411,7 @@
 				CAD0023E30707218006405DC /* AboutScreen.swift */,
 				CAD0029A3076E82E006405DC /* ContinueGame.swift */,
 				CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */,
+				CAF2D7B8307F8BAD00D32059 /* PadWelcomeScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -659,6 +662,7 @@
 				288F1D73B8350925B60CC7A0 /* ArrangementScreen.swift in Sources */,
 				2B7940ED380293E06C5620B3 /* DuelSetupScreen.swift in Sources */,
 				726963E0ADFB564E2EEFC336 /* MatchResult.swift in Sources */,
+				CAF2D7B9307F8BAD00D32059 /* PadWelcomeScreen.swift in Sources */,
 				836A6A73EAF5A113B7C5DAFB /* DuelGame.swift in Sources */,
 				8D349A8C2F2C4F4C9743565E /* PadTableScreen.swift in Sources */,
 				2C2A961F615A3D905AF983A0 /* AppShell.swift in Sources */,

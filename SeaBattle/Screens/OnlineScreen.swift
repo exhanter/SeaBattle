@@ -202,7 +202,7 @@ struct OnlineScreen: View {
             ScreenTitle(title: search == .random ? "Finding an opponent" : "Enter a code",
                         back: "Online", onBack: { lobby.cancel() })
         case .checking, .signingIn, .noConnection, .signInFailed, .choosing, .invitesUnavailable:
-            ScreenTitle(title: "Online", back: "Play", onBack: { leave() })
+            ScreenTitle(title: "Online", back: "Home", onBack: { leave() })
         }
     }
 

@@ -64,7 +64,7 @@ struct NearbyScreen: View {
 
     private var phoneBody: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Nearby, no internet", back: "Play", onBack: onBack)
+            ScreenTitle(title: "Nearby, no internet", back: "Home", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
             ScrollView {
@@ -92,7 +92,7 @@ struct NearbyScreen: View {
     /// список и строка «Ищем ещё…» внизу; справа — как это работает.
     private var padBody: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Nearby, no internet", back: "Play", onBack: onBack)
+            ScreenTitle(title: "Nearby, no internet", back: "Home", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
                 .frame(maxWidth: NearbyMetrics.padMaxWidth)
                 .padding(.horizontal, Geometry.Inset.padFrame)

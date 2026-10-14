@@ -20,7 +20,7 @@ enum ShellTab: String, CaseIterable, Hashable, Sendable {
 
     var icon: String {
         switch self {
-        case .play: "target"
+        case .play: "house"
         case .statistics: "chart.bar"
         case .settings: "gearshape"
         }
@@ -28,7 +28,7 @@ enum ShellTab: String, CaseIterable, Hashable, Sendable {
 
     var title: LocalizedStringKey {
         switch self {
-        case .play: "Play"
+        case .play: "Home"
         case .statistics: "Statistics"
         case .settings: "Settings"
         }
@@ -183,7 +183,7 @@ struct AppShell: View {
     @State private var statsPage: StatsPage?
     @State private var askWhichGameToContinue = false
 
-    /// Экран партии до боя, открытый поверх таба «Играть»: уровень или
+    /// Экран партии до боя, открытый поверх таба «Главная»: уровень или
     /// расстановка. Бой открывается по `AppState.selectedTab`, итоги — слой
     /// поверх боя (`BattleScreen`), своего маршрута у них нет.
     @State private var route: ShellRoute?
@@ -319,8 +319,8 @@ struct AppShell: View {
                     OnboardingFlow(isPremium: premiumManager.isPremium,
                                    onRestore: restorePro,
                                    onFinish: finishOnboarding)
-                        // iPad: колонка 520 pt по центру, как экран уровня.
-                        .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+                        // iPad: приветствие на весь экран, имя — колонкой 520
+                        // (это решает сам `OnboardingFlow`, 14.10).
                 }
                 .transition(.opacity)
             } else if appState.selectedTab != .menu {
@@ -390,7 +390,7 @@ struct AppShell: View {
                                  onBuy: { await premiumManager.purchase($0) },
                                  onRestore: restorePro,
                                  onClose: { appState.showPaywall = false })
-                    .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
+                    // На iPad ширину задаёт сам экран (сетка до 1000, 14.10).
             }
             .task {
                 if !premiumManager.hasLoadedProducts || premiumManager.offers.isEmpty {
@@ -621,14 +621,14 @@ struct AppShell: View {
 
         case .arrangement(let cameFromLevel):
             ArrangementScreen(editor: $fleet,
-                              backTitle: cameFromLevel ? "Level" : "Play",
+                              backTitle: cameFromLevel ? "Level" : "Home",
                               onStart: startBattle,
                               onBack: { self.route = cameFromLevel ? .level : nil },
                               onMenu: { self.route = nil })
 
         case .paperArrangement:
             ArrangementScreen(editor: $fleet,
-                              backTitle: "Play",
+                              backTitle: "Home",
                               onStart: startPaper,
                               onBack: { self.route = nil },
                               onMenu: { self.route = nil },

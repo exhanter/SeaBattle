@@ -151,7 +151,7 @@ struct PadLayoutTests {
 
     // MARK: Квадраты
 
-    @Test("Углы корней табов: свой угол занимает «Играть»")
+    @Test("Углы корней табов: свой угол занимает «Главная»")
     func theCornerTilesSwapTheCurrentTab() {
         #expect(PadCorners.tabs(on: .play) == (.statistics, .settings))
         #expect(PadCorners.tabs(on: .statistics) == (.play, .settings))

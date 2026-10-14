@@ -53,7 +53,7 @@ struct PadLevelScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Single player", back: "Play", onBack: onBack)
+            ScreenTitle(title: "Single player", back: "Home", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
                 .frame(maxWidth: M.maxWidth)
                 .padding(.horizontal, Geometry.Inset.padFrame)

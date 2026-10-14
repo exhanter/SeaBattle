@@ -62,6 +62,7 @@ struct SettingsScreen: View {
     @Environment(AppState.self) private var appState
     @Environment(\.usesPadLayout) private var usesPadLayout
     @Environment(\.locale) private var locale
+    @State private var viewportHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -71,14 +72,22 @@ struct SettingsScreen: View {
             ScrollView {
                 Group {
                     if usesPadLayout {
+                        // Колонки одной высоты, верх и низ вровень (14.10):
+                        // левая группа тянется, прибавка делится между её
+                        // строками; справа растут промежутки между группами.
                         HStack(alignment: .top, spacing: SettingsMetrics.padColumnGap) {
-                            VStack(spacing: SettingsMetrics.padGroupGap) { gameGroup }
-                            VStack(spacing: SettingsMetrics.padGroupGap) {
+                            gameGroup(fills: true)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            VStack(spacing: 0) {
                                 viewGroup
+                                Spacer(minLength: SettingsMetrics.padGroupGap)
                                 soundGroup
+                                Spacer(minLength: SettingsMetrics.padGroupGap)
                                 moreGroup
                             }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
+                        .fixedSize(horizontal: false, vertical: true)
                     } else {
                         VStack(spacing: SettingsMetrics.groupGap) {
                             gameGroup
@@ -90,8 +99,13 @@ struct SettingsScreen: View {
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, SettingsMetrics.bodyTop)
                 .padding(.bottom, SettingsMetrics.groupGap)
+                // iPad: блок по центру высоты (14.10).
+                .fixedSize(horizontal: false, vertical: usesPadLayout)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: usesPadLayout ? viewportHeight : nil, alignment: .center)
             }
             .seaScroll()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
         }
         .onChange(of: appState.musicOn) { _, isOn in
             // Музыка играет только в партии; выключатель вне партии лишь
@@ -110,9 +124,11 @@ struct SettingsScreen: View {
 
     // MARK: Группы
 
-    private var gameGroup: some View {
+    private var gameGroup: some View { gameGroup(fills: false) }
+
+    private func gameGroup(fills: Bool) -> some View {
         @Bindable var appState = appState
-        return ListGroup("Game", hostsMenus: true) {
+        return ListGroup("Game", hostsMenus: true, fillsHeight: fills) {
             ListToggleRow(title: "Mark the water around sunk ships",
                           subtitle: "After a sinking the game marks the cells around the ship as misses",
                           isOn: clicking($appState.autoRevealAroundSunk))

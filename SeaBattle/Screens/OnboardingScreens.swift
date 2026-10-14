@@ -63,6 +63,7 @@ struct OnboardingFlow: View {
     @State private var player = OwnPlayer.starter
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.usesPadLayout) private var usesPadLayout
 
     var body: some View {
         ZStack {
@@ -78,6 +79,9 @@ struct OnboardingFlow: View {
                                  purpose: .firstLaunch,
                                  onDone: { onFinish(player) },
                                  onSkip: { onFinish(nil) })
+                    // iPad: имя — колонкой 520 по центру; приветствие — на
+                    // весь экран.
+                    .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
                     .transition(.opacity)
             }
         }
@@ -97,6 +101,16 @@ struct WelcomeScreen: View {
     @State private var notice: ProPurchaseNotice?
 
     var body: some View {
+        if usesPadLayout {
+            // iPad: как главный экран — арт и все режимы с описанием (14.10).
+            PadWelcomeScreen(offersRestore: offersRestore, isPremium: isPremium,
+                             onRestore: onRestore, onPlay: onPlay)
+        } else {
+            phoneBody
+        }
+    }
+
+    private var phoneBody: some View {
         GeometryReader { proxy in
             let size = Geometry.SizeClass.forWidth(proxy.size.width)
 
@@ -121,7 +135,7 @@ struct WelcomeScreen: View {
                 .seaScroll()
 
                 VStack(spacing: Geometry.Nav.stackGap) {
-                    Button("Play", action: onPlay)
+                    Button("Get started", action: onPlay)
                         .primaryButton()
                         .accessibilityIdentifier("welcomePlay")
                     if offersRestore { restoreLine }

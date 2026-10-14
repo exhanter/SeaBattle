@@ -93,6 +93,8 @@ struct StatsScreen: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Не `private`: превью открывает страницу с выбранной строкой.
     @State var scope: StatsScope = .all
+    /// iPad: высота прокрутки — блок стоит по центру неё.
+    @State private var viewportHeight: CGFloat = 0
 
     private var summary: StatsSummary { StatsSummary(stats) }
 
@@ -119,8 +121,13 @@ struct StatsScreen: View {
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, StatsMetrics.bodyTop)
                 .padding(.bottom, StatsMetrics.blockGap)
+                // iPad: блок по центру высоты, а не прижат к верху (14.10).
+                .fixedSize(horizontal: false, vertical: usesPadLayout)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: usesPadLayout ? viewportHeight : nil, alignment: .center)
             }
             .seaScroll()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
         }
     }
 

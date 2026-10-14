@@ -8,7 +8,7 @@
 //  канта (раунд 8). Квадраты расставляются по месту, а не собираются в панель.
 //
 //  - Корни табов: в меню слева внизу «Статистика», справа «Настройки». На
-//    корне таба его собственный угол занимает «Играть» — каждый угол всегда
+//    корне таба его собственный угол занимает «Главная» — каждый угол всегда
 //    ведёт в одно место, кроме текущего экрана. Выбранного состояния нет.
 //  - В партии — один квадрат «Меню» (правило 3.1, как на iPhone).
 //
@@ -132,7 +132,7 @@ extension PadNavTile {
 // MARK: - Углы корней табов
 
 /// Какой таб стоит в каком углу. Чистая функция, под тестом: правило «свой
-/// угол занимает „Играть“» легко перепутать местами.
+/// угол занимает „Главная“» легко перепутать местами.
 enum PadCorners {
     static func tabs(on current: ShellTab) -> (leading: ShellTab, trailing: ShellTab) {
         (leading: current == .statistics ? .play : .statistics,
@@ -146,12 +146,17 @@ struct PadCornerTabs: View {
     let current: ShellTab
     var onSelect: (ShellTab) -> Void = { _ in }
 
+    /// Своё поле справа — квадраты меняются сторонами, как везде (14.10).
+    @Environment(\.mirrorsBottomTiles) private var mirrored
+
     var body: some View {
         let corners = PadCorners.tabs(on: current)
+        let left = mirrored ? corners.trailing : corners.leading
+        let right = mirrored ? corners.leading : corners.trailing
         HStack(alignment: .bottom) {
-            PadNavTile.tab(corners.leading) { onSelect(corners.leading) }
+            PadNavTile.tab(left) { onSelect(left) }
             Spacer(minLength: 0)
-            PadNavTile.tab(corners.trailing) { onSelect(corners.trailing) }
+            PadNavTile.tab(right) { onSelect(right) }
         }
     }
 }

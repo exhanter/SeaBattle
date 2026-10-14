@@ -64,7 +64,7 @@ struct DuelSetupScreen: View {
     private var phoneBody: some View {
         VStack(spacing: 0) {
             ScreenTitle(title: "Two players on one device",
-                        back: "Play",
+                        back: "Home",
                         // На iPad «телефон» неверен — «устройство» (решение заказчика 30.09).
                         subtitle: usesPadLayout ? "Two players, one device in turns"
                                                 : "Two players, one phone in turns",
@@ -108,7 +108,7 @@ struct DuelSetupScreen: View {
     /// «Аня расставляет флот» не помещается, на кнопке — «Начать».
     private var padBody: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Two players on one device", back: "Play",
+            ScreenTitle(title: "Two players on one device", back: "Home",
                         subtitle: "Two players, one device in turns", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
                 .frame(maxWidth: DuelSetupMetrics.padMaxWidth)

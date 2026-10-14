@@ -50,12 +50,16 @@ struct ListGroup<Content: View>: View {
     let title: LocalizedStringKey?
     /// В группе есть выпадающий список (`Menu`) — см. `GlassPanelModifier.hostsMenus`.
     var hostsMenus = false
+    /// iPad: группа тянется до предложенной высоты, прибавка делится между
+    /// строками поровну — колонки настроек кончаются вровень (14.10).
+    var fillsHeight = false
     @ViewBuilder var content: Content
 
-    init(_ title: LocalizedStringKey? = nil, hostsMenus: Bool = false,
+    init(_ title: LocalizedStringKey? = nil, hostsMenus: Bool = false, fillsHeight: Bool = false,
          @ViewBuilder content: () -> Content) {
         self.title = title
         self.hostsMenus = hostsMenus
+        self.fillsHeight = fillsHeight
         self.content = content()
     }
 
@@ -75,10 +79,11 @@ struct ListGroup<Content: View>: View {
                     ForEach(rows.indices, id: \.self) { index in
                         if index > 0 { ListDivider() }
                         rows[index]
+                            .frame(maxHeight: fillsHeight ? .infinity : nil)
                     }
                 }
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: fillsHeight ? .infinity : nil)
             .glassPanel(.g2, radius: ListMetrics.groupRadius, hostsMenus: hostsMenus)
         }
     }

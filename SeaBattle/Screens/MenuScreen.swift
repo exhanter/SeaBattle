@@ -248,14 +248,31 @@ struct MenuScreen: View {
 struct MenuArt: View {
     enum Kind {
         case phone, padPortrait, padLandscape
+        /// Первый запуск на iPad: арт на весь экран, текст режимов лежит на
+        /// его море (14.10). Требования — там же, «Арт первого запуска».
+        case welcomePortrait, welcomeLandscape
 
         var assetName: String {
             switch self {
             case .phone: "MenuArtPhone"
             case .padPortrait: "MenuArtPortrait"
             case .padLandscape: "MenuArtLandscape"
+            case .welcomePortrait: "WelcomeArtPortrait"
+            case .welcomeLandscape: "WelcomeArtLandscape"
             }
         }
+
+        /// До какой доли высоты рамки арт непрозрачен. У первого запуска рамка —
+        /// весь экран, тает только самый низ, под нижним рядом.
+        var opaqueUntil: Double {
+            switch self {
+            case .welcomePortrait, .welcomeLandscape: 0.85
+            default: Geometry.PadMenu.artOpaqueUntil
+            }
+        }
+
+        /// Есть ли файл в каталоге. Пока нет — `MenuArt` берёт заглушку.
+        var isAvailable: Bool { UIImage(named: assetName) != nil }
     }
 
     let kind: Kind
@@ -267,7 +284,7 @@ struct MenuArt: View {
     private static let placeholder = "war_ship8"
 
     var body: some View {
-        let hasArt = UIImage(named: kind.assetName) != nil
+        let hasArt = kind.isAvailable
         Image(hasArt ? kind.assetName : Self.placeholder)
             .resizable()
             .scaledToFill()
@@ -275,7 +292,7 @@ struct MenuArt: View {
             .clipped()
             .mask {
                 LinearGradient(stops: [.init(color: .black, location: 0),
-                                       .init(color: .black, location: Geometry.PadMenu.artOpaqueUntil),
+                                       .init(color: .black, location: kind.opaqueUntil),
                                        .init(color: .clear, location: 1)],
                                startPoint: .top, endPoint: .bottom)
             }

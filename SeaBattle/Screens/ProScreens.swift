@@ -259,15 +259,24 @@ private struct BuyLabel: View {
     let loading: Bool
     /// «Открыть за …» на листе, «Купить за …» на полном экране.
     var unlock = false
+    /// Квадрат iPad: цена переносится только целиком («Купить за / 1 490 ₽»),
+    /// поэтому пробелы внутри неё — неразрывные.
+    var keepsPriceTogether = false
+
+    private var price: String {
+        guard let offer else { return "" }
+        return keepsPriceTogether ? offer.price.replacingOccurrences(of: " ", with: "\u{00A0}")
+                                  : offer.price
+    }
 
     var body: some View {
         if let offer {
             if let trial = offer.freeTrial {
                 Text("Try \(trial) free")
             } else if unlock {
-                Text("Unlock for \(offer.price)")
+                Text("Unlock for \(price)")
             } else {
-                Text("Buy for \(offer.price)")
+                Text("Buy for \(price)")
             }
         } else if loading {
             ProgressView().tint(Color.inkPrimary)
@@ -420,12 +429,19 @@ struct ProPaywallScreen: View {
     @State private var selected: ProPlan?
     @State private var working = false
     @State private var notice: ProPurchaseNotice?
+    @State private var viewportHeight: CGFloat = 0
+    @Environment(\.usesPadLayout) private var usesPadLayout
+    @Environment(\.mirrorsBottomTiles) private var mirrored
 
     private var selectedOffer: ProOffer? {
         offers.first { $0.plan == selected } ?? .preferred(in: offers)
     }
 
     var body: some View {
+        if usesPadLayout { padBody } else { phoneBody }
+    }
+
+    private var phoneBody: some View {
         VStack(spacing: 0) {
             head
                 .padding(.horizontal, Geometry.Nav.stackInset)
@@ -451,6 +467,143 @@ struct ProPaywallScreen: View {
                 .padding(.horizontal, Geometry.Nav.stackInset)
                 .padding(.top, ProMetrics.plansGap)
                 .padBottomFrame()
+        }
+    }
+
+    // MARK: iPad
+
+    /// iPad: блоки в сетке по центру экрана, как экран уровня; внизу
+    /// квадраты по углам — «Восстановить» и главный «Купить за …»,
+    /// при своём поле справа зеркально.
+    private var padBody: some View {
+        VStack(spacing: 0) {
+            head
+                // Стекло крестика (34) — внутри точки нажатия 44: сдвигаем
+                // на разницу, чтобы край крестика шёл по краю колонок.
+                .padding(.trailing, -(Geometry.Hit.minTarget - ProMetrics.closeBox) / 2)
+                .frame(maxWidth: PadProMetrics.maxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
+                .padding(.top, NavMetrics.titleTopBelowSafeArea)
+            ScrollView {
+                VStack(spacing: 18) {
+                    padColumns
+                    VStack(spacing: 8) {
+                        ProNoticeLine(notice: notice)
+                        fineprint
+                    }
+                    .frame(maxWidth: 560)
+                }
+                .frame(maxWidth: PadProMetrics.maxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
+                .padding(.vertical, Geometry.Nav.titleGap)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: viewportHeight, alignment: .center)
+            }
+            .seaScroll()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+            HStack(alignment: .bottom) {
+                if mirrored { buyTile } else { restoreTile }
+                Spacer(minLength: 0)
+                if mirrored { restoreTile } else { buyTile }
+            }
+            .padding(.horizontal, Geometry.Inset.padFrame)
+            .padBottomFrame()
+        }
+    }
+
+    /// A: что даёт Pro — левая колонка, тарифы — правая; одной высоты.
+    private var padColumns: some View {
+        HStack(alignment: .top, spacing: PadProMetrics.columnGap) {
+            VStack(alignment: .leading, spacing: ProMetrics.plansGap) {
+                overline("What's in Pro")
+                VStack(spacing: 0) {
+                    ForEach(ProFeature.all) { ProFeatureRow(feature: $0).frame(maxHeight: .infinity) }
+                }
+                .frame(maxHeight: .infinity)
+                .glassPanel(.g2, radius: ProMetrics.featuresRadius)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            VStack(alignment: .leading, spacing: ProMetrics.plansGap) {
+                planOverline
+                if offers.isEmpty { noOffers }
+                ForEach(offers) { offer in
+                    ProPlanRow(offer: offer, isSelected: offer.plan == selectedOffer?.plan,
+                               action: {
+                                   selected = offer.plan
+                                   notice = nil
+                               },
+                               fillsHeight: true)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var planOverline: some View { overline("Choose a plan") }
+
+    private func overline(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.scalable(size: ProMetrics.capLabel, weight: .bold))
+            .tracking(ProMetrics.capLabel * 0.11)
+            .textCase(.uppercase)
+            .foregroundStyle(Color.inkTertiary)
+            .padding(.leading, ListMetrics.overlineInset)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    @ViewBuilder
+    private var noOffers: some View {
+        if hasLoaded {
+            ProNoticeLine(notice: .storeUnavailable)
+                .padding(.vertical, 12)
+        } else {
+            ProgressView()
+                .tint(Color.inkPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+        }
+    }
+
+    private var buyTile: some View {
+        Button { buy() } label: {
+            BuyLabel(offer: selectedOffer, loading: !hasLoaded, keepsPriceTogether: true)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 8)
+        }
+        .buttonStyle(PrimaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
+        .disabled(selectedOffer == nil || working)
+        .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+        .accessibilityIdentifier("proBuy")
+    }
+
+    private var restoreTile: some View {
+        Button { restore() } label: {
+            PadTileLabel(title: "Restore purchase", icon: "arrow.clockwise")
+        }
+        .buttonStyle(SecondaryButtonStyle(radius: PadTileMetrics.radius, fillsFrame: true))
+        .disabled(working)
+        .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
+        .accessibilityIdentifier("proRestore")
+    }
+
+    private func buy() {
+        guard let offer = selectedOffer else { return }
+        Task {
+            working = true
+            notice = ProPurchaseNotice(await onBuy(offer.plan))
+            working = false
+        }
+    }
+
+    private func restore() {
+        Task {
+            working = true
+            notice = await onRestore() ? nil : .nothingToRestore
+            working = false
         }
     }
 
@@ -575,12 +728,22 @@ struct ProPaywallScreen: View {
     }
 }
 
+// MARK: - iPad (этап 5, 14.10)
+
+enum PadProMetrics {
+    static let maxWidth: CGFloat = 1000
+    static let columnGap: CGFloat = 24
+}
+
 /// Строка условия (`planRow`): кружок выбора, название с меткой, пояснение,
 /// цена справа. Выбранная — с латунной обводкой и свечением, как `ChoiceRow`.
 struct ProPlanRow: View {
     let offer: ProOffer
     let isSelected: Bool
     var action: () -> Void = {}
+    /// iPad, колонки: строка тянется по высоте вместе со стеклом, чтобы
+    /// тарифы вровень с панелью возможностей сверху и снизу.
+    var fillsHeight = false
 
     var body: some View {
         Button(action: action) {
@@ -606,6 +769,7 @@ struct ProPlanRow: View {
             }
             .padding(.vertical, ProMetrics.planPaddingV)
             .padding(.horizontal, ListMetrics.rowPaddingH)
+            .frame(maxHeight: fillsHeight ? .infinity : nil)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -615,7 +779,7 @@ struct ProPlanRow: View {
         .accessibilityIdentifier("proPlan-\(offer.plan.rawValue)")
     }
 
-    private var title: LocalizedStringKey {
+    var title: LocalizedStringKey {
         switch offer.plan {
         case .lifetime: "Forever"
         case .yearly: "Year"
@@ -623,7 +787,7 @@ struct ProPlanRow: View {
         }
     }
 
-    private var note: LocalizedStringKey {
+    var note: LocalizedStringKey {
         if let trial = offer.freeTrial { return "\(trial) free, then renews" }
         switch offer.plan {
         case .lifetime: return "One purchase, no renewal"
@@ -649,7 +813,7 @@ struct ProPlanRow: View {
         .frame(width: ProMetrics.planRadio, height: ProMetrics.planRadio)
     }
 
-    private var badge: some View {
+    var badge: some View {
         Text("best value")
             .font(.scalable(size: ProMetrics.badgeText, weight: .bold))
             .tracking(ProMetrics.badgeText * 0.04)
@@ -815,4 +979,43 @@ private let previewOffers = [
                                                     expirationDate: .now.addingTimeInterval(86_400 * 300)))
     }
     .preferredColorScheme(.dark)
+}
+
+// MARK: Превью iPad
+
+private struct PadPaywallDemo: View {
+    var mirrored = false
+
+    var body: some View {
+        ZStack {
+            SeaBackground()
+                .ignoresSafeArea()
+            ProPaywallScreen(offers: previewOffers)
+        }
+        .environment(\.usesPadLayout, true)
+        .environment(\.mirrorsBottomTiles, mirrored)
+        .phoneStyle(true)
+        .preferredColorScheme(.dark)
+    }
+}
+
+struct PadPaywall1_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaywallDemo()
+            .padPreview(.portrait, "iPad · полный экран · вертикально")
+    }
+}
+
+struct PadPaywall2_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaywallDemo()
+            .padPreview(.landscapeLeft, "iPad · полный экран · горизонтально")
+    }
+}
+
+struct PadPaywall3_Previews: PreviewProvider {
+    static var previews: some View {
+        PadPaywallDemo(mirrored: true)
+            .padPreview(.landscapeLeft, "iPad · полный экран · своё поле справа")
+    }
 }

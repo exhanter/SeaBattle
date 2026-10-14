@@ -313,7 +313,7 @@ private struct NavigationChromeDemo: View {
             SeaBackground()
 
             VStack(spacing: 0) {
-                ScreenTitle(title: "Single player", back: "Play")
+                ScreenTitle(title: "Single player", back: "Home")
                     .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
                 Spacer()
