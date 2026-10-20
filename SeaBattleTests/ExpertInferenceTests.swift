@@ -64,6 +64,75 @@ struct ExpertInferenceTests {
         #expect(packed > open + 0.3, "packed \(packed), open \(open)")
     }
 
+    @Test("Hiding is suspected only once the sunk ships show it")
+    func hidingNeedsEvidence() {
+        // 14.10: before this the expert reckoned with hiding from the first
+        // shot. Now the board has to show it first.
+        #expect(LayoutPosterior.showsHiding(on: packedBoard))
+        #expect(!LayoutPosterior.showsHiding(on: openBoard))
+        #expect(!LayoutPosterior.showsHiding(on: Board()))
+        // One ship, even in a corner, is never enough.
+        #expect(!LayoutPosterior.showsHiding(on: board(sunk: [ship(4, 1, 1)])))
+        // Two in corners are: 8 + 7 cells of water kept back.
+        let corners = board(sunk: [ship(4, 1, 1), ship(3, 10, 8)])
+        #expect(LayoutPosterior.savedWater(on: corners) == 15)
+        #expect(LayoutPosterior.showsHiding(on: corners))
+        // Two in open water are not.
+        let apart = board(sunk: [ship(4, 3, 3), ship(3, 7, 4)])
+        #expect(LayoutPosterior.savedWater(on: apart) == 0)
+        #expect(!LayoutPosterior.showsHiding(on: apart))
+    }
+
+    @Test("A fleet kept off the edges no longer beats the expert")
+    func fleetOffTheEdgesIsFound() {
+        // 14.10: while the expert reckoned with hiding from the first shot it
+        // swept the edges first, and a fleet with no ship on an edge took it
+        // 54 shots (simulator, 800 fleets) — the old heat map needed 49. Now
+        // about 49.5.
+        var generator = SeededGenerator(seed: 7)
+        var total = 0
+        let matches = 16
+        for match in 0..<matches {
+            var target = Board(ships: offTheEdges(using: &generator))
+            var shots = 0
+            while !target.isFleetDestroyed, shots < Board.cellCount {
+                let view = target.opponentView()
+                target.apply(shotAt: ComputerOpponent.candidates(for: .expert, on: view, seed: UInt64(match))[0])
+                shots += 1
+            }
+            total += shots
+        }
+        let average = Double(total) / Double(matches)
+        print(String(format: "Expert against fleets off the edges: %.1f shots", average))
+        #expect(average < 53)
+    }
+
+    /// A legal fleet with no ship touching an edge: ships one at a time, each
+    /// uniform over what is still free in the inner 8 × 8.
+    private func offTheEdges(using generator: inout SeededGenerator) -> [ShipPlacement] {
+        while true {
+            var fleet: [ShipPlacement] = []
+            for length in FleetLayout.deckCounts {
+                var spots: [ShipPlacement] = []
+                for orientation in Orientation.allCases {
+                    for row in 2...9 {
+                        for column in 2...9 {
+                            let candidate = ShipPlacement(length: length,
+                                                          origin: Coordinate(row: row, column: column),
+                                                          orientation: orientation)
+                            guard candidate.cells.allSatisfy({ (2...9).contains($0.row) && (2...9).contains($0.column) }),
+                                  FleetLayout.conflicts(in: fleet + [candidate]).isEmpty else { continue }
+                            spots.append(candidate)
+                        }
+                    }
+                }
+                guard let spot = spots.randomElement(using: &generator) else { break }
+                fleet.append(spot)
+            }
+            if fleet.count == FleetLayout.shipCount { return fleet }
+        }
+    }
+
     @Test("Nothing is expected where no ship can be")
     func occupancyRespectsTheRules() {
         var board = packedBoard
@@ -107,7 +176,8 @@ struct ExpertInferenceTests {
         // Measured outside the app (13.10, 600 fleets): against fleets hidden
         // at strength 1, the heat map needed 71.7 shots and won 6% of matches
         // against the best shooting the app has; the sampler needs 37.7 and
-        // wins 94%. A random fleet takes about 56.
+        // wins 94%. Since 14.10 it waits for the sunk ships to show the hiding
+        // and needs 42 (89%). A random fleet takes about 55.
         var generator = SeededGenerator(seed: 4)
         var total = 0
         let matches = 12

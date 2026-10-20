@@ -205,13 +205,20 @@ struct DifficultyLadderTests {
         let candidates = opponent(at: .expert).targetCandidates(on: board)
 
         #expect(candidates.count == 1)
-        // Before 13.10 the peak of an untouched board was in the middle, where
-        // a four-decker fits in the most ways. The expert now also reckons with
-        // a fleet packed against the edges — most players who think about it
-        // hide that way — so it opens along an edge, and moves inwards only if
-        // the misses there say the fleet was not hidden.
-        let peak = candidates[0]
-        #expect(peak.row == 1 || peak.row == Board.size || peak.column == 1 || peak.column == Board.size)
+    }
+
+    @Test("Expert does not open along the edges before it suspects hiding")
+    func expertOpensOffTheEdges() {
+        // 13.10–14.10 the expert reckoned with a hidden fleet from the first
+        // shot and opened along an edge in every match; the player noticed and
+        // kept the fleet off the edges. Now hiding comes in only once the sunk
+        // ships show it, and the opening lands on an edge in about one match in
+        // five (measured 14.10: 56 of 300 seeds).
+        let onEdge = (0..<30).count { seed in
+            let peak = ComputerOpponent.candidates(for: .expert, on: Board(), seed: UInt64(seed))[0]
+            return peak.row == 1 || peak.row == Board.size || peak.column == 1 || peak.column == Board.size
+        }
+        #expect(onEdge <= 12, "\(onEdge) of 30 openings on an edge")
     }
 
     // MARK: - Does the ladder actually climb?
@@ -305,11 +312,16 @@ struct DifficultyLadderTests {
     /// Paired on purpose: which fleet you get swings a match by far more than
     /// the level does, so comparing four levels on four different sets of
     /// fleets mostly measures the luck of the draw.
-    private func averageShotsPerLevel(matches: Int = 100) async
+    ///
+    /// The fleets come from a fixed seed (14.10): hard and expert are only
+    /// about a shot apart on the multi-deck ships, and 100 fresh fleets per run
+    /// now and then drew a set where the order flipped.
+    private func averageShotsPerLevel(matches: Int = 150) async
     -> [AppState.DifficultyLevel: (multiDeck: Double, total: Double)] {
+        var generator = SeededGenerator(seed: 2026_10_14)
         let fleets: [[Ship]] = (0..<matches).map { _ in
             let scratch = PlayerData(side: .you)
-            scratch.shipsRandomArrangement()
+            scratch.place(FleetLayout.random(using: &generator))
             return scratch.ships
         }
 
@@ -345,7 +357,7 @@ struct DifficultyLadderTests {
         // argument for how the levels are built, and they are worth seeing
         // again whenever the targeting is touched.
         let text = """
-            Difficulty ladder, 100 fleets, each level playing the same ones.
+            Difficulty ladder, 150 fleets, each level playing the same ones.
             Average shots to sink the six multi-deck ships / to clear the board:
             \(line("easy", easy))
             \(line("medium", medium))

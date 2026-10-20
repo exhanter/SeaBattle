@@ -83,6 +83,93 @@ struct LayoutPosterior: Sendable {
     }())
 
     let components: [Component]
+
+    /// What `.expert` hunts with until the board shows hiding
+    /// (`showsHiding(on:)`): no hypothesis of hiding at all — half "random",
+    /// half "spread out", ships kept apart and off the edges (negative
+    /// strengths; `logPartition` integrated the same way, 14.10).
+    ///
+    /// "Random" alone is not enough. Against a random fleet the edges really
+    /// are a little busier than the middle (no-touching leaves more room
+    /// there: 22–23% against 19% per cell), so a sampler that believes only
+    /// in "random" still opens along the edges — and a fleet kept off the
+    /// edges took it 53 shots, against 49 for the old heat map. With "spread
+    /// out" in the mix it is 49.5, the first shot lands on an edge in one
+    /// match in five, and against auto-arrangement it is level (55.2).
+    static let unhidden: [Component] = [
+        Component(strength: -0.15, prior: 0.5, logPartition: 9.126),
+        Component(strength: -0.3, prior: 0.5 / 3, logPartition: 18.6),
+        Component(strength: -0.45, prior: 0.5 / 3, logPartition: 28.422),
+        Component(strength: -0.6, prior: 0.5 / 3, logPartition: 38.561)
+    ]
+
+    /// This sampler with the hypotheses of hiding swapped for `unhidden`.
+    /// The opt-in memory's map of habits, if any, stays.
+    var assumingNoHiding: LayoutPosterior {
+        LayoutPosterior(components: Self.unhidden,
+                        chains: chains, burnIn: burnIn, samples: samples,
+                        cellBias: cellBias)
+    }
+
+    // MARK: - When to suspect hiding
+
+    // 14.10: with the hypotheses of hiding in from the first shot (60% of the
+    // prior), the expert opened every match along the edges, whatever the
+    // fleet — and the player noticed and beat it. Now it hunts as if nothing
+    // were hidden until the sunk ships show the pattern hiding leaves: ships
+    // against the edges and against each other, giving away less water than a
+    // random fleet does. Only then do the hypotheses of hiding come in, and
+    // the sampler weighs the evidence from there.
+    //
+    // Measured 14.10 (simulator from these files, 800 fleets per row; before →
+    // after): auto-arrangement 55.7 → 55.2 shots, no ship on the edge
+    // 54.0 → 49.5, spread out 51.4 → 46.4, hidden at strength 0.3
+    // 54.7 → 57.5, at strength 1 37.6 → 42.1, all on the edges 48.6 → 51.0.
+    // The price of waiting for evidence is those few shots against a hidden
+    // fleet; without the hypotheses of hiding at all it would take 72.
+
+    /// How much water the sunk ships have NOT given away: what their rings
+    /// would hold out in open water, minus the cells they actually cover. Edges
+    /// and corners cut a ring short, two ships a cell apart share one — both
+    /// are what hiding is made of.
+    static func savedWater(on board: Board) -> Int {
+        var ring = Set<Coordinate>()
+        var openWater = 0
+        for cluster in board.sunkClusters() {
+            // A ship of `n` decks in open water is ringed by 2n + 6 cells.
+            openWater += 2 * cluster.count + 6
+            for cell in cluster {
+                for neighbour in cell.neighbours where board[neighbour] != .sunk {
+                    ring.insert(neighbour)
+                }
+            }
+        }
+        return openWater - ring.count
+    }
+
+    /// Whether the sunk ships hug the edges and each other more than a random
+    /// fleet's would: 6 cells with two ships sunk, 11 with three, 16 with four,
+    /// about 5 more per ship after that. One ship is never enough — a single
+    /// one in a corner happens all the time.
+    ///
+    /// The bar is low on purpose, and so it opens by mistake against a random
+    /// fleet often — in 63 matches of 100 against auto-arrangement, mostly
+    /// with two ships sunk (measured 14.10). That is cheap: the hypothesis
+    /// "random" stays in the sampler and the board soon outweighs the rest,
+    /// and every ship sunk in open water raises the bar by 4.75 cells and
+    /// shuts the gate again (in 9 of 10 such matches). A false alarm costs
+    /// 0.65 shots in the match it happens in, 0.2 on average. A strict bar —
+    /// one random fleet in twenty, 4k + 3 cells — saves 0.4 shots against
+    /// auto-arrangement and costs 3–4 against a hidden fleet.
+    ///
+    /// Damaged ships do not count yet: while one is afloat the expert is busy
+    /// finishing it, and once sunk it is counted here.
+    static func showsHiding(on board: Board) -> Bool {
+        let sunk = board.sunkClusters().count
+        guard sunk >= 2 else { return false }
+        return Double(savedWater(on: board)) >= 4.75 * Double(sunk) - 3.5
+    }
+
     /// Independent chains; more of them guard against one getting stuck.
     var chains = 8
     /// Sweeps thrown away while a chain forgets its random start.

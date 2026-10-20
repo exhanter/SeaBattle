@@ -23,8 +23,9 @@
 //            ring around a sunk one.
 //    hard    hunts on a checkerboard while a ship of 2+ decks is still afloat.
 //    expert  hunts by probability instead: samples whole fleets that fit the
-//            board, and reads from the board how hidden they are likely to be
-//            (`LayoutPosterior`, 13.10; a heat map before that).
+//            board, and once the sunk ships hug the edges and each other, reads
+//            from the board how hidden they are likely to be
+//            (`LayoutPosterior`, 13.10–14.10; a heat map before that).
 //
 //  The whole decision is a pure function of the board (and, for the expert, of
 //  a seed drawn once per match) — there is no per-shot state to keep in sync,
@@ -176,13 +177,19 @@ final class ComputerOpponent: Opponent {
 
         case .expert:
             if let finishing = finishingCandidates(on: board, knowsNoTouching: true) { return finishing }
-            // Whole fleets, weighted by how hidden the board suggests they
-            // are — see `LayoutPosterior`. The heat map stays as the fallback
-            // for the rare board the sampler cannot start on.
+            // Whole fleets that fit the board — see `LayoutPosterior`. No
+            // hiding is suspected until the sunk ships show the pattern of a
+            // hidden fleet (`showsHiding(on:)`, 14.10); from then on fleets
+            // are weighted by how hidden the board suggests they are.
+            // The heat map stays as the fallback for the rare board the
+            // sampler cannot start on.
             var generator = SeededGenerator(seed: seed ^ LayoutPosterior.fingerprint(of: board))
             // `prior: nil` is the expert as it was before 13.10, heat map only —
             // kept for tests that need an attacker who does not expect hiding.
-            if let prior, let peak = prior.peak(on: board, using: &generator) { return [peak] }
+            if let prior {
+                let posterior = LayoutPosterior.showsHiding(on: board) ? prior : prior.assumingNoHiding
+                if let peak = posterior.peak(on: board, using: &generator) { return [peak] }
+            }
             if let peak = heatMapPeak(on: board) { return [peak] }
             return openCells(on: board)
         }
