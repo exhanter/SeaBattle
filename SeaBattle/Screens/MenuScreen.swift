@@ -277,9 +277,9 @@ struct MenuArt: View {
         var opaqueUntil: Double {
             switch self {
             case .welcomePortrait, .welcomeLandscape: 0.85
-            // iPhone: тает только нижняя пятая часть, корабль не тускнеет над
-            // названием (примерка 20.10).
-            case .phone: 0.80
+            // iPhone: тает нижние 30 % — проверка заказчика на устройстве 21.10
+            // (пробовали 0.80 и 0.55).
+            case .phone: 0.70
             default: Geometry.PadMenu.artOpaqueUntil
             }
         }
