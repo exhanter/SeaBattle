@@ -140,7 +140,7 @@ struct NavRow: View {
         }
         .padding(.horizontal, Geometry.Nav.rowPadding)
         .frame(height: Geometry.Nav.rowHeight)
-        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: Geometry.Nav.rowRadius), wood: .top)
+        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: Geometry.Nav.rowRadius))
     }
 }
 
@@ -223,8 +223,7 @@ struct BottomStack<Content: View>: View {
         .frame(maxWidth: .infinity, minHeight: Geometry.Bottom.controlHeight, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .padding(Geometry.Bottom.dockPadding)
-        .glassPanel(.g2, radius: shapeFamily.radius(.dock, legacy: Geometry.SizeClass.regular.tabRadius),
-                    wood: .top)
+        .glassPanel(.g2, radius: shapeFamily.radius(.dock, legacy: Geometry.SizeClass.regular.tabRadius))
     }
 }
 

@@ -146,7 +146,7 @@ struct ScorePanel: View {
         }
         .padding(.vertical, m.scorePaddingV)
         .padding(.horizontal, m.scorePaddingH)
-        .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: m.scoreRadius), wood: .bottom)
+        .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: m.scoreRadius))
         .padding(.horizontal, m.scoreInset)
         // Не нажимается — поэтому и для VoiceOver это текст, а не кнопки.
         .accessibilityElement(children: .combine)

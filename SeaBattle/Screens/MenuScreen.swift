@@ -2,7 +2,7 @@
 //  MenuScreen.swift
 //  Sea Battle — главный экран (R2.1, шаг 5 порядка сборки)
 //
-//  Спека 4.2: один список из пяти равных строк по 58 pt, без групп; над
+//  Спека 4.2: пять равных строк — с 20.10 одной панелью, строки по 50 pt; над
 //  списком — карточка «Продолжить партию», если есть незакрытая (07.10). Фото в деревянном мате
 //  заменено артом во всю ширину по образцу iPad (решение заказчика 05.10).
 //
@@ -76,6 +76,9 @@ enum MenuMetrics {
     /// Арт уходит под верхнюю строку режимов — как на iPad
     /// (`Geometry.PadMenu.artOverlap`): строки лежат на растворяющейся части.
     static let artOverlap: CGFloat = Geometry.PadMenu.artOverlap
+    /// Строка режима в общей панели — ниже капсулы (58 / 52): пять строк одной
+    /// панелью оставляют арту больше места (решение 20.10).
+    static let modeRowHeight: CGFloat = 50
 }
 
 // MARK: - Экран
@@ -109,6 +112,7 @@ struct MenuScreen: View {
     /// Высота нижнего блока — от неё считается высота арта.
     @State private var blockHeight: CGFloat = 0
     @Environment(\.bottomChrome) private var chrome
+    @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
         GeometryReader { proxy in
@@ -223,18 +227,24 @@ struct MenuScreen: View {
 
     // MARK: Пять строк режимов
 
+    /// Пять строк одной панелью, между ними — волосяная линия (решение 20.10:
+    /// пять отдельных капсул под картинкой читались кнопками-таблетками).
     private func modes(_ size: Geometry.SizeClass) -> some View {
-        VStack(spacing: size.modeListGap) {
+        VStack(spacing: 0) {
             ForEach(MenuMode.all) { item in
+                if item.id != MenuMode.all.first?.id { ListDivider() }
                 ModeRow(icon: item.icon,
                         title: item.title,
                         subtitle: item.subtitle,
                         isLocked: item.isLocked(isPremium: isPremium),
-                        size: size) {
+                        size: size,
+                        grouped: true,
+                        minHeight: MenuMetrics.modeRowHeight) {
                     onMode(item)
                 }
             }
         }
+        .glassPanel(.g2, radius: shapeFamily.radius(.card, legacy: size.modeRowRadius))
     }
 }
 
@@ -267,6 +277,9 @@ struct MenuArt: View {
         var opaqueUntil: Double {
             switch self {
             case .welcomePortrait, .welcomeLandscape: 0.85
+            // iPhone: тает только нижняя пятая часть, корабль не тускнеет над
+            // названием (примерка 20.10).
+            case .phone: 0.80
             default: Geometry.PadMenu.artOpaqueUntil
             }
         }
@@ -359,6 +372,29 @@ struct MenuShellPreview: View {
     }
 }
 
+extension View {
+    /// Превью: полоса состояния и полоска «домой» там, где их нет, — на холсте
+    /// с фиксированным размером. На телефоне свои уже есть, и тогда ничего не
+    /// добавляется: иначе зоны удваивались (20.10, превью на 12 mini).
+    func previewSafeArea(top: CGFloat, bottom: CGFloat = 0) -> some View {
+        modifier(PreviewSafeArea(top: top, bottom: bottom))
+    }
+}
+
+private struct PreviewSafeArea: ViewModifier {
+    let top: CGFloat
+    let bottom: CGFloat
+
+    func body(content: Content) -> some View {
+        GeometryReader { proxy in
+            let real = proxy.safeAreaInsets
+            content
+                .safeAreaPadding(.top, real.top > 0 ? 0 : top)
+                .safeAreaPadding(.bottom, real.bottom > 0 ? 0 : bottom)
+        }
+    }
+}
+
 #Preview("Меню · тёмная") {
     MenuShellPreview()
         .preferredColorScheme(.dark)
@@ -379,17 +415,14 @@ struct MenuShellPreview: View {
 /// всё, от полей до кегля подписей. Сверху — полоса состояния SE (20 pt).
 #Preview("Меню · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
     MenuShellPreview()
-        .padding(.top, 20)
-        .background(Color.black)
+        .previewSafeArea(top: 20)
         .preferredColorScheme(.dark)
 }
 
 /// iPhone 12 / 13 mini: компактная раскладка на высоком экране.
 #Preview("Меню · 375 × 812", traits: .fixedLayout(width: 375, height: 812)) {
     MenuShellPreview()
-        .padding(.top, 50)
-        .padding(.bottom, 34)
-        .background(Color.black)
+        .previewSafeArea(top: 50, bottom: 34)
         .preferredColorScheme(.dark)
 }
 
@@ -416,7 +449,6 @@ private let previewGames: [SavedGameSummary] = [.previewComputer, .previewPaper,
 /// Самая длинная подпись карточки — бумага на узком экране.
 #Preview("Меню · партия на бумаге · 375 × 667", traits: .fixedLayout(width: 375, height: 667)) {
     MenuShellPreview(games: [.previewPaper])
-        .padding(.top, 20)
-        .background(Color.black)
+        .previewSafeArea(top: 20)
         .preferredColorScheme(.dark)
 }

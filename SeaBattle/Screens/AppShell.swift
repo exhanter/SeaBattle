@@ -42,8 +42,8 @@ enum TabBarMetrics {
     static let inactiveOpacity: Double = 0.62
 }
 
-/// Нижняя панель навигации: стекло G2 с деревянным кантом по верхней кромке —
-/// той, что смотрит в море.
+/// Нижняя панель навигации: стекло G2 без канта (решение 20.10 — кант убран
+/// со всех панелей).
 struct SeaTabBar: View {
     @Binding var selection: ShellTab
     var size: Geometry.SizeClass = .regular
@@ -89,8 +89,7 @@ struct SeaTabBar: View {
         // С доком таб-бар — тот же док: та же высота, поля и отступ снизу,
         // что у `BottomStack` в партии, на любом размере iPhone.
         .frame(height: chrome == .dock ? Geometry.Bottom.dockHeight : size.tabHeight)
-        .glassPanel(.g2, radius: shapeFamily.radius(chrome == .dock ? .dock : .control, legacy: size.tabRadius),
-                    wood: .top)
+        .glassPanel(.g2, radius: shapeFamily.radius(chrome == .dock ? .dock : .control, legacy: size.tabRadius))
         .padding(.horizontal, chrome == .dock ? Geometry.Nav.stackInset : size.tabInset)
         .padding(.bottom, chrome == .dock ? Geometry.Nav.stackBottom : size.tabBottom)
     }

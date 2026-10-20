@@ -55,6 +55,12 @@ struct ControlsTests {
         #expect(compact.modeRowGap < regular.modeRowGap)
     }
 
+    @Test("Строки меню в общей панели — по 50 pt на любом iPhone, под палец")
+    func theMenuPanelRowsStayTappable() {
+        #expect(MenuMetrics.modeRowHeight == 50)
+        #expect(MenuMetrics.modeRowHeight >= Geometry.Hit.minTarget)
+    }
+
     @Test("Строка выбора: минимум 58 pt и растёт по подписи")
     func theChoiceRowGrowsWithItsSubtitle() {
         // Минимум, а не жёсткая высота: подпись занимает до двух строк без

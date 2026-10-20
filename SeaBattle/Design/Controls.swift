@@ -191,12 +191,25 @@ struct ModeRow: View {
     let subtitle: LocalizedStringKey
     var isLocked: Bool = false
     var size: Geometry.SizeClass = .regular
+    /// Строка внутри общей панели: своего стекла нет, панель рисует группа.
+    var grouped = false
+    /// Высота строки вместо `size.modeRowHeight` — у строк в панели меню.
+    var minHeight: CGFloat?
     var action: () -> Void = {}
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.shapeFamily) private var shapeFamily
 
     var body: some View {
+        if grouped {
+            button
+        } else {
+            button
+                .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: size.modeRowRadius))
+        }
+    }
+
+    private var button: some View {
         Button(action: action) {
             Group {
                 if dynamicTypeSize.isAccessibilitySize {
@@ -227,11 +240,10 @@ struct ModeRow: View {
             // нужны только выросшей строке: при стандартном тексте (≈ 34 pt)
             // с ними 50 — меньше высоты макета, и она не меняется.
             .padding(.vertical, ControlMetrics.ModeRow.grownPadding)
-            .frame(minHeight: size.modeRowHeight)
+            .frame(minHeight: minHeight ?? size.modeRowHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassPanel(.g2, radius: shapeFamily.radius(.control, legacy: size.modeRowRadius))
     }
 
     private var iconView: some View {

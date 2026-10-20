@@ -380,7 +380,7 @@ private struct ProSheetLayer<Sheet: View>: View {
                     .padding(.horizontal, ProMetrics.sheetPaddingH)
                     .padding(.bottom, ProMetrics.sheetRadius)
                     .frame(maxWidth: usesPadLayout ? Geometry.Nav.padColumn : .infinity)
-                    .glassPanel(.g2, radius: ProMetrics.sheetRadius, wood: .top)
+                    .glassPanel(.g2, radius: ProMetrics.sheetRadius)
                     .shadow(color: .black.opacity(0.45), radius: ProMetrics.sheetShadowRadius,
                             y: ProMetrics.sheetShadowY)
                     .padding(.bottom, -ProMetrics.sheetRadius)
