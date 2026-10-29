@@ -101,7 +101,14 @@ struct LadderWinRateTests {
         #expect(expert > 0.1 && expert < 0.25)
     }
 
-    @Test("The four levels win in order")
+    // 29.10: отключён, как и калибровки ниже. 1200 полных партий — самый
+    // долгий тест набора, а строго он держит только шаг «Легко» → «Средне»;
+    // верхние ступени тонут в шуме (допуск ±8). Порядок уровней в выстрелах
+    // держит `DifficultyLadderTests.theLadderClimbs`, сокрытие —
+    // `onlyTheExpertHides` и `ExpertPlacementTests`. Включать при перенастройке
+    // уровней.
+    @Test("The four levels win in order",
+          .disabled("A measurement, not a check. Enable it when retuning the levels."))
     func theLadderIsMonotone() async {
         // 300, not 100: the upper steps are only a few points, and at 100 a
         // run on 09.10 drew hard 34% against medium 48% from pure noise.

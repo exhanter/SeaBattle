@@ -277,7 +277,6 @@ enum Geometry {
     /// Меню на iPad (спека 4.2, макеты 22a / 22b)
     enum PadMenu {
         static let artOverlap: CGFloat = 40      // арт уходит под плитки
-        static let artOpaqueUntil: Double = 0.55 // маска: непрозрачна до 55 % высоты арта
         static let titlePortrait: CGFloat = 60
         static let titleLandscape: CGFloat = 56
         static let titleAboveTilesPortrait: CGFloat = 110
@@ -286,6 +285,22 @@ enum Geometry {
         static let tilePadding: CGFloat = 18
         static let tileIcon: CGFloat = 36
         static let tileName: CGFloat = 18
+        static let wideTileName: CGFloat = 20      // «Одиночная игра» широкой плиткой
+        static let rowIcon: CGFloat = 40           // вертикально: значок слева от текста
+        static let nameBelowIcon: CGFloat = 14     // горизонтально: название под значком
+        // Вертикально в сетке: строка 18 pt (22) + 4 + строка подписи 13 pt
+        // (16) = 42 стоят по центру плитки (`PadMenuGeometry.rowTextTop`).
+        static let rowTextLines: CGFloat = 42
+        // AX1–AX5: меню и первый запуск — прокручиваемая колонка, арт полосой.
+        static let accessibleArtShare: CGFloat = 0.32
+        static let accessibleArtMax: CGFloat = 380
+        static let accessibleTitleOverlap: CGFloat = 24 // название заходит на тающую воду
+        // Сколько в высоте плитки занимает текст: на столько она и растёт
+        // при крупном тексте (на +35 % у XXX Large).
+        static let wideTileText: CGFloat = 46     // название 20 + подпись в строку
+        static let gridTileText: CGFloat = 80     // до двух строк названия и подписи
+        static let rowTileText: CGFloat = 150     // горизонтально: + третья строка подписи
+        static let iconHeightShare: CGFloat = 0.78 // значок в ячейке: не выше этой доли
         static let tileSub: CGFloat = 13
         static let wideTileHeight: CGFloat = 112 // «Одиночная игра», вертикально
         static let gridTileHeight: CGFloat = 140 // сетка 2 × 2, вертикально
@@ -294,6 +309,10 @@ enum Geometry {
         static let gapLandscape: CGFloat = 14
         static let aboveBottomRow: CGFloat = 16
         static let continueWidth: CGFloat = 554
+        static let posterSplit: CGFloat = 0.45   // постер первого запуска: левая доля под текст
+        static let shipBelowStatusBar: CGFloat = 16 // корабль арта — ниже полосы состояния
+        static let shipLeftLandscape: CGFloat = 0.36 // горизонтально корабль правее этой доли
+        static let shipAboveTilesLandscape: CGFloat = 12 // зазор от корпуса до плиток
     }
 
     /// Два размера iPhone. Компактный — ширина экрана < 390 pt. Спека 3.3.

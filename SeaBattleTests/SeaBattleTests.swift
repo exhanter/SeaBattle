@@ -58,63 +58,46 @@ struct FleetArrangementTests {
     /// The canonical fleet: one 4-deck, two 3-deck, three 2-deck, four 1-deck.
     private static let expectedDeckCounts = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 
-    @Test("A random arrangement always places the full fleet", arguments: 0..<50)
-    func placesTenShips(_ iteration: Int) {
-        let player = PlayerData(name: "Player")
-        player.shipsRandomArrangement()
+    /// 29.10: было три теста по 50 повторов. `shipsRandomArrangement` теперь
+    /// лишь кладёт `FleetLayout.random()` (его законность — `FleetLayoutTests`,
+    /// 200 зёрен), поэтому здесь проверяется только перенос в старые `Ship`.
+    @Test("A random arrangement lands in the legacy ships as a full, straight, non-touching fleet")
+    func theArrangementSurvivesTheLegacyModel() {
+        for _ in 0..<20 {
+            let player = PlayerData(name: "Player")
+            player.shipsRandomArrangement()
 
-        #expect(player.ships.count == 10)
-        #expect(player.ships.map(\.numberOfDecks).sorted(by: >) == Self.expectedDeckCounts)
-        // Ships are returned in canonical order so the manual-arrangement UI
-        // can address them by `number`.
-        #expect(player.ships.map(\.number) == Array(0..<10))
-    }
+            #expect(player.ships.map(\.numberOfDecks).sorted(by: >) == Self.expectedDeckCounts)
+            // Ships are returned in canonical order so the manual-arrangement UI
+            // can address them by `number`.
+            #expect(player.ships.map(\.number) == Array(0..<10))
 
-    @Test("Ships never touch, not even diagonally", arguments: 0..<50)
-    func shipsNeverTouch(_ iteration: Int) {
-        let player = PlayerData(name: "Player")
-        player.shipsRandomArrangement()
-
-        var owner = [[Int?]](repeating: [Int?](repeating: nil, count: 10), count: 10)
-        for ship in player.ships {
-            for (row, column) in ship.coordinates {
-                #expect((1...10).contains(row) && (1...10).contains(column))
-                #expect(owner[row - 1][column - 1] == nil, "Two ships share a cell")
-                owner[row - 1][column - 1] = ship.number
-            }
-        }
-
-        for row in 0..<10 {
-            for column in 0..<10 {
-                guard let here = owner[row][column] else { continue }
-                for dr in -1...1 {
-                    for dc in -1...1 where dr != 0 || dc != 0 {
-                        let nr = row + dr, nc = column + dc
-                        guard (0..<10).contains(nr), (0..<10).contains(nc),
-                              let neighbour = owner[nr][nc] else { continue }
-                        #expect(neighbour == here, "Ships \(here) and \(neighbour) are adjacent")
-                    }
+            var owner = [[Int?]](repeating: [Int?](repeating: nil, count: 10), count: 10)
+            for ship in player.ships {
+                #expect(ship.coordinates.count == ship.numberOfDecks)
+                let rows = Set(ship.coordinates.map(\.0)), columns = Set(ship.coordinates.map(\.1))
+                switch ship.orientation {
+                case .horizontal: #expect(rows.count == 1 && columns.count == ship.numberOfDecks)
+                case .vertical: #expect(columns.count == 1 && rows.count == ship.numberOfDecks)
+                }
+                for (row, column) in ship.coordinates {
+                    #expect((1...10).contains(row) && (1...10).contains(column))
+                    #expect(owner[row - 1][column - 1] == nil, "Two ships share a cell")
+                    owner[row - 1][column - 1] = ship.number
                 }
             }
-        }
-    }
-
-    @Test("Every ship is a straight line matching its orientation", arguments: 0..<50)
-    func shipsAreStraight(_ iteration: Int) {
-        let player = PlayerData(name: "Player")
-        player.shipsRandomArrangement()
-
-        for ship in player.ships {
-            #expect(ship.coordinates.count == ship.numberOfDecks)
-            let rows = Set(ship.coordinates.map(\.0))
-            let columns = Set(ship.coordinates.map(\.1))
-            switch ship.orientation {
-            case .horizontal:
-                #expect(rows.count == 1)
-                #expect(columns.count == ship.numberOfDecks)
-            case .vertical:
-                #expect(columns.count == 1)
-                #expect(rows.count == ship.numberOfDecks)
+            for row in 0..<10 {
+                for column in 0..<10 {
+                    guard let here = owner[row][column] else { continue }
+                    for dr in -1...1 {
+                        for dc in -1...1 where dr != 0 || dc != 0 {
+                            let nr = row + dr, nc = column + dc
+                            guard (0..<10).contains(nr), (0..<10).contains(nc),
+                                  let neighbour = owner[nr][nc] else { continue }
+                            #expect(neighbour == here, "Ships \(here) and \(neighbour) are adjacent")
+                        }
+                    }
+                }
             }
         }
     }

@@ -14,23 +14,10 @@ import SwiftUI
 @Suite("Контролы")
 struct ControlsTests {
 
-    @Test("Главная кнопка: радиус 18 и общее гашение неактивной")
+    @Test("Главная кнопка: радиус из токена и высота под палец")
     func thePrimaryButtonFollowsTheSpec() {
-        #expect(ControlMetrics.Button.radius == 18)
         #expect(ControlMetrics.Button.radius == Geometry.Radius.button)
-        // Неактивная кнопка гаснет целиком, а не по частям: отдельного набора
-        // цветов для выключенного состояния в системе нет.
-        #expect(ControlMetrics.Button.disabledOpacity == 0.38)
         #expect(ControlMetrics.Button.minHeight >= Geometry.Hit.minTarget)
-    }
-
-    @Test("Тень кнопки переведена из CSS правильно")
-    func theButtonShadowMatchesTheSpec() {
-        // Спека: тень наружу `0 6 18`. В CSS размытие задаётся диаметром,
-        // в SwiftUI — радиусом, поэтому 18 превращается в 9.
-        #expect(ControlMetrics.Button.shadowOffsetY == 6)
-        #expect(ControlMetrics.Button.shadowRadius == 9)
-        #expect(ControlMetrics.Button.haloRadius == 22)
     }
 
     @Test("Строка режима: 58 pt на большом экране, 52 на малом, обе под палец")

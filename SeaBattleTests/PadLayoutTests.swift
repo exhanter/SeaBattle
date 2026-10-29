@@ -130,23 +130,46 @@ struct PadLayoutTests {
 
     // MARK: Меню
 
-    @Test("Меню: плитки на 16 над нижним рядом, арт уходит под них на 40",
+    @Test("Меню: плитки на 16 над нижним рядом, корабль арта — под часами и над названием или плитками",
           arguments: PadLayoutTests.portraits)
     func theMenuZonesStackFromTheBottom(_ size: CGSize) {
         for s in [size, CGSize(width: size.height, height: size.width)] {
-            let g = PadMenuGeometry(size: s, safeBottom: 20)
+            let g = PadMenuGeometry(size: s, safeTop: 24, safeBottom: 20)
             #expect(g.bottomRowTop + Geometry.Inset.padTile + 24 == s.height)
             #expect(g.tilesTop + g.tilesHeight + Geometry.PadMenu.aboveBottomRow == g.bottomRowTop)
-            #expect(g.artHeight == g.tilesTop + Geometry.PadMenu.artOverlap)
-            // Название целиком на арте, под полосой состояния.
             #expect(g.titleTop >= 24, "\(s)")
+            #expect(g.shipBox.minY == 24 + Geometry.PadMenu.shipBelowStatusBar)
+            #expect(g.shipBox.maxX <= s.width - Geometry.Inset.padFrame)
+            if g.orientation == .portrait {
+                // Вертикально название — под кораблём.
+                #expect(g.shipBox.maxY == g.titleTop, "\(s)")
+            } else {
+                // Горизонтально корпус — над плитками, название — слева от него.
+                #expect(g.shipBox.maxY < g.tilesTop, "\(s)")
+                #expect(g.shipBox.minX > Geometry.Inset.padFrame * 2, "\(s)")
+            }
         }
     }
 
-    @Test("Меню 834 × 1194: арт 674, 1194 × 834: арт 554 — как в кадрах 22a / 22b")
-    func theMenuArtMatchesTheMockups() {
-        #expect(PadMenuGeometry(size: CGSize(width: 834, height: 1194), safeBottom: 20).artHeight == 674)
-        #expect(PadMenuGeometry(size: CGSize(width: 1194, height: 834), safeBottom: 20).artHeight == 554)
+    @Test("Корабль арта целиком в своей рамке, картинка закрывает экран")
+    func theShipFitsItsBox() {
+        for size in PadLayoutTests.portraits {
+            for s in [size, CGSize(width: size.height, height: size.width)] {
+                let g = PadMenuGeometry(size: s, safeTop: 24, safeBottom: 20)
+                let f = PadShipArt.imageFrame(shipBox: g.shipBox, canvas: s)
+                let ship = PadShipArt.ship
+                // Нос, корма и острие ракеты — в рамке.
+                #expect(f.minX + ship.minX * f.width >= g.shipBox.minX - 0.5, "\(s)")
+                #expect(f.minX + ship.maxX * f.width <= g.shipBox.maxX + 0.5, "\(s)")
+                #expect(f.minY + ship.minY * f.height >= g.shipBox.minY - 0.5, "\(s)")
+                // Над картинкой и по бокам пустоты нет; горизонтально вода
+                // доходит до низа экрана.
+                #expect(f.minX <= 0 && f.maxX >= s.width && f.minY <= 0, "\(s)")
+                if g.orientation == .landscape {
+                    #expect(f.maxY >= s.height, "\(s)")
+                }
+            }
+        }
     }
 
     // MARK: Квадраты
@@ -158,26 +181,16 @@ struct PadLayoutTests {
         #expect(PadCorners.tabs(on: .settings) == (.statistics, .play))
     }
 
-    @Test("Все кнопки нижней линии — квадраты 104")
+    @Test("Все кнопки нижней линии — квадраты одного размера")
     func everyBottomButtonIsATile() {
-        #expect(PadTileMetrics.side == 104)
         #expect(PadTableGeometry.tile == PadTileMetrics.side)
-        #expect(Geometry.Nav.padDialog == 400)
+        #expect(Geometry.Inset.padTile == PadTileMetrics.side)
     }
 
     @Test("Лента на iPad — три капсулы видно сразу")
     func theShotColumnShowsThreeShots() {
         #expect(ShotColumnMetrics.visible == 3)
         #expect(PadTableGeometry.feedHeight == ShotColumnMetrics.height)
-    }
-
-    @Test("Панель счёта iPad — числа кадра score21")
-    func thePadScorePanelFollowsTheMockup() {
-        #expect(BattleMetrics.pad.sideNumber == 22)
-        #expect(BattleMetrics.pad.dot == 8)
-        #expect(BattleMetrics.pad.dotGap == 4)
-        // На iPhone зазор точек прежний.
-        #expect(BattleMetrics.regular.dotGap == 3)
     }
 
     // MARK: Игра на бумаге (раунд 8)

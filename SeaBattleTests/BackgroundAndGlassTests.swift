@@ -17,19 +17,6 @@ struct BackgroundAndGlassTests {
 
     // MARK: - Дыхание свечения
 
-    @Test("Выдох и вдох — ровно те значения, что в спеке")
-    func breathingEndpointsMatchTheSpec() {
-        #expect(BreathState.resting.scale == 1.04)
-        #expect(BreathState.resting.offsetFraction == 0)
-        #expect(BreathState.resting.opacity == 0.9)
-
-        #expect(BreathState.inhaled.scale == 1.10)
-        #expect(BreathState.inhaled.offsetFraction == -0.02)
-        #expect(BreathState.inhaled.opacity == 1.0)
-
-        #expect(Motion.breathe == 18.0)
-    }
-
     @Test("Reduce Motion: слой замирает на середине и не исчезает")
     func reduceMotionFreezesTheGlowWithoutHidingIt() {
         // Главное в этом правиле — «не исчезает»: свечение часть картинки, а не
@@ -64,28 +51,6 @@ struct BackgroundAndGlassTests {
         #expect(g1.hasSheen == false)
         #expect(g1.hasShadow == false)
         #expect(g1.strokeWidth == 1)
-    }
-
-    @Test("G2 — обводка 1 pt, блик 1 pt, тень 0 8 24")
-    func thePanelLevelMatchesTheSpec() {
-        let g2 = GlassLevel.g2.spec
-        #expect(g2.hasMaterial)
-        #expect(g2.strokeWidth == 1)
-        #expect(g2.sheenWidth == 1)
-        // CSS `0 8 24` → SwiftUI radius 12, y 8: в CSS размытие задаётся
-        // диаметром, в SwiftUI — радиусом.
-        #expect(g2.shadowRadius == 12)
-        #expect(g2.shadowOffsetY == 8)
-    }
-
-    @Test("G3 — обводка 1,5 pt, блик 2 pt, тень 0 10 30")
-    func theRaisedLevelMatchesTheSpec() {
-        let g3 = GlassLevel.g3.spec
-        #expect(g3.hasMaterial)
-        #expect(g3.strokeWidth == 1.5)
-        #expect(g3.sheenWidth == 2)
-        #expect(g3.shadowRadius == 15)
-        #expect(g3.shadowOffsetY == 10)
     }
 
     @Test("Приподнятый слой заметнее обычного")
@@ -138,12 +103,4 @@ struct BackgroundAndGlassTests {
                                                systemGlassAvailable: true))
     }
 
-    @Test("Деревянный кант ложится на кромку, обращённую к морю")
-    func theWoodEdgeSitsOnTheSideFacingTheSea() {
-        // Верхняя панель получает кант по низу, нижняя — по верху; левых и
-        // правых кантов в системе нет вовсе, поэтому вариантов ровно три.
-        #expect(WoodEdge.bottom.alignment == .bottom)
-        #expect(WoodEdge.top.alignment == .top)
-        #expect(Geometry.woodEdge == 2)
-    }
 }

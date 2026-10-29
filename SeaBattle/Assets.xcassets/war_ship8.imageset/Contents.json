@@ -1,19 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "war_ship8.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "filename" : "war_ship8@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "filename" : "war_ship8@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename" : "war_ship8.jpg",
+      "idiom" : "universal"
     }
   ],
   "info" : {

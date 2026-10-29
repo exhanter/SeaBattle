@@ -42,8 +42,9 @@ extension View {
     /// `.portrait` / `.landscapeLeft` берут устройство канваса, а оно идёт за
     /// целью запуска — при iPhone в схеме iPad-превью открывались на iPhone
     /// (13.10). `previewDevice` действует только в `PreviewProvider`.
-    func padPreview(_ orientation: InterfaceOrientation, _ name: String) -> some View {
-        previewDevice(PreviewDevice(rawValue: "iPad Pro 11-inch (M5)"))
+    func padPreview(_ orientation: InterfaceOrientation, _ name: String,
+                    device: String = "iPad Pro 11-inch (M5)") -> some View {
+        previewDevice(PreviewDevice(rawValue: device))
             .previewInterfaceOrientation(orientation)
             .previewDisplayName(name)
     }

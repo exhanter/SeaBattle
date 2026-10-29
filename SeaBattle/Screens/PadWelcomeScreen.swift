@@ -39,8 +39,12 @@ private enum PadWelcomeMetrics {
     static let gap: CGFloat = 14
     /// Поля режима внутри сетки с линиями.
     static let cellPadding: CGFloat = 18
-    /// Доля высоты экрана под арт меню, пока нет своего арта.
-    static let artShare: CGFloat = 0.42
+    /// Название над текстом режимов в вертикали: лежит на низу арта, как в
+    /// меню, а не наверху — там за ним мачта (21.10).
+    static let titleAboveText: CGFloat = 20
+    /// Колонка крупного текста горизонтально: притенение арта под текстом,
+    /// который идёт поверх корабля.
+    static let columnShade: Double = 0.45
 }
 
 struct PadWelcomeScreen: View {
@@ -50,8 +54,11 @@ struct PadWelcomeScreen: View {
     var onPlay: () -> Void = {}
 
     @Environment(\.mirrorsBottomTiles) private var mirrored
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var restoring = false
     @State private var notice: ProPurchaseNotice?
+    /// Верх названия в вертикали — над ним, в оставшемся месте, корабль.
+    @State private var titleTop: CGFloat = 0
 
     private typealias M = PadWelcomeMetrics
 
@@ -60,75 +67,200 @@ struct PadWelcomeScreen: View {
             let size = CGSize(width: proxy.size.width,
                               height: proxy.size.height + proxy.safeAreaInsets.top
                                   + proxy.safeAreaInsets.bottom)
-            let wide = size.width > size.height
-            ZStack(alignment: .top) {
-                art(size: size, wide: wide)
-                VStack(spacing: 0) {
-                    title(wide: wide)
-                        .padding(.top, proxy.safeAreaInsets.top + (wide ? 40 : 72))
-                    Spacer(minLength: 16)
-                    VStack(alignment: .leading, spacing: M.gap) {
-                        Text("Familiar rules: a 10 × 10 board and ten ships.")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(Color.inkPrimary)
-                            .shadow(color: .inkTitleShadow, radius: NavMetrics.titleShadowRadius,
-                                    y: NavMetrics.titleShadowOffsetY)
-                            .padding(.leading, M.cellPadding)
-                        tiles(wide: wide,
-                              width: min(M.maxWidth, size.width
-                                  - 2 * (Geometry.Inset.padFrame + Geometry.Nav.stackInset)))
-                        if let notice {
-                            Text(notice.text)
-                                .font(.system(size: 13))
-                                .foregroundStyle(Color.inkSecondary)
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .frame(maxWidth: M.maxWidth)
-                    .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
-                    // Плитки — над нижним рядом, как в меню: картинке сверху
-                    // достаётся всё остальное.
-                    Spacer()
-                        .frame(height: Geometry.PadMenu.aboveBottomRow)
-                    bottomRow
-                        .padding(.horizontal, Geometry.Inset.padFrame)
-                        .padding(.bottom, max(Geometry.Inset.padFrame, proxy.safeAreaInsets.bottom))
+            let bottomInset = max(Geometry.Inset.padFrame, proxy.safeAreaInsets.bottom)
+            // Под часами корабль не начинается.
+            let shipTop = proxy.safeAreaInsets.top + 16
+            ZStack(alignment: .topLeading) {
+                if typeSize.padNeedsColumn {
+                    accessible(size: size, shipTop: shipTop,
+                               bottomRowTop: size.height - bottomInset - PadTileMetrics.side)
+                } else if size.width > size.height {
+                    poster(size: size, shipTop: shipTop,
+                           bottomRowTop: size.height - bottomInset - PadTileMetrics.side)
+                } else {
+                    portrait(size: size, shipTop: shipTop, bottomInset: bottomInset)
                 }
+                bottomRow
+                    .padding(.horizontal, Geometry.Inset.padFrame)
+                    .padding(.bottom, bottomInset)
+                    .frame(width: size.width, height: size.height, alignment: .bottom)
             }
-            .frame(width: size.width, height: size.height, alignment: .top)
+            .frame(width: size.width, height: size.height, alignment: .topLeading)
+            .coordinateSpace(.named(Self.space))
             .ignoresSafeArea()
         }
     }
 
-    // MARK: Арт и название
+    nonisolated private static let space = "padWelcome"
 
-    /// Свой арт первого запуска — на весь экран: корабль над текстом, под
-    /// текстом его море (требования — `docs/STATUS.md`, «Арт первого
-    /// запуска»). Пока файлов нет — арт меню верхней полосой.
-    @ViewBuilder
-    private func art(size: CGSize, wide: Bool) -> some View {
-        let own: MenuArt.Kind = wide ? .welcomeLandscape : .welcomePortrait
-        if own.isAvailable {
-            MenuArt(kind: own, width: size.width, height: size.height)
-        } else {
-            MenuArt(kind: wide ? .padLandscape : .padPortrait,
-                    width: size.width, height: size.height * M.artShare + 80)
+    // MARK: XX Large и крупнее
+
+    /// Композиция на весь экран такой текст не вмещает (29.10): колонка с
+    /// прокруткой — арт полосой, название, вводная, режимы строками без
+    /// предела строк. Нижний ряд остаётся на месте поверх.
+    private func accessible(size: CGSize, shipTop: CGFloat, bottomRowTop: CGFloat) -> some View {
+        let frame = Geometry.Inset.padFrame
+        let band = PadShipArt.accessibleBand(for: size)
+        let split = size.width * Geometry.PadMenu.posterSplit
+        return ZStack(alignment: .topLeading) {
+            // Арт — неподвижный фон на весь экран, как в композиции:
+            // вертикально корабль сверху, горизонтально — постер. Текст здесь
+            // идёт во всю ширину и поверх корабля, поэтому горизонтально арт
+            // притенён целиком, а не только слева.
+            if band > 0 {
+                PadShipArt(shipBox: CGRect(x: frame, y: shipTop, width: size.width - frame * 2,
+                                           height: max(0, band - shipTop - 8)),
+                           canvas: size)
+            } else {
+                PadShipArt(shipBox: CGRect(x: split, y: shipTop, width: size.width - frame - split,
+                                           height: bottomRowTop - 8 - shipTop),
+                           canvas: size, overflowAnchor: 1)
+                Color.black.opacity(M.columnShade)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: M.gap) {
+                    title(size: band > 0 ? Geometry.PadMenu.titlePortrait : Geometry.PadMenu.titleLandscape)
+                        .padding(.leading, M.cellPadding)
+                        .padding(.top, band > 0 ? band - Geometry.PadMenu.accessibleTitleOverlap : shipTop)
+                    rules
+                        .padding(.leading, M.cellPadding)
+                    modeList
+                    noticeText
+                }
+                .frame(maxWidth: M.maxWidth, alignment: .leading)
+                .padding(.horizontal, frame + Geometry.Nav.stackInset)
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, Geometry.PadMenu.aboveBottomRow)
+            }
+            // Колонка кончается над нижним рядом и тает у края.
+            .seaScroll()
+            .scrollIndicators(.hidden)
+            .frame(width: size.width, height: bottomRowTop - Geometry.PadMenu.aboveBottomRow)
+        }
+        .frame(width: size.width, height: size.height, alignment: .topLeading)
+    }
+
+    // MARK: Вертикально
+
+    /// Корабль целиком над названием, название — над текстом режимов, текст —
+    /// над нижним рядом, как плитки в меню.
+    private func portrait(size: CGSize, shipTop: CGFloat, bottomInset: CGFloat) -> some View {
+        let frame = Geometry.Inset.padFrame
+        return ZStack(alignment: .top) {
+            PadShipArt(shipBox: CGRect(x: frame, y: shipTop, width: size.width - frame * 2,
+                                       height: max(0, titleTop - shipTop)),
+                       canvas: size)
+            VStack(spacing: 0) {
+                Spacer(minLength: shipTop)
+                title(size: Geometry.PadMenu.titlePortrait)
+                    .frame(maxWidth: M.maxWidth, alignment: .leading)
+                    // Левый край — по тексту режимов.
+                    .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset + M.cellPadding)
+                    .onGeometryChange(for: CGFloat.self) {
+                        $0.frame(in: .named(Self.space)).minY
+                    } action: { titleTop = $0 }
+                    .padding(.bottom, M.titleAboveText)
+                VStack(alignment: .leading, spacing: M.gap) {
+                    rules
+                        .padding(.leading, M.cellPadding)
+                    tiles(wide: false,
+                          width: min(M.maxWidth, size.width
+                              - 2 * (Geometry.Inset.padFrame + Geometry.Nav.stackInset)))
+                    noticeText
+                }
+                .frame(maxWidth: M.maxWidth)
+                .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset)
+                // Текст — над нижним рядом, как плитки в меню: кораблю сверху
+                // достаётся всё остальное.
+                Spacer()
+                    .frame(height: Geometry.PadMenu.aboveBottomRow + PadTileMetrics.side + bottomInset)
+            }
+            .frame(width: size.width, height: size.height)
         }
     }
 
-    private func title(wide: Bool) -> some View {
-        let font = wide ? Geometry.PadMenu.titleLandscape : Geometry.PadMenu.titlePortrait
-        return Text("Sea Battle")
+    // MARK: Горизонтально — постер
+
+    /// Арт на весь экран, корабль справа, слева на затемнении — название и
+    /// все пять режимов (21.10, заказчик 29.10 — вариант А).
+    private func poster(size: CGSize, shipTop: CGFloat, bottomRowTop: CGFloat) -> some View {
+        let frame = Geometry.Inset.padFrame
+        let split = size.width * Geometry.PadMenu.posterSplit
+        let box = CGRect(x: split, y: shipTop, width: size.width - frame - split,
+                         height: bottomRowTop - 8 - shipTop)
+        return ZStack(alignment: .topLeading) {
+            PadShipArt(shipBox: box, canvas: size, overflowAnchor: 1)
+            PosterScrim()
+            // Не влезла колонка (крупный текст, длинный перевод, mini) —
+            // прокручивается, а не вылезает за верх и на нижний ряд.
+            ViewThatFits(in: .vertical) {
+                posterColumn
+                ScrollView { posterColumn }
+                    .seaScroll()
+                    .scrollIndicators(.hidden)
+            }
+            .frame(width: split - frame * 2)
+            .frame(height: bottomRowTop - Geometry.PadMenu.aboveBottomRow - shipTop)
+            .padding(.leading, frame)
+            .padding(.top, shipTop)
+        }
+    }
+
+    private var posterColumn: some View {
+        VStack(alignment: .leading, spacing: M.gap) {
+            title(size: Geometry.PadMenu.titleLandscape)
+                .padding(.leading, M.cellPadding)
+            rules
+                .padding(.leading, M.cellPadding)
+                .padding(.bottom, 4)
+            modeList
+            noticeText
+        }
+    }
+
+    /// Пять режимов строками: значок слева, описание справа.
+    private var modeList: some View {
+        VStack(spacing: 0) {
+            ForEach(MenuMode.all(pad: true)) { item in
+                if item.mode != .computer { WelcomeRule(vertical: false) }
+                WelcomeModeCell(item: item, isPremium: isPremium, isWide: true, isCompact: true)
+            }
+        }
+    }
+
+    // MARK: Название и вводная
+
+    private func title(size font: CGFloat) -> some View {
+        Text("Sea Battle")
             .font(.system(size: font, weight: .semibold, design: .rounded))
             .tracking(-0.02 * font)
             .foregroundStyle(Color.inkPrimary)
             .shadow(color: .inkTitleShadow, radius: NavMetrics.titleShadowRadius,
                     y: NavMetrics.titleShadowOffsetY)
-            .frame(maxWidth: M.maxWidth, alignment: .leading)
-            // Левый край — по тексту режимов.
-            .padding(.horizontal, Geometry.Inset.padFrame + Geometry.Nav.stackInset + M.cellPadding)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("titleMainText")
+    }
+
+    private var rules: some View {
+        Text("Familiar rules: a 10 × 10 board and ten ships.")
+            .font(.scalable(size: 17, weight: .medium))
+            .foregroundStyle(Color.inkPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .shadow(color: .inkTitleShadow, radius: NavMetrics.titleShadowRadius,
+                    y: NavMetrics.titleShadowOffsetY)
+    }
+
+    @ViewBuilder
+    private var noticeText: some View {
+        if let notice {
+            Text(notice.text)
+                .font(.scalable(size: 13))
+                .foregroundStyle(Color.inkSecondary)
+                .frame(maxWidth: .infinity)
+        }
     }
 
     // MARK: Режимы
@@ -238,6 +370,10 @@ private struct WelcomeModeCell: View {
     let item: MenuMode
     let isPremium: Bool
     var isWide = false
+    /// Строка постера: поля сверху и снизу меньше — пять режимов в колонку.
+    var isCompact = false
+
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var isPro: Bool { item.isLocked(isPremium: isPremium) }
 
@@ -259,7 +395,8 @@ private struct WelcomeModeCell: View {
                 }
             }
         }
-        .padding(PadWelcomeMetrics.cellPadding)
+        .padding(.horizontal, PadWelcomeMetrics.cellPadding)
+        .padding(.vertical, isCompact ? 8 : PadWelcomeMetrics.cellPadding)
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .accessibilityElement(children: .combine)
     }
@@ -273,13 +410,13 @@ private struct WelcomeModeCell: View {
     private var header: some View {
         HStack(spacing: 8) {
             Text(item.title)
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(.scalable(size: 17, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.inkPrimary)
-                .lineLimit(2)
+                .lineLimit(typeSize.padNeedsColumn ? nil : 2)
                 .fixedSize(horizontal: false, vertical: true)
             if isPro {
                 Text(verbatim: "Pro")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.scalable(size: 11, weight: .bold))
                     .foregroundStyle(Color.inkPrimary)
                     .padding(.vertical, 2)
                     .padding(.horizontal, 7)
@@ -291,7 +428,7 @@ private struct WelcomeModeCell: View {
 
     private var description: some View {
         Text(item.fullDescription)
-            .font(.system(size: 13))
+            .font(.scalable(size: 13))
             .lineSpacing(2)
             .foregroundStyle(Color.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)

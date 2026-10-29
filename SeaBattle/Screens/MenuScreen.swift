@@ -137,7 +137,7 @@ struct MenuScreen: View {
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
             .background(alignment: .top) {
-                MenuArt(kind: .phone, width: proxy.size.width, height: artHeight)
+                MenuArt(width: proxy.size.width, height: artHeight)
                     .offset(y: -top)
             }
         }
@@ -250,62 +250,26 @@ struct MenuScreen: View {
 
 // MARK: - Арт меню
 
-/// Арт меню во всю ширину, без мата: `cover` от **верхнего** края (лишнее
-/// срезается снизу, где картинка всё равно растворяется), по горизонтали —
-/// по центру. Непрозрачен до 55 % своей высоты, к низу растворяется в море.
-/// Один на iPhone и iPad; файлы — свои на каждую раскладку, требования к ним
-/// — в `docs/STATUS.md`, раздел «Арт меню».
+/// Арт меню iPhone во всю ширину, без мата: квадрат `war_ship8` ложится
+/// `cover` по центру и к низу растворяется в море. На iPad — свой арт,
+/// `PadShipArt` (29.10). Подробнее — `docs/STATUS.md`, раздел «20.10».
 struct MenuArt: View {
-    enum Kind {
-        case phone, padPortrait, padLandscape
-        /// Первый запуск на iPad: арт на весь экран, текст режимов лежит на
-        /// его море (14.10). Требования — там же, «Арт первого запуска».
-        case welcomePortrait, welcomeLandscape
+    /// До какой доли высоты рамки арт непрозрачен: тает нижние 30 % —
+    /// проверка заказчика на устройстве 21.10 (пробовали 0.80 и 0.55).
+    static let opaqueUntil: Double = 0.70
 
-        var assetName: String {
-            switch self {
-            case .phone: "MenuArtPhone"
-            case .padPortrait: "MenuArtPortrait"
-            case .padLandscape: "MenuArtLandscape"
-            case .welcomePortrait: "WelcomeArtPortrait"
-            case .welcomeLandscape: "WelcomeArtLandscape"
-            }
-        }
-
-        /// До какой доли высоты рамки арт непрозрачен. У первого запуска рамка —
-        /// весь экран, тает только самый низ, под нижним рядом.
-        var opaqueUntil: Double {
-            switch self {
-            case .welcomePortrait, .welcomeLandscape: 0.85
-            // iPhone: тает нижние 30 % — проверка заказчика на устройстве 21.10
-            // (пробовали 0.80 и 0.55).
-            case .phone: 0.70
-            default: Geometry.PadMenu.artOpaqueUntil
-            }
-        }
-
-        /// Есть ли файл в каталоге. Пока нет — `MenuArt` берёт заглушку.
-        var isAvailable: Bool { UIImage(named: assetName) != nil }
-    }
-
-    let kind: Kind
     let width: CGFloat
     let height: CGFloat
 
-    /// Пока файла нет — квадратный снимок `war_ship8`, по центру: от верхнего
-    /// края у него срезался бы низ корабля.
-    private static let placeholder = "war_ship8"
-
     var body: some View {
-        let hasArt = kind.isAvailable
-        Image(hasArt ? kind.assetName : Self.placeholder)
+        Image("war_ship8")
             .resizable()
             .scaledToFill()
-            .frame(width: width, height: max(0, height), alignment: hasArt ? .top : .center)
+            .frame(width: width, height: max(0, height))
             .clipped()
             .mask {
                 LinearGradient(stops: [.init(color: .black, location: 0),
-                                       .init(color: .black, location: kind.opaqueUntil),
+                                       .init(color: .black, location: Self.opaqueUntil),
                                        .init(color: .clear, location: 1)],
                                startPoint: .top, endPoint: .bottom)
             }

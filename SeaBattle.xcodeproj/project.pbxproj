@@ -80,6 +80,7 @@
 		CA6886273062B53C00859D7B /* GameMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886263062B53C00859D7B /* GameMode.swift */; };
 		CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68863F3062FF3400859D7B /* DesignTokens.swift */; };
 		CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886413062FF6700859D7B /* TokenGalleryView.swift */; };
+		CA8678B13088DF67005A2309 /* PadMenuArtPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */; };
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
@@ -207,6 +208,7 @@
 		CA6886263062B53C00859D7B /* GameMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMode.swift; sourceTree = "<group>"; };
 		CA68863F3062FF3400859D7B /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		CA6886413062FF6700859D7B /* TokenGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenGalleryView.swift; sourceTree = "<group>"; };
+		CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadMenuArtPreviews.swift; sourceTree = "<group>"; };
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
@@ -412,6 +414,7 @@
 				CAD0029A3076E82E006405DC /* ContinueGame.swift */,
 				CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */,
 				CAF2D7B8307F8BAD00D32059 /* PadWelcomeScreen.swift */,
+				CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -636,6 +639,7 @@
 				CAD0029B3076E82E006405DC /* ContinueGame.swift in Sources */,
 				A584E62AB77D1A8B2AADC8D3 /* BoardCell.swift in Sources */,
 				9773F3093B5E225E9BA64CC7 /* CellEvent.swift in Sources */,
+				CA8678B13088DF67005A2309 /* PadMenuArtPreviews.swift in Sources */,
 				FA9587FC6C8A65C22385A0A5 /* BoardView.swift in Sources */,
 				8FE2AEAE158D7E7A5B3A9C08 /* NavigationChrome.swift in Sources */,
 				73C8AF701C7D494795D0B59E /* ModalDialog.swift in Sources */,

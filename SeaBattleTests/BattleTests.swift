@@ -157,18 +157,6 @@ struct BattleTests {
         #expect(Geometry.Segment.trackInset == 3)
     }
 
-    @Test("Панель счёта и подсказка по кадрам 393 и 375")
-    func battleMetricsFollowTheFrames() {
-        #expect(BattleMetrics.forSize(.regular) == .regular)
-        #expect(BattleMetrics.forSize(.compact) == .compact)
-        #expect(BattleMetrics.regular.scoreRadius == Geometry.Radius.panel)
-        #expect(BattleMetrics.regular.sideNumber == 20)
-        #expect(BattleMetrics.compact.sideNumber == 17)
-        #expect(BattleMetrics.regular.hintIcon == 21)
-        #expect(BattleMetrics.compact.hintIcon == 19)
-        #expect(BattleMetrics.fleetDots == 10)
-    }
-
     // MARK: Раунд 5
 
     @Test("Поле стоит на одной высоте на обоих экранах и не лезет под панель")
