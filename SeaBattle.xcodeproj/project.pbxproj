@@ -20,9 +20,6 @@
 		2C6A84712B6E99620001A20C /* SeaBattleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84702B6E99620001A20C /* SeaBattleApp.swift */; };
 		2C6A84752B6E99640001A20C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C6A84742B6E99640001A20C /* Assets.xcassets */; };
 		2C6A84782B6E99640001A20C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C6A84772B6E99640001A20C /* Preview Assets.xcassets */; };
-		2C6A84852B723C660001A20C /* PlayerData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84842B723C660001A20C /* PlayerData.swift */; };
-		2C6A84872B723C990001A20C /* Ship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6A84862B723C990001A20C /* Ship.swift */; };
-		2C900E882C416963005BD968 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C900E872C416963005BD968 /* Cell.swift */; };
 		2CA38D042CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */; };
 		2CE3E3EF2CB41AA0003AF40E /* blast_onfire2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3E92CB41AA0003AF40E /* blast_onfire2.wav */; };
 		2CE3E3F02CB41AA0003AF40E /* defeat_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2CE3E3EB2CB41AA0003AF40E /* defeat_sound.wav */; };
@@ -73,7 +70,6 @@
 		CA4F063A3061E1E20083DE5C /* Side.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06393061E1E20083DE5C /* Side.swift */; };
 		CA4F063C3061E2090083DE5C /* ShipPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063B3061E2090083DE5C /* ShipPlacement.swift */; };
 		CA4F063E3061E2490083DE5C /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F063D3061E2490083DE5C /* Board.swift */; };
-		CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */; };
 		CA4F0A023061F00000D3B001 /* LayoutPosterior.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F0A013061F00000D3B001 /* LayoutPosterior.swift */; };
 		CA4F0A043061F00000D3B001 /* LayoutMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F0A033061F00000D3B001 /* LayoutMemory.swift */; };
 		CA4F0A063061F00000D3B001 /* LayoutMemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F0A053061F00000D3B001 /* LayoutMemoryStore.swift */; };
@@ -81,6 +77,7 @@
 		CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68863F3062FF3400859D7B /* DesignTokens.swift */; };
 		CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886413062FF6700859D7B /* TokenGalleryView.swift */; };
 		CA8678B13088DF67005A2309 /* PadMenuArtPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */; };
+		CA8678BB3094EE53005A2309 /* BattleSide.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678BA3094EE53005A2309 /* BattleSide.swift */; };
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
@@ -146,9 +143,6 @@
 		2C6A84702B6E99620001A20C /* SeaBattleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBattleApp.swift; sourceTree = "<group>"; };
 		2C6A84742B6E99640001A20C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C6A84772B6E99640001A20C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		2C6A84842B723C660001A20C /* PlayerData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerData.swift; sourceTree = "<group>"; };
-		2C6A84862B723C990001A20C /* Ship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ship.swift; sourceTree = "<group>"; };
-		2C900E872C416963005BD968 /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
 		2CA38D032CD1428D0031BB0C /* Glass_Break-stephan_schutze-958181291.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Glass_Break-stephan_schutze-958181291.wav"; sourceTree = "<group>"; };
 		2CE3E3E72CB41AA0003AF40E /* Battles_on_the_High_Seas.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Battles_on_the_High_Seas.mp3; sourceTree = "<group>"; };
 		2CE3E3E82CB41AA0003AF40E /* blast_missed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = blast_missed.wav; sourceTree = "<group>"; };
@@ -201,7 +195,6 @@
 		CA4F06393061E1E20083DE5C /* Side.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Side.swift; sourceTree = "<group>"; };
 		CA4F063B3061E2090083DE5C /* ShipPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPlacement.swift; sourceTree = "<group>"; };
 		CA4F063D3061E2490083DE5C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
-		CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerData+Board.swift"; sourceTree = "<group>"; };
 		CA4F0A013061F00000D3B001 /* LayoutPosterior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutPosterior.swift; sourceTree = "<group>"; };
 		CA4F0A033061F00000D3B001 /* LayoutMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMemory.swift; sourceTree = "<group>"; };
 		CA4F0A053061F00000D3B001 /* LayoutMemoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMemoryStore.swift; sourceTree = "<group>"; };
@@ -209,6 +202,7 @@
 		CA68863F3062FF3400859D7B /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		CA6886413062FF6700859D7B /* TokenGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenGalleryView.swift; sourceTree = "<group>"; };
 		CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadMenuArtPreviews.swift; sourceTree = "<group>"; };
+		CA8678BA3094EE53005A2309 /* BattleSide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSide.swift; sourceTree = "<group>"; };
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
@@ -282,7 +276,6 @@
 				0BCA3BF873763F07AEFF3861 /* DuelStore.swift */,
 				7647A9463C4A0CE0DB9BBF54 /* PaperStore.swift */,
 				2C28DAF62D12F14200A9BC19 /* AppState.swift */,
-				2C6A84842B723C660001A20C /* PlayerData.swift */,
 				CA17D7B9302C90C6007A33B0 /* Coordinate.swift */,
 				CA17D7BB302C90CD007A33B0 /* PlayerProfile.swift */,
 				CA17D7BD302C90D8007A33B0 /* GameSnapshot.swift */,
@@ -306,6 +299,7 @@
 				CA6886263062B53C00859D7B /* GameMode.swift */,
 				CAD720E0306E72A700F6E49F /* PointsLedger.swift */,
 				CAD720F2306EB1EE00F6E49F /* HapticService.swift */,
+				CA8678BA3094EE53005A2309 /* BattleSide.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -340,8 +334,6 @@
 				2CED70AF2C78E00D0006546F /* Info.plist */,
 				2C6A84702B6E99620001A20C /* SeaBattleApp.swift */,
 				2C13873D2D538F7F0000A18B /* Models */,
-				2C6A84862B723C990001A20C /* Ship.swift */,
-				2C900E872C416963005BD968 /* Cell.swift */,
 				2C6A84742B6E99640001A20C /* Assets.xcassets */,
 				CA11C01E31000A0200C01025 /* Colors.xcassets */,
 				2C6A84762B6E99640001A20C /* Preview Content */,
@@ -435,7 +427,6 @@
 				CA4F063D3061E2490083DE5C /* Board.swift */,
 				CA4F0A033061F00000D3B001 /* LayoutMemory.swift */,
 				CA4F0A013061F00000D3B001 /* LayoutPosterior.swift */,
-				CA4F06413061EBCC0083DE5C /* PlayerData+Board.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -664,6 +655,7 @@
 				83A972A6B11E12CE0C2AB4A0 /* BattleScreen.swift in Sources */,
 				7D1924F01014B1CFCBFB72E7 /* FleetEditor.swift in Sources */,
 				288F1D73B8350925B60CC7A0 /* ArrangementScreen.swift in Sources */,
+				CA8678BB3094EE53005A2309 /* BattleSide.swift in Sources */,
 				2B7940ED380293E06C5620B3 /* DuelSetupScreen.swift in Sources */,
 				726963E0ADFB564E2EEFC336 /* MatchResult.swift in Sources */,
 				CAF2D7B9307F8BAD00D32059 /* PadWelcomeScreen.swift in Sources */,
@@ -674,7 +666,6 @@
 				DE872969E019D37FF2A37919 /* ResultsScreen.swift in Sources */,
 				E6B6658BCC70C76953BDC2F7 /* DuelScreen.swift in Sources */,
 				CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */,
-				2C6A84852B723C660001A20C /* PlayerData.swift in Sources */,
 				CAA32FD13064042800469335 /* GlassPanel.swift in Sources */,
 				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
 				CA4F0A063061F00000D3B001 /* LayoutMemoryStore.swift in Sources */,
@@ -714,14 +705,11 @@
 				CADF48B3306DA80100974A1B /* NetGame.swift in Sources */,
 				CAD720F3306EB1EE00F6E49F /* HapticService.swift in Sources */,
 				CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */,
-				2C900E882C416963005BD968 /* Cell.swift in Sources */,
 				CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */,
 				CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */,
-				CA4F06423061EBCC0083DE5C /* PlayerData+Board.swift in Sources */,
 				CAD720D8306DBFF000F6E49F /* OnlineLobby.swift in Sources */,
 				CA17D8BF302E77AB007A33B0 /* MultipeerTransport.swift in Sources */,
 				CAD720DA306DC07A00F6E49F /* OnlineScreen.swift in Sources */,
-				2C6A84872B723C990001A20C /* Ship.swift in Sources */,
 				CAD002953076E714006405DC /* HintMark.metal in Sources */,
 				CAD720E5306E73AE00F6E49F /* StatsScreen.swift in Sources */,
 				CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */,

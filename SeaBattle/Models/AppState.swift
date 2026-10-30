@@ -140,7 +140,7 @@ class AppState {
     var selectedTab: SelectedTabs = .menu
     /// Enemy cells revealed to the player by a paid hint (Phase 6). Transient —
     /// cleared on reset.
-    var revealedHintCells: [(Int, Int)] = []
+    var revealedHintCells: [Coordinate] = []
     var manualShipArrangement: Bool = false
     /// Interface language: `ru`, `en` or `nl` (`supportedLanguage(_:)`). Feeds
     /// `\.locale` at the root, so it changes the text and the board letters
@@ -242,28 +242,11 @@ class AppState {
         AudioService.shared.play(named: sound)
     }
     
-    func resetData(player: PlayerData, enemy: PlayerData) {
-        player.cells = []
-        enemy.cells = []
+    func resetData(player: BattleSide, enemy: BattleSide) {
+        player.reset()
+        enemy.reset()
         self.enemysTurn = false
         self.revealedHintCells = []
-        enemy.showFinishGameAlert = false
-        player.showFinishGameAlert = false
-        player.fireStrokeArray = []
-        enemy.fireStrokeArray = []
-        // A 10 x 10 grid per side. The previous version reused one growing
-        // `boolArray` across rows, so `fireStrokeArray` came out ragged
-        // (10, 20, ... 100 entries per row) — 550 values instead of 100.
-        for row in 1...10 {
-            var arrayOfrows = [Cell]()
-            for column in 1...10 {
-                arrayOfrows.append(Cell(column: column, row: row))
-            }
-            player.cells.append(arrayOfrows)
-            enemy.cells.append(arrayOfrows)
-            player.fireStrokeArray.append([Bool](repeating: false, count: 10))
-            enemy.fireStrokeArray.append([Bool](repeating: false, count: 10))
-        }
         self.gameIsActive = false
         self.gameIsOver = false
         self.selectedTab = .menu

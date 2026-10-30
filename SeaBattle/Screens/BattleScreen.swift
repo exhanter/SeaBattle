@@ -110,8 +110,8 @@ struct BattleScreen: View {
                       prepareReview: { battle.show(.foe) },
                       // Флот компьютера — целиком: видно, где стояли
                       // непотопленные корабли.
-                      boards: { ResultBoards(own: battle.player.coreBoard,
-                                             foe: battle.enemy.coreBoard) })
+                      boards: { ResultBoards(own: battle.player.board,
+                                             foe: battle.enemy.board) })
         .modalDialog(isPresented: askLeave) {
             LeaveMatchDialog(onStay: { askLeave = false },
                              onLeave: {
@@ -134,8 +134,8 @@ struct BattleScreen: View {
             let field = battle.shownField
 
             VStack(spacing: 0) {
-                ScorePanel(yourLosses: battle.player.numberShipsDestroyed,
-                           foeLosses: battle.enemy.numberShipsDestroyed,
+                ScorePanel(yourLosses: battle.player.sunkShipCount,
+                           foeLosses: battle.enemy.sunkShipCount,
                            isYourTurn: !appState.enemysTurn,
                            balance: ProgressStore.shared.points,
                            size: size,
@@ -252,7 +252,7 @@ struct BattleBoard: View {
         // `opponentView()` нетронутый корабль приходит водой. После партии
         // флот открыт — посмотреть, где он стоял (решение заказчика 05.10).
         let core = field == .foe && battle.result == nil
-            ? data.coreBoard.opponentView() : data.coreBoard
+            ? data.board.opponentView() : data.board
         let cells = Board.allCoordinates.map { BoardCellState.forDisplay(core[$0], on: field) }
         // Свечение рамки — на поле, по которому сейчас стреляют (2.4).
         let isActive = appState.gameIsActive
@@ -280,7 +280,7 @@ struct BattleBoard: View {
     /// Те же метки, что рисует `marks`, — значением клеток для VoiceOver.
     private var accessibilityMarks: [Coordinate: BoardMark] {
         var result: [Coordinate: BoardMark] = [:]
-        for cell in battle.hintCells where battle.enemy.coreBoard[cell].isUnshot {
+        for cell in battle.hintCells where battle.enemy.board[cell].isUnshot {
             result[cell] = .hint
         }
         return result
@@ -291,7 +291,7 @@ struct BattleBoard: View {
     /// Клетка, по которой только что выстрелили, ещё держит метку — та
     /// уходит, пока клетка становится «ранен» или «убит».
     private var marks: some View {
-        let unshot = Set(Board.allCoordinates.filter { battle.enemy.coreBoard[$0].isUnshot })
+        let unshot = Set(Board.allCoordinates.filter { battle.enemy.board[$0].isUnshot })
         let event = battle.event(on: .foe)
         return ZStack(alignment: .topLeading) {
             ForEach(Array(battle.hintCells.filter { unshot.contains($0) || $0 == event?.target }),
@@ -360,19 +360,19 @@ private struct BattleDemo: View {
         .onAppear {
             battle.configure(appState: appState)
             battle.player.place(FleetLayout.canonicalLayout())
-            battle.enemy.shipsRandomArrangement()
+            battle.enemy.randomFleet()
             appState.gameIsActive = true
             appState.selectedTab = field == .you ? .playerView : .enemyView
             // Несколько выстрелов в обе стороны — чтобы на снимке были все
             // состояния клеток.
             for coordinate in [Coordinate(row: 1, column: 1), Coordinate(row: 5, column: 5),
                                Coordinate(row: 9, column: 3)] {
-                var board = battle.enemy.coreBoard
+                var board = battle.enemy.board
                 _ = board.apply(shotAt: coordinate)
-                battle.enemy.apply(board)
-                var own = battle.player.coreBoard
+                battle.enemy.board = board
+                var own = battle.player.board
                 _ = own.apply(shotAt: coordinate)
-                battle.player.apply(own)
+                battle.player.board = own
             }
             appState.enemysTurn = enemysTurn
         }
@@ -415,11 +415,11 @@ private struct FinishDemo: View {
             battle.configure(appState: appState)
             appState.resetData(player: battle.player, enemy: battle.enemy)
             battle.player.place(FleetLayout.canonicalLayout())
-            battle.enemy.shipsRandomArrangement()
+            battle.enemy.randomFleet()
             appState.gameIsActive = true
             appState.selectedTab = .enemyView
             battle.beginMatch()
-            let cells = battle.enemy.ships.flatMap { $0.coordinates.map(Coordinate.init) }
+            let cells = battle.enemy.board.ships.flatMap(\.cells)
             cells.dropLast().forEach(battle.tap)
             try? await Task.sleep(for: .seconds(0.5))
             if let last = cells.last { battle.tap(last) }

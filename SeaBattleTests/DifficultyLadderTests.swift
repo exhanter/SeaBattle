@@ -30,7 +30,7 @@ struct DifficultyLadderTests {
     ]
 
     private func opponent(at level: AppState.DifficultyLevel,
-                          targeting target: PlayerData = PlayerData(side: .you)) -> ComputerOpponent {
+                          targeting target: BattleSide = BattleSide(side: .you)) -> ComputerOpponent {
         let appState = AppState()
         appState.difficulty = Self.settings.first { $0.level == level }!.difficulty
         #expect(appState.difficultyLevel == level, "The difficulty mapping moved")
@@ -38,7 +38,7 @@ struct DifficultyLadderTests {
         // computers asked about the same board must give the same answer — the
         // blind-computer check below depends on it.
         return ComputerOpponent(appState: appState,
-                                ownFleet: PlayerData(side: .foe),
+                                ownFleet: BattleSide(side: .foe),
                                 targetBoard: target,
                                 seed: 0x5EA_BA77)
     }
@@ -232,24 +232,23 @@ struct DifficultyLadderTests {
     /// lone cell in open water leaves nothing to reason from — and hunting them
     /// down is most of a match. Sinking the six ships that CAN be reasoned
     /// about is where a level shows what it knows.
-    private func shotsNeeded(against fleet: [Ship],
+    private func shotsNeeded(against fleet: [ShipPlacement],
                              at level: AppState.DifficultyLevel) async -> (multiDeck: Int, total: Int)? {
         let appState = AppState()
         appState.difficulty = Self.settings.first { $0.level == level }!.difficulty
 
-        let target = PlayerData(side: .you)
-        target.ships = fleet
-        target.apply(Board(ships: fleet.map(\.corePlacement)))
+        let target = BattleSide(side: .you)
+        target.place(fleet)
 
         let computer = ComputerOpponent(appState: appState,
-                                        ownFleet: PlayerData(side: .foe),
+                                        ownFleet: BattleSide(side: .foe),
                                         targetBoard: target)
         var multiDeck: Int?
         for shot in 1...Board.cellCount {
             let coordinate = await computer.nextShot()
-            var board = target.coreBoard
+            var board = target.board
             board.apply(shotAt: coordinate)
-            target.apply(board)
+            target.board = board
 
             if multiDeck == nil,
                board.ships.filter({ $0.length >= 2 }).allSatisfy({ board.isSunk($0) }) {
@@ -276,24 +275,24 @@ struct DifficultyLadderTests {
         var searchShots = 0
         var searchHits = 0
         for _ in 0..<40 {
-            let target = PlayerData(side: .you)
-            target.shipsRandomArrangement()
+            let target = BattleSide(side: .you)
+            target.randomFleet()
             let computer = opponent(at: level, targeting: target)
-            let blindTarget = PlayerData(side: .you)
+            let blindTarget = BattleSide(side: .you)
             let blind = opponent(at: level, targeting: blindTarget)
 
             for _ in 0..<Board.cellCount {
-                let visible = target.coreBoard.opponentView()
-                blindTarget.apply(visible)
-                let blindChoice = Set(blind.targetCandidates(on: blindTarget.coreBoard.opponentView()))
+                let visible = target.board.opponentView()
+                blindTarget.board = visible
+                let blindChoice = Set(blind.targetCandidates(on: blindTarget.board.opponentView()))
                 let searching = !Board.allCoordinates.contains { visible[$0] == .hit }
 
                 let shot = await computer.nextShot()
                 #expect(blindChoice.contains(shot), "\(level) fired at \(shot), which it could not have chosen blind")
 
-                var board = target.coreBoard
+                var board = target.board
                 let result = board.apply(shotAt: shot)
-                target.apply(board)
+                target.board = board
                 if searching {
                     searchShots += 1
                     if result.isHit { searchHits += 1 }
@@ -319,10 +318,8 @@ struct DifficultyLadderTests {
     private func averageShotsPerLevel(matches: Int = 150) async
     -> [AppState.DifficultyLevel: (multiDeck: Double, total: Double)] {
         var generator = SeededGenerator(seed: 2026_10_14)
-        let fleets: [[Ship]] = (0..<matches).map { _ in
-            let scratch = PlayerData(side: .you)
-            scratch.place(FleetLayout.random(using: &generator))
-            return scratch.ships
+        let fleets: [[ShipPlacement]] = (0..<matches).map { _ in
+            FleetLayout.random(using: &generator)
         }
 
         var totals: [AppState.DifficultyLevel: (multiDeck: Int, total: Int)] = [:]

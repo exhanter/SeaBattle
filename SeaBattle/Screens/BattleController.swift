@@ -84,8 +84,8 @@ final class BattleController {
     /// пересоздаются никогда — новая партия чистит их на месте
     /// (`AppState.resetData`), поэтому компьютер, привязанный к ним однажды,
     /// остаётся годен.
-    let player = PlayerData(side: .you)
-    let enemy = PlayerData(side: .foe)
+    let player = BattleSide(side: .you)
+    let enemy = BattleSide(side: .foe)
 
     /// «По вам за этот раунд» — выстрелы компьютера за его последний ход.
     private(set) var incoming: [ShotFeedEntry] = []
@@ -225,8 +225,8 @@ final class BattleController {
     /// Выстрел плюс событие клетки для экрана. Поле противника сравнивается
     /// так, как его видит игрок (`opponentView()`): иначе событие выдало бы
     /// нетронутые корабли.
-    private func shoot(at coordinate: Coordinate, on target: PlayerData) -> Board.ShotResult {
-        let visible = { target.side == .foe ? target.coreBoard.opponentView() : target.coreBoard }
+    private func shoot(at coordinate: Coordinate, on target: BattleSide) -> Board.ShotResult {
+        let visible = { target.side == .foe ? target.board.opponentView() : target.board }
         let before = visible()
         let result = engine.checkShipOnFire(row: coordinate.row, column: coordinate.column,
                                             target: target)
@@ -249,12 +249,12 @@ final class BattleController {
         // Опция «„Эксперт“ запоминает мои расстановки»: флот — только в конце
         // доигранной партии, чтобы в этой же партии его никто не прочёл.
         if appState.expertRemembersLayouts {
-            LayoutMemoryStore.remember(player.coreBoard.ships)
+            LayoutMemoryStore.remember(player.board.ships)
         }
-        result = MatchResult(didWin: enemy.coreBoard.isFleetDestroyed,
+        result = MatchResult(didWin: enemy.board.isFleetDestroyed,
                              level: level,
-                             yourLosses: player.numberShipsDestroyed,
-                             foeLosses: enemy.numberShipsDestroyed,
+                             yourLosses: player.sunkShipCount,
+                             foeLosses: enemy.sunkShipCount,
                              tally: tally,
                              balance: ProgressStore.shared.points,
                              levelRecord: ProgressStore.shared.record(.computer(level)))
@@ -304,7 +304,7 @@ final class BattleController {
         guard let appState, canUseHint,
               let pick = hintCandidates.randomElement(),
               ProgressStore.shared.spendOnHint(hintCost) else { return false }
-        appState.revealedHintCells.append(pick.tuple)
+        appState.revealedHintCells.append(pick)
         tally.recordHint(cost: hintCost)
         if appState.soundOn { AudioService.shared.play(.click) }
         HapticService.shared.play(.button)
@@ -312,15 +312,15 @@ final class BattleController {
     }
 
     var hintCells: Set<Coordinate> {
-        Set(appState?.revealedHintCells.map(Coordinate.init) ?? [])
+        Set(appState?.revealedHintCells ?? [])
     }
 
     private var hintCandidates: [Coordinate] {
         let shown = hintCells
-        let board = enemy.coreBoard
-        return enemy.ships
-            .filter { !$0.isDestroyed }
-            .flatMap { $0.coordinates.map(Coordinate.init) }
+        let board = enemy.board
+        return board.ships
+            .filter { !board.isSunk($0) }
+            .flatMap(\.cells)
             .filter { board[$0] == .ship && !shown.contains($0) }
     }
 

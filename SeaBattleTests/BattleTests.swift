@@ -22,20 +22,20 @@ struct BattleTests {
         let battle = BattleController(pacing: .instant)
         battle.configure(appState: appState)
         appState.resetData(player: battle.player, enemy: battle.enemy)
-        battle.player.shipsRandomArrangement()
-        battle.enemy.shipsRandomArrangement()
+        battle.player.randomFleet()
+        battle.enemy.randomFleet()
         appState.gameIsActive = true
         appState.selectedTab = .enemyView
         battle.beginMatch()
         return (appState, battle)
     }
 
-    private func shipCell(_ data: PlayerData) -> Coordinate {
-        Coordinate(data.ships[0].coordinates[0])
+    private func shipCell(_ data: BattleSide) -> Coordinate {
+        data.board.ships[0].cells[0]
     }
 
-    private func waterCell(_ data: PlayerData) -> Coordinate {
-        Board.allCoordinates.first { data.coreBoard[$0] == .water }!
+    private func waterCell(_ data: BattleSide) -> Coordinate {
+        Board.allCoordinates.first { data.board[$0] == .water }!
     }
 
     // MARK: Ход
@@ -78,10 +78,10 @@ struct BattleTests {
         let (appState, battle) = match()
         let cell = shipCell(battle.enemy)
         battle.tap(cell)
-        let before = battle.enemy.coreBoard
+        let before = battle.enemy.board
 
         battle.tap(cell)
-        #expect(battle.enemy.coreBoard[cell] == before[cell])
+        #expect(battle.enemy.board[cell] == before[cell])
         #expect(appState.enemysTurn)
         await battle.waitForOpponent()
     }
@@ -109,7 +109,7 @@ struct BattleTests {
         let (_, battle) = match()
         let cell = shipCell(battle.enemy)
         battle.tap(cell)
-        #expect(battle.enemy.coreBoard[cell].holdsKnownShip)
+        #expect(battle.enemy.board[cell].holdsKnownShip)
     }
 
     @Test("Сохранённый флаг подтверждения выстрела забывается")
@@ -125,7 +125,7 @@ struct BattleTests {
         appState.enemysTurn = true
         let cell = shipCell(battle.enemy)
         battle.tap(cell)
-        #expect(battle.enemy.coreBoard[cell] == .ship)
+        #expect(battle.enemy.board[cell] == .ship)
         #expect(!battle.canUseHint)
     }
 

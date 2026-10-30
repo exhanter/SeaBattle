@@ -168,8 +168,8 @@ struct CellEventTests {
         let battle = BattleController(pacing: .instant)
         battle.configure(appState: appState)
         appState.resetData(player: battle.player, enemy: battle.enemy)
-        battle.player.shipsRandomArrangement()
-        battle.enemy.shipsRandomArrangement()
+        battle.player.randomFleet()
+        battle.enemy.randomFleet()
         appState.gameIsActive = true
         appState.selectedTab = .enemyView
         battle.beginMatch()
@@ -179,7 +179,7 @@ struct CellEventTests {
     @Test("Выстрел игрока — событие на поле противника, только на нём")
     func theShotLandsOnTheFoeField() throws {
         let (_, battle) = match()
-        let cell = Coordinate(battle.enemy.ships[0].coordinates[0])
+        let cell = battle.enemy.board.ships[0].cells[0]
         battle.tap(cell)
 
         let event = try #require(battle.lastEvent)
@@ -191,7 +191,7 @@ struct CellEventTests {
     @Test("Событие поля противника не выдаёт корабль: попадание растворяется из воды")
     func theFoeEventHidesTheFleet() throws {
         let (_, battle) = match()
-        let cell = Coordinate(battle.enemy.ships[0].coordinates[0])
+        let cell = battle.enemy.board.ships[0].cells[0]
         battle.tap(cell)
         let event = try #require(battle.lastEvent)
         #expect(event.changes.allSatisfy { $0.from != .ship })
@@ -201,12 +201,12 @@ struct CellEventTests {
     @Test("Анимации не копятся: новое событие заменяет прежнее, новая партия чистит")
     func onlyTheLastEventLives() async throws {
         let (appState, battle) = match()
-        let ship = battle.enemy.ships[0].coordinates.map(Coordinate.init)
+        let ship = battle.enemy.board.ships[0].cells
         battle.tap(ship[0])
         let first = try #require(battle.lastEvent)
 
         // Промах отдаёт ход — компьютер стреляет по своему полю игрока.
-        let water = Board.allCoordinates.first { battle.enemy.coreBoard[$0] == .water }!
+        let water = Board.allCoordinates.first { battle.enemy.board[$0] == .water }!
         battle.tap(water)
         await battle.waitForOpponent()
         let last = try #require(battle.lastEvent)

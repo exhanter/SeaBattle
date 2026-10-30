@@ -3,8 +3,8 @@
 //  SeaBattle
 //
 //  The vs-computer match driver. Since R0.4 it decides nothing about the rules
-//  itself: a shot is projected onto a `Board`, `Board.apply(shotAt:)` resolves
-//  it, and the result is written back. What is left here is everything the core
+//  itself: `Board.apply(shotAt:)` resolves a shot on the side's board (since
+//  30.10 the board is stored as is, `BattleSide`, no legacy projection). What is left here is everything the core
 //  deliberately does not know about — sound, the saved game, statistics and the
 //  end-of-match alert.
 //
@@ -22,11 +22,11 @@ import Foundation
 final class GameEngine {
 
     private(set) var appState: AppState!
-    private(set) var player: PlayerData!
-    private(set) var enemy: PlayerData!
+    private(set) var player: BattleSide!
+    private(set) var enemy: BattleSide!
 
     /// Injects the shared game objects once the owning view is on screen.
-    func configure(appState: AppState, player: PlayerData, enemy: PlayerData) {
+    func configure(appState: AppState, player: BattleSide, enemy: BattleSide) {
         self.appState = appState
         self.player = player
         self.enemy = enemy
@@ -35,8 +35,8 @@ final class GameEngine {
     /// Applies a shot to `target` and handles everything around the rules:
     /// sound, the end of the match, statistics and whose turn it is.
     @discardableResult
-    func checkShipOnFire(row: Int, column: Int, target: PlayerData) -> Board.ShotResult {
-        var board = target.coreBoard
+    func checkShipOnFire(row: Int, column: Int, target: BattleSide) -> Board.ShotResult {
+        var board = target.board
         let result = board.apply(shotAt: Coordinate(row: row, column: column))
 
         if case .sunk(let ship) = result, target.side == .foe, appState.autoRevealAroundSunk {
@@ -44,7 +44,7 @@ final class GameEngine {
             // ring that cannot hold a ship. Firing there stays legal.
             board.revealRing(around: ship)
         }
-        target.apply(board)
+        target.board = board
 
         play(result, on: target)
         if board.isFleetDestroyed {
@@ -66,7 +66,7 @@ final class GameEngine {
     /// Only incoming fire is voiced here — the player hears their own hull take
     /// damage. The cue for damage they deal is chosen by the view model, which
     /// knows whether the shot came from a tap.
-    private func play(_ result: Board.ShotResult, on target: PlayerData) {
+    private func play(_ result: Board.ShotResult, on target: BattleSide) {
         guard target.side == .you else { return }
         HapticService.shared.play(shot: result, incoming: true)
         guard appState.soundOn else { return }
@@ -82,7 +82,7 @@ final class GameEngine {
         }
     }
 
-    private func finish(loser: PlayerData) {
+    private func finish(loser: BattleSide) {
         appState.gameIsActive = false
         appState.gameIsOver = true
         AppState.stopMusic()
@@ -93,10 +93,6 @@ final class GameEngine {
             ProgressStore.shared.recordWin(.computer(appState.difficultyLevel))
         } else {
             ProgressStore.shared.recordLoss(.computer(appState.difficultyLevel))
-        }
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(1))
-            loser.showFinishGameAlert = true
         }
     }
 }

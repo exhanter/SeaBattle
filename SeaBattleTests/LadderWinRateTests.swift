@@ -40,7 +40,7 @@ struct LadderWinRateTests {
     /// `nil` is the level's own share.
     private func computerWins(at level: AppState.DifficultyLevel,
                               hiddenShare: Double? = nil) async -> Bool {
-        let computerBoard = PlayerData(side: .foe)
+        let computerBoard = BattleSide(side: .foe)
         if let share = hiddenShare {
             computerBoard.place(Double.random(in: 0..<1) < share
                                 ? FleetLayout.hiddenArrangement()
@@ -51,8 +51,8 @@ struct LadderWinRateTests {
             // видно, что в живой партии сокрытие вообще не применяется.
             ComputerOpponent.arrangeFleet(for: level, on: computerBoard)
         }
-        let playerBoard = PlayerData(side: .you)
-        playerBoard.shipsRandomArrangement()
+        let playerBoard = BattleSide(side: .you)
+        playerBoard.randomFleet()
 
         let computer = ComputerOpponent(appState: appState(for: level),
                                         ownFleet: computerBoard,
@@ -67,9 +67,9 @@ struct LadderWinRateTests {
             let target = computerToShoot ? playerBoard : computerBoard
             let shot = await shooter.nextShot()
 
-            var board = target.coreBoard
+            var board = target.board
             let result = board.apply(shotAt: shot)
-            target.apply(board)
+            target.board = board
             if board.isFleetDestroyed { return computerToShoot }
             if !result.keepsTurn { computerToShoot.toggle() }
         }

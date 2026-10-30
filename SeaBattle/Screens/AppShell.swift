@@ -174,8 +174,8 @@ struct AppShell: View {
     /// теряться от того, что игрок вышел в меню посмотреть статистику. Поля
     /// партии — `battle.player` и `battle.enemy`.
     @State private var battle = BattleController()
-    private var player: PlayerData { battle.player }
-    private var enemy: PlayerData { battle.enemy }
+    private var player: BattleSide { battle.player }
+    private var enemy: BattleSide { battle.enemy }
 
     @State private var tab: ShellTab = .play
     /// Экран внутри таба «Статистика»; `nil` — сама страница статистики.
@@ -281,16 +281,12 @@ struct AppShell: View {
         let own: Board
         if appState.gameIsActive && !appState.gameIsOver {
             level = appState.difficultyLevel
-            foe = enemy.coreBoard
-            own = player.coreBoard
+            foe = enemy.board
+            own = player.board
         } else if GameStore.hasSavedGame, let snapshot = GameStore.load() {
-            let enemyData = PlayerData(side: .foe)
-            let playerData = PlayerData(side: .you)
-            snapshot.enemy.restore(into: enemyData)
-            snapshot.player.restore(into: playerData)
             level = AppState.DifficultyLevel(storedValue: snapshot.difficulty)
-            foe = enemyData.coreBoard
-            own = playerData.coreBoard
+            foe = snapshot.enemy
+            own = snapshot.player
         } else {
             return nil
         }
@@ -1016,7 +1012,7 @@ struct AppShell: View {
     /// только что видел на экране.
     ///
     /// Флот компьютера расставляет `ComputerOpponent` — по уровню, со сокрытием
-    /// у двух верхних. До R2.2 здесь стояло `enemy.shipsRandomArrangement()`, и
+    /// у двух верхних. До R2.2 здесь стояло `enemy.randomFleet()`, и
     /// сокрытие не применялось в живой партии вообще.
     private func startBattle() {
         appState.resetData(player: player, enemy: enemy)

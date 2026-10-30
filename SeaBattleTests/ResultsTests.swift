@@ -87,8 +87,8 @@ struct ResultsTests {
         let battle = BattleController(pacing: .instant)
         battle.configure(appState: appState)
         appState.resetData(player: battle.player, enemy: battle.enemy)
-        battle.player.shipsRandomArrangement()
-        battle.enemy.shipsRandomArrangement()
+        battle.player.randomFleet()
+        battle.enemy.randomFleet()
         appState.gameIsActive = true
         appState.selectedTab = .enemyView
         battle.beginMatch()
@@ -98,7 +98,7 @@ struct ResultsTests {
     @Test("Итог ставится в момент последнего выстрела, со счётом и балансом")
     func theLastShotProducesTheResult() throws {
         let (appState, battle) = match()
-        let cells = battle.enemy.ships.flatMap { $0.coordinates.map(Coordinate.init) }
+        let cells = battle.enemy.board.ships.flatMap(\.cells)
         for cell in cells.dropLast() { battle.tap(cell) }
         #expect(battle.result == nil)
 
@@ -127,7 +127,7 @@ struct ResultsTests {
     @Test("Новая партия снимает итог; продолженная приносит свой счёт")
     func beginMatchResetsOrRestores() {
         let (_, battle) = match()
-        for cell in battle.enemy.ships.flatMap({ $0.coordinates.map(Coordinate.init) }) {
+        for cell in battle.enemy.board.ships.flatMap(\.cells) {
             battle.tap(cell)
         }
         #expect(battle.result != nil)
@@ -148,7 +148,7 @@ struct ResultsTests {
     @Test("Счёт партии переживает сохранение, а старое сохранение без него читается")
     func theTallySurvivesTheSave() throws {
         let (appState, battle) = match()
-        battle.tap(Coordinate(battle.enemy.ships[0].coordinates[0]))
+        battle.tap(battle.enemy.board.ships[0].cells[0])
         let data = try JSONEncoder().encode(battle.snapshot(of: appState))
         let decoded = try JSONDecoder().decode(GameSnapshot.self, from: data)
         #expect(decoded.tally == battle.tally)

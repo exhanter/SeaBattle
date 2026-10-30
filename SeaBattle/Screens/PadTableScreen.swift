@@ -465,8 +465,8 @@ struct PadTableScreen: View {
                            statusIsWarm: duel.isViewersTurn,
                            showsBalance: false)
             } else {
-                ScorePanel(yourLosses: battle?.player.numberShipsDestroyed ?? 0,
-                           foeLosses: battle?.enemy.numberShipsDestroyed ?? 0,
+                ScorePanel(yourLosses: battle?.player.sunkShipCount ?? 0,
+                           foeLosses: battle?.enemy.sunkShipCount ?? 0,
                            isYourTurn: !appState.enemysTurn,
                            balance: ProgressStore.shared.points,
                            isPad: true,
@@ -766,17 +766,17 @@ private struct PadTableDemo: View {
             appState.ownBoardOnRight = ownOnRight
             battle.configure(appState: appState)
             battle.player.place(FleetLayout.canonicalLayout())
-            battle.enemy.shipsRandomArrangement()
+            battle.enemy.randomFleet()
             appState.gameIsActive = true
             appState.selectedTab = .enemyView
             for coordinate in [Coordinate(row: 1, column: 1), Coordinate(row: 5, column: 5),
                                Coordinate(row: 9, column: 3)] {
-                var board = battle.enemy.coreBoard
+                var board = battle.enemy.board
                 _ = board.apply(shotAt: coordinate)
-                battle.enemy.apply(board)
-                var own = battle.player.coreBoard
+                battle.enemy.board = board
+                var own = battle.player.board
                 _ = own.apply(shotAt: coordinate)
-                battle.player.apply(own)
+                battle.player.board = own
             }
         }
     }

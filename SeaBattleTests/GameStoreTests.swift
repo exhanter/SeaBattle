@@ -25,15 +25,15 @@ struct GameStoreTests {
         let appState = AppState()
         appState.difficulty = difficulty
         appState.gameIsActive = true
-        let player = PlayerData(side: .you)
-        let enemy = PlayerData(side: .foe)
-        player.shipsRandomArrangement()
-        enemy.shipsRandomArrangement()
+        let player = BattleSide(side: .you)
+        let enemy = BattleSide(side: .foe)
+        player.randomFleet()
+        enemy.randomFleet()
 
         for side in [player, enemy] {
-            var board = side.coreBoard
-            board.apply(shotAt: Coordinate(side.ships[0].coordinates[0]))
-            side.apply(board)
+            var board = side.board
+            board.apply(shotAt: side.board.ships[0].cells[0])
+            side.board = board
         }
         return GameSnapshot(appState: appState, player: player, enemy: enemy)
     }

@@ -2,43 +2,13 @@
 //  GameSnapshot.swift
 //  SeaBattle
 //
-//  Phase 0: a flat, Codable snapshot of a full match. This single format backs
-//  local game saving (Phase 1) and the wire format for hot-seat / network play
-//  (Phases 5/5a). Conversions to and from the live @Observable objects live
-//  here so the rest of the app keeps working with the existing models.
+//  Phase 0: a flat, Codable snapshot of a match against the computer — the
+//  single-slot local save (`GameStore`). Since 30.10 each side is stored as the
+//  rules core's own `Board`; the legacy `PlayerSnapshot` (cells, ships and the
+//  fire-stroke overlay of the pre-redesign `PlayerData`) is gone with it.
 //
 
 import Foundation
-
-/// A serializable snapshot of one side's board.
-struct PlayerSnapshot: Codable, Sendable {
-    var name: String
-    var cells: [[Cell]]
-    var ships: [Ship]
-    var showFinishGameAlert: Bool
-    var fireStrokeArray: [[Bool]]
-
-    @MainActor
-    init(_ player: PlayerData) {
-        self.name = player.name
-        self.cells = player.cells
-        self.ships = player.ships
-        self.showFinishGameAlert = player.showFinishGameAlert
-        self.fireStrokeArray = player.fireStrokeArray
-    }
-
-    /// Restores this snapshot into an existing `PlayerData`. `name` is a `let`
-    /// on `PlayerData` and is intentionally left untouched.
-    @MainActor
-    func restore(into player: PlayerData) {
-        player.cells = cells
-        player.ships = ships
-        player.showFinishGameAlert = showFinishGameAlert
-        // Always clear the transient fire-stroke overlay on restore: if the app
-        // was killed mid-shot a cell could otherwise stay stuck with a red halo.
-        player.fireStrokeArray = fireStrokeArray.map { $0.map { _ in false } }
-    }
-}
 
 /// A serializable snapshot of an entire match.
 struct GameSnapshot: Codable, Sendable {
@@ -51,42 +21,44 @@ struct GameSnapshot: Codable, Sendable {
     /// Version 2 (R0.4) dropped `potentialCellsForFinishingDamagedShip`: the
     /// computer's "finish the damaged ship" targeting is now derived from the
     /// board, so there is no cache to carry across a relaunch.
-    static let currentSchemaVersion = 2
+    /// Version 3 (30.10) stores each side as a `Board` instead of the legacy
+    /// cells and ships; a v2 save is discarded, not converted (nothing had been
+    /// released, the only saves were the developer's own).
+    static let currentSchemaVersion = 3
 
     var schemaVersion: Int
     var difficulty: Int
     var enemysTurn: Bool
     var gameIsActive: Bool
     var manualShipArrangement: Bool
-    var player: PlayerSnapshot
-    var enemy: PlayerSnapshot
+    var player: Board
+    var enemy: Board
     /// R2.5: выстрелы, серия и подсказки игрока для экрана итогов. Поле
-    /// необязательное, поэтому версия формата не поднята: сохранение старой
-    /// сборки читается с `nil` (счёт начнётся с нуля), а старая сборка лишний
-    /// ключ просто не заметит.
+    /// необязательное: сохранение без него читается с `nil` (счёт начнётся с
+    /// нуля).
     var tally: MatchTally?
 
     @MainActor
-    init(appState: AppState, player: PlayerData, enemy: PlayerData,
+    init(appState: AppState, player: BattleSide, enemy: BattleSide,
          tally: MatchTally? = nil) {
         self.schemaVersion = Self.currentSchemaVersion
         self.difficulty = appState.difficulty
         self.enemysTurn = appState.enemysTurn
         self.gameIsActive = appState.gameIsActive
         self.manualShipArrangement = appState.manualShipArrangement
-        self.player = PlayerSnapshot(player)
-        self.enemy = PlayerSnapshot(enemy)
+        self.player = player.board
+        self.enemy = enemy.board
         self.tally = tally
     }
 
     /// Applies this snapshot back onto the live game objects.
     @MainActor
-    func apply(to appState: AppState, player: PlayerData, enemy: PlayerData) {
+    func apply(to appState: AppState, player: BattleSide, enemy: BattleSide) {
         appState.difficulty = difficulty
         appState.enemysTurn = enemysTurn
         appState.gameIsActive = gameIsActive
         appState.manualShipArrangement = manualShipArrangement
-        self.player.restore(into: player)
-        self.enemy.restore(into: enemy)
+        player.board = self.player
+        enemy.board = self.enemy
     }
 }

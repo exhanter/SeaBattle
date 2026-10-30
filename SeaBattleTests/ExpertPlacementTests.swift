@@ -38,7 +38,7 @@ struct ExpertPlacementTests {
         #expect(layout.count == FleetLayout.shipCount)
         #expect(lengths == FleetLayout.deckCounts)
         #expect(layout.allSatisfy { $0.isOnBoard })
-        // Longest-first, the order `PlayerData.place` numbers ships in.
+        // Longest-first, the order `FleetLayout` returns ships in.
         #expect(layout.map(\.length) == FleetLayout.deckCounts)
         #expect(Set(layout.map(\.id)).count == FleetLayout.shipCount)
     }
@@ -184,8 +184,8 @@ struct ExpertPlacementTests {
                                    playerFleet: [ShipPlacement]) async -> Bool {
         let appState = AppState()
         appState.difficulty = 3
-        let computerBoard = PlayerData(side: .foe)
-        let playerBoard = PlayerData(side: .you)
+        let computerBoard = BattleSide(side: .foe)
+        let playerBoard = BattleSide(side: .you)
         computerBoard.place(computerFleet)
         playerBoard.place(playerFleet)
 
@@ -204,9 +204,9 @@ struct ExpertPlacementTests {
             let targetBoard = computerToShoot ? playerBoard : computerBoard
             let shot = await shooter.nextShot()
 
-            var board = targetBoard.coreBoard
+            var board = targetBoard.board
             let result = board.apply(shotAt: shot)
-            targetBoard.apply(board)
+            targetBoard.board = board
             if board.isFleetDestroyed { return computerToShoot }
             if !result.keepsTurn { computerToShoot.toggle() }
         }

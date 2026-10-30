@@ -26,7 +26,7 @@ protocol Opponent: AnyObject {
     var displayName: String { get }
 
     /// Provides this opponent's fleet at the start of a match.
-    func provideFleet() async -> [Ship]
+    func provideFleet() async -> [ShipPlacement]
 
     /// Returns the next cell this opponent fires at.
     func nextShot() async -> Coordinate

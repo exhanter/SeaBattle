@@ -41,9 +41,9 @@ final class ComputerOpponent: Opponent {
     let displayName = "Computer"
 
     /// The board the computer is firing at (the human player's field).
-    private let targetBoard: PlayerData
+    private let targetBoard: BattleSide
     /// The computer's own fleet.
-    private let ownFleet: PlayerData
+    private let ownFleet: BattleSide
     private let appState: AppState
 
     /// Drawn anew for every match (`beginMatch()`). `.expert` samples fleets,
@@ -58,7 +58,7 @@ final class ComputerOpponent: Opponent {
     private var prior: LayoutPosterior = .standard
 
     /// - Parameter seed: for tests that need two computers to agree.
-    init(appState: AppState, ownFleet: PlayerData, targetBoard: PlayerData,
+    init(appState: AppState, ownFleet: BattleSide, targetBoard: BattleSide,
          seed: UInt64 = .random(in: .min ... .max)) {
         self.appState = appState
         self.ownFleet = ownFleet
@@ -89,11 +89,11 @@ final class ComputerOpponent: Opponent {
     ///
     /// Synchronous and static on purpose. It used to exist only as the body of
     /// the `async` `provideFleet()` below, **which nothing ever called** — every
-    /// screen set the computer's fleet with `shipsRandomArrangement()`, so
+    /// screen set the computer's fleet with a plain random arrangement, so
     /// hiding never happened in a real match and the two top levels were weaker
     /// than the numbers in `docs/STATUS.md`. The win-rate tests did not catch it
     /// because they arranged the hidden fleet themselves; they now call this.
-    static func arrangeFleet(for level: AppState.DifficultyLevel, on board: PlayerData) {
+    static func arrangeFleet(for level: AppState.DifficultyLevel, on board: BattleSide) {
         var generator = SystemRandomNumberGenerator()
         board.place(fleet(for: level, using: &generator).ships)
     }
@@ -112,13 +112,13 @@ final class ComputerOpponent: Opponent {
         return (ships, hides)
     }
 
-    func provideFleet() async -> [Ship] {
+    func provideFleet() async -> [ShipPlacement] {
         Self.arrangeFleet(for: appState.difficultyLevel, on: ownFleet)
-        return ownFleet.ships
+        return ownFleet.board.ships
     }
 
     func nextShot() async -> Coordinate {
-        let board = targetBoard.coreBoard.opponentView()
+        let board = targetBoard.board.opponentView()
         let level = appState.difficultyLevel
         let seed = seed
         let prior = prior
