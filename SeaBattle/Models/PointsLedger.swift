@@ -28,6 +28,8 @@ struct PointsEntry: Codable, Hashable, Sendable, Identifiable {
         /// Something for the sailor: a `SailorItem.id`, or a rank as
         /// `rankPurchase(_:)` writes it (30.10).
         case purchase(item: String)
+        /// A pack of points bought for money (03.11, `PointsShop`).
+        case topUp
     }
 
     /// The history id of a bought rank — items and ranks share one kind.
@@ -109,6 +111,11 @@ struct PointsLedger: Codable, Hashable, Sendable {
     mutating func addPurchase(_ item: String, cost: Int, at date: Date) {
         guard cost != 0 else { return }
         push(PointsEntry(date: date, kind: .purchase(item: item), amount: -cost))
+    }
+
+    mutating func addTopUp(_ points: Int, at date: Date) {
+        guard points != 0 else { return }
+        push(PointsEntry(date: date, kind: .topUp, amount: points))
     }
 
     private mutating func push(_ entry: PointsEntry) {

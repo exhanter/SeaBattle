@@ -166,6 +166,7 @@ struct AppShell: View {
 
     @Environment(AppState.self) private var appState
     @Environment(PremiumManager.self) private var premiumManager
+    @Environment(PointsShop.self) private var pointsShop
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.usesPadLayout) private var usesPadLayout
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -214,6 +215,8 @@ struct AppShell: View {
     @State private var proUnavailable = false
     /// Короткий лист Pro про режим, на который нажали (спека 4.12).
     @State private var lockedIntent: AppState.PremiumIntent?
+    /// Лист покупки баллов (03.11).
+    @State private var showsPointsShop = false
     /// Страница внутри таба «Настройки» («Pro активен»).
     @State private var settingsPage: SettingsPage?
     /// «О приложении» из настроек.
@@ -378,6 +381,24 @@ struct AppShell: View {
                                appState.showPaywall = true
                            })
         }
+        .pointsShopSheet(isPresented: showsPointsShop, onDismiss: { showsPointsShop = false }) {
+            PointsShopSheet(offers: pointsShop.offers(),
+                            promotion: PointsPromotion.active(on: .now),
+                            hasLoaded: pointsShop.hasLoadedProducts,
+                            onBuy: { offer in
+                                let outcome = await pointsShop.purchase(offer)
+                                if outcome == .purchased {
+                                    purchaseFeedback()
+                                    showsPointsShop = false
+                                }
+                                return outcome
+                            })
+                .task {
+                    if !pointsShop.hasLoadedProducts || pointsShop.products.isEmpty {
+                        await pointsShop.loadProducts()
+                    }
+                }
+        }
         .fullScreenCover(isPresented: $appState.showPaywall) {
             ZStack {
                 SeaBackground()
@@ -525,7 +546,9 @@ struct AppShell: View {
                          sailor: progress.sailor,
                          onBack: { statsPage = nil },
                          onHistory: { statsPage = .history },
-                         onSailor: { statsPage = .sailor })
+                         onSailor: { statsPage = .sailor },
+                         onBuyPoints: { showsPointsShop = true },
+                         promotion: PointsPromotion.active(on: .now))
         case .history:
             PointsHistoryScreen(entries: progress.ledger,
                                 onBack: { statsPage = .wallet })
@@ -547,7 +570,8 @@ struct AppShell: View {
                            ownerName: appState.ownPlayer?.trimmedName ?? "",
                            dossier: PlayerDossier(progress.stats),
                            book: progress.stats.achievements,
-                           onCard: { playerCard = $0 })
+                           onCard: { playerCard = $0 },
+                           onBuyPoints: { showsPointsShop = true })
         case .reset:
             ResetScreen(onReset: { selection in
                             progress.reset(selection)
@@ -1201,6 +1225,7 @@ private struct GameActivityLinks: ViewModifier {
     AppShell()
         .environment(AppState())
         .environment(PremiumManager())
+        .environment(PointsShop())
         .preferredColorScheme(.dark)
 }
 
@@ -1208,5 +1233,6 @@ private struct GameActivityLinks: ViewModifier {
     AppShell()
         .environment(AppState())
         .environment(PremiumManager())
+        .environment(PointsShop())
         .preferredColorScheme(.light)
 }

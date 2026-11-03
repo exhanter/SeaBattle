@@ -55,6 +55,10 @@ struct WalletScreen: View {
     var onBack: () -> Void = {}
     var onHistory: () -> Void = {}
     var onSailor: () -> Void = {}
+    /// Покупка баллов за деньги (03.11); `nil` — строки нет.
+    var onBuyPoints: (() -> Void)?
+    /// Идущая акция — строка покупки говорит о ней.
+    var promotion: ActivePromotion?
 
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -78,6 +82,7 @@ struct WalletScreen: View {
             ScrollView {
                 VStack(spacing: WalletMetrics.blockGap) {
                     sailorRow
+                    if onBuyPoints != nil { buyRow }
                     if isEmpty {
                         EmptyStateCard(icon: PointsSymbol.name, title: "Nothing yet",
                                        text: "Points are earned for wins in the game and spent on hints.")
@@ -191,6 +196,52 @@ struct WalletScreen: View {
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
             .accessibilityIdentifier("walletSailor")
+        }
+    }
+
+    // MARK: Покупка
+
+    private var buyRow: some View {
+        ListGroup {
+            Button { onBuyPoints?() } label: {
+                HStack(spacing: 12) {
+                    Group {
+                        if let promotion {
+                            PromotionEmblem(promotion: promotion.promotion, size: WalletMetrics.sailorAvatar)
+                        } else {
+                            BrassIconBox(icon: "plus", box: WalletMetrics.sailorAvatar,
+                                         radius: WalletMetrics.sailorAvatar * 0.32,
+                                         symbol: WalletMetrics.sailorAvatar * 0.45, fill: 0.22)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Buy points")
+                            .font(.scalable(size: ListMetrics.rowTitle, weight: .medium))
+                            .foregroundStyle(Color.inkPrimary)
+                        Group {
+                            if let promotion {
+                                Text("\(Text(promotion.promotion.title)) · cheaper until \(Text(promotion.lastDay(), format: .dateTime.day().month(.wide)))")
+                            } else {
+                                Text("Packs of points from the App Store")
+                            }
+                        }
+                        .font(.scalable(size: ListMetrics.rowSubtitle))
+                        .foregroundStyle(Color.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.right")
+                        .font(.scalable(size: symbolFontSize(inBox: ListMetrics.chevron), weight: .semibold))
+                        .foregroundStyle(Color.inkTertiary)
+                }
+                .padding(.vertical, ListMetrics.rowPaddingV)
+                .padding(.horizontal, ListMetrics.rowPaddingH)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("walletBuyPoints")
         }
     }
 
@@ -309,6 +360,7 @@ struct PointsEntryRow: View {
         case .hints: return "lightbulb.max"
         case .compensation: return "lightbulb"
         case .purchase: return entry.purchasedRank != nil ? "medal" : "tshirt"
+        case .topUp: return "plus.circle"
         }
     }
 
@@ -339,6 +391,8 @@ struct PointsEntryRow: View {
                 return Text("Bought · \(Text(item.title))")
             }
             return Text("Purchase")
+        case .topUp:
+            return Text("Points bought")
         }
     }
 
@@ -366,6 +420,7 @@ private extension Array where Element == PointsEntry {
         ledger.addHint(cost: 5, at: now)
         ledger.addCompensation(10, at: now)
         ledger.addWin(.computer(.hard), points: 5, at: now)
+        ledger.addTopUp(1_000, at: now)
         return ledger.entries
     }
 }
@@ -387,6 +442,20 @@ private struct WalletPreview<Content: View>: View {
 #Preview("Баллы") {
     WalletPreview { WalletScreen(points: 126, entries: .preview) }
         .preferredColorScheme(.dark)
+}
+
+#Preview("Баллы · с покупкой") {
+    WalletPreview { WalletScreen(points: 126, entries: .preview, onBuyPoints: {}) }
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Баллы · акция") {
+    let friday = Calendar(identifier: .gregorian).date(from: DateComponents(year: 2026, month: 11, day: 28))!
+    WalletPreview {
+        WalletScreen(points: 126, entries: .preview, onBuyPoints: {},
+                     promotion: PointsPromotion.active(on: friday))
+    }
+    .preferredColorScheme(.dark)
 }
 
 #Preview("Баллы · светлая") {

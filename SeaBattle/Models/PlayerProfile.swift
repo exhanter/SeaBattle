@@ -108,6 +108,13 @@ struct PlayerStats: Codable, Hashable, Sendable {
     var sailor: SailorWardrobe
     /// 03.11: achievements and their counters — merit, not money.
     var achievements: AchievementBook
+    /// 03.11: transactions of bought points already credited, newest first —
+    /// so a purchase that comes back unfinished after a crash is not paid
+    /// twice. Kept with the balance: both are written in one go.
+    var creditedTransactions: [UInt64] = []
+    /// A transaction comes back only until it is finished, which happens right
+    /// after the credit — a short memory is plenty.
+    static let creditedTransactionsCapacity = 50
 
     init(records: [String: StatRecord] = [:], unattributedLosses: Int = 0, points: Int = 0,
          ledger: PointsLedger = PointsLedger(), sailor: SailorWardrobe = SailorWardrobe(),
@@ -177,6 +184,20 @@ struct PlayerStats: Codable, Hashable, Sendable {
         ledger.addCompensation(amount, at: date)
     }
 
+    /// Points bought for money. RETURNS: `false` if this transaction was
+    /// already credited.
+    @discardableResult
+    mutating func creditPurchase(transactionID: UInt64, points: Int, at date: Date = .now) -> Bool {
+        guard !creditedTransactions.contains(transactionID) else { return false }
+        creditedTransactions.insert(transactionID, at: 0)
+        if creditedTransactions.count > Self.creditedTransactionsCapacity {
+            creditedTransactions.removeLast(creditedTransactions.count - Self.creditedTransactionsCapacity)
+        }
+        self.points += points
+        ledger.addTopUp(points, at: date)
+        return true
+    }
+
     /// Clears the chosen statistics (spec 4.10). The points and their history
     /// stay: «Начисленные баллы не отнимаются».
     mutating func reset(_ selection: StatsReset) {
@@ -200,7 +221,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
     // MARK: - Codable
 
     private enum CodingKeys: String, CodingKey {
-        case records, unattributedLosses, points, ledger, sailor, achievements
+        case records, unattributedLosses, points, ledger, sailor, achievements, creditedTransactions
         // Pre-R0.7 shape. Read when migrating, and still WRITTEN, so a build
         // from before R0.7 sharing the same iCloud record (last-writer-wins)
         // keeps seeing sensible numbers instead of failing to decode.
@@ -214,6 +235,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         ledger = (try? c.decodeIfPresent(PointsLedger.self, forKey: .ledger)) ?? PointsLedger()
         sailor = (try? c.decodeIfPresent(SailorWardrobe.self, forKey: .sailor)) ?? SailorWardrobe()
         achievements = (try? c.decodeIfPresent(AchievementBook.self, forKey: .achievements)) ?? AchievementBook()
+        creditedTransactions = (try? c.decodeIfPresent([UInt64].self, forKey: .creditedTransactions)) ?? []
         if let records = try c.decodeIfPresent([String: StatRecord].self, forKey: .records) {
             self.records = records
             unattributedLosses = try c.decodeIfPresent(Int.self, forKey: .unattributedLosses) ?? 0
@@ -240,6 +262,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         try c.encode(ledger, forKey: .ledger)
         try c.encode(sailor, forKey: .sailor)
         try c.encode(achievements, forKey: .achievements)
+        try c.encode(creditedTransactions, forKey: .creditedTransactions)
         // Legacy mirror — see `CodingKeys`. Only the computer levels fit in it,
         // which is exactly right: an old build never knew any other column.
         var legacy: [String: Int] = [:]

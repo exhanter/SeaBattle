@@ -83,6 +83,8 @@
 		CA8678C5309544F2005A2309 /* WardrobeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C4309544F2005A2309 /* WardrobeScreen.swift */; };
 		CA8678C93099C82B005A2309 /* PlayerCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C83099C82B005A2309 /* PlayerCardView.swift */; };
 		CA867907309A85E1005A2309 /* Achievements.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA867906309A85E1005A2309 /* Achievements.swift */; };
+		CA86790B309A96AE005A2309 /* PointsShop.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA86790A309A96AE005A2309 /* PointsShop.swift */; };
+		CA86790D309A96F2005A2309 /* PointsShopScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA86790C309A96F2005A2309 /* PointsShopScreen.swift */; };
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
@@ -213,6 +215,8 @@
 		CA8678C4309544F2005A2309 /* WardrobeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeScreen.swift; sourceTree = "<group>"; };
 		CA8678C83099C82B005A2309 /* PlayerCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCardView.swift; sourceTree = "<group>"; };
 		CA867906309A85E1005A2309 /* Achievements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievements.swift; sourceTree = "<group>"; };
+		CA86790A309A96AE005A2309 /* PointsShop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsShop.swift; sourceTree = "<group>"; };
+		CA86790C309A96F2005A2309 /* PointsShopScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsShopScreen.swift; sourceTree = "<group>"; };
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
@@ -312,6 +316,7 @@
 				CA8678BA3094EE53005A2309 /* BattleSide.swift */,
 				CA8678C0309543B9005A2309 /* Sailor.swift */,
 				CA867906309A85E1005A2309 /* Achievements.swift */,
+				CA86790A309A96AE005A2309 /* PointsShop.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -420,6 +425,7 @@
 				CAF2D7B8307F8BAD00D32059 /* PadWelcomeScreen.swift */,
 				CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */,
 				CA8678C4309544F2005A2309 /* WardrobeScreen.swift */,
+				CA86790C309A96F2005A2309 /* PointsShopScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -691,7 +697,9 @@
 				CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */,
 				CA6886273062B53C00859D7B /* GameMode.swift in Sources */,
 				CA17D8C5302E7959007A33B0 /* GameKitTransport.swift in Sources */,
+				CA86790D309A96F2005A2309 /* PointsShopScreen.swift in Sources */,
 				CA17D7C4302CAD01007A33B0 /* ComputerOpponent.swift in Sources */,
+				CA86790B309A96AE005A2309 /* PointsShop.swift in Sources */,
 				CAD720E1306E72A700F6E49F /* PointsLedger.swift in Sources */,
 				CADF48B9306DAA4500974A1B /* NetScreen.swift in Sources */,
 				CA4F063E3061E2490083DE5C /* Board.swift in Sources */,

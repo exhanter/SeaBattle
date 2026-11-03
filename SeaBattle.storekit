@@ -28,6 +28,81 @@
       "productID" : "nl.brapps.SeaBattle.premium.lifetime",
       "referenceName" : "Pro Lifetime",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "24DF7894",
+      "localizations" : [
+        {
+          "description" : "200 points for hints and the sailor",
+          "displayName" : "200 points",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nl.brapps.SeaBattle.points.200",
+      "referenceName" : "Points 200",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "F77101C9",
+      "localizations" : [
+        {
+          "description" : "1,000 points for hints and the sailor",
+          "displayName" : "1,000 points",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nl.brapps.SeaBattle.points.1000",
+      "referenceName" : "Points 1000",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "81495AFA",
+      "localizations" : [
+        {
+          "description" : "10,000 points for hints and the sailor",
+          "displayName" : "10,000 points",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nl.brapps.SeaBattle.points.10000",
+      "referenceName" : "Points 10000",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "BECE8436",
+      "localizations" : [
+        {
+          "description" : "1,000 points — holiday price",
+          "displayName" : "1,000 points",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nl.brapps.SeaBattle.points.1000.sale",
+      "referenceName" : "Points 1000 sale",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "7D494ACB",
+      "localizations" : [
+        {
+          "description" : "10,000 points — holiday price",
+          "displayName" : "10,000 points",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nl.brapps.SeaBattle.points.10000.sale",
+      "referenceName" : "Points 10000 sale",
+      "type" : "Consumable"
     }
   ],
   "settings" : {

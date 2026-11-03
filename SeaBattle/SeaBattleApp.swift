@@ -11,6 +11,7 @@ import SwiftUI
 struct SeaBattleApp: App {
     @State private var appState = AppState()
     @State private var premiumManager = PremiumManager()
+    @State private var pointsShop = PointsShop()
     var body: some Scene {
         WindowGroup {
             // С R2.6 новая оболочка и на iPad: раскладку iPad (рельс, стол
@@ -21,9 +22,11 @@ struct SeaBattleApp: App {
                 .phoneStyle(UIDevice.current.userInterfaceIdiom == .pad)
                 .environment(appState)
                 .environment(premiumManager)
+                .environment(pointsShop)
                 .environment(\.locale, Locale(identifier: appState.language))
                 .task {
                     premiumManager.start()
+                    pointsShop.start()
                     CloudSyncManager.shared.start()
                 }
         }

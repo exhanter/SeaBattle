@@ -104,6 +104,13 @@ final class ProgressStore {
         persist()
     }
 
+    /// Points bought for money (`PointsShop`); a transaction seen before is
+    /// not credited again.
+    func creditPurchase(transactionID: UInt64, points: Int, at date: Date = .now) {
+        guard stats.creditPurchase(transactionID: transactionID, points: points, at: date) else { return }
+        persist()
+    }
+
     // MARK: - Achievements
 
     /// Counts a finished match for the achievements. RETURNS: the medals it

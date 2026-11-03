@@ -242,7 +242,9 @@ final class PremiumManager {
     }
 
     private func handle(_ result: VerificationResult<Transaction>) async {
-        guard case .verified(let transaction) = result else { return }
+        // Points are `PointsShop`'s: finishing one here would lose its credit.
+        guard case .verified(let transaction) = result,
+              ProPlan(productID: transaction.productID) != nil else { return }
         await transaction.finish()
         await refreshEntitlements()
     }

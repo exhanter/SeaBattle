@@ -144,7 +144,7 @@ struct ProFeature: Identifiable {
 
 /// Квадрат с латунной обводкой под значком — у строк возможностей, у листа и
 /// у статуса «Pro активен» разного размера.
-private struct BrassIconBox: View {
+struct BrassIconBox: View {
     let icon: String
     let box: CGFloat
     let radius: CGFloat
@@ -355,7 +355,7 @@ struct ProLockedSheet: View {
 
 /// Слой листа поверх экрана: затемнение, панель снизу с латунным кантом,
 /// закрытие нажатием мимо и жестом вниз.
-private struct ProSheetLayer<Sheet: View>: View {
+struct ProSheetLayer<Sheet: View>: View {
     let isPresented: Bool
     let onDismiss: () -> Void
     let sheet: Sheet

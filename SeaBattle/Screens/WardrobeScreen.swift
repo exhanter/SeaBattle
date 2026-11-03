@@ -74,6 +74,8 @@ struct WardrobeScreen: View {
     var onBuyRank: () -> Void = {}
     /// Надеть, снять, сменить фигуру — уже купленное.
     var onChange: (SailorWardrobe) -> Void = { _ in }
+    /// Скромный «+» у баланса — купить баллы (заказчик 03.11); `nil` — без него.
+    var onBuyPoints: (() -> Void)?
 
     @State private var showsWinter: Bool
     @State private var tryOn: WardrobeTryOn?
@@ -103,8 +105,10 @@ struct WardrobeScreen: View {
          dossier: PlayerDossier? = nil,
          book: AchievementBook? = nil,
          onCard: ((PlayerCardInfo) -> Void)? = nil,
+         onBuyPoints: (() -> Void)? = nil,
          now: Date = .now) {
         self.onCard = onCard
+        self.onBuyPoints = onBuyPoints
         self.now = now
         self.ownerName = ownerName
         self.dossier = dossier
@@ -217,12 +221,17 @@ struct WardrobeScreen: View {
                     HStack(spacing: 6) {
                         Image(systemName: PointsSymbol.name)
                             .foregroundStyle(Color.roleYou)
+                            .accessibilityHidden(true)
                         Text("\(points) points")
                             .monospacedDigit()
                             .foregroundStyle(Color.inkSecondary)
+                        if let onBuyPoints {
+                            BuyPointsPlus(action: onBuyPoints)
+                                .padding(.leading, 2)
+                        }
                     }
                     .font(.scalable(size: WardrobeMetrics.caption))
-                    .accessibilityElement(children: .combine)
+                    .accessibilityElement(children: .contain)
                     Spacer(minLength: 0)
                     SegmentedPick(options: [(false, String(game: "Summer", locale: locale)),
                                             (true, String(game: "Winter", locale: locale))],
@@ -639,6 +648,7 @@ private struct WardrobeDemo: View {
                                }
                            },
                            onChange: { wardrobe = $0 },
+                           onBuyPoints: {},
                            now: now)
         }
     }
