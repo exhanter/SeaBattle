@@ -103,13 +103,17 @@ struct PlayerStats: Codable, Hashable, Sendable {
     /// R4.1: every movement of `points`, newest first. Only the history — the
     /// balance is stored apart and never recomputed from it.
     var ledger: PointsLedger
+    /// 30.10: the sailor bought with these points — ranks, clothes, what is
+    /// worn. Kept with the balance so one sync carries both.
+    var sailor: SailorWardrobe
 
     init(records: [String: StatRecord] = [:], unattributedLosses: Int = 0, points: Int = 0,
-         ledger: PointsLedger = PointsLedger()) {
+         ledger: PointsLedger = PointsLedger(), sailor: SailorWardrobe = SailorWardrobe()) {
         self.records = records
         self.unattributedLosses = unattributedLosses
         self.points = points
         self.ledger = ledger
+        self.sailor = sailor
     }
 
     // MARK: - Reads
@@ -145,11 +149,14 @@ struct PlayerStats: Codable, Hashable, Sendable {
     mutating func addWin(_ key: StatKey) { records[key.storageKey, default: StatRecord()].wins += 1 }
     mutating func addLoss(_ key: StatKey) { records[key.storageKey, default: StatRecord()].losses += 1 }
 
-    /// A win with its reward, written to the history too.
-    mutating func recordWin(_ key: StatKey, at date: Date = .now) {
+    /// A win with its reward, written to the history too. `shots` — the
+    /// player's own shots when the whole fleet was sunk, for the quick-win
+    /// double (`StatKey.reward(shots:)`); `nil` otherwise.
+    mutating func recordWin(_ key: StatKey, shots: Int? = nil, at date: Date = .now) {
         addWin(key)
-        points += key.pointsForWin
-        ledger.addWin(key, points: key.pointsForWin, at: date)
+        let reward = key.reward(shots: shots)
+        points += reward
+        ledger.addWin(key, points: reward, at: date)
     }
 
     /// Pays for one hint if the balance allows. RETURNS: whether it was paid.
@@ -189,7 +196,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
     // MARK: - Codable
 
     private enum CodingKeys: String, CodingKey {
-        case records, unattributedLosses, points, ledger
+        case records, unattributedLosses, points, ledger, sailor
         // Pre-R0.7 shape. Read when migrating, and still WRITTEN, so a build
         // from before R0.7 sharing the same iCloud record (last-writer-wins)
         // keeps seeing sensible numbers instead of failing to decode.
@@ -201,6 +208,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         points = try c.decodeIfPresent(Int.self, forKey: .points) ?? 0
         // A damaged history is not worth losing the statistics over.
         ledger = (try? c.decodeIfPresent(PointsLedger.self, forKey: .ledger)) ?? PointsLedger()
+        sailor = (try? c.decodeIfPresent(SailorWardrobe.self, forKey: .sailor)) ?? SailorWardrobe()
         if let records = try c.decodeIfPresent([String: StatRecord].self, forKey: .records) {
             self.records = records
             unattributedLosses = try c.decodeIfPresent(Int.self, forKey: .unattributedLosses) ?? 0
@@ -225,6 +233,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         try c.encode(unattributedLosses, forKey: .unattributedLosses)
         try c.encode(points, forKey: .points)
         try c.encode(ledger, forKey: .ledger)
+        try c.encode(sailor, forKey: .sailor)
         // Legacy mirror — see `CodingKeys`. Only the computer levels fit in it,
         // which is exactly right: an old build never knew any other column.
         var legacy: [String: Int] = [:]

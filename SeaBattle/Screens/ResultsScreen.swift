@@ -463,6 +463,7 @@ struct ResultsScreen: View {
             Group {
                 switch line {
                 case .victory: Text("Victory")
+                case .quickWin: Text("Under \(StatKey.quickWinShots) shots ×2")
                 case .hints(let count, _): Text("Hints used: \(count)")
                 }
             }
@@ -910,7 +911,7 @@ private struct ResultsDemo: View {
 #Preview("Итоги · победа") {
     ResultsDemo(result: MatchResult(
         didWin: true, level: .hard, yourLosses: 2, foeLosses: 10,
-        tally: ResultsDemo.tally(hits: 20, misses: 43, streak: 4, hints: 1, cost: 6),
+        tally: ResultsDemo.tally(hits: 20, misses: 43, streak: 4, hints: 1, cost: 5),
         balance: 126, levelRecord: StatRecord(wins: 9, losses: 13)))
         .preferredColorScheme(.dark)
 }
@@ -926,6 +927,7 @@ private struct ResultsDemo: View {
 #Preview("Итоги · победа · светлая") {
     ResultsDemo(result: MatchResult(
         didWin: true, level: .expert, yourLosses: 6, foeLosses: 10,
+        // 49 выстрелов — быстрая победа, в чеке строка «×2».
         tally: ResultsDemo.tally(hits: 20, misses: 29, streak: 5, hints: 0, cost: 10),
         balance: 240, levelRecord: StatRecord(wins: 4, losses: 7)))
         .preferredColorScheme(.light)

@@ -78,6 +78,10 @@
 		CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6886413062FF6700859D7B /* TokenGalleryView.swift */; };
 		CA8678B13088DF67005A2309 /* PadMenuArtPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */; };
 		CA8678BB3094EE53005A2309 /* BattleSide.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678BA3094EE53005A2309 /* BattleSide.swift */; };
+		CA8678C1309543B9005A2309 /* Sailor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C0309543B9005A2309 /* Sailor.swift */; };
+		CA8678C330954449005A2309 /* SailorPortrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C230954449005A2309 /* SailorPortrait.swift */; };
+		CA8678C5309544F2005A2309 /* WardrobeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C4309544F2005A2309 /* WardrobeScreen.swift */; };
+		CA8678C93099C82B005A2309 /* PlayerCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C83099C82B005A2309 /* PlayerCardView.swift */; };
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
@@ -203,6 +207,10 @@
 		CA6886413062FF6700859D7B /* TokenGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenGalleryView.swift; sourceTree = "<group>"; };
 		CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadMenuArtPreviews.swift; sourceTree = "<group>"; };
 		CA8678BA3094EE53005A2309 /* BattleSide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSide.swift; sourceTree = "<group>"; };
+		CA8678C0309543B9005A2309 /* Sailor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sailor.swift; sourceTree = "<group>"; };
+		CA8678C230954449005A2309 /* SailorPortrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailorPortrait.swift; sourceTree = "<group>"; };
+		CA8678C4309544F2005A2309 /* WardrobeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeScreen.swift; sourceTree = "<group>"; };
+		CA8678C83099C82B005A2309 /* PlayerCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCardView.swift; sourceTree = "<group>"; };
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
@@ -300,6 +308,7 @@
 				CAD720E0306E72A700F6E49F /* PointsLedger.swift */,
 				CAD720F2306EB1EE00F6E49F /* HapticService.swift */,
 				CA8678BA3094EE53005A2309 /* BattleSide.swift */,
+				CA8678C0309543B9005A2309 /* Sailor.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -407,6 +416,7 @@
 				CAF2D7AC307EC63F00D32059 /* PadLevelScreen.swift */,
 				CAF2D7B8307F8BAD00D32059 /* PadWelcomeScreen.swift */,
 				CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */,
+				CA8678C4309544F2005A2309 /* WardrobeScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -453,6 +463,8 @@
 				CAD002883073F374006405DC /* BoardRipple.metal */,
 				CAD002943076E714006405DC /* HintMark.metal */,
 				CAD002963076E733006405DC /* HintMark.swift */,
+				CA8678C230954449005A2309 /* SailorPortrait.swift */,
+				CA8678C83099C82B005A2309 /* PlayerCardView.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -630,11 +642,13 @@
 				CAD0029B3076E82E006405DC /* ContinueGame.swift in Sources */,
 				A584E62AB77D1A8B2AADC8D3 /* BoardCell.swift in Sources */,
 				9773F3093B5E225E9BA64CC7 /* CellEvent.swift in Sources */,
+				CA8678C1309543B9005A2309 /* Sailor.swift in Sources */,
 				CA8678B13088DF67005A2309 /* PadMenuArtPreviews.swift in Sources */,
 				FA9587FC6C8A65C22385A0A5 /* BoardView.swift in Sources */,
 				8FE2AEAE158D7E7A5B3A9C08 /* NavigationChrome.swift in Sources */,
 				73C8AF701C7D494795D0B59E /* ModalDialog.swift in Sources */,
 				8256EE09EAE88F2DBC4B27A2 /* Controls.swift in Sources */,
+				CA8678C93099C82B005A2309 /* PlayerCardView.swift in Sources */,
 				CAD002893073F374006405DC /* BoardRipple.metal in Sources */,
 				0BF4D4054E80269B496B7186 /* MetaControls.swift in Sources */,
 				CAD720EB306E81E900F6E49F /* SettingsScreen.swift in Sources */,
@@ -667,6 +681,7 @@
 				E6B6658BCC70C76953BDC2F7 /* DuelScreen.swift in Sources */,
 				CA6886403062FF3400859D7B /* DesignTokens.swift in Sources */,
 				CAA32FD13064042800469335 /* GlassPanel.swift in Sources */,
+				CA8678C5309544F2005A2309 /* WardrobeScreen.swift in Sources */,
 				CA17D7C6302CAF2F007A33B0 /* GameStore.swift in Sources */,
 				CA4F0A063061F00000D3B001 /* LayoutMemoryStore.swift in Sources */,
 				CA17D8CA302EFAC5007A33B0 /* CloudSyncManager.swift in Sources */,
@@ -704,6 +719,7 @@
 				2C28DAF72D12F14200A9BC19 /* AppState.swift in Sources */,
 				CADF48B3306DA80100974A1B /* NetGame.swift in Sources */,
 				CAD720F3306EB1EE00F6E49F /* HapticService.swift in Sources */,
+				CA8678C330954449005A2309 /* SailorPortrait.swift in Sources */,
 				CA17D8C3302E794F007A33B0 /* GameCenterManager.swift in Sources */,
 				CA17D7C0302C90DE007A33B0 /* Opponent.swift in Sources */,
 				CA6886423062FF6700859D7B /* TokenGalleryView.swift in Sources */,

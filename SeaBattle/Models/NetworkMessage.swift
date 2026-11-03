@@ -30,6 +30,13 @@ struct NetHello: Codable, Equatable, Sendable {
     /// separate message: both sides compute the same thing from two nonces.
     var nonce: UInt64
     var version: Int
+    /// The sailor as drawn on the sender's side today (30.10) — ids only, the
+    /// receiver draws it from its own art. `nil` from builds before it; old
+    /// builds ignore the key.
+    var sailor: SailorLook? = nil
+    /// The sender's record and awards for the player card (03.11); `nil` from
+    /// older builds.
+    var dossier: PlayerDossier? = nil
 }
 
 /// A shot at the opponent's board. `seq` counts the shooter's shots in the

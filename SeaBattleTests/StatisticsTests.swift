@@ -34,10 +34,23 @@ struct StatisticsTests {
     }
 
     @Test func aNetworkWinPaysTheExpertRateButNotInTheExpertRow() {
-        #expect(StatKey.nearby.pointsForWin == AppState.DifficultyLevel.expert.pointsValue)
-        #expect(StatKey.online.pointsForWin == AppState.DifficultyLevel.expert.pointsValue)
+        #expect(StatKey.nearby.pointsForWin == AppState.DifficultyLevel.expert.winReward)
+        #expect(StatKey.online.pointsForWin == AppState.DifficultyLevel.expert.winReward)
         // The paper game is scored by the player, so it buys nothing.
         #expect(StatKey.paper.pointsForWin == 0)
+    }
+
+    @Test func aQuickWinPaysDoubleAndASurrenderNever() {
+        let key = StatKey.computer(.expert)
+        #expect(key.reward(shots: StatKey.quickWinShots - 1) == key.pointsForWin * 2)
+        #expect(key.reward(shots: StatKey.quickWinShots) == key.pointsForWin)
+        // The opponent left before the fleet was sunk: no shot count, no double.
+        #expect(key.reward(shots: nil) == key.pointsForWin)
+
+        var stats = PlayerStats()
+        stats.recordWin(key, shots: 30)
+        #expect(stats.points == key.pointsForWin * 2)
+        #expect(stats.ledger.entries.first?.amount == key.pointsForWin * 2)
     }
 
     // MARK: - Counting
@@ -148,13 +161,13 @@ struct StatisticsTests {
         defer { if let restore { store.applyRemote(restore, modified: store.lastModified) } }
 
         let before = store.stats
-        store.recordWin(.computer(.easy))
-        #expect(store.points == before.points + AppState.DifficultyLevel.easy.pointsValue)
-        #expect(store.record(.computer(.easy)).wins == before.record(.computer(.easy)).wins + 1)
+        store.recordWin(.computer(.medium))
+        #expect(store.points == before.points + AppState.DifficultyLevel.medium.winReward)
+        #expect(store.record(.computer(.medium)).wins == before.record(.computer(.medium)).wins + 1)
 
         store.recordWin(.nearby)
-        #expect(store.points == before.points + AppState.DifficultyLevel.easy.pointsValue
-                + AppState.DifficultyLevel.expert.pointsValue)
+        #expect(store.points == before.points + AppState.DifficultyLevel.medium.winReward
+                + AppState.DifficultyLevel.expert.winReward)
         #expect(store.record(.nearby).wins == before.record(.nearby).wins + 1)
         // The whole point of R0.7: the expert row did not move.
         #expect(store.record(.computer(.expert)) == before.record(.computer(.expert)))

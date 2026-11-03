@@ -29,6 +29,8 @@ import SwiftUI
 /// там внизу свои две кнопки (кадр `screen10Reset`).
 enum StatsPage: Hashable, Sendable {
     case wallet, history, reset
+    /// Моряк (30.10): звание и одежда за баллы — из кошелька.
+    case sailor
 
     var hidesTabBar: Bool { self == .reset }
 }

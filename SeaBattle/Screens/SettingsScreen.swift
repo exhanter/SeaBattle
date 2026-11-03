@@ -191,6 +191,17 @@ struct SettingsScreen: View {
         return ListGroup("More", hostsMenus: true) {
             ListRow(title: "Your name", value: playerName, action: onPlayer)
                 .accessibilityIdentifier("settingsPlayer")
+            // Зимняя форма моряка (заказчик 30.10): по сезону — по полушарию
+            // из региона устройства; кому это не подходит, выбирает сам.
+            ListStackRow(title: "Sailor's winter uniform") {
+                SegmentedPick(options: [(WinterDress.bySeason, String(game: "By season", locale: locale)),
+                                        (WinterDress.always, String(game: "Always", locale: locale)),
+                                        (WinterDress.never, String(game: "Never", locale: locale))],
+                              selection: clicking(Binding(
+                                get: { ProgressStore.shared.sailor.winter },
+                                set: { dress in ProgressStore.shared.updateSailor { $0.winter = dress } })))
+                    .accessibilityIdentifier("settingsWinter")
+            }
             LanguageMenu(selection: $appState.language)
             if let onPro {
                 ListRow(title: "Pro",

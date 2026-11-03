@@ -453,7 +453,7 @@ private struct LevelMatchSection: View {
 }
 
 /// Что стоит выбранный уровень: сколько даёт победа, сколько стоит подсказка
-/// (это одно число — ставка уровня) и сколько баллов у игрока сейчас.
+/// и сколько баллов у игрока сейчас.
 private struct LevelStakeCard: View {
     let level: AppState.DifficultyLevel
     let balance: Int
@@ -469,9 +469,9 @@ private struct LevelStakeCard: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
             : AnyLayout(HStackLayout(spacing: 0))
         layout {
-            cell(value: "+\(level.pointsValue)", caption: "per win", warm: true)
+            cell(value: "+\(level.winReward)", caption: "per win", warm: true)
             divider
-            cell(value: "\(level.pointsValue)", caption: "per hint", warm: false)
+            cell(value: "\(level.hintPrice)", caption: "per hint", warm: false)
             divider
             cell(value: "\(balance)", caption: "you have", warm: false)
         }

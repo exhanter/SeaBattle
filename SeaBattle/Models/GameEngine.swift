@@ -48,7 +48,7 @@ final class GameEngine {
 
         play(result, on: target)
         if board.isFleetDestroyed {
-            finish(loser: target)
+            finish()
         }
 
         // `target` is the board that was fired AT. A miss (or a repeat shot)
@@ -82,17 +82,14 @@ final class GameEngine {
         }
     }
 
-    private func finish(loser: BattleSide) {
+    private func finish() {
         appState.gameIsActive = false
         appState.gameIsOver = true
         AppState.stopMusic()
         // The match is over — drop the saved game.
         GameStore.clear()
-        // The side whose whole fleet is sunk is the loser.
-        if loser.side == .foe {
-            ProgressStore.shared.recordWin(.computer(appState.difficultyLevel))
-        } else {
-            ProgressStore.shared.recordLoss(.computer(appState.difficultyLevel))
-        }
+        // The win or loss is recorded by `BattleController.finishIfOver`: the
+        // quick-win double needs the player's shot count, and the finishing shot
+        // reaches the tally only after this returns.
     }
 }

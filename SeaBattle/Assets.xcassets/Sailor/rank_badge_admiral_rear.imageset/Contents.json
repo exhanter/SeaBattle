@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "rank_badge_admiral_rear.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

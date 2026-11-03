@@ -92,10 +92,27 @@ enum StatKey: Hashable, Sendable {
     /// tracked — both players are one account.
     var pointsForWin: Int {
         switch self {
-        case .computer(let level): return level.pointsValue
+        case .computer(let level): return level.winReward
         case .paper, .hotSeat: return 0
-        case .nearby, .online: return AppState.DifficultyLevel.expert.pointsValue
+        case .nearby, .online: return AppState.DifficultyLevel.expert.winReward
         }
+    }
+
+    /// A win that sinks the whole fleet in fewer of the player's own shots than
+    /// this pays double (customer 30.10). About one match in seven against any
+    /// level gets there — it rewards the player's luck and aim, not the level.
+    static let quickWinShots = 50
+
+    /// What a win pays: `pointsForWin`, doubled for a quick win. `shots` is
+    /// `nil` when the fleet was not sunk — the opponent left the network match —
+    /// so a surrender never counts as quick.
+    func reward(shots: Int?) -> Int {
+        Self.isQuickWin(shots: shots) ? pointsForWin * 2 : pointsForWin
+    }
+
+    static func isQuickWin(shots: Int?) -> Bool {
+        guard let shots else { return false }
+        return shots < quickWinShots
     }
 
     /// Every row the statistics screen can show, in menu order. Hot-seat is

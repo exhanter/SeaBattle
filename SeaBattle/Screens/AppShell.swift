@@ -180,6 +180,8 @@ struct AppShell: View {
     @State private var tab: ShellTab = .play
     /// Экран внутри таба «Статистика»; `nil` — сама страница статистики.
     @State private var statsPage: StatsPage?
+    /// «Личное дело» поверх всего — и таб-бара (К4).
+    @State private var playerCard: PlayerCardInfo?
     @State private var askWhichGameToContinue = false
 
     /// Экран партии до боя, открытый поверх таба «Главная»: уровень или
@@ -456,6 +458,10 @@ struct AppShell: View {
                 }
             }
         }
+        .playerCard(playerCard) { playerCard = nil }
+        // Ушли со страницы моряка — окно не должно остаться висеть.
+        .onChange(of: statsPage) { playerCard = nil }
+        .onChange(of: tab) { playerCard = nil }
     }
 
     @ViewBuilder
@@ -516,11 +522,31 @@ struct AppShell: View {
         case .wallet:
             WalletScreen(points: progress.points,
                          entries: progress.ledger,
+                         sailor: progress.sailor,
                          onBack: { statsPage = nil },
-                         onHistory: { statsPage = .history })
+                         onHistory: { statsPage = .history },
+                         onSailor: { statsPage = .sailor })
         case .history:
             PointsHistoryScreen(entries: progress.ledger,
                                 onBack: { statsPage = .wallet })
+        case .sailor:
+            WardrobeScreen(wardrobe: progress.sailor,
+                           points: progress.points,
+                           onBack: { statsPage = .wallet },
+                           onBuy: { item, winter in
+                               if progress.buy(item, winter: winter) { purchaseFeedback() }
+                           },
+                           onBuyRank: {
+                               if progress.buyNextRank() { purchaseFeedback() }
+                           },
+                           onChange: { wardrobe in
+                               progress.updateSailor { $0 = wardrobe }
+                               if appState.soundOn { AudioService.shared.play(.click) }
+                               HapticService.shared.play(.button)
+                           },
+                           ownerName: appState.ownPlayer?.trimmedName ?? "",
+                           dossier: PlayerDossier(progress.stats),
+                           onCard: { playerCard = $0 })
         case .reset:
             ResetScreen(onReset: { selection in
                             progress.reset(selection)
@@ -544,20 +570,25 @@ struct AppShell: View {
                           onTab: selectTab)
         } else {
             let frame = Geometry.Inset.padFrame
-            ZStack(alignment: .bottom) {
-                tabContent
-                    // Настройки — в две колонки, им 520 мало (4.11).
-                    .frame(maxWidth: tab == .settings && settingsPage == nil
-                           ? SettingsMetrics.padWidth : Geometry.Nav.padColumn)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, hidesTabs ? 0 : Geometry.Inset.padTile + Geometry.Nav.stackGap)
-                if !hidesTabs {
-                    PadCornerTabs(current: tab, onSelect: selectTab)
-                        .padding(.horizontal, frame)
-                        .padding(.bottom, frame)
-                        .ignoresSafeArea(edges: .bottom)
+            tabContent
+                // Настройки — в две колонки, им 520 мало (4.11).
+                .frame(maxWidth: tab == .settings && settingsPage == nil
+                       ? SettingsMetrics.padWidth : Geometry.Nav.padColumn)
+                .frame(maxWidth: .infinity)
+                // Квадраты — вставкой безопасной зоны, а не отдельным рядом
+                // (заказчик 03.11): список прокручивается до самой кромки
+                // экрана, между квадратами и под ними, а последняя строка
+                // останавливается над ними. Раньше список обрывался на высоте
+                // квадратов, и в ландшафте под ним пустовала полоса.
+                .safeAreaInset(edge: .bottom, spacing: Geometry.Nav.stackGap) {
+                    if !hidesTabs {
+                        PadCornerTabs(current: tab, onSelect: selectTab)
+                            .padding(.horizontal, frame)
+                            .padding(.bottom, frame)
+                    }
                 }
-            }
+                // Квадраты на рамке 24 от края экрана, а не от безопасной зоны.
+                .ignoresSafeArea(.container, edges: hidesTabs ? [] : .bottom)
         }
     }
 
@@ -831,7 +862,9 @@ struct AppShell: View {
         let me = localPlayer
         let match = NetMatch(transport: transport, statKey: key,
                              me: NetMatch.hello(name: name, glyph: me.glyph,
-                                                colorIndex: me.colorIndex, accountID: accountID),
+                                                colorIndex: me.colorIndex, accountID: accountID,
+                                                sailor: ProgressStore.shared.sailor.currentLook,
+                                                dossier: PlayerDossier(ProgressStore.shared.stats)),
                              revealsRing: appState.autoRevealAroundSunk)
         match.soundOn = appState.soundOn
         match.start()
@@ -895,6 +928,13 @@ struct AppShell: View {
     }
 
     /// Конец первого запуска: «Готово» отдаёт игрока, «Пропустить» — `nil`.
+    /// Покупка в «Моряке»: баллы ушли — тот же отклик, что у кнопок, но
+    /// вибрацией победы, чтобы покупка ощущалась.
+    private func purchaseFeedback() {
+        if appState.soundOn { AudioService.shared.play(.click) }
+        HapticService.shared.play(.victory)
+    }
+
     private func finishOnboarding(_ own: OwnPlayer?) {
         if let own { appState.ownPlayer = own }
         withAnimation(Motion.standard.reduced(reduceMotion)) { appState.onboardingDone = true }

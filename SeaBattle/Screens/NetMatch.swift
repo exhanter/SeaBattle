@@ -100,9 +100,11 @@ final class NetMatch {
     }
 
     /// Своё приветствие для этой партии: случайное число решает, кто первый.
-    static func hello(name: String, glyph: String, colorIndex: Int, accountID: String) -> NetHello {
+    static func hello(name: String, glyph: String, colorIndex: Int, accountID: String,
+                      sailor: SailorLook? = nil, dossier: PlayerDossier? = nil) -> NetHello {
         NetHello(name: name, glyph: glyph, colorIndex: colorIndex, accountID: accountID,
-                 nonce: UInt64.random(in: .min ... .max), version: NetGame.protocolVersion)
+                 nonce: UInt64.random(in: .min ... .max), version: NetGame.protocolVersion,
+                 sailor: sailor, dossier: dossier)
     }
 
     /// Подключение уже есть — поздороваться и слушать.
@@ -117,6 +119,14 @@ final class NetMatch {
     // MARK: Чтение
 
     var opponentName: String { game.opponent?.name ?? "" }
+
+    /// Моряк соперника — над его полем (30.10); `nil` у старой версии.
+    var opponentSailor: SailorLook? { game.opponent?.sailor }
+
+    /// «Личное дело» соперника — открыто нажатием на его моряка (К4).
+    var showsOpponentCard = false
+
+    var opponentDossier: PlayerDossier? { game.opponent?.dossier }
 
     /// Соперник поздоровался. До этого флот можно расставлять, но не
     /// объявлять готовым (4.4).
@@ -165,8 +175,8 @@ final class NetMatch {
 
     // MARK: Подсказка
 
-    /// Ставка «Эксперта», как и награда за сетевую победу (R0.7).
-    var hintCost: Int { AppState.DifficultyLevel.expert.pointsValue }
+    /// Цена подсказки «Эксперта» (R0.7).
+    var hintCost: Int { AppState.DifficultyLevel.expert.hintPrice }
 
     /// Подсказка стоит вам баллов и платит сопернику, поэтому против своего
     /// же аккаунта её нет.
@@ -307,7 +317,10 @@ final class NetMatch {
               let winner = game.winner else { return }
         recordedRound = game.round
         if winner == .you {
-            ProgressStore.shared.recordWin(statKey)
+            // Удвоение — только если флот потоплен: сдача соперника на пятом
+            // выстреле быстрой победой не считается.
+            let sankFleet = game.tracking.sunkShipCount == FleetLayout.shipCount
+            ProgressStore.shared.recordWin(statKey, shots: sankFleet ? game.tally.shots : nil)
         } else {
             ProgressStore.shared.recordLoss(statKey)
         }

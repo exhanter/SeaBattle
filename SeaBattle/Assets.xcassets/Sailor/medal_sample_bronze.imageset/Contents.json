@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "medal_sample_bronze.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -27,7 +27,7 @@ struct WalletTests {
         stats.recordWin(.computer(.hard), at: morning)
         stats.recordWin(.paper, at: morning)
 
-        let reward = AppState.DifficultyLevel.hard.pointsValue
+        let reward = AppState.DifficultyLevel.hard.winReward
         #expect(stats.points == reward)
         #expect(stats.ledger.entries.count == 1, "партия на бумаге платит 0 — и строки нет")
         let entry = stats.ledger.entries[0]
@@ -51,8 +51,9 @@ struct WalletTests {
         // Между ними победа — тоже новая строка.
         stats.recordWin(.online, at: tomorrow)
         #expect(paid(&stats, 6, tomorrow))
-        #expect(stats.ledger.entries.map(\.amount) == [-6, 10, -6, -12])
-        #expect(stats.points == 30 - 24 + 10)
+        let reward = StatKey.online.pointsForWin
+        #expect(stats.ledger.entries.map(\.amount) == [-6, reward, -6, -12])
+        #expect(stats.points == 30 - 24 + reward)
     }
 
     @Test("На подсказку не хватает — ни списания, ни строки")

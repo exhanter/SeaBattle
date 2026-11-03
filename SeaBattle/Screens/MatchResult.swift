@@ -74,12 +74,15 @@ struct MatchTally: Codable, Equatable, Sendable {
 /// статистики (R4.1), и строка для них встанет сюда же.
 enum PointLine: Equatable, Sendable {
     case victory(points: Int)
+    /// Победа меньше чем за `StatKey.quickWinShots` выстрелов — вторая
+    /// награда за победу (заказчик 30.10).
+    case quickWin(points: Int)
     case hints(count: Int, points: Int)
 
     /// Со знаком: списание отрицательное.
     var amount: Int {
         switch self {
-        case .victory(let points): points
+        case .victory(let points), .quickWin(let points): points
         case .hints(_, let points): -points
         }
     }
@@ -162,12 +165,19 @@ struct MatchResult: Equatable, Sendable {
         let reward = awardsPoints ? key.pointsForWin : 0
         if didWin && reward > 0 {
             lines.append(.victory(points: reward))
+            if StatKey.isQuickWin(shots: quickWinShots) {
+                lines.append(.quickWin(points: reward))
+            }
         }
         if tally.hintsUsed > 0 {
             lines.append(.hints(count: tally.hintsUsed, points: tally.hintPointsSpent))
         }
         return lines
     }
+
+    /// Выстрелы игрока, если флот потоплен целиком, — для удвоения за быструю
+    /// победу; при сдаче соперника `nil`, как и в `NetMatch.record`.
+    var quickWinShots: Int? { foeLosses == fleetSize ? tally.shots : nil }
 
     /// Итог партии в баллах — число в шапке чека.
     var net: Int { lines.reduce(0) { $0 + $1.amount } }

@@ -25,6 +25,24 @@ struct PointsEntry: Codable, Hashable, Sendable, Identifiable {
         /// The opponent bought a hint over the network and revealed one of my
         /// ships; I am paid the price (`NetGame`). Merged the same way.
         case compensation(count: Int)
+        /// Something for the sailor: a `SailorItem.id`, or a rank as
+        /// `rankPurchase(_:)` writes it (30.10).
+        case purchase(item: String)
+    }
+
+    /// The history id of a bought rank — items and ranks share one kind.
+    static func rankPurchase(_ rank: String) -> String { "rank." + rank }
+
+    /// The rank of a rank purchase; `nil` for an item or anything else.
+    var purchasedRank: String? {
+        guard case .purchase(let item) = kind, item.hasPrefix("rank.") else { return nil }
+        return String(item.dropFirst("rank.".count))
+    }
+
+    /// The item of an item purchase; `nil` for a rank or anything else.
+    var purchasedItem: String? {
+        guard case .purchase(let item) = kind, !item.hasPrefix("rank.") else { return nil }
+        return item
     }
 
     var id = UUID()
@@ -86,6 +104,11 @@ struct PointsLedger: Codable, Hashable, Sendable {
         } else {
             push(PointsEntry(date: date, kind: .compensation(count: 1), amount: amount))
         }
+    }
+
+    mutating func addPurchase(_ item: String, cost: Int, at date: Date) {
+        guard cost != 0 else { return }
+        push(PointsEntry(date: date, kind: .purchase(item: item), amount: -cost))
     }
 
     private mutating func push(_ entry: PointsEntry) {

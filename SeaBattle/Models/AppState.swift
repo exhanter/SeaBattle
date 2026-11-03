@@ -15,9 +15,20 @@ class AppState {
     enum DifficultyLevel: String, Codable, CaseIterable {
         case easy, medium, hard, expert
 
-        /// Points awarded for a win at this level — and the cost of one hint at
-        /// this level (hint cost == win reward). Higher levels are worth more.
-        var pointsValue: Int {
+        /// Points awarded for a win at this level (customer 30.10). Doubled for
+        /// a quick win — see `StatKey.quickWinShots`.
+        var winReward: Int {
+            switch self {
+            case .easy: return 0
+            case .medium: return 1
+            case .hard: return 2
+            case .expert: return 3
+            }
+        }
+
+        /// The price of one hint at this level. Until 30.10 it was also the win
+        /// reward; the rewards were cut, the prices stayed (customer 30.10).
+        var hintPrice: Int {
             switch self {
             case .easy: return 1
             case .medium: return 3

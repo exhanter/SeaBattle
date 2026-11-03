@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "sailor_coat_peacoat.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

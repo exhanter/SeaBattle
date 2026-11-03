@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "rank_badge_petty.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

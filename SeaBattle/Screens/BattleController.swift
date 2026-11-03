@@ -240,18 +240,25 @@ final class BattleController {
         return result
     }
 
-    /// Партию кончает любой выстрел — и свой, и компьютера. Баланс берётся
-    /// после `GameEngine.finish`, поэтому победа в нём уже начислена — как и
-    /// партия в счёте уровня.
+    /// Партию кончает любой выстрел — и свой, и компьютера. Победа пишется
+    /// здесь, а не в `GameEngine.finish`: удвоению за быструю победу нужен
+    /// счёт выстрелов уже с добивающим. Баланс берётся после записи — победа
+    /// в нём уже начислена, как и партия в счёте уровня.
     private func finishIfOver() {
         guard result == nil, let appState, appState.gameIsOver else { return }
         let level = appState.difficultyLevel
+        let didWin = enemy.board.isFleetDestroyed
+        if didWin {
+            ProgressStore.shared.recordWin(.computer(level), shots: tally.shots)
+        } else {
+            ProgressStore.shared.recordLoss(.computer(level))
+        }
         // Опция «„Эксперт“ запоминает мои расстановки»: флот — только в конце
         // доигранной партии, чтобы в этой же партии его никто не прочёл.
         if appState.expertRemembersLayouts {
             LayoutMemoryStore.remember(player.board.ships)
         }
-        result = MatchResult(didWin: enemy.board.isFleetDestroyed,
+        result = MatchResult(didWin: didWin,
                              level: level,
                              yourLosses: player.sunkShipCount,
                              foeLosses: enemy.sunkShipCount,
@@ -290,8 +297,8 @@ final class BattleController {
 
     // MARK: Подсказка
 
-    /// Цена подсказки на текущем уровне — она же награда за победу.
-    var hintCost: Int { appState?.difficultyLevel.pointsValue ?? 0 }
+    /// Цена подсказки на текущем уровне.
+    var hintCost: Int { appState?.difficultyLevel.hintPrice ?? 0 }
 
     var canUseHint: Bool {
         isPlayersTurn && ProgressStore.shared.points >= hintCost && !hintCandidates.isEmpty

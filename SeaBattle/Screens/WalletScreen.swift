@@ -7,14 +7,14 @@
 //
 //  Отступления от кадров — решения R4.1:
 //  - **Цена подсказки не одна.** В кадре «5 баллов за ход, это 25 подсказок»,
-//    а в игре подсказка стоит столько же, сколько победа на уровне партии
-//    (1 / 3 / 5 / 10, по сети — 10); цену заказчик ещё не выбрал (раздел про
-//    R2.3 в `docs/STATUS.md`). Поэтому под балансом честное правило, а не
-//    число подсказок.
+//    а в игре цена подсказки зависит от уровня партии (1 / 3 / 5 / 10, по
+//    сети — 10; решение 9). Поэтому под балансом честное правило, а не число
+//    подсказок.
 //  - **Достижений нет** (решение 01.10) — их строки и источника «за
 //    достижения» нет.
 //  - Витрины и обещаний «магазин будет позже» нет (решение заказчика 07.10:
-//    это внутренние планы, а не информация для игрока).
+//    это внутренние планы, а не информация для игрока). С 30.10 баллы
+//    тратятся ещё на моряка — строка «Моряк» первой в списке.
 //  - **«За деньги не купить» не пишем** (спека 4.10 и кадр 13a говорят
 //    обратное): у заказчика в плане покупка баллов отдельно от Pro (решение
 //    01.10, `docs/REDESIGN_PLAN.md`). Пока её нет, пустой кошелёк просто
@@ -43,13 +43,18 @@ enum WalletMetrics {
     static let entryWhen: CGFloat = 11.5
     static let entryValue: CGFloat = 15
     static let entryPaddingV: CGFloat = 9
+    // Строка «Моряк»
+    static let sailorAvatar: CGFloat = 48
 }
 
 struct WalletScreen: View {
     let points: Int
     let entries: [PointsEntry]
+    /// Моряк (30.10) — на что баллы тратятся, кроме подсказок.
+    var sailor = SailorWardrobe()
     var onBack: () -> Void = {}
     var onHistory: () -> Void = {}
+    var onSailor: () -> Void = {}
 
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -72,6 +77,7 @@ struct WalletScreen: View {
 
             ScrollView {
                 VStack(spacing: WalletMetrics.blockGap) {
+                    sailorRow
                     if isEmpty {
                         EmptyStateCard(icon: PointsSymbol.name, title: "Nothing yet",
                                        text: "Points are earned for wins in the game and spent on hints.")
@@ -142,7 +148,7 @@ struct WalletScreen: View {
                 ScaledSymbol(name: "lightbulb.max", box: WalletMetrics.ruleIcon)
                     .foregroundStyle(Color.inkPrimary)
                     .accessibilityHidden(true)
-                Text("For now points are spent on hints: a hint costs as much as a win at the level of the match, from 1 to 10 points.")
+                Text("Points are spent on hints, from 1 to 10 points depending on the level, and on your sailor's ranks and uniform.")
                     .font(.scalable(size: WalletMetrics.ruleText))
                     .lineSpacing(WalletMetrics.ruleText * 0.4)
                     .foregroundStyle(Color.inkSecondary)
@@ -155,16 +161,52 @@ struct WalletScreen: View {
         .glassPanel(.g2, radius: WalletMetrics.balanceRadius, highlight: .selected)
     }
 
+    // MARK: Моряк
+
+    private var sailorRow: some View {
+        let look = sailor.currentLook
+        return ListGroup {
+            Button(action: onSailor) {
+                HStack(spacing: 12) {
+                    SailorAvatar(look: look, size: WalletMetrics.sailorAvatar)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Sailor")
+                            .font(.scalable(size: ListMetrics.rowTitle, weight: .medium))
+                            .foregroundStyle(Color.inkPrimary)
+                        Text("\(Text(look.rankInfo.title)) · ranks and uniform for points")
+                            .font(.scalable(size: ListMetrics.rowSubtitle))
+                            .foregroundStyle(Color.inkSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.right")
+                        .font(.scalable(size: symbolFontSize(inBox: ListMetrics.chevron), weight: .semibold))
+                        .foregroundStyle(Color.inkTertiary)
+                }
+                .padding(.vertical, ListMetrics.rowPaddingV)
+                .padding(.horizontal, ListMetrics.rowPaddingH)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("walletSailor")
+        }
+    }
+
     // MARK: Пустой кошелёк
 
     /// Откуда берутся баллы — ставки из `StatKey.pointsForWin`, а не из текста.
     private var sources: some View {
-        let levels = AppState.DifficultyLevel.allCases.map(\.pointsValue)
+        // «Легко» не платит ничего — диапазон от первого уровня, который платит.
+        let levels = AppState.DifficultyLevel.allCases.map(\.winReward).filter { $0 > 0 }
         let computer = "+\(levels.min() ?? 0) … +\(levels.max() ?? 0)"
         let person = "+\(StatKey.online.pointsForWin)"
         return ListGroup("Where they come from") {
             sourceRow(icon: "cpu", title: "A win over the computer", value: computer)
             sourceRow(icon: "globe", title: "A win over a person, nearby or online", value: person)
+            sourceRow(icon: "bolt", title: "A win in under \(StatKey.quickWinShots) shots",
+                      value: "×2")
         }
     }
 
@@ -266,6 +308,7 @@ struct PointsEntryRow: View {
             }
         case .hints: return "lightbulb.max"
         case .compensation: return "lightbulb"
+        case .purchase: return entry.purchasedRank != nil ? "medal" : "tshirt"
         }
     }
 
@@ -288,6 +331,14 @@ struct PointsEntryRow: View {
             return count == 1 ? Text("Hint") : Text("Hints, \(count) times")
         case .compensation(let count):
             return count == 1 ? Text("Opponent's hint") : Text("Opponent's hints, \(count) times")
+        case .purchase:
+            if let rank = entry.purchasedRank {
+                return Text("Rank · \(Text(SailorCatalog.rank(rank).title))")
+            }
+            if let item = SailorCatalog.item(entry.purchasedItem) {
+                return Text("Bought · \(Text(item.title))")
+            }
+            return Text("Purchase")
         }
     }
 

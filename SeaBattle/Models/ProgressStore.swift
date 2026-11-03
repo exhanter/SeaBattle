@@ -76,9 +76,9 @@ final class ProgressStore {
     ///
     /// The row carries the mode, so a network win is counted as a network win;
     /// before R0.7 it was filed as a win over the expert (audit finding A7).
-    func recordWin(_ key: StatKey) {
+    func recordWin(_ key: StatKey, shots: Int? = nil) {
         guard key.mode.isTracked else { return }
-        stats.recordWin(key)
+        stats.recordWin(key, shots: shots)
         persist()
     }
 
@@ -101,6 +101,34 @@ final class ProgressStore {
     /// paid its price, and the history says why.
     func receiveCompensation(_ amount: Int) {
         stats.receiveCompensation(amount)
+        persist()
+    }
+
+    // MARK: - Sailor
+
+    var sailor: SailorWardrobe { stats.sailor }
+
+    /// Buys an item and puts it on. RETURNS: whether it was bought.
+    @discardableResult
+    func buy(_ item: SailorItem, winter: Bool = false) -> Bool {
+        guard stats.buy(item, winter: winter) else { return false }
+        persist()
+        return true
+    }
+
+    @discardableResult
+    func buyNextRank() -> Bool {
+        guard stats.buyNextRank() else { return false }
+        persist()
+        return true
+    }
+
+    /// Any change of what is worn — figure, clothes, the winter setting.
+    func updateSailor(_ change: (inout SailorWardrobe) -> Void) {
+        var sailor = stats.sailor
+        change(&sailor)
+        guard sailor != stats.sailor else { return }
+        stats.sailor = sailor
         persist()
     }
 

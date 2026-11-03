@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "rank_badge_lieutenant_senior.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

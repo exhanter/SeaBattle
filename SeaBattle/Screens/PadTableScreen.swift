@@ -519,7 +519,26 @@ struct PadTableScreen: View {
     /// Над полем противника — имя соперника; у компьютера имени нет, поэтому
     /// «Поле противника», на бумаге — «Противник» (23d). Уровень сюда больше
     /// не ставится (4.5 после раунда 7).
+    @ViewBuilder
     private func title(_ side: Side) -> some View {
+        if let net, side == .foe, let sailor = net.opponentSailor {
+            // Моряк соперника — нажатием его «Личное дело» (К4).
+            Button { net.showsOpponentCard = true } label: {
+                HStack(spacing: 8) {
+                    SailorAvatar(look: sailor, size: BattleMetrics.pad.caption * 1.6)
+                    styledTitle(side)
+                    RankBadge(rank: sailor.rankInfo, size: BattleMetrics.pad.caption * 1.1)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("Shows the opponent's service record"))
+            .accessibilityIdentifier("opponentCardButton")
+        } else {
+            styledTitle(side)
+        }
+    }
+
+    private func styledTitle(_ side: Side) -> some View {
         titleText(side)
             .font(.system(size: BattleMetrics.pad.caption, weight: .semibold, design: .rounded))
             .foregroundStyle(Color.inkPrimary)

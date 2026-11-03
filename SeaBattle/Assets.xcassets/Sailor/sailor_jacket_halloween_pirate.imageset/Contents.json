@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "sailor_jacket_halloween_pirate.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

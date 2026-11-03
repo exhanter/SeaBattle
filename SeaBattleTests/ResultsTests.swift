@@ -53,6 +53,8 @@ struct ResultsTests {
     private func result(won: Bool, level: AppState.DifficultyLevel = .hard,
                         hints: Int = 0, cost: Int = 6) -> MatchResult {
         var tally = MatchTally()
+        // Не быстрая победа: удвоение проверяется отдельно.
+        for _ in 0..<StatKey.quickWinShots { tally.record(Board.ShotResult.miss) }
         for _ in 0..<hints { tally.recordHint(cost: cost) }
         return MatchResult(didWin: won, level: level, yourLosses: won ? 2 : 10,
                            foeLosses: won ? 10 : 7, tally: tally, balance: 100)
@@ -61,8 +63,9 @@ struct ResultsTests {
     @Test("Победа: строка за исход по ставке уровня, подсказки минусом")
     func aWinPaysTheLevelStake() {
         let r = result(won: true, level: .expert, hints: 2, cost: 10)
-        #expect(r.lines == [.victory(points: 10), .hints(count: 2, points: 20)])
-        #expect(r.net == -10)
+        let reward = AppState.DifficultyLevel.expert.winReward
+        #expect(r.lines == [.victory(points: reward), .hints(count: 2, points: 20)])
+        #expect(r.net == reward - 20)
     }
 
     @Test("Поражение: строки за исход нет вовсе (4.9)")
@@ -98,6 +101,10 @@ struct ResultsTests {
     @Test("Итог ставится в момент последнего выстрела, со счётом и балансом")
     func theLastShotProducesTheResult() throws {
         let (appState, battle) = match()
+        // «Легко» за победу не платит — чек проверяется на уровне, который
+        // платит. Мимо `difficultyLevel`: тот пишет в UserDefaults.
+        appState.difficulty = AppState.DifficultyLevel.medium.storedValue
+        let pointsBefore = ProgressStore.shared.points
         let cells = battle.enemy.board.ships.flatMap(\.cells)
         for cell in cells.dropLast() { battle.tap(cell) }
         #expect(battle.result == nil)
@@ -112,7 +119,10 @@ struct ResultsTests {
         #expect(result.tally.bestStreak == cells.count)
         // Баланс — после начисления победы.
         #expect(result.balance == ProgressStore.shared.points)
-        #expect(result.lines.first == .victory(points: appState.difficultyLevel.pointsValue))
+        // 20 выстрелов без промаха — быстрая победа: награда дважды.
+        let reward = AppState.DifficultyLevel.medium.winReward
+        #expect(result.lines == [.victory(points: reward), .quickWin(points: reward)])
+        #expect(ProgressStore.shared.points == pointsBefore + 2 * reward)
     }
 
     @Test("Подсказка попадает в счёт партии и в чек")

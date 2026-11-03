@@ -78,6 +78,12 @@ struct NetScreen: View {
         .forLanguage(locale.language.languageCode?.identifier)
     }
 
+    /// «Личное дело» соперника, пока оно открыто.
+    private var opponentCard: PlayerCardInfo? {
+        guard match.showsOpponentCard, let look = match.opponentSailor else { return nil }
+        return PlayerCardInfo(name: match.opponentName, look: look, dossier: match.opponentDossier)
+    }
+
     var body: some View {
         content
             .battleTypeSize()
@@ -86,6 +92,7 @@ struct NetScreen: View {
             .matchResults(match.result, onPlayAgain: match.playAgain, onMenu: exit,
                           prepareReview: { match.show(.foe) },
                           boards: { ResultBoards(own: match.board(.you), foe: match.board(.foe)) })
+            .playerCard(opponentCard) { match.showsOpponentCard = false }
             .modalDialog(isPresented: askLeave) {
                 ModalDialog.leaveMatch(.network,
                                        onStay: { askLeave = false },
@@ -248,7 +255,15 @@ struct NetScreen: View {
     private func caption(_ field: Side, size: Geometry.SizeClass) -> some View {
         Group {
             if field == .foe && !match.opponentName.isEmpty {
-                Text(verbatim: match.opponentName)
+                // Нажатие на моряка соперника — его «Личное дело» (К4).
+                Button { match.showsOpponentCard = true } label: {
+                    SailorNameTag(name: match.opponentName, sailor: match.opponentSailor,
+                                  size: BattleScreenMetrics.captionHeight)
+                }
+                .buttonStyle(.plain)
+                .disabled(match.opponentSailor == nil)
+                .accessibilityHint(Text("Shows the opponent's service record"))
+                .accessibilityIdentifier("opponentCardButton")
             } else {
                 Text(field == .foe ? "Opponent's board" : "Your fleet")
             }
@@ -570,7 +585,10 @@ func netDemoMatch(waiting: Bool = false, lost: Bool = false,
                       me: NetMatch.hello(name: "Вы", glyph: "sailboat.fill", colorIndex: 0, accountID: "me"),
                       records: false)
     let foe = NetMatch(transport: b, statKey: .nearby,
-                       me: NetMatch.hello(name: "Борис", glyph: "helm", colorIndex: 8, accountID: "boris"),
+                       me: NetMatch.hello(name: "Борис", glyph: "helm", colorIndex: 8, accountID: "boris",
+                                          sailor: SailorLook(rank: "captain_2", shirt: "shirt_white",
+                                                             jacket: "jacket_officer",
+                                                             cap: "cap_officer")),
                        records: false)
     for match in [me, foe] {
         match.soundOn = false

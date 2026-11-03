@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "sailor_hair_curly.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

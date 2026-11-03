@@ -160,9 +160,9 @@ struct PadLevelScreen: View {
             .accessibilityElement(children: .combine)
             Spacer(minLength: 0)
             HStack(spacing: 0) {
-                number("+\(selected.pointsValue)", caption: "per win", warm: true)
+                number("+\(selected.winReward)", caption: "per win", warm: true)
                 divider
-                number("\(selected.pointsValue)", caption: "per hint", warm: false)
+                number("\(selected.hintPrice)", caption: "per hint", warm: false)
                 divider
                 number("\(options.balance)", caption: "you have", warm: false)
             }
