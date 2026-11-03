@@ -104,6 +104,18 @@ final class ProgressStore {
         persist()
     }
 
+    // MARK: - Achievements
+
+    /// Counts a finished match for the achievements. RETURNS: the medals it
+    /// earned, for the results screen. The paper game and hot-seat are not
+    /// passed here — their results are typed in or played against oneself.
+    @discardableResult
+    func recordMatch(_ facts: MatchFacts) -> [EarnedMedal] {
+        let earned = stats.achievements.record(facts)
+        persist()
+        return earned
+    }
+
     // MARK: - Sailor
 
     var sailor: SailorWardrobe { stats.sailor }

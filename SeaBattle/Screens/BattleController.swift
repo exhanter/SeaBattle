@@ -253,6 +253,9 @@ final class BattleController {
         } else {
             ProgressStore.shared.recordLoss(.computer(level))
         }
+        let medals = ProgressStore.shared.recordMatch(
+            MatchFacts(key: .computer(level), didWin: didWin, shots: didWin ? tally.shots : nil,
+                       bestStreak: tally.bestStreak, shipsLost: player.sunkShipCount))
         // Опция «„Эксперт“ запоминает мои расстановки»: флот — только в конце
         // доигранной партии, чтобы в этой же партии его никто не прочёл.
         if appState.expertRemembersLayouts {
@@ -265,6 +268,7 @@ final class BattleController {
                              tally: tally,
                              balance: ProgressStore.shared.points,
                              levelRecord: ProgressStore.shared.record(.computer(level)))
+        result?.medals = medals
     }
 
     /// Событие для показанного поля; чужое поле его не получает.

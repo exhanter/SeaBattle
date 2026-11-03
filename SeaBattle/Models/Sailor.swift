@@ -529,7 +529,8 @@ struct PlayerDossier: Codable, Hashable, Sendable {
         let network = [GameMode.nearby, .online].map(stats.record(for:))
         self.init(games: stats.totalGames, wins: stats.totalWins,
                   networkGames: network.reduce(0) { $0 + $1.played },
-                  networkWins: network.reduce(0) { $0 + $1.wins })
+                  networkWins: network.reduce(0) { $0 + $1.wins },
+                  medals: stats.achievements.medals)
     }
 
     /// Share of games won, 0…1; `nil` before the first game.

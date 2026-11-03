@@ -82,6 +82,7 @@
 		CA8678C330954449005A2309 /* SailorPortrait.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C230954449005A2309 /* SailorPortrait.swift */; };
 		CA8678C5309544F2005A2309 /* WardrobeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C4309544F2005A2309 /* WardrobeScreen.swift */; };
 		CA8678C93099C82B005A2309 /* PlayerCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8678C83099C82B005A2309 /* PlayerCardView.swift */; };
+		CA867907309A85E1005A2309 /* Achievements.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA867906309A85E1005A2309 /* Achievements.swift */; };
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
@@ -211,6 +212,7 @@
 		CA8678C230954449005A2309 /* SailorPortrait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailorPortrait.swift; sourceTree = "<group>"; };
 		CA8678C4309544F2005A2309 /* WardrobeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeScreen.swift; sourceTree = "<group>"; };
 		CA8678C83099C82B005A2309 /* PlayerCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCardView.swift; sourceTree = "<group>"; };
+		CA867906309A85E1005A2309 /* Achievements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievements.swift; sourceTree = "<group>"; };
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
@@ -309,6 +311,7 @@
 				CAD720F2306EB1EE00F6E49F /* HapticService.swift */,
 				CA8678BA3094EE53005A2309 /* BattleSide.swift */,
 				CA8678C0309543B9005A2309 /* Sailor.swift */,
+				CA867906309A85E1005A2309 /* Achievements.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -661,6 +664,7 @@
 				A4A84B7FC333B8EEB4CE7B4A /* PaperMatch.swift in Sources */,
 				CADF48BB306DAA7A00974A1B /* NearbyScreen.swift in Sources */,
 				210BB8FAACCB9CEA1937FD8E /* PadMenuScreen.swift in Sources */,
+				CA867907309A85E1005A2309 /* Achievements.swift in Sources */,
 				1A9FA89038BC7E25578D6340 /* PaperGame.swift in Sources */,
 				06779077B87248DDCAD15641 /* LevelScreen.swift in Sources */,
 				922DB781A628F1BB69AB7777 /* MenuScreen.swift in Sources */,

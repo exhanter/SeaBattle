@@ -82,6 +82,7 @@ struct WardrobeScreen: View {
     /// Имя и счёт для «Личного дела».
     var ownerName = ""
     var dossier: PlayerDossier?
+    var book: AchievementBook?
     /// Показать «Личное дело» над всем экраном, таб-бар тоже затемнив;
     /// `nil` — показать внутри экрана (превью).
     var onCard: ((PlayerCardInfo) -> Void)?
@@ -100,12 +101,14 @@ struct WardrobeScreen: View {
          onChange: @escaping (SailorWardrobe) -> Void = { _ in },
          ownerName: String = "",
          dossier: PlayerDossier? = nil,
+         book: AchievementBook? = nil,
          onCard: ((PlayerCardInfo) -> Void)? = nil,
          now: Date = .now) {
         self.onCard = onCard
         self.now = now
         self.ownerName = ownerName
         self.dossier = dossier
+        self.book = book
         self.wardrobe = wardrobe
         self.points = points
         self.onBack = onBack
@@ -152,7 +155,7 @@ struct WardrobeScreen: View {
         }
         .animation(Motion.quick, value: tryOn)
         .playerCard(showsCard ? PlayerCardInfo(name: ownerName, look: wardrobe.currentLook,
-                                               dossier: dossier) : nil) {
+                                               dossier: dossier, book: book) : nil) {
             showsCard = false
         }
     }
@@ -188,7 +191,8 @@ struct WardrobeScreen: View {
         return VStack(alignment: .leading, spacing: 12) {
             layout {
                 Button {
-                    let info = PlayerCardInfo(name: ownerName, look: wardrobe.currentLook, dossier: dossier)
+                    let info = PlayerCardInfo(name: ownerName, look: wardrobe.currentLook,
+                                              dossier: dossier, book: book)
                     if let onCard { onCard(info) } else { showsCard = true }
                 } label: {
                     SailorPortrait(look: look)

@@ -546,6 +546,7 @@ struct AppShell: View {
                            },
                            ownerName: appState.ownPlayer?.trimmedName ?? "",
                            dossier: PlayerDossier(progress.stats),
+                           book: progress.stats.achievements,
                            onCard: { playerCard = $0 })
         case .reset:
             ResetScreen(onReset: { selection in

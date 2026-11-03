@@ -10,6 +10,80 @@
 //
 
 import SwiftUI
+import UIKit
+
+// MARK: - Достижения: названия и ордена
+
+extension Achievement {
+    var title: LocalizedStringKey {
+        switch self {
+        case .sharpshooter: "Sharp Volley"
+        case .unscathed: "Not a Scratch"
+        case .streak: "Winning Streak"
+        case .barrage: "Hail of Fire"
+        case .expertSlayer: "Expert's Bane"
+        case .duelist: "Duellist"
+        case .seaWolf: "Sea Wolf"
+        }
+    }
+
+    /// Что нужно для степени — подпись к следующей степени в «Личном деле».
+    func condition(_ grade: MedalGrade) -> Text {
+        let n = thresholds[grade.rawValue - 1]
+        let level = Achievement.gradeLevels[grade].map { LevelChoice.title(for: $0) } ?? ""
+        switch self {
+        case .sharpshooter: return Text("Win in \(n) shots or fewer")
+        case .unscathed: return Text("Win without losing a ship · \(Text(level))")
+        case .streak: return Text("\(n) wins in a row · \(Text(level))")
+        case .barrage: return Text("\(n) hits in a row in one match")
+        case .expertSlayer: return Text("\(n) wins over the Expert")
+        case .duelist: return Text("\(n) wins over people")
+        case .seaWolf: return Text("\(n) wins")
+        }
+    }
+}
+
+extension MedalGrade {
+    var title: LocalizedStringKey {
+        switch self {
+        // Свои ключи: «Bronze» и «Gold» в каталоге уже заняты цветами аватара.
+        case .bronze: "Bronze grade"
+        case .silver: "Silver grade"
+        case .gold: "Gold grade"
+        }
+    }
+}
+
+/// Орден картинкой `medal_<id>_<степень>`; пока своей картинки нет — пробный
+/// орден той же степени (Д7).
+struct MedalImage: View {
+    let medal: String
+    var size: CGFloat = PlayerCardMetrics.medal
+
+    private var assetName: String {
+        let own = "medal_\(medal)"
+        if UIImage(named: own) != nil { return own }
+        let grade = MedalGrade.allCases.first { medal.hasSuffix("_" + $0.suffix) } ?? .bronze
+        return "medal_sample_\(grade.suffix)"
+    }
+
+    var body: some View {
+        Image(assetName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+}
+
+extension EarnedMedal {
+    init?(medal: String) {
+        guard let grade = MedalGrade.allCases.first(where: { medal.hasSuffix("_" + $0.suffix) }),
+              let achievement = Achievement(rawValue: String(medal.dropLast(grade.suffix.count + 1)))
+        else { return nil }
+        self.init(achievement: achievement, grade: grade)
+    }
+}
 
 enum PlayerCardMetrics {
     static let portrait: CGFloat = 176
@@ -28,6 +102,9 @@ struct PlayerCardInfo: Equatable {
     let name: String
     let look: SailorLook
     let dossier: PlayerDossier?
+    /// Своя карточка: книга достижений — прогресс к следующим степеням.
+    /// У соперника — `nil`, ему видны только ордена.
+    var book: AchievementBook? = nil
 }
 
 struct PlayerCardView: View {
@@ -86,6 +163,9 @@ struct PlayerCardView: View {
             if let dossier = info.dossier {
                 record(dossier)
                 awards(dossier.medals)
+            }
+            if let book = info.book {
+                progress(book)
             }
         }
         .padding(ModalMetrics.padding)
@@ -147,6 +227,60 @@ struct PlayerCardView: View {
         Rectangle().fill(Color.glassStroke).frame(width: 1, height: 34)
     }
 
+    // MARK: Прогресс (своя карточка)
+
+    /// Видимые достижения без золота: следующая степень и, у счётчиков, счёт.
+    /// Тайные появляются здесь только после первой степени (заказчик 03.11).
+    @ViewBuilder
+    private func progress(_ book: AchievementBook) -> some View {
+        let open = Achievement.allCases.filter { book.isShown($0) && book.nextGrade($0) != nil }
+        if !open.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Next awards")
+                    .font(.scalable(size: ListMetrics.overline, weight: .bold))
+                    .tracking(ListMetrics.overlineTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Color.inkSecondary)
+                    .accessibilityAddTraits(.isHeader)
+                ForEach(open, id: \.self) { achievement in
+                    if let next = book.nextGrade(achievement) {
+                        progressRow(achievement, next: next, book: book)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func progressRow(_ achievement: Achievement, next: MedalGrade, book: AchievementBook) -> some View {
+        HStack(spacing: 10) {
+            MedalImage(medal: achievement.medal(next), size: 34)
+                .saturation(0)
+                .opacity(0.55)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(Text(achievement.title)) · \(Text(next.title))")
+                    .font(.scalable(size: ListMetrics.rowSubtitle, weight: .semibold))
+                    .foregroundStyle(Color.inkPrimary)
+                achievement.condition(next)
+                    .font(.scalable(size: PlayerCardMetrics.caption))
+                    .foregroundStyle(Color.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if achievement.isCounter || achievement == .streak {
+                let goal = achievement.thresholds[next.rawValue - 1]
+                let count = achievement == .streak
+                    ? Achievement.gradeLevels[next].map { book.streaks[$0.rawValue] ?? 0 } ?? 0
+                    : book.count(achievement)
+                Text(verbatim: "\(min(count, goal)) / \(goal)")
+                    .font(.scalable(size: PlayerCardMetrics.caption, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.inkSecondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
     // MARK: Награды
 
     @ViewBuilder
@@ -163,14 +297,24 @@ struct PlayerCardView: View {
                     .font(.scalable(size: ListMetrics.rowSubtitle))
                     .foregroundStyle(Color.inkSecondary)
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: PlayerCardMetrics.medal), spacing: 8)],
-                          spacing: 8) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: PlayerCardMetrics.medal + 16), spacing: 8,
+                                             alignment: .top)],
+                          spacing: 10) {
                     ForEach(medals, id: \.self) { medal in
-                        Image("medal_\(medal)")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: PlayerCardMetrics.medal, height: PlayerCardMetrics.medal)
-                            .accessibilityHidden(true)
+                        VStack(spacing: 4) {
+                            MedalImage(medal: medal)
+                            if let earned = EarnedMedal(medal: medal) {
+                                Text(earned.achievement.title)
+                                    .font(.scalable(size: PlayerCardMetrics.caption, weight: .semibold))
+                                    .foregroundStyle(Color.inkPrimary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2, reservesSpace: true)
+                                Text(earned.grade.title)
+                                    .font(.scalable(size: PlayerCardMetrics.caption))
+                                    .foregroundStyle(Color.inkSecondary)
+                            }
+                        }
+                        .accessibilityElement(children: .combine)
                     }
                 }
             }
@@ -246,7 +390,21 @@ private struct PlayerCardLayer: View {
         look: SailorLook(figure: SailorFigure(skinTone: 3, hair: "slick", hairColor: 2), rank: "captain_2",
                          shirt: "shirt_white", jacket: "jacket_officer", cap: "cap_officer"),
         dossier: PlayerDossier(games: 148, wins: 91, networkGames: 30, networkWins: 17,
-                               medals: ["sample_gold", "sample_silver", "sample_bronze"])),
+                               medals: ["unscathed_gold", "sharpshooter_silver", "duelist_bronze"])),
+                onClose: {})
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Личное дело · своё, с прогрессом") {
+    var book = AchievementBook()
+    for _ in 0..<12 {
+        _ = book.record(MatchFacts(key: .computer(.medium), didWin: true, shots: 38,
+                                   bestStreak: 9, shipsLost: 2))
+    }
+    return ZStack {
+        SeaBackground().ignoresSafeArea()
+    }
+    .playerCard(PlayerCardInfo(name: "Аня", look: SailorLook(), dossier: PlayerDossier(games: 12, wins: 12, medals: book.medals), book: book),
                 onClose: {})
     .preferredColorScheme(.dark)
 }

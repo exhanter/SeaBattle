@@ -192,6 +192,7 @@ struct ResultsScreen: View {
     private var cards: some View {
         VStack(spacing: ResultMetrics.cardGap) {
             outcomeCard
+            medalsCard
             // Вдвоём баллов нет — вместо чека счёт серии (4.9).
             if let duel = result.duel {
                 seriesCard(duel)
@@ -232,6 +233,7 @@ struct ResultsScreen: View {
             HStack(alignment: .top, spacing: ResultMetrics.boardsGap) {
                 StretchColumn(spacing: gap) {
                     outcomeCard
+                    medalsCard
                     HStack(alignment: .top, spacing: gap) {
                         moneyCard
                         summaryCard
@@ -244,6 +246,7 @@ struct ResultsScreen: View {
         } else {
             VStack(spacing: ResultMetrics.boardsGap) {
                 outcomeCard
+                medalsCard
                 HStack(alignment: .top, spacing: ResultMetrics.boardsGap) {
                     StretchColumn(spacing: gap) {
                         moneyCard
@@ -289,6 +292,43 @@ struct ResultsScreen: View {
     private var levelCardIfAny: some View {
         if let level = result.level, let record = result.levelRecord {
             levelCard(level, record)
+        }
+    }
+
+    // MARK: Новый орден
+
+    /// «Новый орден!» — ордена, полученные этой партией (03.11). Тайные
+    /// достижения впервые показываются именно здесь.
+    @ViewBuilder
+    private var medalsCard: some View {
+        if !result.medals.isEmpty {
+            VStack(spacing: 10) {
+                Text(result.medals.count == 1 ? "New award!" : "New awards!")
+                    .font(.scalable(size: ResultMetrics.rowText, weight: .bold))
+                    .foregroundStyle(Color.roleYou)
+                    .accessibilityAddTraits(.isHeader)
+                HStack(alignment: .top, spacing: 16) {
+                    ForEach(result.medals, id: \.self) { earned in
+                        VStack(spacing: 4) {
+                            MedalImage(medal: earned.medal, size: 72)
+                            Text(earned.achievement.title)
+                                .font(.scalable(size: ResultMetrics.rowText, weight: .semibold))
+                                .foregroundStyle(Color.inkPrimary)
+                                .multilineTextAlignment(.center)
+                            Text(earned.grade.title)
+                                .font(.scalable(size: 12))
+                                .foregroundStyle(Color.inkSecondary)
+                        }
+                        .frame(maxWidth: 120)
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
+            .glassPanel(.g2, radius: Geometry.Radius.panel, highlight: .selected)
+            .accessibilityIdentifier("resultsMedals")
         }
     }
 
@@ -921,6 +961,17 @@ private struct ResultsDemo: View {
         didWin: false, level: .medium, yourLosses: 10, foeLosses: 7,
         tally: ResultsDemo.tally(hits: 17, misses: 41, streak: 3, hints: 1, cost: 3),
         balance: 76, levelRecord: StatRecord(wins: 21, losses: 11)))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Итоги · новые ордена") {
+    var result = MatchResult(
+        didWin: true, level: .hard, yourLosses: 0, foeLosses: 10,
+        tally: ResultsDemo.tally(hits: 20, misses: 14, streak: 10, hints: 0, cost: 5),
+        balance: 126, levelRecord: StatRecord(wins: 9, losses: 13))
+    result.medals = [EarnedMedal(achievement: .sharpshooter, grade: .silver),
+                     EarnedMedal(achievement: .unscathed, grade: .silver)]
+    return ResultsDemo(result: result)
         .preferredColorScheme(.dark)
 }
 

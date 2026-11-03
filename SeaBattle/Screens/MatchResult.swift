@@ -127,6 +127,8 @@ struct MatchResult: Equatable, Sendable {
     /// Одиночная игра: все партии на этом уровне, уже с этой (заказчик,
     /// 07.10 — на итогах видно, как идут дела на уровне). `nil` — карточки нет.
     var levelRecord: StatRecord?
+    /// Ордена, полученные этой партией (03.11) — «Новый орден!» на итогах.
+    var medals: [EarnedMedal] = []
 
     /// Уровень компьютера; у других режимов его нет.
     var level: AppState.DifficultyLevel? { key.difficulty }

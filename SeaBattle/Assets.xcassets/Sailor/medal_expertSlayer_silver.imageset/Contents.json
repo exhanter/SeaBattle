@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "medal_expertSlayer_silver.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

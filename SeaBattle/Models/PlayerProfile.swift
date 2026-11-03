@@ -106,9 +106,13 @@ struct PlayerStats: Codable, Hashable, Sendable {
     /// 30.10: the sailor bought with these points — ranks, clothes, what is
     /// worn. Kept with the balance so one sync carries both.
     var sailor: SailorWardrobe
+    /// 03.11: achievements and their counters — merit, not money.
+    var achievements: AchievementBook
 
     init(records: [String: StatRecord] = [:], unattributedLosses: Int = 0, points: Int = 0,
-         ledger: PointsLedger = PointsLedger(), sailor: SailorWardrobe = SailorWardrobe()) {
+         ledger: PointsLedger = PointsLedger(), sailor: SailorWardrobe = SailorWardrobe(),
+         achievements: AchievementBook = AchievementBook()) {
+        self.achievements = achievements
         self.records = records
         self.unattributedLosses = unattributedLosses
         self.points = points
@@ -196,7 +200,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
     // MARK: - Codable
 
     private enum CodingKeys: String, CodingKey {
-        case records, unattributedLosses, points, ledger, sailor
+        case records, unattributedLosses, points, ledger, sailor, achievements
         // Pre-R0.7 shape. Read when migrating, and still WRITTEN, so a build
         // from before R0.7 sharing the same iCloud record (last-writer-wins)
         // keeps seeing sensible numbers instead of failing to decode.
@@ -209,6 +213,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         // A damaged history is not worth losing the statistics over.
         ledger = (try? c.decodeIfPresent(PointsLedger.self, forKey: .ledger)) ?? PointsLedger()
         sailor = (try? c.decodeIfPresent(SailorWardrobe.self, forKey: .sailor)) ?? SailorWardrobe()
+        achievements = (try? c.decodeIfPresent(AchievementBook.self, forKey: .achievements)) ?? AchievementBook()
         if let records = try c.decodeIfPresent([String: StatRecord].self, forKey: .records) {
             self.records = records
             unattributedLosses = try c.decodeIfPresent(Int.self, forKey: .unattributedLosses) ?? 0
@@ -234,6 +239,7 @@ struct PlayerStats: Codable, Hashable, Sendable {
         try c.encode(points, forKey: .points)
         try c.encode(ledger, forKey: .ledger)
         try c.encode(sailor, forKey: .sailor)
+        try c.encode(achievements, forKey: .achievements)
         // Legacy mirror — see `CodingKeys`. Only the computer levels fit in it,
         // which is exactly right: an old build never knew any other column.
         var legacy: [String: Int] = [:]

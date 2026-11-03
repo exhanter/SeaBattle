@@ -128,6 +128,9 @@ final class NetMatch {
 
     var opponentDossier: PlayerDossier? { game.opponent?.dossier }
 
+    /// Ордена последней записанной партии — для итогов.
+    @ObservationIgnored private var medals: [EarnedMedal] = []
+
     /// Соперник поздоровался. До этого флот можно расставлять, но не
     /// объявлять готовым (4.4).
     var hasOpponent: Bool { game.opponent != nil }
@@ -316,23 +319,28 @@ final class NetMatch {
         guard records, recordedRound != game.round, !game.isSameAccount,
               let winner = game.winner else { return }
         recordedRound = game.round
+        let sankFleet = game.tracking.sunkShipCount == FleetLayout.shipCount
         if winner == .you {
             // Удвоение — только если флот потоплен: сдача соперника на пятом
             // выстреле быстрой победой не считается.
-            let sankFleet = game.tracking.sunkShipCount == FleetLayout.shipCount
             ProgressStore.shared.recordWin(statKey, shots: sankFleet ? game.tally.shots : nil)
         } else {
             ProgressStore.shared.recordLoss(statKey)
         }
+        medals = ProgressStore.shared.recordMatch(
+            MatchFacts(key: statKey, didWin: winner == .you, shots: sankFleet ? game.tally.shots : nil,
+                       bestStreak: game.tally.bestStreak, shipsLost: game.own.sunkShipCount))
     }
 
     private func makeResult() -> MatchResult {
-        MatchResult(didWin: game.winner == .you, key: statKey,
+        var result = MatchResult(didWin: game.winner == .you, key: statKey,
                     yourLosses: game.own.sunkShipCount,
                     foeLosses: game.tracking.sunkShipCount,
                     tally: game.tally,
                     balance: ProgressStore.shared.points,
                     awardsPoints: !game.isSameAccount)
+        result.medals = medals
+        return result
     }
 
     // MARK: Обрыв связи
