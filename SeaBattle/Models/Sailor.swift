@@ -115,6 +115,7 @@ struct SailorRank: Identifiable, Hashable, Sendable {
     /// Frozen, like `SailorItem.id`; names the art files.
     let id: String
     /// The price of this step from the rank below; the first rank is free.
+    /// Approved 03.11 (task K6): 28 700 for the whole ladder.
     let price: Int
     let group: RankGroup
     /// How many marks the placeholder badge draws — stripes for the enlisted,
@@ -129,64 +130,67 @@ enum SailorCatalog {
     /// rank is an id, and the next one is whatever follows it here.
     static let ranks: [SailorRank] = [
         SailorRank(id: "seaman", price: 0, group: .enlisted, marks: 0),
-        SailorRank(id: "seaman_senior", price: 100, group: .enlisted, marks: 1),
-        SailorRank(id: "petty", price: 200, group: .enlisted, marks: 2),
-        SailorRank(id: "petty_chief", price: 300, group: .enlisted, marks: 3),
-        SailorRank(id: "warrant", price: 500, group: .warrant, marks: 2),
-        SailorRank(id: "lieutenant", price: 750, group: .junior, marks: 2),
-        SailorRank(id: "lieutenant_senior", price: 1000, group: .junior, marks: 3),
-        SailorRank(id: "commander_lt", price: 1500, group: .junior, marks: 4),
-        SailorRank(id: "captain_3", price: 2000, group: .senior, marks: 1),
-        SailorRank(id: "captain_2", price: 3000, group: .senior, marks: 2),
-        SailorRank(id: "captain_1", price: 4000, group: .senior, marks: 3),
-        SailorRank(id: "admiral_rear", price: 6000, group: .admiral, marks: 1),
-        SailorRank(id: "admiral_vice", price: 8000, group: .admiral, marks: 2),
-        SailorRank(id: "admiral", price: 12000, group: .admiral, marks: 3),
-        SailorRank(id: "admiral_fleet", price: 20000, group: .admiral, marks: 4),
+        SailorRank(id: "seaman_senior", price: 50, group: .enlisted, marks: 1),
+        SailorRank(id: "petty", price: 100, group: .enlisted, marks: 2),
+        SailorRank(id: "petty_chief", price: 150, group: .enlisted, marks: 3),
+        SailorRank(id: "warrant", price: 300, group: .warrant, marks: 2),
+        SailorRank(id: "lieutenant", price: 400, group: .junior, marks: 2),
+        SailorRank(id: "lieutenant_senior", price: 500, group: .junior, marks: 3),
+        SailorRank(id: "commander_lt", price: 700, group: .junior, marks: 4),
+        SailorRank(id: "captain_3", price: 1000, group: .senior, marks: 1),
+        SailorRank(id: "captain_2", price: 1500, group: .senior, marks: 2),
+        SailorRank(id: "captain_1", price: 2000, group: .senior, marks: 3),
+        SailorRank(id: "admiral_rear", price: 3000, group: .admiral, marks: 1),
+        SailorRank(id: "admiral_vice", price: 4000, group: .admiral, marks: 2),
+        SailorRank(id: "admiral", price: 5000, group: .admiral, marks: 3),
+        SailorRank(id: "admiral_fleet", price: 10000, group: .admiral, marks: 4),
     ]
 
     /// The rank each tier is sold from (customer 02.11).
     static let tierRanks: [Int: String] = [2: "petty", 3: "lieutenant", 4: "captain_3", 5: "admiral_rear"]
 
-    /// Prices are preliminary (task K6 checks them against what a match pays).
+    /// Prices — task K6, approved 03.11: a tier costs 0–50 / 100 / 250 / 600 /
+    /// 1500 per item; seasonal 100–200. Paced against ~15 points a day for a
+    /// casual player: the officer's outfit in about five months, admirals a
+    /// carrot.
     static let items: [SailorItem] = [
         // Tier 1 — sailor.
         SailorItem(id: "cap_sailor", slot: .cap, price: 0, tier: 1),
         SailorItem(id: "shirt_stripes", slot: .shirt, price: 0, tier: 1),
-        SailorItem(id: "jacket_work", slot: .jacket, price: 50, tier: 1),
-        SailorItem(id: "coat_peacoat", slot: .coat, price: 100, tier: 1),
+        SailorItem(id: "jacket_work", slot: .jacket, price: 25, tier: 1),
+        SailorItem(id: "coat_peacoat", slot: .coat, price: 50, tier: 1),
         // Tier 2 — petty officer.
-        SailorItem(id: "cap_petty", slot: .cap, price: 150, tier: 2),
-        SailorItem(id: "shirt_jumper", slot: .shirt, price: 150, tier: 2),
-        SailorItem(id: "jacket_petty", slot: .jacket, price: 200, tier: 2),
-        SailorItem(id: "coat_storm", slot: .coat, price: 200, tier: 2),
+        SailorItem(id: "cap_petty", slot: .cap, price: 100, tier: 2),
+        SailorItem(id: "shirt_jumper", slot: .shirt, price: 100, tier: 2),
+        SailorItem(id: "jacket_petty", slot: .jacket, price: 100, tier: 2),
+        SailorItem(id: "coat_storm", slot: .coat, price: 100, tier: 2),
         // Tier 3 — officer.
-        SailorItem(id: "cap_officer", slot: .cap, price: 400, tier: 3),
-        SailorItem(id: "shirt_white", slot: .shirt, price: 400, tier: 3),
-        SailorItem(id: "jacket_officer", slot: .jacket, price: 500, tier: 3),
-        SailorItem(id: "coat_officer", slot: .coat, price: 500, tier: 3),
+        SailorItem(id: "cap_officer", slot: .cap, price: 250, tier: 3),
+        SailorItem(id: "shirt_white", slot: .shirt, price: 250, tier: 3),
+        SailorItem(id: "jacket_officer", slot: .jacket, price: 250, tier: 3),
+        SailorItem(id: "coat_officer", slot: .coat, price: 250, tier: 3),
         // Tier 4 — captain.
-        SailorItem(id: "cap_captain", slot: .cap, price: 1000, tier: 4),
-        SailorItem(id: "shirt_captain", slot: .shirt, price: 1000, tier: 4),
-        SailorItem(id: "jacket_captain", slot: .jacket, price: 1500, tier: 4),
-        SailorItem(id: "coat_captain", slot: .coat, price: 1500, tier: 4),
+        SailorItem(id: "cap_captain", slot: .cap, price: 600, tier: 4),
+        SailorItem(id: "shirt_captain", slot: .shirt, price: 600, tier: 4),
+        SailorItem(id: "jacket_captain", slot: .jacket, price: 600, tier: 4),
+        SailorItem(id: "coat_captain", slot: .coat, price: 600, tier: 4),
         // Tier 5 — admiral.
-        SailorItem(id: "cap_admiral", slot: .cap, price: 3000, tier: 5),
-        SailorItem(id: "shirt_admiral", slot: .shirt, price: 3000, tier: 5),
-        SailorItem(id: "jacket_admiral", slot: .jacket, price: 5000, tier: 5),
-        SailorItem(id: "coat_admiral", slot: .coat, price: 5000, tier: 5),
+        SailorItem(id: "cap_admiral", slot: .cap, price: 1500, tier: 5),
+        SailorItem(id: "shirt_admiral", slot: .shirt, price: 1500, tier: 5),
+        SailorItem(id: "jacket_admiral", slot: .jacket, price: 1500, tier: 5),
+        SailorItem(id: "coat_admiral", slot: .coat, price: 1500, tier: 5),
         // Seasonal — sold only in their season, kept for good once bought.
-        SailorItem(id: "cap_newyear_santa", slot: .cap, price: 200, tier: 0, season: "newyear"),
-        SailorItem(id: "jacket_newyear_santa", slot: .jacket, price: 300, tier: 0, season: "newyear"),
-        SailorItem(id: "shirt_newyear_sweater", slot: .shirt, price: 200, tier: 0, season: "newyear"),
-        SailorItem(id: "coat_newyear_frost", slot: .coat, price: 400, tier: 0, season: "newyear"),
-        SailorItem(id: "cap_newyear_deer", slot: .cap, price: 150, tier: 0, season: "newyear"),
-        SailorItem(id: "cap_newyear_elf", slot: .cap, price: 150, tier: 0, season: "newyear"),
-        SailorItem(id: "cap_halloween_pirate", slot: .cap, price: 200, tier: 0, season: "halloween"),
-        SailorItem(id: "jacket_halloween_pirate", slot: .jacket, price: 300, tier: 0, season: "halloween"),
-        SailorItem(id: "shirt_halloween_skeleton", slot: .shirt, price: 150, tier: 0, season: "halloween"),
-        SailorItem(id: "coat_halloween_vampire", slot: .coat, price: 400, tier: 0, season: "halloween"),
-        SailorItem(id: "cap_halloween_witch", slot: .cap, price: 200, tier: 0, season: "halloween"),
+        SailorItem(id: "cap_newyear_santa", slot: .cap, price: 150, tier: 0, season: "newyear"),
+        SailorItem(id: "jacket_newyear_santa", slot: .jacket, price: 200, tier: 0, season: "newyear"),
+        SailorItem(id: "shirt_newyear_sweater", slot: .shirt, price: 150, tier: 0, season: "newyear"),
+        SailorItem(id: "coat_newyear_frost", slot: .coat, price: 200, tier: 0, season: "newyear"),
+        SailorItem(id: "cap_newyear_deer", slot: .cap, price: 100, tier: 0, season: "newyear"),
+        SailorItem(id: "cap_newyear_elf", slot: .cap, price: 100, tier: 0, season: "newyear"),
+        SailorItem(id: "cap_halloween_pirate", slot: .cap, price: 150, tier: 0, season: "halloween"),
+        SailorItem(id: "jacket_halloween_pirate", slot: .jacket, price: 200, tier: 0, season: "halloween"),
+        SailorItem(id: "shirt_halloween_skeleton", slot: .shirt, price: 100, tier: 0, season: "halloween"),
+        SailorItem(id: "coat_halloween_vampire", slot: .coat, price: 200, tier: 0, season: "halloween"),
+        SailorItem(id: "cap_halloween_witch", slot: .cap, price: 150, tier: 0, season: "halloween"),
     ]
 
     /// A section's ladder, tier 1 first.

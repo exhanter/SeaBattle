@@ -122,17 +122,18 @@ struct SailorTests {
 
     @Test("Ranks are bought one by one, in order")
     func ranksInOrder() {
-        var stats = PlayerStats(points: 300)
+        let first = SailorCatalog.ranks[1].price, second = SailorCatalog.ranks[2].price
+        var stats = PlayerStats(points: first + second)
         #expect(stats.sailor.nextRank?.id == "seaman_senior")
         let bought6 = stats.buyNextRank(at: morning)
         #expect(bought6)
         #expect(stats.sailor.rank == "seaman_senior")
-        #expect(stats.points == 200)
+        #expect(stats.points == second)
         #expect(stats.ledger.entries.first?.purchasedRank == "seaman_senior")
         let bought7 = stats.buyNextRank(at: morning)
         #expect(bought7)
         #expect(stats.sailor.rank == "petty")
-        // 300 for the next step, nothing left.
+        // Nothing left for the next step.
         let bought8 = stats.buyNextRank(at: morning)
         #expect(!bought8)
         #expect(stats.sailor.rank == "petty")
