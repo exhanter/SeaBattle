@@ -20,7 +20,7 @@ struct ShellTests {
     @Test("Табов три, премиума среди них нет")
     func theNavigationHasThreeTabs() {
         #expect(ShellTab.allCases.count == 3)
-        #expect(ShellTab.allCases == [.play, .statistics, .settings])
+        #expect(ShellTab.allCases == [.play, .sailor, .settings])
         // Пейволл открывается из строки с замком и из настроек. Появившийся
         // здесь таб премиума — расхождение со спекой 3, а не мелочь вёрстки:
         // из-за него приложение начинает продавать раньше, чем играть.

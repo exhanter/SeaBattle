@@ -61,6 +61,8 @@ enum PadTileMetrics {
     static let gap: CGFloat = 7
     /// Зазор между соседними квадратами («Изменить» и «Начать»).
     static let pairGap: CGFloat = 12
+    /// Квадрат моряка: аватар — сторона квадрата минус этот зазор.
+    static let avatarInset: CGFloat = 24
 }
 
 /// Значок над подписью — содержимое любого квадрата.
@@ -69,10 +71,16 @@ struct PadTileLabel: View {
     var icon: String?
     /// Цвет значка. Ответы игры на бумаге красят значок в цвет результата.
     var iconTint: Color = .inkPrimary
+    /// Квадрат «Моряк» (заказчик 04.11): аватар почти во весь квадрат и без
+    /// подписи — название читают VoiceOver и долгое нажатие.
+    var sailor: SailorLook?
 
     var body: some View {
         VStack(spacing: PadTileMetrics.gap) {
-            if let icon {
+            if let sailor {
+                SailorAvatar(look: sailor, size: PadTileMetrics.side - PadTileMetrics.avatarInset)
+                    .accessibilityHidden(true)
+            } else if let icon {
                 Image(systemName: icon)
                     .font(.system(size: symbolFontSize(inBox: PadTileMetrics.icon)))
                     .frame(height: PadTileMetrics.icon)
@@ -81,11 +89,13 @@ struct PadTileLabel: View {
                     // («Drag» у меню) VoiceOver читать незачем.
                     .accessibilityHidden(true)
             }
+            if sailor == nil {
             Text(title)
                 .font(.system(size: PadTileMetrics.label, weight: .semibold, design: .rounded))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
+            }
         }
         .foregroundStyle(Color.inkPrimary)
         .padding(.horizontal, 6)
@@ -102,17 +112,20 @@ struct PadTileLabel: View {
 struct PadNavTile: View {
     let title: LocalizedStringKey
     let icon: String
+    /// Квадрат таба «Моряк» — с аватаром.
+    var sailor: SailorLook?
     var identifier: String?
     var action: () -> Void = {}
 
     var body: some View {
         Button(action: action) {
-            PadTileLabel(title: title, icon: icon)
+            PadTileLabel(title: title, icon: icon, sailor: sailor)
                 .frame(width: PadTileMetrics.side, height: PadTileMetrics.side)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .glassPanel(.g2, radius: PadTileMetrics.radius)
+        .accessibilityLabel(Text(title))
         .accessibilityIdentifier(identifier ?? "")
     }
 }
@@ -124,8 +137,10 @@ extension PadNavTile {
                    identifier: "navMenuButton", action: action)
     }
 
+    @MainActor
     static func tab(_ tab: ShellTab, _ action: @escaping () -> Void) -> PadNavTile {
         PadNavTile(title: tab.title, icon: tab.icon,
+                   sailor: tab == .sailor ? ProgressStore.shared.sailor.currentLook : nil,
                    identifier: "tab_\(tab.rawValue)", action: action)
     }
 }
@@ -136,7 +151,7 @@ extension PadNavTile {
 /// угол занимает „Главная“» легко перепутать местами.
 enum PadCorners {
     static func tabs(on current: ShellTab) -> (leading: ShellTab, trailing: ShellTab) {
-        (leading: current == .statistics ? .play : .statistics,
+        (leading: current == .sailor ? .play : .sailor,
          trailing: current == .settings ? .play : .settings)
     }
 }
@@ -169,7 +184,7 @@ struct PadCornerTabs: View {
         SeaBackground()
         VStack(spacing: 40) {
             PadCornerTabs(current: .play)
-            PadCornerTabs(current: .statistics)
+            PadCornerTabs(current: .sailor)
             HStack(spacing: PadTileMetrics.pairGap) {
                 PadNavTile.menu {}
                 Button(action: {}) { PadTileLabel(title: "Change", icon: "hand.draw") }

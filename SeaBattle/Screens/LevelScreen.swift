@@ -498,9 +498,7 @@ private struct LevelStakeCard: View {
             : AnyLayout(VStackLayout(spacing: 2))
         return layout {
             HStack(spacing: 4) {
-                Image(systemName: PointsSymbol.name)
-                    .font(.scalable(size: 13, weight: .semibold))
-                    .accessibilityHidden(true)
+                PointsCoin(size: 16)
                 Text(verbatim: value)
                     .font(.scalable(size: 19, weight: .bold, design: .rounded))
                     .monospacedDigit()

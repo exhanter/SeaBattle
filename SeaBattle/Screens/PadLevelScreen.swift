@@ -212,9 +212,7 @@ struct PadLevelScreen: View {
     private func number(_ value: String, caption: LocalizedStringKey, warm: Bool) -> some View {
         VStack(spacing: 4) {
             HStack(spacing: 5) {
-                Image(systemName: PointsSymbol.name)
-                    .font(.system(size: 17, weight: .semibold))
-                    .accessibilityHidden(true)
+                PointsCoin(size: 22, scales: false)
                 Text(verbatim: value)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .monospacedDigit()

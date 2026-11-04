@@ -415,8 +415,7 @@ struct ResultsScreen: View {
     private var pointsCard: some View {
         VStack(alignment: .leading, spacing: ResultMetrics.cardInnerGap) {
             HStack(spacing: ResultMetrics.pointsHeaderGap) {
-                ScaledSymbol(name: PointsSymbol.name, box: ResultMetrics.pointsIcon)
-                    .foregroundStyle(Color.roleYou)
+                PointsCoin(size: ResultMetrics.pointsIcon)
                 PointsCounter(value: counted)
                     .foregroundStyle(Color.inkPrimary)
             }
@@ -436,7 +435,7 @@ struct ResultsScreen: View {
             }
 
             HStack(spacing: ResultMetrics.totalGap) {
-                ScaledSymbol(name: PointsSymbol.name, box: ResultMetrics.totalIcon)
+                PointsCoin(size: ResultMetrics.totalIcon)
                 Text("Balance now: \(result.balance) points")
                     .font(.scalable(size: ResultMetrics.totalText))
             }

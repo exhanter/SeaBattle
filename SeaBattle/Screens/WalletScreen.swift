@@ -53,6 +53,8 @@ struct WalletScreen: View {
     /// Моряк (30.10) — на что баллы тратятся, кроме подсказок.
     var sailor = SailorWardrobe()
     var onBack: () -> Void = {}
+    /// Куда ведёт возврат: к моряку или в статистику (04.11).
+    var back: LocalizedStringKey = "Sailor"
     var onHistory: () -> Void = {}
     var onSailor: () -> Void = {}
     /// Покупка баллов за деньги (03.11); `nil` — строки нет.
@@ -67,7 +69,7 @@ struct WalletScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Points", back: "Statistics", onBack: onBack)
+            ScreenTitle(title: "Points", back: back, onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
             // Баланс закреплён под заголовком, прокручивается только история
@@ -137,9 +139,7 @@ struct WalletScreen: View {
             HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .firstTextBaseline
                                                                   : .lastTextBaseline,
                    spacing: 10) {
-                Image(systemName: PointsSymbol.name)
-                    .font(.scalable(size: symbolFontSize(inBox: WalletMetrics.balanceIcon)))
-                    .foregroundStyle(Color.roleYou)
+                PointsCoin(size: WalletMetrics.balanceIcon)
                     .alignmentGuide(.lastTextBaseline) { $0[.bottom] - 3 }
                 Text(balanceLine)
             }
@@ -174,6 +174,8 @@ struct WalletScreen: View {
             Button(action: onSailor) {
                 HStack(spacing: 12) {
                     SailorAvatar(look: look, size: WalletMetrics.sailorAvatar)
+                        // Звание и так в подписи — VoiceOver читал его дважды.
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Sailor")
                             .font(.scalable(size: ListMetrics.rowTitle, weight: .medium))
@@ -209,9 +211,7 @@ struct WalletScreen: View {
                         if let promotion {
                             PromotionEmblem(promotion: promotion.promotion, size: WalletMetrics.sailorAvatar)
                         } else {
-                            BrassIconBox(icon: "plus", box: WalletMetrics.sailorAvatar,
-                                         radius: WalletMetrics.sailorAvatar * 0.32,
-                                         symbol: WalletMetrics.sailorAvatar * 0.45, fill: 0.22)
+                            PointsShopIcon(size: WalletMetrics.sailorAvatar)
                         }
                     }
                     VStack(alignment: .leading, spacing: 2) {
@@ -433,7 +433,7 @@ private struct WalletPreview<Content: View>: View {
                 .ignoresSafeArea()
             VStack(spacing: 0) {
                 content
-                SeaTabBar(selection: .constant(.statistics))
+                SeaTabBar(selection: .constant(.sailor))
             }
         }
     }

@@ -176,9 +176,9 @@ struct PadLayoutTests {
 
     @Test("Углы корней табов: свой угол занимает «Главная»")
     func theCornerTilesSwapTheCurrentTab() {
-        #expect(PadCorners.tabs(on: .play) == (.statistics, .settings))
-        #expect(PadCorners.tabs(on: .statistics) == (.play, .settings))
-        #expect(PadCorners.tabs(on: .settings) == (.statistics, .play))
+        #expect(PadCorners.tabs(on: .play) == (.sailor, .settings))
+        #expect(PadCorners.tabs(on: .sailor) == (.play, .settings))
+        #expect(PadCorners.tabs(on: .settings) == (.sailor, .play))
     }
 
     @Test("Все кнопки нижней линии — квадраты одного размера")

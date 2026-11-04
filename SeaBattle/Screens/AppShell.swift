@@ -16,12 +16,16 @@ import SwiftUI
 // MARK: - Табы
 
 enum ShellTab: String, CaseIterable, Hashable, Sendable {
-    case play, statistics, settings
+    /// 04.11: «Моряк» на месте «Статистики» — моряк, баллы, ордена; статистика
+    /// теперь строка внутри (заказчик: моряк и баллы не находились).
+    case play, sailor, settings
 
+    /// Значок таба. У «Моряка» в таб-баре и квадрате iPad вместо значка —
+    /// аватар; символ остаётся для крупного показа по долгому нажатию.
     var icon: String {
         switch self {
         case .play: "house"
-        case .statistics: "chart.bar"
+        case .sailor: "person.crop.circle"
         case .settings: "gearshape"
         }
     }
@@ -29,7 +33,7 @@ enum ShellTab: String, CaseIterable, Hashable, Sendable {
     var title: LocalizedStringKey {
         switch self {
         case .play: "Home"
-        case .statistics: "Statistics"
+        case .sailor: "Sailor"
         case .settings: "Settings"
         }
     }
@@ -40,17 +44,32 @@ enum TabBarMetrics {
     /// Невыбранный таб гаснет **целиком** — это непрозрачность элемента как
     /// состояния, а не альфа внутри цвета, поэтому правило 8 не нарушено.
     static let inactiveOpacity: Double = 0.62
+    /// Значки домика и шестерёнки — на столько крупнее `tabIcon`: подписей
+    /// нет (заказчик 04.11), и значок один держит таб.
+    static let iconGrowth: CGFloat = 5
+    /// Аватар моряка — высота панели минус этот зазор (по 8 сверху и снизу).
+    static let avatarInset: CGFloat = 16
 }
 
 /// Нижняя панель навигации: стекло G2 без канта (решение 20.10 — кант убран
-/// со всех панелей).
+/// со всех панелей). **Без подписей** (заказчик 04.11): домик, моряк,
+/// шестерёнка по центру панели; выбранный таб — латунный значок и полная
+/// яркость, остальные гаснут. Названия — для VoiceOver и долгого нажатия.
 struct SeaTabBar: View {
     @Binding var selection: ShellTab
     var size: Geometry.SizeClass = .regular
+    /// Чей аватар на табе «Моряк»; `nil` — свой, из `ProgressStore`.
+    var sailor: SailorLook?
+    /// Нажатие на таб — через оболочку: она возвращает на корень и при
+    /// нажатии на уже выбранный таб (`onChange` его не видит). `nil` —
+    /// только смена выбора (превью).
+    var onSelect: ((ShellTab) -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.shapeFamily) private var shapeFamily
     @Environment(\.bottomChrome) private var chrome
+
+    private var height: CGFloat { chrome == .dock ? Geometry.Bottom.dockHeight : size.tabHeight }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -59,28 +78,35 @@ struct SeaTabBar: View {
                 // Кнопка, а не жест: таб должен быть кнопкой и для VoiceOver,
                 // а выбранный — сообщать о себе, что он выбран.
                 Button {
-                    withAnimation(Motion.quick.reduced(reduceMotion)) { selection = tab }
-                } label: {
-                    VStack(spacing: size.isCompact ? 3 : 5) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: symbolFontSize(inBox: size.tabIcon)))
-                            .frame(height: size.tabIcon)
-                            .foregroundStyle(Color.inkPrimary)
-                        Text(tab.title)
-                            .font(.system(size: size.tabLabel,
-                                          weight: isSelected ? .bold : .medium,
-                                          design: .rounded))
-                            .foregroundStyle(isSelected ? Color.roleYou : Color.inkPrimary)
+                    if let onSelect {
+                        onSelect(tab)
+                    } else {
+                        withAnimation(Motion.quick.reduced(reduceMotion)) { selection = tab }
                     }
-                    .frame(maxWidth: .infinity, minHeight: Geometry.Hit.minTarget)
+                } label: {
+                    Group {
+                        if tab == .sailor {
+                            SailorAvatar(look: sailor ?? ProgressStore.shared.sailor.currentLook,
+                                         size: height - TabBarMetrics.avatarInset)
+                        } else {
+                            let icon = size.tabIcon + TabBarMetrics.iconGrowth
+                            Image(systemName: tab.icon)
+                                .font(.system(size: symbolFontSize(inBox: icon),
+                                              weight: isSelected ? .semibold : .regular))
+                                .frame(width: icon, height: icon)
+                                .foregroundStyle(isSelected ? Color.roleYou : Color.inkPrimary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .opacity(isSelected ? 1 : TabBarMetrics.inactiveOpacity)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("tab_\(tab.rawValue)")
+                .accessibilityLabel(Text(tab.title))
                 .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-                // Кегль таб-бара фиксирован, как у системного: крупно — по
-                // долгому нажатию.
+                // Подписей нет — по долгому нажатию название крупно, как у
+                // системного таб-бара.
                 .accessibilityShowsLargeContentViewer {
                     Label(tab.title, systemImage: tab.icon)
                 }
@@ -88,7 +114,7 @@ struct SeaTabBar: View {
         }
         // С доком таб-бар — тот же док: та же высота, поля и отступ снизу,
         // что у `BottomStack` в партии, на любом размере iPhone.
-        .frame(height: chrome == .dock ? Geometry.Bottom.dockHeight : size.tabHeight)
+        .frame(height: height)
         .glassPanel(.g2, radius: shapeFamily.radius(chrome == .dock ? .dock : .control, legacy: size.tabRadius))
         .padding(.horizontal, chrome == .dock ? Geometry.Nav.stackInset : size.tabInset)
         .padding(.bottom, chrome == .dock ? Geometry.Nav.stackBottom : size.tabBottom)
@@ -181,6 +207,8 @@ struct AppShell: View {
     @State private var tab: ShellTab = .play
     /// Экран внутри таба «Статистика»; `nil` — сама страница статистики.
     @State private var statsPage: StatsPage?
+    /// Откуда пришли на `statsPage` — для возврата (04.11).
+    @State private var statsTrail: [StatsPage?] = []
     /// «Личное дело» поверх всего — и таб-бара (К4).
     @State private var playerCard: PlayerCardInfo?
     @State private var askWhichGameToContinue = false
@@ -451,6 +479,7 @@ struct AppShell: View {
         // Таб-бар iPhone меняет таб напрямую, мимо `selectTab`.
         .onChange(of: tab) {
             statsPage = nil
+            statsTrail = []
             settingsPage = nil
         }
         .onChange(of: appState.showPaywall) { _, shown in
@@ -473,7 +502,8 @@ struct AppShell: View {
                         tabContent
                         if !hidesTabs {
                             SeaTabBar(selection: $tab,
-                                      size: .forWidth(proxy.size.width))
+                                      size: .forWidth(proxy.size.width),
+                                      onSelect: selectTab)
                         }
                     }
                 }
@@ -496,8 +526,8 @@ struct AppShell: View {
                        savedGames: savedGames,
                        onContinueMode: continueGame(_:),
                        onDiscard: discardGame(_:))
-        case .statistics:
-            statistics
+        case .sailor:
+            sailorTab
         case .settings:
             switch settingsPage {
             case nil:
@@ -510,7 +540,8 @@ struct AppShell: View {
                                    if premiumManager.isPremium { settingsPage = .pro } else { openPro(intent: nil) }
                                } : nil,
                                onAbout: { settingsPage = .about },
-                               onPlayer: { settingsPage = .player })
+                               onPlayer: { settingsPage = .player },
+                               onSailor: { selectTab(.sailor) })
             case .player:
                 PlayerNameScreen(player: Binding(get: { appState.ownPlayer ?? .starter },
                                                  set: { appState.ownPlayer = $0 }),
@@ -528,34 +559,75 @@ struct AppShell: View {
 
     /// Сброс прячет таб-бар (на iPad — квадраты по углам): внизу у него свои
     /// две кнопки (кадр `screen10Reset`).
-    private var hidesTabs: Bool { tab == .statistics && statsPage?.hidesTabBar == true }
+    private var hidesTabs: Bool { tab == .sailor && statsPage?.hidesTabBar == true }
+
+    /// Шаг вглубь таба «Моряк»: откуда пришли, запоминается — кошелёк открывается
+    /// и от моряка, и из статистики, гардероб — от моряка и из кошелька, и
+    /// возврат должен вести туда, откуда пришли (04.11).
+    private func openStats(_ page: StatsPage) {
+        statsTrail.append(statsPage)
+        statsPage = page
+    }
+
+    private func backStats() {
+        statsPage = statsTrail.popLast() ?? nil
+    }
+
+    /// Подпись строки возврата — экран, куда она ведёт.
+    private var statsBackTitle: LocalizedStringKey {
+        switch statsTrail.last ?? nil {
+        case .statistics: "Statistics"
+        case .wallet: "Points"
+        default: "Sailor"
+        }
+    }
+
+    private var ownCard: PlayerCardInfo {
+        let progress = ProgressStore.shared
+        return PlayerCardInfo(name: appState.ownPlayer?.trimmedName ?? "",
+                              look: progress.sailor.currentLook,
+                              dossier: PlayerDossier(progress.stats),
+                              book: progress.stats.achievements)
+    }
 
     @ViewBuilder
-    private var statistics: some View {
+    private var sailorTab: some View {
         let progress = ProgressStore.shared
         switch statsPage {
         case nil:
+            SailorHubScreen(name: appState.ownPlayer?.trimmedName ?? "",
+                            wardrobe: progress.sailor,
+                            points: progress.points,
+                            dossier: PlayerDossier(progress.stats),
+                            onWardrobe: { openStats(.sailor) },
+                            onWallet: { openStats(.wallet) },
+                            onBuyPoints: { showsPointsShop = true },
+                            onCard: { playerCard = ownCard },
+                            onStatistics: { openStats(.statistics) })
+        case .statistics:
             StatsScreen(stats: progress.stats,
                         isPremium: premiumManager.isPremium,
                         onPlay: { selectTab(.play) },
-                        onWallet: { statsPage = .wallet },
-                        onReset: { statsPage = .reset })
+                        onBack: backStats,
+                        onWallet: { openStats(.wallet) },
+                        onReset: { openStats(.reset) })
         case .wallet:
             WalletScreen(points: progress.points,
                          entries: progress.ledger,
                          sailor: progress.sailor,
-                         onBack: { statsPage = nil },
-                         onHistory: { statsPage = .history },
-                         onSailor: { statsPage = .sailor },
+                         onBack: backStats,
+                         back: statsBackTitle,
+                         onHistory: { openStats(.history) },
+                         onSailor: { openStats(.sailor) },
                          onBuyPoints: { showsPointsShop = true },
                          promotion: PointsPromotion.active(on: .now))
         case .history:
             PointsHistoryScreen(entries: progress.ledger,
-                                onBack: { statsPage = .wallet })
+                                onBack: backStats)
         case .sailor:
             WardrobeScreen(wardrobe: progress.sailor,
                            points: progress.points,
-                           onBack: { statsPage = .wallet },
+                           onBack: backStats,
                            onBuy: { item, winter in
                                if progress.buy(item, winter: winter) { purchaseFeedback() }
                            },
@@ -571,13 +643,14 @@ struct AppShell: View {
                            dossier: PlayerDossier(progress.stats),
                            book: progress.stats.achievements,
                            onCard: { playerCard = $0 },
-                           onBuyPoints: { showsPointsShop = true })
+                           onBuyPoints: { showsPointsShop = true },
+                           back: statsBackTitle)
         case .reset:
             ResetScreen(onReset: { selection in
                             progress.reset(selection)
-                            statsPage = nil
+                            backStats()
                         },
-                        onCancel: { statsPage = nil })
+                        onCancel: backStats)
         }
     }
 
@@ -623,6 +696,7 @@ struct AppShell: View {
         withAnimation(Motion.quick.reduced(reduceMotion)) { tab = newTab }
         // Нажатие на таб возвращает на его корень, как в системных табах.
         statsPage = nil
+        statsTrail = []
         settingsPage = nil
     }
 

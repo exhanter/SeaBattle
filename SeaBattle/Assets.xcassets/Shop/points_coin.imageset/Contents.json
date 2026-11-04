@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "points_coin.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -25,11 +25,14 @@
 
 import SwiftUI
 
-/// Экраны внутри таба «Статистика». Таб-бар остаётся на всех, кроме сброса:
-/// там внизу свои две кнопки (кадр `screen10Reset`).
+/// Экраны внутри таба «Моряк» (до 04.11 — таба «Статистика»); корень — сам
+/// моряк (`SailorHubScreen`). Таб-бар остаётся на всех, кроме сброса: там
+/// внизу свои две кнопки (кадр `screen10Reset`).
 enum StatsPage: Hashable, Sendable {
+    /// Статистика — строка моряка (04.11), раньше корень таба.
+    case statistics
     case wallet, history, reset
-    /// Моряк (30.10): звание и одежда за баллы — из кошелька.
+    /// Гардероб (30.10): звание и одежда за баллы.
     case sailor
 
     var hidesTabBar: Bool { self == .reset }
@@ -88,6 +91,8 @@ struct StatsScreen: View {
     let stats: PlayerStats
     let isPremium: Bool
     var onPlay: () -> Void = {}
+    /// Возврат к моряку (04.11).
+    var onBack: () -> Void = {}
     var onWallet: () -> Void = {}
     var onReset: () -> Void = {}
 
@@ -102,7 +107,7 @@ struct StatsScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Statistics")
+            ScreenTitle(title: "Statistics", back: "Sailor", onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
             ScrollView {
@@ -251,7 +256,7 @@ struct StatsScreen: View {
 
     private var pointsCard: some View {
         ListGroup {
-            ListRow(title: "Points", value: Text(verbatim: "\(stats.points)"), action: onWallet)
+            ListRow(title: "Points", value: Text(stats.points, format: .number), action: onWallet)
                 .accessibilityIdentifier("statsPoints")
         }
     }
@@ -479,7 +484,7 @@ private struct StatsPreview<Content: View>: View {
                 .ignoresSafeArea()
             VStack(spacing: 0) {
                 content
-                SeaTabBar(selection: .constant(.statistics))
+                SeaTabBar(selection: .constant(.sailor))
             }
         }
     }

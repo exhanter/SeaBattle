@@ -214,8 +214,7 @@ struct ScorePanel: View {
             // На iPhone у баланса только значок и число: слово «баллов» не
             // вмещается (2.5). На iPad — со словом (лог дизайна, «Баланс баллов»).
             HStack(spacing: isPad ? 5 : 4) {
-                Image(systemName: PointsSymbol.name)
-                    .font(.system(size: symbolFontSize(inBox: m.balanceText + 3)))
+                PointsCoin(size: m.balanceText + 3, scales: false)
                 Group {
                     if isPad {
                         Text("\(balance) points")

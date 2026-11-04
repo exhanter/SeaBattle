@@ -371,6 +371,37 @@ enum PointsSymbol {
     static let name = "star.circle"
 }
 
+/// Монета баллов (Д10, `points_coin`) — рядом с числом баллов везде в игре
+/// (04.11, вместо символа `PointsSymbol`). Картинка своего цвета: окраска
+/// строки на неё не действует. Растёт с текстом, как `ScaledSymbol` (не больше
+/// чем вдвое); `scales: false` — для рамок с фиксированной геометрией (бой).
+/// Без картинки — прежний символ того же размера.
+struct PointsCoin: View {
+    /// Сторона при стандартном размере текста.
+    let size: CGFloat
+    var scales = true
+
+    @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
+
+    static let asset = "points_coin"
+
+    var body: some View {
+        let side = size * (scales ? min(scale, ScaledSymbol.maxScale) : 1)
+        Group {
+            if UIImage(named: Self.asset) != nil {
+                Image(Self.asset)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Image(systemName: PointsSymbol.name)
+                    .font(.system(size: symbolFontSize(inBox: side)))
+            }
+        }
+        .frame(width: side, height: side)
+        .accessibilityHidden(true)
+    }
+}
+
 // MARK: - Семейство форм
 
 extension Geometry {

@@ -69,6 +69,8 @@ struct WardrobeScreen: View {
     let wardrobe: SailorWardrobe
     let points: Int
     var onBack: () -> Void = {}
+    /// Куда ведёт возврат: к моряку или в кошелёк (04.11).
+    var back: LocalizedStringKey = "Sailor"
     /// Купить вещь и надеть: в зимний комплект или в летний.
     var onBuy: (SailorItem, Bool) -> Void = { _, _ in }
     var onBuyRank: () -> Void = {}
@@ -106,7 +108,9 @@ struct WardrobeScreen: View {
          book: AchievementBook? = nil,
          onCard: ((PlayerCardInfo) -> Void)? = nil,
          onBuyPoints: (() -> Void)? = nil,
+         back: LocalizedStringKey = "Sailor",
          now: Date = .now) {
+        self.back = back
         self.onCard = onCard
         self.onBuyPoints = onBuyPoints
         self.now = now
@@ -125,7 +129,7 @@ struct WardrobeScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTitle(title: "Sailor", back: "Points", onBack: onBack)
+            ScreenTitle(title: "Wardrobe", back: back, onBack: onBack)
                 .padding(.top, NavMetrics.titleTopBelowSafeArea)
 
             // Моряк закреплён под заголовком: примерку видно из любого места
@@ -219,9 +223,7 @@ struct WardrobeScreen: View {
                     }
                     .accessibilityElement(children: .combine)
                     HStack(spacing: 6) {
-                        Image(systemName: PointsSymbol.name)
-                            .foregroundStyle(Color.roleYou)
-                            .accessibilityHidden(true)
+                        PointsCoin(size: 15)
                         Text("\(points) points")
                             .monospacedDigit()
                             .foregroundStyle(Color.inkSecondary)
@@ -287,7 +289,7 @@ struct WardrobeScreen: View {
             } label: {
                 HStack(spacing: 6) {
                     Text("Buy")
-                    Image(systemName: PointsSymbol.name)
+                    PointsCoin(size: 18)
                     Text(verbatim: "\(price)").monospacedDigit()
                 }
             }
@@ -370,8 +372,7 @@ struct WardrobeScreen: View {
 
     private func priceLabel(_ price: Int) -> some View {
         HStack(spacing: 3) {
-            Image(systemName: PointsSymbol.name)
-                .foregroundStyle(Color.roleYou)
+            PointsCoin(size: 16)
             Text(verbatim: "\(price)")
                 .monospacedDigit()
                 .foregroundStyle(Color.inkSecondary)
@@ -571,8 +572,7 @@ struct WardrobeScreen: View {
                     .fixedSize(horizontal: false, vertical: true)
                 if let item = tile.item, !owned {
                     HStack(spacing: 3) {
-                        Image(systemName: PointsSymbol.name)
-                            .foregroundStyle(Color.roleYou)
+                        PointsCoin(size: 14)
                         Text(verbatim: "\(item.price)")
                             .monospacedDigit()
                             .foregroundStyle(Color.inkSecondary)

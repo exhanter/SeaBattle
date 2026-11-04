@@ -51,9 +51,7 @@ struct PointsShopSheet: View {
                 .accessibilityHidden(true)
 
             HStack(spacing: 11) {
-                BrassIconBox(icon: PointsSymbol.name, box: ProMetrics.sheetIconBox,
-                             radius: ProMetrics.sheetIconRadius, symbol: ProMetrics.featureIcon,
-                             fill: 0.22)
+                PointsShopIcon(size: ProMetrics.sheetIconBox)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Buy points")
                         .font(.scalable(size: ProMetrics.sheetTitle, weight: .bold, design: .rounded))
@@ -274,6 +272,25 @@ struct PointsPackArt: View {
         }
         .frame(width: size, height: size)
         .accessibilityHidden(true)
+    }
+}
+
+/// Значок покупки баллов (Д10, `points_shop`: бескозырка с монетами) — шапка
+/// листа и строка кошелька. Без картинки — знак баллов в латунной рамке.
+struct PointsShopIcon: View {
+    let size: CGFloat
+
+    var body: some View {
+        if UIImage(named: "points_shop") != nil {
+            Image("points_shop")
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+        } else {
+            BrassIconBox(icon: PointsSymbol.name, box: size, radius: size * 0.35,
+                         symbol: size * 0.5, fill: 0.22)
+        }
     }
 }
 

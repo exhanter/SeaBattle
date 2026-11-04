@@ -47,7 +47,7 @@ final class SeaBattleUITests: XCTestCase {
 
         // The three tabs live on the iPhone only; the iPad has corner squares.
         if UIDevice.current.userInterfaceIdiom == .phone {
-            for tab in ["play", "statistics", "settings"] {
+            for tab in ["play", "sailor", "settings"] {
                 XCTAssertTrue(app.buttons["tab_\(tab)"].exists, "Tab \(tab) is missing")
             }
         }

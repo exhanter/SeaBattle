@@ -42,6 +42,8 @@ enum SettingsMetrics {
     static let padColumnGap: CGFloat = 24
     /// iPad: ширина страницы на две колонки (кадр `screen11Settings`).
     static let padWidth: CGFloat = 754
+    /// Аватар в строке «Моряк».
+    static let sailorAvatar: CGFloat = 40
 }
 
 struct SettingsScreen: View {
@@ -55,6 +57,8 @@ struct SettingsScreen: View {
     var onAbout: () -> Void = {}
     /// Строка «Ваше имя» (R4.4): подзаголовок первого запуска обещает её.
     var onPlayer: () -> Void = {}
+    /// Строка «Моряк» (04.11) — на таб моряка.
+    var onSailor: () -> Void = {}
     /// Строка «Вибрация» — только на устройстве с вибромотором (не iPad и не
     /// симулятор). Параметр — ради превью, которое идёт на симуляторе.
     var offersHaptics: Bool = HapticService.isSupported
@@ -76,8 +80,13 @@ struct SettingsScreen: View {
                         // левая группа тянется, прибавка делится между её
                         // строками; справа растут промежутки между группами.
                         HStack(alignment: .top, spacing: SettingsMetrics.padColumnGap) {
-                            gameGroup(fills: true)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            // «Игрок» — над «Игрой» (04.11): справа он делал
+                            // правую колонку выше, и строки «Игры» растягивались.
+                            VStack(spacing: SettingsMetrics.padGroupGap) {
+                                playerGroup
+                                gameGroup(fills: true)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             VStack(spacing: 0) {
                                 viewGroup
                                 Spacer(minLength: SettingsMetrics.padGroupGap)
@@ -90,6 +99,7 @@ struct SettingsScreen: View {
                         .fixedSize(horizontal: false, vertical: true)
                     } else {
                         VStack(spacing: SettingsMetrics.groupGap) {
+                            playerGroup
                             gameGroup
                             soundGroup
                             moreGroup
@@ -186,10 +196,38 @@ struct SettingsScreen: View {
         }
     }
 
-    private var moreGroup: some View {
-        @Bindable var appState = appState
-        return ListGroup("More", hostsMenus: true) {
-            ListRow(title: "Your name", value: playerName, action: onPlayer)
+    /// «Игрок» (04.11) — первой группой: моряк, имя, зимняя форма. Раньше имя и
+    /// форма жили в «Ещё», а к моряку из настроек дороги не было.
+    private var playerGroup: some View {
+        let look = ProgressStore.shared.sailor.currentLook
+        return ListGroup("Player") {
+            Button(action: onSailor) {
+                HStack(spacing: 12) {
+                    SailorAvatar(look: look, size: SettingsMetrics.sailorAvatar)
+                        // Звание и так в подписи — VoiceOver читал его дважды.
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Sailor")
+                            .font(.scalable(size: ListMetrics.rowTitle, weight: .medium))
+                            .foregroundStyle(Color.inkPrimary)
+                        Text(look.rankInfo.title)
+                            .font(.scalable(size: ListMetrics.rowSubtitle))
+                            .foregroundStyle(Color.inkSecondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.right")
+                        .font(.scalable(size: symbolFontSize(inBox: ListMetrics.chevron), weight: .semibold))
+                        .foregroundStyle(Color.inkTertiary)
+                }
+                .padding(.vertical, ListMetrics.rowPaddingV)
+                .padding(.horizontal, ListMetrics.rowPaddingH)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("settingsSailor")
+            ListRow(title: "Name, icon and color", value: playerName, action: onPlayer)
                 .accessibilityIdentifier("settingsPlayer")
             // Зимняя форма моряка (заказчик 30.10): по сезону — по полушарию
             // из региона устройства; кому это не подходит, выбирает сам.
@@ -202,6 +240,12 @@ struct SettingsScreen: View {
                                 set: { dress in ProgressStore.shared.updateSailor { $0.winter = dress } })))
                     .accessibilityIdentifier("settingsWinter")
             }
+        }
+    }
+
+    private var moreGroup: some View {
+        @Bindable var appState = appState
+        return ListGroup("More", hostsMenus: true) {
             LanguageMenu(selection: $appState.language)
             if let onPro {
                 ListRow(title: "Pro",

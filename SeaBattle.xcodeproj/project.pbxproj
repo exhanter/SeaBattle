@@ -85,6 +85,7 @@
 		CA867907309A85E1005A2309 /* Achievements.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA867906309A85E1005A2309 /* Achievements.swift */; };
 		CA86790B309A96AE005A2309 /* PointsShop.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA86790A309A96AE005A2309 /* PointsShop.swift */; };
 		CA86790D309A96F2005A2309 /* PointsShopScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA86790C309A96F2005A2309 /* PointsShopScreen.swift */; };
+		CA867911309B3B84005A2309 /* SailorHubScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA867910309B3B84005A2309 /* SailorHubScreen.swift */; };
 		CAA32FCF3064040000469335 /* SeaBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FCE3064040000469335 /* SeaBackground.swift */; };
 		CAA32FD13064042800469335 /* GlassPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA32FD03064042800469335 /* GlassPanel.swift */; };
 		CAAE9AB73063B5D100ACEBA0 /* DesignTokensSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */; };
@@ -217,6 +218,7 @@
 		CA867906309A85E1005A2309 /* Achievements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievements.swift; sourceTree = "<group>"; };
 		CA86790A309A96AE005A2309 /* PointsShop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsShop.swift; sourceTree = "<group>"; };
 		CA86790C309A96F2005A2309 /* PointsShopScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsShopScreen.swift; sourceTree = "<group>"; };
+		CA867910309B3B84005A2309 /* SailorHubScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SailorHubScreen.swift; sourceTree = "<group>"; };
 		CAA32FCE3064040000469335 /* SeaBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeaBackground.swift; sourceTree = "<group>"; };
 		CAA32FD03064042800469335 /* GlassPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPanel.swift; sourceTree = "<group>"; };
 		CAAE9AB63063B5D100ACEBA0 /* DesignTokensSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokensSupport.swift; sourceTree = "<group>"; };
@@ -426,6 +428,7 @@
 				CA8678B03088DF67005A2309 /* PadMenuArtPreviews.swift */,
 				CA8678C4309544F2005A2309 /* WardrobeScreen.swift */,
 				CA86790C309A96F2005A2309 /* PointsShopScreen.swift */,
+				CA867910309B3B84005A2309 /* SailorHubScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -651,6 +654,7 @@
 				CAD0029B3076E82E006405DC /* ContinueGame.swift in Sources */,
 				A584E62AB77D1A8B2AADC8D3 /* BoardCell.swift in Sources */,
 				9773F3093B5E225E9BA64CC7 /* CellEvent.swift in Sources */,
+				CA867911309B3B84005A2309 /* SailorHubScreen.swift in Sources */,
 				CA8678C1309543B9005A2309 /* Sailor.swift in Sources */,
 				CA8678B13088DF67005A2309 /* PadMenuArtPreviews.swift in Sources */,
 				FA9587FC6C8A65C22385A0A5 /* BoardView.swift in Sources */,

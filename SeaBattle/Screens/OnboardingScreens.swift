@@ -203,7 +203,7 @@ struct WelcomeScreen: View {
 
 struct PlayerNameScreen: View {
     /// Первый запуск — «Готово» и «Пропустить» внизу; настройки — строка
-    /// возврата, и всё сохраняется по ходу набора.
+    /// возврата и «Готово», всё сохраняется по ходу набора.
     enum Purpose { case firstLaunch, settings }
 
     @Binding var player: OwnPlayer
@@ -246,6 +246,17 @@ struct PlayerNameScreen: View {
             .seaScroll()
             .scrollDismissesKeyboard(.interactively)
 
+            if purpose == .settings {
+                // Всё сохраняется по ходу набора, но без кнопки непонятно, что
+                // делать дальше (заказчик 04.11): «Готово» возвращает в настройки.
+                Button("Done", action: onBack)
+                    .primaryButton()
+                    .accessibilityIdentifier("nameDone")
+                    .padding(.horizontal, Geometry.Nav.stackInset)
+                    // Под ней таб-бар (на iPad — квадраты по углам, кнопка в
+                    // колонке между ними), поэтому без нижней рамки первого запуска.
+                    .padding(.vertical, Geometry.Nav.stackGap)
+            }
             if purpose == .firstLaunch {
                 VStack(spacing: Geometry.Nav.stackGap) {
                     Button("Done", action: onDone)
