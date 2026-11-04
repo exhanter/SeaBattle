@@ -71,7 +71,7 @@ struct PointsShopTests {
         #expect(last.month == 11 && last.day == 30)
     }
 
-    @Test("Пасха — от Великой пятницы ранней Пасхи до понедельника поздней")
+    @Test("Пасха — два окна: западная и православная, с пятницы по понедельник")
     func easter() {
         #expect(PromotionWindow.easterSunday(2026) == DateComponents(year: 2026, month: 4, day: 5))
         #expect(PromotionWindow.easterSunday(2027) == DateComponents(year: 2027, month: 3, day: 28))
@@ -79,14 +79,19 @@ struct PointsShopTests {
         #expect(PromotionWindow.orthodoxEasterSunday(2026, calendar: calendar) == DateComponents(year: 2026, month: 4, day: 12))
         #expect(PromotionWindow.orthodoxEasterSunday(2027, calendar: calendar) == DateComponents(year: 2027, month: 5, day: 2))
         #expect(PromotionWindow.orthodoxEasterSunday(2028, calendar: calendar) == DateComponents(year: 2028, month: 4, day: 16))
-        // 2026: 5.04 и 12.04 — с 3.04 по 13.04.
+        // 2026: 5.04 и 12.04 — 3–6.04 и 10–13.04, между ними без акции.
         #expect(promotion(on: day(2026, 4, 2)) == nil)
         #expect(promotion(on: day(2026, 4, 3)) == "easter")
-        #expect(promotion(on: day(2026, 4, 8)) == "easter", "между двумя Пасхами")
+        #expect(promotion(on: day(2026, 4, 6)) == "easter")
+        #expect(promotion(on: day(2026, 4, 8)) == nil, "между двумя Пасхами")
+        #expect(promotion(on: day(2026, 4, 10)) == "easter")
         #expect(promotion(on: day(2026, 4, 13)) == "easter")
         #expect(promotion(on: day(2026, 4, 14)) == nil)
-        // 2027: 28.03 и 2.05 — с 26.03 по 3.05.
+        // 2027: 28.03 и 2.05 — два окна, а не пять недель.
         #expect(promotion(on: day(2027, 3, 26)) == "easter")
+        #expect(promotion(on: day(2027, 3, 30)) == nil)
+        #expect(promotion(on: day(2027, 4, 15)) == nil)
+        #expect(promotion(on: day(2027, 4, 30)) == "easter")
         #expect(promotion(on: day(2027, 5, 3)) == "easter")
         #expect(promotion(on: day(2027, 5, 4)) == nil)
         // 2028: совпадают — четыре дня.

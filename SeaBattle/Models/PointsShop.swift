@@ -80,10 +80,12 @@ enum PromotionWindow: Sendable {
     /// Black Friday to Cyber Monday: the Friday after the fourth Thursday of
     /// November and the three days after it.
     case blackFriday
-    /// Both Easters in one window (customer 04.11): from Good Friday of the
-    /// earlier one to Easter Monday of the later one. In a year they fall
-    /// together that is four days; in 2027 (28.03 and 2.05) over five weeks.
-    case easter
+    /// Good Friday to Easter Monday of Western Easter.
+    case westernEaster
+    /// Good Friday to Easter Monday of Orthodox Easter. Customer 04.11: each
+    /// Easter its own window — one window from the earlier to the later ran
+    /// over five weeks in 2027 (28.03 and 2.05).
+    case orthodoxEaster
     /// A one-off promotion shipped with an update: first and last day.
     case once(start: DateComponents, end: DateComponents)
 
@@ -116,14 +118,10 @@ enum PromotionWindow: Sendable {
             guard let thanksgiving = Self.fourthThursdayOfNovember(year, calendar: calendar) else { return nil }
             return (Self.shift(thanksgiving, by: 1, calendar: calendar),
                     Self.shift(thanksgiving, by: 4, calendar: calendar))
-        case .easter:
-            let western = Self.easterSunday(year)
-            let orthodox = Self.orthodoxEasterSunday(year, calendar: calendar)
-            let order = { (day: DateComponents) in (day.month ?? 0) * 100 + (day.day ?? 0) }
-            let (earlier, later) = order(western) <= order(orthodox) ? (western, orthodox)
-                                                                    : (orthodox, western)
-            return (Self.shift(earlier, by: -2, calendar: calendar),
-                    Self.shift(later, by: 1, calendar: calendar))
+        case .westernEaster:
+            return Self.easterWeekend(Self.easterSunday(year), calendar: calendar)
+        case .orthodoxEaster:
+            return Self.easterWeekend(Self.orthodoxEasterSunday(year, calendar: calendar), calendar: calendar)
         case .once(let start, let end):
             return start.year == year ? (start, end) : nil
         }
@@ -148,6 +146,12 @@ enum PromotionWindow: Sendable {
         let month = (h + l - 7 * m + 114) / 31
         let day = (h + l - 7 * m + 114) % 31 + 1
         return DateComponents(year: year, month: month, day: day)
+    }
+
+    /// Good Friday and Easter Monday around a Sunday.
+    private static func easterWeekend(_ sunday: DateComponents,
+                                      calendar: Calendar) -> (DateComponents, DateComponents) {
+        (shift(sunday, by: -2, calendar: calendar), shift(sunday, by: 1, calendar: calendar))
     }
 
     /// Orthodox Easter Sunday as a Gregorian date — Meeus' Julian algorithm
@@ -202,7 +206,8 @@ struct PointsPromotion: Identifiable, Sendable {
         // The Russian New Year holidays, up to Orthodox Christmas.
         PointsPromotion(id: "newyear", windows: [.yearly(start: (12, 31), end: (1, 6))],
                         sales: upperPacks, title: "New Year", symbol: "sparkles"),
-        PointsPromotion(id: "easter", windows: [.easter], sales: upperPacks,
+        // Both Easters; in a year they coincide the windows are the same days.
+        PointsPromotion(id: "easter", windows: [.westernEaster, .orthodoxEaster], sales: upperPacks,
                         title: "Easter", symbol: "hare"),
         // With the Halloween shelf in the wardrobe (15.10 – 5.11).
         PointsPromotion(id: "halloween", windows: [.yearly(start: (10, 29), end: (11, 1))],
